@@ -1,0 +1,229 @@
+import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import { toast } from "@/hooks/use-toast";
+import ContractorMatch from "./ContractorMatch";
+import EvidenceLocker from "./EvidenceLocker";
+
+interface Flag {
+  id: number;
+  severity: "red" | "amber" | "green";
+  label: string;
+  detail: string;
+  tip: string | null;
+}
+
+interface GradeRevealProps {
+  grade?: string;
+  dollarDelta?: number;
+  county?: string;
+  flags?: Flag[];
+  fairPriceLow?: number;
+  fairPriceHigh?: number;
+  onContractorMatchClick?: () => void;
+}
+
+const gradeConfig: Record<string, { color: string; bg: string; label: string; message: string }> = {
+  A: { color: "#059669", bg: "#ECFDF5", label: "STRONG QUOTE", message: "Your quote is well-structured and competitively priced." },
+  B: { color: "#84CC16", bg: "#F7FEE7", label: "ACCEPTABLE", message: "Your quote is acceptable with minor items worth addressing." },
+  C: { color: "#F97316", bg: "#FFF7ED", label: "REVIEW BEFORE SIGNING", message: "Your quote has issues that could cost you money." },
+  D: { color: "#DC2626", bg: "#FEF2F2", label: "SIGNIFICANT PROBLEMS FOUND", message: "Do not sign without renegotiating these issues." },
+  F: { color: "#991B1B", bg: "#FEF2F2", label: "CRITICAL ISSUES FOUND", message: "This quote has critical problems. You are likely being significantly overcharged." },
+};
+
+const defaultFlags: Flag[] = [
+  { id: 1, severity: "red", label: "No Window Brand Specified", detail: "Your contractor can install any brand at any quality level.", tip: "Ask: 'What specific brand and model will you install?'" },
+  { id: 2, severity: "amber", label: "Labor Warranty: 1 Year Only", detail: "Industry standard is 2–5 years for this project type.", tip: "Negotiate: Request minimum 3-year labor warranty in writing." },
+  { id: 3, severity: "amber", label: "Payment Schedule: 50% Deposit", detail: "Deposits above 40% before work begins carry financial risk.", tip: "Counter with: 30% deposit, 40% at midpoint, 30% on completion." },
+  { id: 4, severity: "green", label: "Permit Cost Included", detail: "Permit fees are correctly included in your contract total.", tip: null },
+];
+
+const stagger = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.12, duration: 0.4 } });
+
+const GradeReveal = ({
+  grade = "C",
+  dollarDelta = 4800,
+  county = "Broward",
+  flags = defaultFlags,
+  fairPriceLow = 12600,
+  fairPriceHigh = 14200,
+  onContractorMatchClick,
+}: GradeRevealProps) => {
+  const config = gradeConfig[grade] || gradeConfig.C;
+  const [counter, setCounter] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const counterStarted = useRef(false);
+
+  const redCount = flags.filter(f => f.severity === "red").length;
+  const amberCount = flags.filter(f => f.severity === "amber").length;
+  const greenCount = flags.filter(f => f.severity === "green").length;
+  const issueCount = redCount + amberCount;
+
+  useEffect(() => {
+    if (counterStarted.current) return;
+    counterStarted.current = true;
+    const target = Math.abs(dollarDelta);
+    const duration = 1500;
+    const start = performance.now();
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCounter(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [dollarDelta]);
+
+  const scriptText = `Hi [Contractor Name], I've had a chance to review your quote in more detail and I have a few questions before I can move forward.\n\nFirst — can you confirm the specific brand and model of window you'll be installing? I want that in writing before we finalize anything.\n\nSecond — I'd like to see the labor warranty extended to at least three years. That's the standard I've seen for this scope of work.\n\nI'm ready to move forward if we can get those two things confirmed. What's the fastest way to get a revised quote?`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(scriptText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const severityStyles = {
+    red: { border: "1.5px solid #FECACA", borderLeft: "4px solid #DC2626", badgeBg: "#FEF2F2", badgeColor: "#DC2626", badgeText: "⚠ CRITICAL", tipBg: "#FFF7ED" },
+    amber: { border: "1.5px solid #FDE68A", borderLeft: "4px solid #F59E0B", badgeBg: "#FFFBEB", badgeColor: "#D97706", badgeText: "⚡ REVIEW", tipBg: "#FFFBEB" },
+    green: { border: "1.5px solid #A7F3D0", borderLeft: "4px solid #059669", badgeBg: "#ECFDF5", badgeColor: "#059669", badgeText: "✓ CONFIRMED", tipBg: "" },
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+      style={{ borderRadius: 16, border: "1px solid rgba(0, 242, 255, 0.12)", boxShadow: "0 4px 24px rgba(0, 242, 255, 0.08), 0 20px 60px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.06)", overflow: "hidden" }}>
+
+      <section style={{ background: "#FAFAFA" }} className="py-16 md:py-20 px-4 md:px-8">
+        <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
+          <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.05, 1] }} transition={{ duration: 0.6, times: [0, 0.7, 1] }}
+            style={{ width: 120, height: 120, borderRadius: "50%", border: `4px solid ${config.color}`, background: "white", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 12px ${config.color}1A, 0 0 48px ${config.color}33` }}
+            className="w-[120px] h-[120px] md:w-[160px] md:h-[160px]">
+            <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(80px, 10vw, 96px)", fontWeight: 900, color: config.color }}>{grade}</span>
+          </motion.div>
+          <motion.div {...stagger(2.5)} style={{ background: config.bg, border: `1.5px solid ${config.color}`, borderRadius: 999, padding: "6px 20px", marginTop: 20 }}>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 700, color: config.color, letterSpacing: "0.1em" }}>GRADE {grade} — {config.label}</span>
+          </motion.div>
+          <motion.p {...stagger(3.3)} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(17px, 2vw, 19px)", color: "#374151", marginTop: 12 }}>{config.message}</motion.p>
+        </div>
+      </section>
+
+      <section style={{ background: "white", borderTop: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          <motion.div {...stagger(3)}>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>YOUR QUOTE VS. FAIR MARKET</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "clamp(36px, 5vw, 44px)", fontWeight: 900, color: dollarDelta > 0 ? "#DC2626" : "#059669" }}>
+              {dollarDelta > 0 ? "+" : dollarDelta < 0 ? "-" : ""}${counter.toLocaleString()}
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>
+              {dollarDelta > 0 ? `above fair market for ${county} County` : dollarDelta < 0 ? "below market — this quote is competitive" : "This quote is priced at the county benchmark"}
+            </p>
+          </motion.div>
+          <motion.div {...stagger(3.5)}>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>FAIR MARKET RANGE · {county.toUpperCase()} COUNTY</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, fontWeight: 700, color: "#0099BB" }}>${fairPriceLow.toLocaleString()} – ${fairPriceHigh.toLocaleString()}</p>
+            <div style={{ position: "relative", marginTop: 12 }}>
+              <div style={{ height: 8, background: "#E5E7EB", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ height: 8, borderRadius: 4, background: "linear-gradient(90deg, #0099BB, #059669)", width: "70%" }} />
+              </div>
+              <div style={{ position: "absolute", top: -3, left: "75%", width: 14, height: 14, borderRadius: "50%", background: config.color, border: "2px solid white", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
+            </div>
+            <div className="flex justify-between mt-1.5">
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#6B7280" }}>p25 — budget range</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#6B7280" }}>p75 — premium range</span>
+            </div>
+          </motion.div>
+          <motion.div {...stagger(4)}>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>SAMPLE SIZE</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 32, fontWeight: 700, color: "#0F1F35" }}>847</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>real {county} County quotes in our database</p>
+            <div style={{ borderTop: "1px solid #E5E7EB", margin: "12px 0" }} />
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>Data as of Q1 2025</p>
+          </motion.div>
+        </div>
+      </section>
+
+      <section style={{ background: "#FAFAFA" }} className="py-12 md:py-16 px-4 md:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+            <div>
+              <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35" }}>What We Found</h2>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280" }}>{issueCount} issue{issueCount !== 1 ? "s" : ""} identified · {greenCount} item{greenCount !== 1 ? "s" : ""} confirmed correct</p>
+            </div>
+            <div className="hidden md:block" style={{ background: "#E8F7FB", border: "1px solid #0099BB", borderRadius: 6, padding: "6px 12px" }}>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#0099BB", letterSpacing: "0.08em" }}>BASED ON {county.toUpperCase()} COUNTY BENCHMARKS</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {flags.map((flag, i) => {
+              const s = severityStyles[flag.severity];
+              return (
+                <motion.div key={flag.id} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.3, duration: 0.35 }}
+                  style={{ background: "white", border: s.border, borderLeft: s.borderLeft, borderRadius: 10, padding: "20px 20px 20px 24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+                  <span style={{ display: "inline-block", background: s.badgeBg, borderRadius: 999, padding: "3px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700, color: s.badgeColor, letterSpacing: "0.06em" }}>{s.badgeText}</span>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: "#0F1F35", marginTop: 8 }}>{flag.label}</p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#374151", lineHeight: 1.7, marginTop: 6 }}>{flag.detail}</p>
+                  {flag.tip && (
+                    <div style={{ background: s.tipBg, borderRadius: 8, padding: "12px 16px", marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <span style={{ fontSize: 16, flexShrink: 0 }}>💬</span>
+                      <div>
+                        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#C8952A", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>NEGOTIATION TIP</p>
+                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#374151", lineHeight: 1.6 }}>{flag.tip}</p>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          <div style={{ background: "#0F1F35", borderRadius: 10, padding: "16px 20px", marginTop: 20 }} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "white" }}>{redCount} critical issue{redCount !== 1 ? "s" : ""}, {amberCount} caution{amberCount !== 1 ? "s" : ""}, {greenCount} item{greenCount !== 1 ? "s" : ""} correct.</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#94A3B8" }}>Grade: {grade} of 5 criteria reviewed</p>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ background: "white", borderTop: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
+        <div className="max-w-4xl mx-auto">
+          <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35" }}>How to handle this quote.</h2>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginTop: 8, marginBottom: 28 }}>Use this exact language when you call your contractor back.</p>
+          <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderLeft: "4px solid #0099BB", borderRadius: 10, padding: "24px 28px", position: "relative", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "white", border: "1px solid #E5E7EB", borderRadius: 6, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", cursor: "pointer" }}>
+              {copied ? "✓ Copied" : "Copy Script"}
+            </button>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#0099BB", letterSpacing: "0.1em", marginBottom: 16 }}>WORD-FOR-WORD SCRIPT</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#0F1F35", lineHeight: 2.0, whiteSpace: "pre-line" }}>{scriptText}</p>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ background: "#FAFAFA", borderTop: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35", marginBottom: 8 }}>What do you want to do with this?</h2>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 32 }}>Your analysis is saved. You can come back to it anytime.</p>
+          <div className="flex flex-col md:flex-row justify-center gap-4">
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+              onClick={() => { console.log({ event: "wm_contractor_match_clicked", grade, dollarDelta }); onContractorMatchClick?.(); }}
+              className="flex flex-col items-center"
+              style={{ background: "#C8952A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, padding: "16px 36px", borderRadius: 10, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(200,149,42,0.35)" }}>
+              <span>Get a Counter-Quote From a Vetted Contractor</span>
+              <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 4 }}>We'll find contractors who quote fair in {county} County</span>
+            </motion.button>
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+              onClick={() => { console.log({ event: "wm_report_downloaded" }); toast({ title: "Report saved to your downloads" }); }}
+              style={{ background: "white", border: "1.5px solid #E5E7EB", color: "#374151", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 10, cursor: "pointer" }}>
+              ⬇ Download PDF Report
+            </motion.button>
+          </div>
+          <button onClick={() => { console.log({ event: "wm_report_shared" }); toast({ title: "Link copied to clipboard" }); }}
+            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#0099BB", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", marginTop: 12, display: "inline-block" }}>
+            Share this report →
+          </button>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9CA3AF", marginTop: 20 }}>Your contractor will never see this report unless you choose to share it.</p>
+        </div>
+      </section>
+    </motion.div>
+  );
+};
+
+export default GradeReveal;
