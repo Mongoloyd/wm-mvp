@@ -14,7 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leads: {
+        Row: {
+          county: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          phone_e164: string | null
+          project_type: string | null
+          quote_range: string | null
+          session_id: string
+          source: string | null
+          status: string | null
+          window_count: number | null
+        }
+        Insert: {
+          county?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          phone_e164?: string | null
+          project_type?: string | null
+          quote_range?: string | null
+          session_id: string
+          source?: string | null
+          status?: string | null
+          window_count?: number | null
+        }
+        Update: {
+          county?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          phone_e164?: string | null
+          project_type?: string | null
+          quote_range?: string | null
+          session_id?: string
+          source?: string | null
+          status?: string | null
+          window_count?: number | null
+        }
+        Relationships: []
+      }
+      quote_analyses: {
+        Row: {
+          created_at: string
+          dollar_delta: number | null
+          flags: Json | null
+          grade: string | null
+          id: string
+          lead_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          dollar_delta?: number | null
+          flags?: Json | null
+          grade?: string | null
+          id?: string
+          lead_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          dollar_delta?: number | null
+          flags?: Json | null
+          grade?: string | null
+          id?: string
+          lead_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_analyses_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_files: {
+        Row: {
+          created_at: string
+          id: string
+          lead_id: string | null
+          status: string | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_files_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
