@@ -38,20 +38,30 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    --color-navy: 210 25% 10%;
+    --color-navy-light: 214 30% 15%;
+    --color-navy-lighter: 213 30% 20%;
+    --color-amber: 38 92% 50%;
+    --color-cyan: 187 100% 50%;
+    --color-emerald: 160 84% 39%;
+    --color-danger: 0 79% 43%;
+    --color-warning: 32 90% 44%;
+    --color-gold-light: 48 100% 96%;
+    --color-cyan-light: 190 100% 94%;
+    --color-green-light: 152 81% 90%;
+    --color-red-light: 0 86% 97%;
+    --cyan-text: 195 100% 28%;
+    --amber-text: 22 84% 31%;
+    --emerald-text: 166 90% 20%;
+    --danger-text: 0 80% 43%;
+
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
