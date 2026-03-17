@@ -13,6 +13,13 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Jost', 'Inter', 'system-ui', 'sans-serif'],
+        heading: ['Jost', 'sans-serif'],
+        display: ['Jost', 'sans-serif'],
+        body: ['Jost', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'monospace'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -47,6 +54,36 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        navy: {
+          DEFAULT: "hsl(var(--color-navy))",
+          light: "hsl(var(--color-navy-light))",
+          lighter: "hsl(var(--color-navy-lighter))",
+        },
+        cyan: {
+          DEFAULT: "hsl(var(--color-cyan))",
+          light: "hsl(var(--color-cyan-light))",
+          text: "hsl(var(--cyan-text))",
+        },
+        gold: {
+          DEFAULT: "hsl(var(--color-amber))",
+          light: "hsl(var(--color-gold-light))",
+        },
+        emerald: {
+          DEFAULT: "hsl(var(--color-emerald))",
+          light: "hsl(var(--color-green-light))",
+          text: "hsl(var(--emerald-text))",
+        },
+        danger: {
+          DEFAULT: "hsl(var(--color-danger))",
+          light: "hsl(var(--color-red-light))",
+          text: "hsl(var(--danger-text))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--color-warning))",
+        },
+        "amber-text": "hsl(var(--amber-text))",
+        "cyan-text": "hsl(var(--cyan-text))",
+        "emerald-text": "hsl(var(--emerald-text))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -64,6 +101,14 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        "header-slide-down": {
+          "0%": { opacity: "0", transform: "translateY(-10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "pulse-dot": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.4" },
+        },
         "accordion-down": {
           from: {
             height: "0",
@@ -84,6 +129,8 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "header-slide-down": "header-slide-down 0.3s ease-out",
+        "pulse-dot": "pulse-dot 2s infinite",
       },
     },
   },
