@@ -214,7 +214,7 @@ const SampleGradeCard = () => {
 
           {/* Financial callout */}
           <div className="relative mb-5" style={{
-            background: "hsla(0,79%,50%,0.08)",
+            background: "rgba(0,0,0,0.80)",
             border: "1px solid hsla(0,79%,50%,0.2)",
             borderRadius: 12, padding: "14px 18px",
           }}>
@@ -241,7 +241,7 @@ const SampleGradeCard = () => {
               const Icon = flag.icon;
               return (
                 <div key={i} className="flex overflow-hidden" style={{
-                  background: "hsla(0,0%,100%,0.04)",
+                  background: "hsla(0,0%,100%,0.08)",
                   border: "1px solid hsla(0,0%,100%,0.08)",
                   borderRadius: 10,
                 }}>
