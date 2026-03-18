@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface UploadZoneProps {
   isVisible: boolean;
@@ -9,10 +10,25 @@ interface UploadZoneProps {
   sessionId?: string;
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+];
+
+const formatSize = (bytes: number) => {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -23,17 +39,6 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       }, 450);
     }
   }, [isVisible]);
-
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-  const ALLOWED_TYPES = [
-    "application/pdf",
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/heic",
-  ];
-
-  const [fileError, setFileError] = useState<string | null>(null);
 
   const handleFile = useCallback((f: File) => {
     setFileError(null);
@@ -60,48 +65,99 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
   );
 
   const handleScan = async () => {
-    if (!file) return;
+    if (!file || uploading) return; // duplicate guard
     setUploading(true);
 
     try {
+      // Step 1: Upload to storage
       const filePath = `${sessionId || crypto.randomUUID()}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
-        .from('quotes')
+        .from("quotes")
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
-
-      // Insert record into quote_files
-      if (sessionId) {
-        // Look up lead_id by session_id
-        const { data: leads } = await supabase
-          .from('leads')
-          .select('id')
-          .eq('session_id', sessionId)
-          .limit(1);
-
-        const leadId = leads?.[0]?.id || null;
-
-        await supabase.from('quote_files').insert({
-          lead_id: leadId,
-          storage_path: filePath,
-          status: 'pending',
-        });
+      if (uploadError) {
+        console.error("Storage upload failed:", uploadError);
+        toast.error("Upload failed. Please try again.");
+        setUploading(false);
+        return;
       }
 
+      // Step 2: Look up lead_id
+      let leadId: string | null = null;
+      if (sessionId) {
+        const { data: leads } = await supabase
+          .from("leads")
+          .select("id")
+          .eq("session_id", sessionId)
+          .limit(1);
+        leadId = leads?.[0]?.id || null;
+      }
+
+      // Step 3: Insert quote_files — fail → stop
+      const { data: qfData, error: qfError } = await supabase
+        .from("quote_files")
+        .insert({ lead_id: leadId, storage_path: filePath, status: "pending" })
+        .select("id")
+        .single();
+
+      if (qfError || !qfData) {
+        console.error("quote_files insert failed:", qfError);
+        toast.error("Failed to register your file. Please try again.");
+        setUploading(false);
+        return;
+      }
+
+      // Step 4: Insert scan_sessions — fail → stop
+      const { data: ssData, error: ssError } = await supabase
+        .from("scan_sessions")
+        .insert({
+          status: "uploading",
+          lead_id: leadId,
+          quote_file_id: qfData.id,
+        })
+        .select("id")
+        .single();
+
+      if (ssError || !ssData) {
+        console.error("scan_sessions insert failed:", ssError);
+        toast.error("Failed to start scan session. Please try again.");
+        setUploading(false);
+        return;
+      }
+
+      // Step 5: Start theatrics immediately
       onScanStart?.(file.name);
+
+      // Step 6: Invoke edge function (fire-and-forget for UX)
+      const { error: fnError } = await supabase.functions.invoke("scan-quote", {
+        body: { scan_session_id: ssData.id },
+      });
+
+      if (fnError) {
+        console.error("scan-quote invoke failed:", fnError);
+        toast.error("Scan encountered an issue. We'll retry automatically.");
+
+        // Log error context to event_logs for recovery/debugging
+        await supabase.from("event_logs").insert({
+          event_name: "scan_invoke_failed",
+          session_id: sessionId || null,
+          metadata: {
+            scan_session_id: ssData.id,
+            quote_file_id: qfData.id,
+            error_message: fnError.message || String(fnError),
+            file_name: file.name,
+            file_size: file.size,
+            timestamp: new Date().toISOString(),
+          },
+        });
+        // Session stays in 'uploading' — recoverable
+      }
     } catch (err) {
-      console.error('Upload error:', err);
-      // Still proceed with scan for UX
-      onScanStart?.(file.name);
+      console.error("Scan error:", err);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setUploading(false);
     }
-  };
-
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -185,13 +241,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
                 <div onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-center mx-auto" style={{ width: 48, height: 48, borderRadius: "50%", background: "#ECFDF5", marginBottom: 12 }}>
                     <span style={{ color: "#059669", fontSize: 24, fontWeight: 700 }}>✓</span>
-            </div>
-
-            {fileError && (
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#DC2626", textAlign: "center", marginTop: 12, fontWeight: 500 }}>
-                {fileError}
-              </p>
-            )}
+                  </div>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#0F1F35", fontWeight: 600 }}>
                     {file.name}
                   </p>
@@ -207,6 +257,12 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
                 </div>
               )}
             </div>
+
+            {fileError && (
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#DC2626", textAlign: "center", marginTop: 12, fontWeight: 500 }}>
+                {fileError}
+              </p>
+            )}
 
             {file && (
               <motion.button
