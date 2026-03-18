@@ -188,97 +188,15 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             <TrustBullets />
           </motion.div>
           <div className="order-2 flex flex-col items-center">
-            <motion.div
-              className="hidden md:block"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
+            <div className="hidden md:block">
               <motion.div
-                animate={{ y: [-6, 0, -6] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                style={{
-                  background: "#FFFFFF",
-                  border: "1.5px solid #E5E7EB",
-                  borderRadius: 16,
-                  padding: 28,
-                  boxShadow: "0 8px 40px rgba(15, 31, 53, 0.12)",
-                  maxWidth: 420,
-                  width: "100%",
-                }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <p
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 10,
-                    color: "#6B7280",
-                    letterSpacing: "0.12em",
-                    marginBottom: 20,
-                  }}
-                >
-                  SAMPLE GRADE REPORT
-                </p>
-                <div className="text-center">
-                  <div
-                    style={{
-                      fontFamily: "'Jost', sans-serif",
-                      fontSize: 96,
-                      fontWeight: 800,
-                      color: "#F97316",
-                      lineHeight: 1,
-                    }}
-                  >
-                    C
-                  </div>
-                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7280", marginTop: 4 }}>
-                    GRADE C — REVIEW BEFORE SIGNING
-                  </p>
-                </div>
-                <div style={{ background: "#FEF2F2", borderRadius: 8, padding: "12px 16px", marginTop: 16 }}>
-                  <p style={{ fontFamily: "'DM Mono', monospace", color: "#DC2626", fontWeight: 700, fontSize: 16 }}>
-                    $4,800 Above Fair Market
-                  </p>
-                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7280", marginTop: 2 }}>
-                    Broward County Benchmark · Q1 2025
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 mt-4">
-                  {flagCards.map((flag, i) => (
-                    <div
-                      key={i}
-                      className="flex overflow-hidden"
-                      style={{ background: "#FFFFFF", border: "1px solid #E5E7EB", borderRadius: 8 }}
-                    >
-                      <div style={{ width: 3, backgroundColor: flag.stripe, flexShrink: 0 }} />
-                      <div style={{ padding: "10px 14px" }}>
-                        <p
-                          style={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: flag.labelColor,
-                          }}
-                        >
-                          {flag.icon} {flag.label}
-                        </p>
-                        <p
-                          style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#6B7280", marginTop: 2 }}
-                        >
-                          {flag.sub}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="text-center" style={{ borderTop: "1px solid #E5E7EB", marginTop: 16, paddingTop: 14 }}>
-                  <p
-                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontStyle: "italic", color: "#9CA3AF" }}
-                  >
-                    This is a sample. Your quote will generate a real grade.
-                  </p>
-                </div>
+                <SampleGradeCard />
               </motion.div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
