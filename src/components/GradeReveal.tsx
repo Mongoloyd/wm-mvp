@@ -228,45 +228,66 @@ const GradeReveal = ({
         </div>
       </section>
 
-      <section style={{ background: "white", borderTop: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
-        <div className="max-w-4xl mx-auto">
-          <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35" }}>How to handle this quote.</h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginTop: 8, marginBottom: 28 }}>Use this exact language when you call your contractor back.</p>
-          <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderLeft: "4px solid #0099BB", borderRadius: 10, padding: "24px 28px", position: "relative", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-            <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "white", border: "1px solid #E5E7EB", borderRadius: 6, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", cursor: "pointer" }}>
-              {copied ? "✓ Copied" : "Copy Script"}
-            </button>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#0099BB", letterSpacing: "0.1em", marginBottom: 16 }}>WORD-FOR-WORD SCRIPT</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#0F1F35", lineHeight: 2.0, whiteSpace: "pre-line" }}>{scriptText}</p>
-          </div>
-        </div>
-      </section>
+      {isFull ? (
+        <>
+          <section style={{ background: "white", borderTop: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
+            <div className="max-w-4xl mx-auto">
+              <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35" }}>How to handle this quote.</h2>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginTop: 8, marginBottom: 28 }}>Use this exact language when you call your contractor back.</p>
+              <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderLeft: "4px solid #0099BB", borderRadius: 10, padding: "24px 28px", position: "relative", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+                <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "white", border: "1px solid #E5E7EB", borderRadius: 6, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", cursor: "pointer" }}>
+                  {copied ? "✓ Copied" : "Copy Script"}
+                </button>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#0099BB", letterSpacing: "0.1em", marginBottom: 16 }}>WORD-FOR-WORD SCRIPT</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#0F1F35", lineHeight: 2.0, whiteSpace: "pre-line" }}>{scriptText}</p>
+              </div>
+            </div>
+          </section>
 
-      <section style={{ background: "#FAFAFA", borderTop: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35", marginBottom: 8 }}>What do you want to do with this?</h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 32 }}>Your analysis is saved. You can come back to it anytime.</p>
-          <div className="flex flex-col md:flex-row justify-center gap-4">
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={() => { console.log({ event: "wm_contractor_match_clicked", grade, dollarDelta }); onContractorMatchClick?.(); }}
-              className="flex flex-col items-center"
-              style={{ background: "#C8952A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, padding: "16px 36px", borderRadius: 10, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(200,149,42,0.35)" }}>
-              <span>Get a Counter-Quote From a Vetted Contractor</span>
-              <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 4 }}>We'll find contractors who quote fair in {county} County</span>
-            </motion.button>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={() => { console.log({ event: "wm_report_downloaded" }); toast({ title: "Report saved to your downloads" }); }}
-              style={{ background: "white", border: "1.5px solid #E5E7EB", color: "#374151", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 10, cursor: "pointer" }}>
-              ⬇ Download PDF Report
-            </motion.button>
+          <section style={{ background: "#FAFAFA", borderTop: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35", marginBottom: 8 }}>What do you want to do with this?</h2>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 32 }}>Your analysis is saved. You can come back to it anytime.</p>
+              <div className="flex flex-col md:flex-row justify-center gap-4">
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  onClick={() => { console.log({ event: "wm_contractor_match_clicked", grade, dollarDelta }); onContractorMatchClick?.(); }}
+                  className="flex flex-col items-center"
+                  style={{ background: "#C8952A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, padding: "16px 36px", borderRadius: 10, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(200,149,42,0.35)" }}>
+                  <span>Get a Counter-Quote From a Vetted Contractor</span>
+                  <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 4 }}>We'll find contractors who quote fair in {county} County</span>
+                </motion.button>
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  onClick={() => { console.log({ event: "wm_report_downloaded" }); toast({ title: "Report saved to your downloads" }); }}
+                  style={{ background: "white", border: "1.5px solid #E5E7EB", color: "#374151", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 10, cursor: "pointer" }}>
+                  ⬇ Download PDF Report
+                </motion.button>
+              </div>
+              <button onClick={() => { console.log({ event: "wm_report_shared" }); toast({ title: "Link copied to clipboard" }); }}
+                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#0099BB", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", marginTop: 12, display: "inline-block" }}>
+                Share this report →
+              </button>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9CA3AF", marginTop: 20 }}>Your contractor will never see this report unless you choose to share it.</p>
+            </div>
+          </section>
+        </>
+      ) : (
+        <section style={{ background: "white", borderTop: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <div style={{ background: "#0F1F35", borderRadius: 14, padding: "32px 28px", boxShadow: "0 8px 32px rgba(15,31,53,0.2)" }}>
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 12 }}>🔒 FULL REPORT LOCKED</p>
+              <h3 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, color: "white", marginBottom: 8 }}>
+                Your negotiation script and action tools are ready.
+              </h3>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#94A3B8", marginBottom: 24, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+                Verify your phone number to unlock the full Truth Report — including detailed flag breakdowns, negotiation scripts, and contractor matching.
+              </p>
+              <button style={{ background: "#C8952A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, padding: "14px 32px", borderRadius: 10, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(200,149,42,0.35)" }}>
+                Verify Phone to Unlock →
+              </button>
+            </div>
           </div>
-          <button onClick={() => { console.log({ event: "wm_report_shared" }); toast({ title: "Link copied to clipboard" }); }}
-            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#0099BB", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", marginTop: 12, display: "inline-block" }}>
-            Share this report →
-          </button>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9CA3AF", marginTop: 20 }}>Your contractor will never see this report unless you choose to share it.</p>
-        </div>
-      </section>
+        </section>
+      )}
     </motion.div>
   );
 };
