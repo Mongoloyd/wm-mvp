@@ -15,7 +15,7 @@ export const TrustBullets = () => (
     transition={{ duration: 0.5, delay: 0.4 }}
     className="mt-6"
   >
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 w-fit">
+    <div className="w-full flex flex-col md:grid md:grid-cols-2 xl:flex xl:flex-row xl:justify-center gap-y-3 gap-x-4 xl:gap-x-8">
       {trustBullets.map((item) => (
         <div key={item} className="flex items-start gap-2">
           <Check size={16} className="shrink-0 mt-0.5 text-emerald-600" strokeWidth={2.5} />
