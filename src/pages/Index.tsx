@@ -194,6 +194,7 @@ const Index = () => {
                 redFlagCount={redFlagCount}
                 amberCount={amberCount}
                 greenCount={greenCount}
+                accessLevel={reportAccess}
               />
             </>
           )}
