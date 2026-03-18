@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 interface EvidenceLockerProps {
   grade?: string;
   county?: string;
-  dollarDelta?: number;
   firstName?: string;
   onSecondScan?: () => void;
   redFlagCount?: number;
@@ -31,7 +30,6 @@ const stagger = (i: number) => ({
 const EvidenceLocker = ({
   grade = "C",
   county = "Broward",
-  dollarDelta = 4800,
   firstName = "Your",
   onSecondScan,
   redFlagCount = 1,
@@ -50,7 +48,6 @@ const EvidenceLocker = ({
 
   Grade:               ${grade}
   Location:            ${county} County
-  Savings Opportunity: $${dollarDelta.toLocaleString()}
 
 ── RED FLAG ANALYSIS ─────────────
   • ${redFlagCount} critical flag(s)
@@ -367,7 +364,7 @@ const EvidenceLocker = ({
               marginTop: 10,
             }}
           >
-            No window brand specified. No warranty negotiation. ${dollarDelta.toLocaleString()} above fair market. The
+            No window brand specified. No warranty negotiation. No leverage. The
             contractor gets a signature before 5pm. You get windows that may or may not be what you expected.
           </p>
           <p
@@ -379,7 +376,7 @@ const EvidenceLocker = ({
               marginTop: 16,
             }}
           >
-            Outcome: ${dollarDelta.toLocaleString()} paid above market. No recourse.
+            Outcome: You paid whatever they asked. No recourse.
           </p>
         </motion.div>
 
