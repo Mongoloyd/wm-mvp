@@ -107,7 +107,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
               WindowMan built one — and it reads your quote in{" "}
               <strong style={{ color: "#0F1F35" }}>under 60 seconds</strong>.
             </p>
-            <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full sm:w-auto">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
