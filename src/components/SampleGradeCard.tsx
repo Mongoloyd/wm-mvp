@@ -140,7 +140,7 @@ const SampleGradeCard = () => {
         padding: 28,
         maxWidth: 420,
         width: "100%",
-        border: "2px solid #000000",
+        border: "4px solid #000000",
         boxShadow: "0 40px 100px -20px rgba(34,182,203,0.35), 0 12px 32px -8px rgba(0,0,0,0.5)",
       }}
     >
