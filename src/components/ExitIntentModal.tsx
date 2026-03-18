@@ -11,6 +11,7 @@ const FLORIDA_FALLBACK = { scanned: 2400, overcharge: 4800, redFlags: 2.1 };
 const ExitIntentModal = ({ stepsCompleted, flowMode, leadCaptured, flowBLeadCaptured, county, answers, onClose, onCTAClick }: ExitIntentModalProps) => {
   const [open, setOpen] = useState(false);
   const [liveViewers] = useState(() => 8 + Math.floor(Math.random() * 12));
+  const { total: tickerTotal } = useTickerStats();
   const resolvedCounty = county && county !== 'your county' ? county : null;
   const stats = resolvedCounty && COUNTY_STATS[resolvedCounty] ? COUNTY_STATS[resolvedCounty] : FLORIDA_FALLBACK;
   const locationLabel = resolvedCounty ? `in ${resolvedCounty} County` : 'across Florida';
