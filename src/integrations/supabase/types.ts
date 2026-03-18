@@ -336,7 +336,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_scan_status: {
+        Args: { p_scan_session_id: string }
+        Returns: {
+          id: string
+          status: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

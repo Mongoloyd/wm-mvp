@@ -36,8 +36,9 @@ interface UseScanPollingResult {
 }
 
 /**
- * Thin polling hook for scan_sessions status.
- * Polls every `intervalMs` until a terminal status is reached or maxPolls exceeded.
+ * Thin polling hook for scan status.
+ * Uses a SECURITY DEFINER RPC (get_scan_status) that returns only id + status.
+ * No direct table SELECT — scan_sessions has no anon SELECT policy.
  */
 export function useScanPolling({
   scanSessionId,
@@ -69,19 +70,19 @@ export function useScanPolling({
     }
 
     try {
-      const { data, error: queryErr } = await supabase
-        .from("scan_sessions")
-        .select("status")
-        .eq("id", scanSessionId)
-        .single();
+      const { data, error: rpcErr } = await supabase
+        .rpc("get_scan_status", { p_scan_session_id: scanSessionId });
 
-      if (queryErr) {
-        console.error("Scan poll error:", queryErr);
-        // Don't stop on transient errors — keep polling
-        return;
+      if (rpcErr) {
+        console.error("Scan poll RPC error:", rpcErr);
+        return; // transient — keep polling
       }
 
-      const newStatus = (data?.status as ScanStatus) || "error";
+      // RPC returns an array of rows; take first
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) return; // not found yet — keep polling
+
+      const newStatus = (row.status as ScanStatus) || "error";
       setStatus(newStatus);
 
       if (TERMINAL_STATUSES.has(newStatus)) {
@@ -93,7 +94,6 @@ export function useScanPolling({
   }, [scanSessionId, maxPolls, stopPolling]);
 
   useEffect(() => {
-    // Reset when scanSessionId changes
     if (!scanSessionId) {
       stopPolling();
       setStatus("idle");
@@ -102,7 +102,6 @@ export function useScanPolling({
       return;
     }
 
-    // Start polling
     setStatus("uploading");
     setError(null);
     setIsPolling(true);
@@ -110,12 +109,9 @@ export function useScanPolling({
 
     // Immediate first poll
     poll();
-
     intervalRef.current = setInterval(poll, intervalMs);
 
-    return () => {
-      stopPolling();
-    };
+    return () => { stopPolling(); };
   }, [scanSessionId, intervalMs, poll, stopPolling]);
 
   return { status, isPolling, error };
