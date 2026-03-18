@@ -171,6 +171,12 @@ const Index = () => {
         onDemoCTAClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
         leadCaptured={leadCaptured} isDevMode={IS_DEV_MODE} gradeRevealed={gradeRevealed}
         onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }} />
+
+      <StickyCTAFooter
+        onScanClick={() => triggerTruthGate('sticky_footer')}
+        onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        isVisible={!gradeRevealed && !showRecoveryBar}
+      />
     </div>
   );
 };
