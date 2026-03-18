@@ -38,7 +38,7 @@ const SocialProofStrip = () => {
     >
       <div
         className="inline-flex items-center divide-x rounded-lg border overflow-hidden"
-        style={{ borderColor: "rgba(255,255,255,0.15)", divideColor: "rgba(255,255,255,0.15)" }}
+        style={{ borderColor: "rgba(255,255,255,0.15)" }}
       >
         {/* Left: Total */}
         <div className="flex items-center gap-2 px-4 py-2">
