@@ -9,6 +9,8 @@ interface ClosingManifestoProps { onScanClick?: () => void; onDemoClick?: () => 
 const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.2 });
+  const { total: tickerTotal } = useTickerStats();
+  const dynamicChecks = ["No account required to receive your grade", "Scans are private — your contractor never knows", "Built by Florida homeowners who got tired of not knowing", `Used by ${tickerTotal.toLocaleString()}+ Florida homeowners this year`];
   const handleScanClick = () => { onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" }); };
 
   return (
