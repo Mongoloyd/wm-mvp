@@ -142,7 +142,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
           event_name: "scan_invoke_failed",
           session_id: sessionId || null,
           metadata: {
-            scan_session_id: ssData.id,
+            scan_session_id: scanSessionId,
             quote_file_id: qfData.id,
             error_message: fnError.message || String(fnError),
             file_name: file.name,
