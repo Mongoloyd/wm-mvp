@@ -214,15 +214,15 @@ const SampleGradeCard = () => {
 
           {/* Financial callout */}
           <div className="relative mb-5" style={{
-            background: "rgba(0,0,0,0.80)",
-            border: "1px solid hsla(0,79%,50%,0.2)",
+            background: "#575C69",
+            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: 12, padding: "14px 18px",
           }}>
             <div className="flex items-baseline gap-2">
               <AnimatedCounter key={currentIndex} target={report.delta} />
               <span style={{
                 fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
-                color: "hsla(0,79%,65%,0.9)",
+                color: "white",
               }}>
                 Above Fair Market
               </span>
