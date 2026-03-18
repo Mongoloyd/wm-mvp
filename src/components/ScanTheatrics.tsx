@@ -1,10 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useScanPolling, ScanStatus } from "@/hooks/useScanPolling";
+import { toast } from "sonner";
 
 interface ScanTheatricsProps {
   isActive: boolean;
   selectedCounty?: string;
+  scanSessionId?: string | null;
   onRevealComplete?: () => void;
+  onInvalidDocument?: () => void;
+  onNeedsBetterUpload?: () => void;
 }
 
 const logSteps = [
