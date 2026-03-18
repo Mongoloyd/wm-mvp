@@ -29,8 +29,14 @@ const stagger = (i: number) => ({
 });
 
 const EvidenceLocker = ({
-  grade = "C", county = "Broward", dollarDelta = 4800, firstName = "Your",
-  onSecondScan, redFlagCount = 1, amberCount = 2, greenCount = 1,
+  grade = "C",
+  county = "Broward",
+  dollarDelta = 4800,
+  firstName = "Your",
+  onSecondScan,
+  redFlagCount = 1,
+  amberCount = 2,
+  greenCount = 1,
 }: EvidenceLockerProps) => {
   const [email, setEmail] = useState("");
   const { toast } = useToast();
@@ -78,7 +84,9 @@ const EvidenceLocker = ({
   const handleShare = async () => {
     const text = generateReportText();
     if (navigator.share) {
-      try { await navigator.share({ title: "WindowMan Quote Analysis", text }); } catch (e) { }
+      try {
+        await navigator.share({ title: "WindowMan Quote Analysis", text });
+      } catch (e) {}
     } else {
       await navigator.clipboard.writeText(text);
       toast({ title: "Copied", description: "Report copied to clipboard" });
@@ -88,86 +96,427 @@ const EvidenceLocker = ({
   return (
     <div style={{ background: "white" }} className="py-16 md:py-20 px-4 md:px-8">
       <motion.div {...stagger(0)} className="max-w-4xl mx-auto text-center">
-        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#0099BB", letterSpacing: "0.1em", marginBottom: 16 }}>YOUR WINDOWMAN VAULT</p>
-        <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(32px, 5vw, 40px)", color: "#0F1F35", fontWeight: 800, letterSpacing: "-0.02em" }}>Your analysis is saved. Here's what's inside.</h2>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#6B7280", marginTop: 8, marginBottom: 40 }}>Your grade report, red flags, and negotiation tools are stored here.<br />Accessible anytime. Private by default.</p>
+        <p
+          style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 13,
+            color: "#0099BB",
+            letterSpacing: "0.1em",
+            marginBottom: 16,
+          }}
+        >
+          YOUR WINDOWMAN VAULT
+        </p>
+        <h2
+          style={{
+            fontFamily: "'Jost', sans-serif",
+            fontSize: "clamp(32px, 5vw, 40px)",
+            color: "#0F1F35",
+            fontWeight: 800,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Your Analysis is Saved. Here's What's Inside.
+        </h2>
+        <p
+          style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 16,
+            color: "#6B7280",
+            marginTop: 8,
+            marginBottom: 40,
+          }}
+        >
+          Your Grade Report, Red Flags, and Negotiation Tools are Stored Here.
+          <br />
+          Accessible Anytime. Private by Default.
+        </p>
       </motion.div>
 
-      <motion.div {...stagger(1)} className="max-w-3xl mx-auto" style={{ border: "2px solid #E5E7EB", borderRadius: 20, boxShadow: "0 8px 40px rgba(15,31,53,0.10)", overflow: "hidden", background: "white" }}>
+      <motion.div
+        {...stagger(1)}
+        className="max-w-3xl mx-auto"
+        style={{
+          border: "2px solid #E5E7EB",
+          borderRadius: 20,
+          boxShadow: "0 8px 40px rgba(15,31,53,0.10)",
+          overflow: "hidden",
+          background: "white",
+        }}
+      >
         <div style={{ background: "#0F1F35", padding: "16px 24px" }} className="flex justify-between items-center">
           <div className="flex items-center gap-2.5">
             <Lock size={18} color="#C8952A" />
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "white", fontWeight: 700 }}>{firstName}'s Quote Analysis</span>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "white", fontWeight: 700 }}>
+              {firstName}'s Quote Analysis
+            </span>
           </div>
-          <div className="flex items-center gap-2" style={{ background: "rgba(5,150,105,0.2)", border: "1px solid rgba(5,150,105,0.4)", borderRadius: 999, padding: "4px 12px" }}>
-            <span className="pulse" style={{ width: 6, height: 6, borderRadius: "50%", background: "#059669", display: "inline-block" }} />
+          <div
+            className="flex items-center gap-2"
+            style={{
+              background: "rgba(5,150,105,0.2)",
+              border: "1px solid rgba(5,150,105,0.4)",
+              borderRadius: 999,
+              padding: "4px 12px",
+            }}
+          >
+            <span
+              className="pulse"
+              style={{ width: 6, height: 6, borderRadius: "50%", background: "#059669", display: "inline-block" }}
+            />
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6EE7B7" }}>SAVED</span>
           </div>
         </div>
 
         <div style={{ padding: "28px 24px" }}>
-          <VaultRow icon={<FileText size={20} color="#0099BB" />} title="Grade Report" sub={`Grade ${grade} · ${county} County · Generated today`}
-            right={<div style={{ width: 36, height: 36, borderRadius: "50%", background: config.bg, border: `2px solid ${config.color}`, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontFamily: "'DM Mono', monospace", fontSize: 16, fontWeight: 900, color: config.color }}>{grade}</span></div>} />
-          <VaultRow icon={<Flag size={20} color="#DC2626" />} title="Red Flag Analysis" sub={`${redFlagCount} critical · ${amberCount} caution · ${greenCount} confirmed`}
-            right={<span style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, fontWeight: 700, color: "#DC2626" }}>{totalFlags}</span>} />
-          <VaultRow icon={<MessageSquare size={20} color="#C8952A" />} title="Negotiation Script" sub="Customized for your specific flags"
-            right={<span style={{ background: "#FDF3E3", border: "1px solid #C8952A", borderRadius: 999, padding: "3px 10px", fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: "#C8952A" }}>Ready to use</span>} />
-          <VaultRow icon={<Users size={20} color="#059669" />} title="Contractor Matches" sub={`3 verified contractors in ${county} County`}
-            right={<span style={{ background: "#ECFDF5", border: "1px solid #059669", borderRadius: 999, padding: "3px 10px", fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: "#059669" }}>3 available</span>} />
-          <div className="flex items-center justify-between" style={{ background: "#F9FAFB", borderRadius: 10, padding: "14px 16px", marginTop: 4 }}>
+          <VaultRow
+            icon={<FileText size={20} color="#0099BB" />}
+            title="Grade Report"
+            sub={`Grade ${grade} · ${county} County · Generated today`}
+            right={
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  background: config.bg,
+                  border: `2px solid ${config.color}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span
+                  style={{ fontFamily: "'DM Mono', monospace", fontSize: 16, fontWeight: 900, color: config.color }}
+                >
+                  {grade}
+                </span>
+              </div>
+            }
+          />
+          <VaultRow
+            icon={<Flag size={20} color="#DC2626" />}
+            title="Red Flag Analysis"
+            sub={`${redFlagCount} critical · ${amberCount} caution · ${greenCount} confirmed`}
+            right={
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+                {totalFlags}
+              </span>
+            }
+          />
+          <VaultRow
+            icon={<MessageSquare size={20} color="#C8952A" />}
+            title="Negotiation Script"
+            sub="Customized for your specific flags"
+            right={
+              <span
+                style={{
+                  background: "#FDF3E3",
+                  border: "1px solid #C8952A",
+                  borderRadius: 999,
+                  padding: "3px 10px",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#C8952A",
+                }}
+              >
+                Ready to use
+              </span>
+            }
+          />
+          <VaultRow
+            icon={<Users size={20} color="#059669" />}
+            title="Contractor Matches"
+            sub={`3 verified contractors in ${county} County`}
+            right={
+              <span
+                style={{
+                  background: "#ECFDF5",
+                  border: "1px solid #059669",
+                  borderRadius: 999,
+                  padding: "3px 10px",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#059669",
+                }}
+              >
+                3 available
+              </span>
+            }
+          />
+          <div
+            className="flex items-center justify-between"
+            style={{ background: "#F9FAFB", borderRadius: 10, padding: "14px 16px", marginTop: 4 }}
+          >
             <div className="flex items-center gap-3">
-              <div style={{ width: 20, height: 20, borderRadius: "50%", border: "1.5px dashed #D1D5DB", display: "flex", alignItems: "center", justifyContent: "center" }}><Plus size={10} color="#D1D5DB" /></div>
+              <div
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: "50%",
+                  border: "1.5px dashed #D1D5DB",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Plus size={10} color="#D1D5DB" />
+              </div>
               <div>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#9CA3AF" }}>Second Opinion Scan</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#C4C9D4", fontStyle: "italic" }}>Scan another quote to compare</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#9CA3AF" }}>
+                  Second Opinion Scan
+                </p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#C4C9D4", fontStyle: "italic" }}>
+                  Scan another quote to compare
+                </p>
               </div>
             </div>
-            <button onClick={() => { console.log({ event: "wm_second_scan_initiated" }); onSecondScan?.(); }} style={{ border: "1.5px solid #E5E7EB", borderRadius: 6, padding: "4px 10px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", background: "white", cursor: "pointer" }}>+ Add</button>
+            <button
+              onClick={() => {
+                console.log({ event: "wm_second_scan_initiated" });
+                onSecondScan?.();
+              }}
+              style={{
+                border: "1.5px solid #E5E7EB",
+                borderRadius: 6,
+                padding: "4px 10px",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 12,
+                color: "#6B7280",
+                background: "white",
+                cursor: "pointer",
+              }}
+            >
+              + Add
+            </button>
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-between items-center gap-3" style={{ padding: "20px 24px", background: "#F9FAFB", borderTop: "1px solid #E5E7EB" }}>
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>Last updated: Today</span>
+        <div
+          className="flex flex-wrap justify-between items-center gap-3"
+          style={{ padding: "20px 24px", background: "#F9FAFB", borderTop: "1px solid #E5E7EB" }}
+        >
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>
+            Last updated: Today
+          </span>
           <div className="flex gap-3">
-            <button onClick={handleDownload} style={{ border: "1.5px solid #E5E7EB", background: "white", borderRadius: 8, padding: "8px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer" }}>⬇ Download All</button>
-            <button onClick={handleShare} style={{ border: "1.5px solid #E5E7EB", background: "white", borderRadius: 8, padding: "8px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer" }}>↗ Share</button>
+            <button
+              onClick={handleDownload}
+              style={{
+                border: "1.5px solid #E5E7EB",
+                background: "white",
+                borderRadius: 8,
+                padding: "8px 16px",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#374151",
+                cursor: "pointer",
+              }}
+            >
+              ⬇ Download All
+            </button>
+            <button
+              onClick={handleShare}
+              style={{
+                border: "1.5px solid #E5E7EB",
+                background: "white",
+                borderRadius: 8,
+                padding: "8px 16px",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#374151",
+                cursor: "pointer",
+              }}
+            >
+              ↗ Share
+            </button>
           </div>
         </div>
       </motion.div>
 
       <div className="max-w-4xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <motion.div {...stagger(2)} style={{ background: "#FEF2F2", border: "1.5px solid #FECACA", borderRadius: 14, padding: "28px 24px" }}>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#DC2626", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 12 }}>WITHOUT WINDOWMAN</p>
-          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#0F1F35" }}>You sign the original quote.</h3>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#374151", lineHeight: 1.8, marginTop: 10 }}>No window brand specified. No warranty negotiation. ${dollarDelta.toLocaleString()} above fair market. The contractor gets a signature before 5pm. You get windows that may or may not be what you expected.</p>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: 700, color: "#DC2626", marginTop: 16 }}>Outcome: ${dollarDelta.toLocaleString()} paid above market. No recourse.</p>
+        <motion.div
+          {...stagger(2)}
+          style={{ background: "#FEF2F2", border: "1.5px solid #FECACA", borderRadius: 14, padding: "28px 24px" }}
+        >
+          <p
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 10,
+              color: "#DC2626",
+              letterSpacing: "0.1em",
+              fontWeight: 700,
+              marginBottom: 12,
+            }}
+          >
+            WITHOUT WINDOWMAN
+          </p>
+          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#0F1F35" }}>
+            You sign the original quote.
+          </h3>
+          <p
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 14,
+              color: "#374151",
+              lineHeight: 1.8,
+              marginTop: 10,
+            }}
+          >
+            No window brand specified. No warranty negotiation. ${dollarDelta.toLocaleString()} above fair market. The
+            contractor gets a signature before 5pm. You get windows that may or may not be what you expected.
+          </p>
+          <p
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#DC2626",
+              marginTop: 16,
+            }}
+          >
+            Outcome: ${dollarDelta.toLocaleString()} paid above market. No recourse.
+          </p>
         </motion.div>
 
-        <motion.div {...stagger(3)} style={{ background: "#ECFDF5", border: "1.5px solid #A7F3D0", borderRadius: 14, padding: "28px 24px" }}>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#059669", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 12 }}>WITH YOUR WINDOWMAN VAULT</p>
-          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#0F1F35" }}>You call back with the script.</h3>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#374151", lineHeight: 1.8, marginTop: 10 }}>You ask for the brand in writing. You push for 3-year warranty. You have a counter-quote from a vetted contractor ready if they don't move. The contractor knows you know.</p>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: 700, color: "#059669", marginTop: 16 }}>Outcome: Negotiation leverage. Fair contract. Peace of mind.</p>
+        <motion.div
+          {...stagger(3)}
+          style={{ background: "#ECFDF5", border: "1.5px solid #A7F3D0", borderRadius: 14, padding: "28px 24px" }}
+        >
+          <p
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 10,
+              color: "#059669",
+              letterSpacing: "0.1em",
+              fontWeight: 700,
+              marginBottom: 12,
+            }}
+          >
+            WITH YOUR WINDOWMAN VAULT
+          </p>
+          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#0F1F35" }}>
+            You call back with the script.
+          </h3>
+          <p
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 14,
+              color: "#374151",
+              lineHeight: 1.8,
+              marginTop: 10,
+            }}
+          >
+            You ask for the brand in writing. You push for 3-year warranty. You have a counter-quote from a vetted
+            contractor ready if they don't move. The contractor knows you know.
+          </p>
+          <p
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#059669",
+              marginTop: 16,
+            }}
+          >
+            Outcome: Negotiation leverage. Fair contract. Peace of mind.
+          </p>
         </motion.div>
       </div>
 
       <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid #E5E7EB", paddingTop: 48 }}>
-        <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#0F1F35", marginBottom: 8 }}>Send a copy to your email.</h3>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 24 }}>We'll email you the full grade report, red flags, and negotiation script.<br />One link. No password.</p>
+        <h3
+          style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 20,
+            fontWeight: 700,
+            color: "#0F1F35",
+            marginBottom: 8,
+          }}
+        >
+          Send a copy to your email.
+        </h3>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 24 }}>
+          We'll email you the full grade report, red flags, and negotiation script.
+          <br />
+          One link. No password.
+        </p>
         <div className="flex flex-col md:flex-row gap-3 justify-center">
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com"
-            style={{ flex: 1, maxWidth: 320, height: 48, border: "1.5px solid #E5E7EB", borderRadius: 8, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, outline: "none", transition: "border-color 0.15s, box-shadow 0.15s" }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "#C8952A"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(200,149,42,0.12)"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }} />
-          <button onClick={() => console.log({ event: "wm_report_emailed", email })} style={{ background: "#0F1F35", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "0 24px", height: 48, borderRadius: 8, border: "none", cursor: "pointer" }}>Email My Report →</button>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            style={{
+              flex: 1,
+              maxWidth: 320,
+              height: 48,
+              border: "1.5px solid #E5E7EB",
+              borderRadius: 8,
+              padding: "0 16px",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              outline: "none",
+              transition: "border-color 0.15s, box-shadow 0.15s",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "#C8952A";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(200,149,42,0.12)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "#E5E7EB";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
+          <button
+            onClick={() => console.log({ event: "wm_report_emailed", email })}
+            style={{
+              background: "#0F1F35",
+              color: "white",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              fontWeight: 700,
+              padding: "0 24px",
+              height: 48,
+              borderRadius: 8,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Email My Report →
+          </button>
         </div>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9CA3AF", fontStyle: "italic", marginTop: 12 }}>No marketing emails. One report email only. Unsubscribe with one click.</p>
+        <p
+          style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 12,
+            color: "#9CA3AF",
+            fontStyle: "italic",
+            marginTop: 12,
+          }}
+        >
+          No marketing emails. One report email only. Unsubscribe with one click.
+        </p>
       </div>
     </div>
   );
 };
 
-const VaultRow = ({ icon, title, sub, right }: { icon: React.ReactNode; title: string; sub: string; right: React.ReactNode }) => (
+const VaultRow = ({
+  icon,
+  title,
+  sub,
+  right,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  sub: string;
+  right: React.ReactNode;
+}) => (
   <div className="flex items-center justify-between" style={{ padding: "14px 0", borderBottom: "1px solid #E5E7EB" }}>
     <div className="flex items-center gap-3">
       {icon}
