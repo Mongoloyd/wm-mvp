@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import handScannerHero from "@/assets/hand-scanner-hero.webp";
+import { TrustBullets } from "./TrustBullets";
 
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
 
@@ -28,7 +29,7 @@ const flagCards = [
   },
 ];
 
-const trustItems = ["No account required", "Your contractor never knows", "Results in 60 seconds"];
+
 
 interface AuditHeroProps {
   onFlowBClick?: () => void;
@@ -159,9 +160,6 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 />
               </React.Suspense>
             </div>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", marginTop: 4 }}>
-              No upload needed • Watch a live scan in 30 seconds
-            </p>
             <div className="flex flex-col mt-2">
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -210,30 +208,8 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 </span>
                 Getting Quotes Soon? We Can Arm You First →
               </motion.button>
-              <p
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 12,
-                  color: "#6B7280",
-                  textAlign: "center",
-                  marginTop: 6,
-                }}
-              >
-                Generate Your Fair-Market Baseline Before The Sales Presentation
-              </p>
             </div>
-            <div
-              className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4"
-              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}
-            >
-              {trustItems.map((item, i) => (
-                <span key={i} className="flex items-center gap-1">
-                  {i > 0 && <span className="mr-2 hidden sm:inline">·</span>}
-                  <span style={{ color: "#059669" }}>✓</span>
-                  {item}
-                </span>
-              ))}
-            </div>
+            <TrustBullets />
           </motion.div>
           <div className="order-2 flex flex-col items-center">
             <motion.div
