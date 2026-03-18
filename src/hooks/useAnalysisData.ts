@@ -7,6 +7,14 @@ export interface AnalysisFlag {
   label: string;
   detail: string;
   tip: string | null;
+  pillar: string | null;
+}
+
+export interface PillarScore {
+  key: string;
+  label: string;
+  score: number | null;
+  status: "pass" | "warn" | "fail" | "pending";
 }
 
 export interface AnalysisData {
@@ -14,13 +22,30 @@ export interface AnalysisData {
   flags: AnalysisFlag[];
   contractorName: string | null;
   confidenceScore: number | null;
+  pillarScores: PillarScore[];
+  documentType: string | null;
 }
+
+const PILLAR_DEFS: { key: string; label: string }[] = [
+  { key: "safety_code", label: "Safety & Code Match" },
+  { key: "install_scope", label: "Install & Scope Clarity" },
+  { key: "price_fairness", label: "Price Fairness" },
+  { key: "fine_print", label: "Fine Print & Transparency" },
+  { key: "warranty", label: "Warranty Value" },
+];
 
 function mapSeverity(raw: string | undefined | null): "red" | "amber" | "green" {
   const s = (raw || "").toLowerCase();
   if (s === "critical" || s === "high") return "red";
   if (s === "medium") return "amber";
   return "green";
+}
+
+function pillarStatus(score: number | null): "pass" | "warn" | "fail" | "pending" {
+  if (score == null) return "pending";
+  if (score >= 70) return "pass";
+  if (score >= 40) return "warn";
+  return "fail";
 }
 
 function humanize(snake: string): string {
@@ -34,6 +59,7 @@ interface RawFlag {
   severity?: string;
   pillar?: string;
   detail?: string;
+  tip?: string;
 }
 
 function mapFlags(raw: unknown): AnalysisFlag[] {
@@ -43,8 +69,36 @@ function mapFlags(raw: unknown): AnalysisFlag[] {
     severity: mapSeverity(f.severity),
     label: humanize(f.flag || "Unknown Issue"),
     detail: f.detail || "",
-    tip: null,
+    tip: f.tip || null,
+    pillar: f.pillar || null,
   }));
+}
+
+function extractPillarScores(previewJson: unknown, flags: AnalysisFlag[]): PillarScore[] {
+  const raw = (previewJson as Record<string, unknown>)?.pillar_scores as Record<string, number> | undefined;
+
+  return PILLAR_DEFS.map((def) => {
+    const score = raw?.[def.key] ?? null;
+
+    // If no explicit score, infer status from flags associated with this pillar
+    if (score == null) {
+      const pillarFlags = flags.filter(f => f.pillar === def.key);
+      const hasRed = pillarFlags.some(f => f.severity === "red");
+      const hasAmber = pillarFlags.some(f => f.severity === "amber");
+      const hasGreen = pillarFlags.some(f => f.severity === "green");
+
+      if (pillarFlags.length === 0) {
+        return { ...def, score: null, status: "pending" as const };
+      }
+
+      // Infer a rough score from flag severity
+      if (hasRed) return { ...def, score: null, status: "fail" as const };
+      if (hasAmber) return { ...def, score: null, status: "warn" as const };
+      if (hasGreen) return { ...def, score: null, status: "pass" as const };
+    }
+
+    return { ...def, score, status: pillarStatus(score) };
+  });
 }
 
 interface UseAnalysisDataResult {
@@ -91,12 +145,15 @@ export function useAnalysisData(
         }
 
         const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
+        const flags = mapFlags(row.flags);
 
         setData({
           grade: row.grade,
-          flags: mapFlags(row.flags),
+          flags,
           contractorName: (proofOfRead?.contractor_name as string) || null,
           confidenceScore: row.confidence_score ?? null,
+          pillarScores: extractPillarScores(row.preview_json, flags),
+          documentType: row.document_type || null,
         });
       } catch (err) {
         console.error("useAnalysisData exception:", err);

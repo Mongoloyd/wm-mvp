@@ -10,9 +10,8 @@ import SocialProofStrip from "@/components/SocialProofStrip";
 import TruthGateFlow from "@/components/TruthGateFlow";
 import UploadZone from "@/components/UploadZone";
 import ScanTheatrics from "@/components/ScanTheatrics";
-import GradeReveal from "@/components/GradeReveal";
+import TruthReport from "@/components/TruthReport";
 import ContractorMatch from "@/components/ContractorMatch";
-import EvidenceLocker from "@/components/EvidenceLocker";
 import IndustryTruth from "@/components/IndustryTruth";
 import ProcessSteps from "@/components/ProcessSteps";
 import NarrativeProof from "@/components/NarrativeProof";
@@ -28,7 +27,8 @@ import { useReportAccess } from "@/hooks/useReportAccess";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  const IS_DEV_MODE = false;
+  // ═══ DEV MODE: Set to true to force full unlocked report UI ═══
+  const IS_DEV_MODE = true;
 
   const [flowMode, setFlowMode] = useState<'A' | 'B'>('A');
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -50,7 +50,7 @@ const Index = () => {
   const [timeOnPage, setTimeOnPage] = useState(false);
 
   const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
-  const reportAccess = useReportAccess();
+  const reportAccess = useReportAccess({ forceLevel: IS_DEV_MODE ? "full" : undefined });
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
@@ -60,7 +60,7 @@ const Index = () => {
     : gradeRevealed ? 'scan'
     : null;
   const flowBComplete = flowMode === 'B' && quoteWatcherSet;
-  const showRecoveryBar = IS_DEV_MODE || (scrolledPast70 && !anyLeadCaptured && timeOnPage && !recoveryBarDismissed && !gradeRevealed && !flowBComplete);
+  const showRecoveryBar = IS_DEV_MODE ? false : (scrolledPast70 && !anyLeadCaptured && timeOnPage && !recoveryBarDismissed && !gradeRevealed && !flowBComplete);
 
   const pendingScrollRef = useRef(false);
 
@@ -79,7 +79,6 @@ const Index = () => {
 
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
 
-  // Derive flag counts from real analysis data
   const reportGrade = analysisData?.grade || "C";
   const reportFlags = analysisData?.flags || [];
   const redFlagCount = reportFlags.filter(f => f.severity === "red").length;
@@ -167,51 +166,47 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground mb-6">
                   {analysisError || "We couldn't locate the analysis for this scan. The scan may still be processing."}
                 </p>
-                <button
-                  onClick={() => triggerTruthGate('retry_after_error')}
-                  className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
-                >
+                <button onClick={() => triggerTruthGate('retry_after_error')}
+                  className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
                   Try Scanning Again
                 </button>
               </div>
             </div>
           ) : (
             <>
-              <GradeReveal
+              <TruthReport
                 grade={reportGrade}
                 flags={reportFlags}
-                county={selectedCounty}
+                pillarScores={analysisData.pillarScores}
                 contractorName={analysisData.contractorName}
+                county={selectedCounty}
+                confidenceScore={analysisData.confidenceScore}
+                documentType={analysisData.documentType}
                 accessLevel={reportAccess}
                 onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
+                onSecondScan={() => triggerTruthGate('second_opinion_scan')}
               />
               <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} />
-              <EvidenceLocker
-                grade={reportGrade}
-                county={selectedCounty}
-                firstName={analysisData.contractorName || undefined}
-                onSecondScan={() => triggerTruthGate('second_opinion_scan')}
-                redFlagCount={redFlagCount}
-                amberCount={amberCount}
-                greenCount={greenCount}
-                accessLevel={reportAccess}
-              />
             </>
           )}
         </>
       )}
 
-      <IndustryTruth onScanClick={() => triggerTruthGate('industry_truth')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
-      <MarketMakerManifesto onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
-      <ProcessSteps onScanClick={() => triggerTruthGate('process_steps')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
-      <NarrativeProof onScanClick={() => triggerTruthGate('narrative_proof')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
-      <ClosingManifesto onScanClick={() => triggerTruthGate('closing_manifesto')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+      {!gradeRevealed && (
+        <>
+          <IndustryTruth onScanClick={() => triggerTruthGate('industry_truth')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+          <MarketMakerManifesto onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+          <ProcessSteps onScanClick={() => triggerTruthGate('process_steps')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+          <NarrativeProof onScanClick={() => triggerTruthGate('narrative_proof')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+          <ClosingManifesto onScanClick={() => triggerTruthGate('closing_manifesto')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+        </>
+      )}
 
       <ExitIntentModal stepsCompleted={stepsCompleted} flowMode={flowMode as 'A' | 'B' | 'C'} leadCaptured={leadCaptured} flowBLeadCaptured={flowBLeadCaptured} county={selectedCounty}
         answers={{ windowCount: null, projectType: null, county: selectedCounty !== "your county" ? selectedCounty : null, quoteStage: null, firstName: null, email: null, phone: null }}
         onClose={() => {}} onCTAClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
 
-      <StickyRecoveryBar stepsCompleted={stepsCompleted} county={selectedCounty} isVisible={showRecoveryBar || (IS_DEV_MODE && gradeRevealed)} onDismiss={() => setRecoveryBarDismissed(true)}
+      <StickyRecoveryBar stepsCompleted={stepsCompleted} county={selectedCounty} isVisible={showRecoveryBar} onDismiss={() => setRecoveryBarDismissed(true)}
         flowMode={flowMode} flowBLeadCaptured={flowBLeadCaptured} quoteWatcherSet={quoteWatcherSet}
         onDemoCTAClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
         leadCaptured={leadCaptured} isDevMode={IS_DEV_MODE} gradeRevealed={gradeRevealed}
