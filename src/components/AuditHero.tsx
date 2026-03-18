@@ -124,9 +124,9 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                   boxShadow: "0 4px 14px rgba(200, 149, 42, 0.35)",
                   cursor: "pointer",
                 }}
-                className="hover:shadow-lg transition-shadow"
+                className="w-full sm:w-auto whitespace-nowrap hover:shadow-lg transition-shadow"
               >
-                Scan My Quote — It's Free
+                Scan My Quote<span className="inline md:hidden lg:inline"> — It's Free</span>
               </motion.button>
               <React.Suspense fallback={<div className="h-[54px]" />}>
                 <PowerToolFlow
