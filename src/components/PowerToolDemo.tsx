@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
-const DS = { fontUI: "'Inter', system-ui, sans-serif", fontMono: "'IBM Plex Mono', monospace", colors: { bg: "#070b12", surface: "#0e1420", cyan: "#06b6d4", cyanDim: "rgba(6,182,212,0.15)", red: "#ef4444", amber: "#f59e0b", green: "#10b981", text: "#f1f5f9", muted: "rgba(241,245,249,0.75)", faint: "rgba(241,245,249,0.55)", border: "rgba(255,255,255,0.08)" } };
+const DS = { fontUI: "'Inter', system-ui, sans-serif", fontMono: "'IBM Plex Mono', monospace", colors: { bg: "#070b12", surface: "#0e1420", cyan: "#06b6d4", cyanDim: "rgba(6,182,212,0.15)", red: "#ef4444", amber: "#f59e0b", green: "#10b981", text: "#f1f5f9", muted: "rgba(241,245,249,0.90)", faint: "rgba(241,245,249,0.75)", border: "rgba(255,255,255,0.08)" } };
 const DS_PAGE_STYLES = `.ds-wrapper * { box-sizing: border-box; } .ds-wrapper button:focus-visible { outline: 2px solid rgba(6,182,212,0.6); outline-offset: 2px; }`;
 
 const SCAN_COUNT = 2432;
