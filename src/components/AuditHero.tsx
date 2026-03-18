@@ -207,17 +207,6 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 </span>
                 Getting Quotes Soon? We Can Arm You First →
               </motion.button>
-              <p
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 12,
-                  color: "#6B7280",
-                  textAlign: "center",
-                  marginTop: 6,
-                }}
-              >
-                Generate Your Fair-Market Baseline Before The Sales Presentation
-              </p>
             </div>
             <div
               className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4"
