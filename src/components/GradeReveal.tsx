@@ -87,23 +87,8 @@ const GradeReveal = ({
     );
   }
 
-  useEffect(() => {
-    if (!hasBenchmark || counterStarted.current) return;
-    counterStarted.current = true;
-    const target = Math.abs(dollarDelta!);
-    const duration = 1500;
-    const start = performance.now();
-    const animate = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCounter(Math.round(eased * target));
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [dollarDelta, hasBenchmark]);
-
-  const scriptText = `Hi [Contractor Name], I've had a chance to review your quote in more detail and I have a few questions before I can move forward.\n\nFirst — can you confirm the specific brand and model of window you'll be installing? I want that in writing before we finalize anything.\n\nSecond — I'd like to see the labor warranty extended to at least three years. That's the standard I've seen for this scope of work.\n\nI'm ready to move forward if we can get those two things confirmed. What's the fastest way to get a revised quote?`;
+  const displayName = contractorName || "[Contractor Name]";
+  const scriptText = `Hi ${displayName}, I've had a chance to review your quote in more detail and I have a few questions before I can move forward.\n\nFirst — can you confirm the specific brand and model of window you'll be installing? I want that in writing before we finalize anything.\n\nSecond — I'd like to see the labor warranty extended to at least three years. That's the standard I've seen for this scope of work.\n\nI'm ready to move forward if we can get those two things confirmed. What's the fastest way to get a revised quote?`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(scriptText);
