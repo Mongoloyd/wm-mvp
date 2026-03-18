@@ -50,6 +50,7 @@ const Index = () => {
   const [timeOnPage, setTimeOnPage] = useState(false);
 
   const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
+  const reportAccess = useReportAccess();
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
