@@ -167,7 +167,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                   </span>
                   <span>Getting Quotes Soon?</span>
                 </span>
-                <span className="ml-[4.5ch] sm:ml-0">We Can Arm You 1st →</span>
+                <span className="ml-[4.5ch] lg:ml-0">We Can Arm You 1st →</span>
               </motion.button>
             </div>
             <TrustBullets />
