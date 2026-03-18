@@ -14,6 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
+      analyses: {
+        Row: {
+          analysis_status: string
+          confidence_score: number | null
+          created_at: string
+          document_is_window_door_related: boolean | null
+          document_type: string | null
+          dollar_delta: number | null
+          flags: Json | null
+          full_json: Json | null
+          grade: string | null
+          id: string
+          lead_id: string | null
+          preview_json: Json | null
+          proof_of_read: Json | null
+          rubric_version: string | null
+          scan_session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          analysis_status?: string
+          confidence_score?: number | null
+          created_at?: string
+          document_is_window_door_related?: boolean | null
+          document_type?: string | null
+          dollar_delta?: number | null
+          flags?: Json | null
+          full_json?: Json | null
+          grade?: string | null
+          id?: string
+          lead_id?: string | null
+          preview_json?: Json | null
+          proof_of_read?: Json | null
+          rubric_version?: string | null
+          scan_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          analysis_status?: string
+          confidence_score?: number | null
+          created_at?: string
+          document_is_window_door_related?: boolean | null
+          document_type?: string | null
+          dollar_delta?: number | null
+          flags?: Json | null
+          full_json?: Json | null
+          grade?: string | null
+          id?: string
+          lead_id?: string | null
+          preview_json?: Json | null
+          proof_of_read?: Json | null
+          rubric_version?: string | null
+          scan_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analyses_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analyses_scan_session_id_fkey"
+            columns: ["scan_session_id"]
+            isOneToOne: false
+            referencedRelation: "scan_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_logs: {
+        Row: {
+          created_at: string
+          event_name: string
+          flow_type: string | null
+          id: string
+          lead_id: string | null
+          metadata: Json | null
+          route: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          flow_type?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          route?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          flow_type?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          route?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           county: string | null
@@ -58,6 +177,47 @@ export type Database = {
           window_count?: number | null
         }
         Relationships: []
+      }
+      phone_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          lead_id: string | null
+          phone_e164: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          phone_e164: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          phone_e164?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_verifications_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quote_analyses: {
         Row: {
@@ -122,6 +282,51 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scan_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          lead_id: string | null
+          quote_file_id: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          quote_file_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          quote_file_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_sessions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_sessions_quote_file_id_fkey"
+            columns: ["quote_file_id"]
+            isOneToOne: true
+            referencedRelation: "quote_files"
             referencedColumns: ["id"]
           },
         ]
