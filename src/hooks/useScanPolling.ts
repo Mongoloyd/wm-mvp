@@ -16,6 +16,7 @@ export type ScanStatus =
   | "uploading"
   | "processing"
   | "preview_ready"
+  | "complete"
   | "invalid_document"
   | "needs_better_upload"
   | "error";
