@@ -271,19 +271,6 @@ const SampleGradeCard = () => {
         </motion.div>
       </AnimatePresence>
 
-      {/* Dot indicators */}
-      <div className="flex justify-center gap-2 relative mt-4">
-        {REPORTS.map((_, i) => (
-          <div
-            key={i}
-            style={{
-              width: 6, height: 6, borderRadius: "50%",
-              background: i === currentIndex ? "hsl(187,100%,65%)" : "hsla(0,0%,100%,0.2)",
-              transition: "background 0.3s",
-            }}
-          />
-        ))}
-      </div>
 
       {/* Footer */}
       <div className="text-center relative" style={{
