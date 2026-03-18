@@ -24,7 +24,27 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
     }
   }, [isVisible]);
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_TYPES = [
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+  ];
+
+  const [fileError, setFileError] = useState<string | null>(null);
+
   const handleFile = useCallback((f: File) => {
+    setFileError(null);
+    if (f.size > MAX_FILE_SIZE) {
+      setFileError("File too large. Maximum size is 10MB.");
+      return;
+    }
+    if (!ALLOWED_TYPES.includes(f.type)) {
+      setFileError("Unsupported file type. Please upload a PDF or image (JPG, PNG, WEBP, HEIC).");
+      return;
+    }
     setFile(f);
     setIsDragOver(false);
   }, []);
@@ -165,7 +185,13 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
                 <div onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-center mx-auto" style={{ width: 48, height: 48, borderRadius: "50%", background: "#ECFDF5", marginBottom: 12 }}>
                     <span style={{ color: "#059669", fontSize: 24, fontWeight: 700 }}>✓</span>
-                  </div>
+            </div>
+
+            {fileError && (
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#DC2626", textAlign: "center", marginTop: 12, fontWeight: 500 }}>
+                {fileError}
+              </p>
+            )}
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#0F1F35", fontWeight: 600 }}>
                     {file.name}
                   </p>
