@@ -22,6 +22,7 @@ import StickyRecoveryBar from "@/components/StickyRecoveryBar";
 import InteractiveDemoScan from "@/components/InteractiveDemoScan";
 import ExitIntentModal from "@/components/ExitIntentModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
+import StickyCTAFooter from "@/components/StickyCTAFooter";
 
 const mockAuditResult = {
   grade: "C",
