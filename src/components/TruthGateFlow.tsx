@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
 import { Check } from "lucide-react";
+import { useTickerStats } from "@/hooks/useTickerStats";
 import { supabase } from "@/integrations/supabase/client";
 
 const stepConfig = [
