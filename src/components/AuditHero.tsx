@@ -219,7 +219,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                   marginTop: 6,
                 }}
               >
-                Generate your fair-market baseline before the contractor arrives
+                Generate Your Fair-Market Baseline Before The Sales Presentation
               </p>
             </div>
             <div
@@ -284,10 +284,10 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 </div>
                 <div style={{ background: "#FEF2F2", borderRadius: 8, padding: "12px 16px", marginTop: 16 }}>
                   <p style={{ fontFamily: "'DM Mono', monospace", color: "#DC2626", fontWeight: 700, fontSize: 16 }}>
-                    $4,800 above fair market
+                    $4,800 Above Fair Market
                   </p>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7280", marginTop: 2 }}>
-                    Broward County benchmark · Q1 2025
+                    Broward County Benchmark · Q1 2025
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
