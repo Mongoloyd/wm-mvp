@@ -15,7 +15,7 @@ const vetItems = [
   "Your contractor never sees your WindowMan grade report unless you choose to share it.",
 ];
 
-const ContractorMatch = ({ isVisible, grade = "C", county = "Broward", dollarDelta = 4800 }: ContractorMatchProps) => {
+const ContractorMatch = ({ isVisible, grade = "C", county = "Broward" }: ContractorMatchProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [introRequested, setIntroRequested] = useState(false);
   const isGoodGrade = grade === "A" || grade === "B";
