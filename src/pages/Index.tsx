@@ -22,6 +22,7 @@ import StickyRecoveryBar from "@/components/StickyRecoveryBar";
 import InteractiveDemoScan from "@/components/InteractiveDemoScan";
 import ExitIntentModal from "@/components/ExitIntentModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
+import StickyCTAFooter from "@/components/StickyCTAFooter";
 
 const mockAuditResult = {
   grade: "C",
@@ -84,7 +85,7 @@ const Index = () => {
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-32">
       <LinearHeader />
 
       {!gradeRevealed && (
@@ -170,6 +171,12 @@ const Index = () => {
         onDemoCTAClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
         leadCaptured={leadCaptured} isDevMode={IS_DEV_MODE} gradeRevealed={gradeRevealed}
         onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }} />
+
+      <StickyCTAFooter
+        onScanClick={() => triggerTruthGate('sticky_footer')}
+        onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        isVisible={!gradeRevealed && !showRecoveryBar}
+      />
     </div>
   );
 };
