@@ -28,7 +28,7 @@ const flagCards = [
   },
 ];
 
-const trustItems = ["No account required", "Your contractor never knows", "Results in 60 seconds"];
+
 
 interface AuditHeroProps {
   onFlowBClick?: () => void;
