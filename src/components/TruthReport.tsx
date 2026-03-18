@@ -645,7 +645,7 @@ function LockedOverlay({ issueCount }: {issueCount: number;}) {
             }
           </AnimatePresence>
 
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#475569", marginTop: 16 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#94A3B8", marginTop: 16 }}>
             We'll text a 6-digit code. No spam, ever.
           </p>
         </div>
