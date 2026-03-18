@@ -30,7 +30,6 @@ const stagger = (i: number) => ({
 const EvidenceLocker = ({
   grade = "C",
   county = "Broward",
-  dollarDelta = 4800,
   firstName = "Your",
   onSecondScan,
   redFlagCount = 1,
