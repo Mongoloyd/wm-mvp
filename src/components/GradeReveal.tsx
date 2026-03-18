@@ -44,6 +44,34 @@ const GradeReveal = ({
   contractorName,
   isLoading,
 }: GradeRevealProps) => {
+  const config = gradeConfig[grade] || gradeConfig.C;
+  const [counter, setCounter] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const counterStarted = useRef(false);
+
+  const redCount = flags.filter(f => f.severity === "red").length;
+  const amberCount = flags.filter(f => f.severity === "amber").length;
+  const greenCount = flags.filter(f => f.severity === "green").length;
+  const issueCount = redCount + amberCount;
+
+  const hasBenchmark = dollarDelta != null && fairPriceLow != null && fairPriceHigh != null;
+
+  useEffect(() => {
+    if (!hasBenchmark || counterStarted.current) return;
+    counterStarted.current = true;
+    const target = Math.abs(dollarDelta!);
+    const duration = 1500;
+    const start = performance.now();
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCounter(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [dollarDelta, hasBenchmark]);
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto py-16 px-4 space-y-6">
@@ -58,17 +86,6 @@ const GradeReveal = ({
       </div>
     );
   }
-  const config = gradeConfig[grade] || gradeConfig.C;
-  const [counter, setCounter] = useState(0);
-  const [copied, setCopied] = useState(false);
-  const counterStarted = useRef(false);
-
-  const redCount = flags.filter(f => f.severity === "red").length;
-  const amberCount = flags.filter(f => f.severity === "amber").length;
-  const greenCount = flags.filter(f => f.severity === "green").length;
-  const issueCount = redCount + amberCount;
-
-  const hasBenchmark = dollarDelta != null && fairPriceLow != null && fairPriceHigh != null;
 
   useEffect(() => {
     if (!hasBenchmark || counterStarted.current) return;
