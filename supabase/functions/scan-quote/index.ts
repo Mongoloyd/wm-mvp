@@ -218,7 +218,7 @@ function computeGrade(data: ExtractionResult): GradeResult {
   // Hard cap: no impact product mentions
   const hasImpact = data.line_items.some(i => /impact|hurricane|storm/i.test(i.description || ""));
   if (!hasImpact && data.line_items.length > 0) {
-    if (grade < "D") { /* already low */ }
+    if (GRADE_RANK[grade] <= GRADE_RANK["D"]) { /* already at or below D */ }
     else { grade = "D"; hardCapApplied = "no_impact_products"; }
   }
 
