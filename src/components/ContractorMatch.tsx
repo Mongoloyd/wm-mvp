@@ -6,7 +6,6 @@ interface ContractorMatchProps {
   isVisible: boolean;
   grade?: string;
   county?: string;
-  dollarDelta?: number;
 }
 
 const vetItems = [
