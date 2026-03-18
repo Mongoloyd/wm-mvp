@@ -20,7 +20,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
   };
 
   return (
-    <section style={{ backgroundColor: "#FFFFFF" }}>
+    <section className="frosted-card-light frosted-section-spacing">
       <div className="mx-auto max-w-6xl px-4 md:px-8 pt-12 pb-16 md:pt-20 md:pb-24">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
           <div className="md:hidden order-0 flex flex-col items-center text-center gap-3">

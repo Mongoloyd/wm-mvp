@@ -553,7 +553,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   };
 
   return (
-    <section id="truth-gate" style={{ backgroundColor: "#FAFAFA" }}>
+    <section id="truth-gate" className="frosted-card-light frosted-section-spacing">
       <div className={`mx-auto max-w-2xl px-4 md:px-8 py-16 md:py-24 transition-all duration-500 rounded-xl ${glowing ? 'ring-2 ring-gold shadow-lg shadow-gold/20' : ''}`}>
         <p
           className="text-center mb-3"

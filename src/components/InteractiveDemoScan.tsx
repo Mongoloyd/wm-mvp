@@ -252,7 +252,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
   const counter = useCounter(activeScan.delta, 1200, phase === "reveal" || phase === "hook");
 
   return (
-    <section className="border-t border-b border-border bg-background py-14 px-4 md:py-20 md:px-8">
+    <section className="frosted-card-light frosted-section-spacing py-14 px-4 md:py-20 md:px-8">
       <div className="text-center mb-9">
         <p className="font-mono text-[13px] text-cyan-text tracking-[0.1em] mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
         <h2 className="font-display text-[28px] md:text-[34px] font-bold text-navy mb-1.5">See the AI at work.</h2>
