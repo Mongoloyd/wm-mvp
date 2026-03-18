@@ -454,7 +454,7 @@ Deno.serve(async (req: Request) => {
       const mimeType = mimeFromPath(qf.storage_path);
 
       // 6. Call Gemini API directly
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiKey}`;
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${geminiKey}`;
 
       const geminiPayload = {
         contents: [
