@@ -118,13 +118,12 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 16,
                   fontWeight: 700,
-                  padding: "16px 32px",
                   borderRadius: 10,
                   border: "none",
                   boxShadow: "0 4px 14px rgba(200, 149, 42, 0.35)",
                   cursor: "pointer",
                 }}
-                className="w-full sm:w-auto whitespace-nowrap hover:shadow-lg transition-shadow"
+                className="w-full sm:w-auto whitespace-nowrap py-4 px-6 sm:px-8 hover:shadow-lg transition-shadow"
               >
                 Scan My Quote<span className="inline md:hidden lg:inline"> — It's Free</span>
               </motion.button>
