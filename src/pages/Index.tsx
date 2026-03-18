@@ -44,6 +44,7 @@ const Index = () => {
 
   const [flowMode, setFlowMode] = useState<'A' | 'B'>('A');
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [scanSessionId, setScanSessionId] = useState<string | null>(null);
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [truthGateHighlight, setTruthGateHighlight] = useState(false);
   const [fileUploaded, setFileUploaded] = useState(false);
