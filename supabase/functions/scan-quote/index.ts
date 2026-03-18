@@ -88,6 +88,9 @@ const GRADE_THRESHOLDS: Record<string, number> = { A: 85, B: 70, C: 55, D: 40 };
 
 const CONFIDENCE_THRESHOLD = 0.4;
 
+// Numeric rank for grade comparison — higher = better
+const GRADE_RANK: Record<string, number> = { A: 5, B: 4, C: 3, D: 2, F: 1 };
+
 function letterGrade(score: number): string {
   if (score >= GRADE_THRESHOLDS.A) return "A";
   if (score >= GRADE_THRESHOLDS.B) return "B";
@@ -215,7 +218,7 @@ function computeGrade(data: ExtractionResult): GradeResult {
   // Hard cap: no impact product mentions
   const hasImpact = data.line_items.some(i => /impact|hurricane|storm/i.test(i.description || ""));
   if (!hasImpact && data.line_items.length > 0) {
-    if (grade < "D") { /* already low */ }
+    if (GRADE_RANK[grade] <= GRADE_RANK["D"]) { /* already at or below D */ }
     else { grade = "D"; hardCapApplied = "no_impact_products"; }
   }
 
@@ -609,6 +612,9 @@ Deno.serve(async (req: Request) => {
         confidence_score: extraction.confidence,
         grade: gradeResult.letterGrade,
         flags: flags,
+        // NOTE: dollar_delta stores raw total_quoted_price for now.
+        // It is NOT a true benchmark delta — benchmark comparison is planned future logic.
+        // Do not present this value as "overpayment" or "savings" in any UI.
         dollar_delta: extraction.total_quoted_price || null,
         proof_of_read: proofOfRead,
         preview_json: previewJson,
