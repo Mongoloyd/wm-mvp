@@ -38,7 +38,7 @@ const SocialProofStrip = () => {
   };
 
   return (
-    <motion.div ref={ref} initial={{ opacity: 0, y: 10 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, delay: 0.3 }} className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-start md:justify-center overflow-x-auto md:overflow-visible" style={{ backgroundColor: "#0F1F35", WebkitOverflowScrolling: "touch" }}>
+    <motion.div ref={ref} initial={{ opacity: 0, y: 10 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, delay: 0.3 }} className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-start md:justify-center overflow-x-auto md:overflow-visible frosted-card-dark frosted-section-spacing" style={{ WebkitOverflowScrolling: "touch" }}>
       <div className="flex items-center gap-6 md:gap-12 flex-nowrap">
         {stats.map((stat, i) => (
           <div key={i} className="flex items-center gap-0">

@@ -25,7 +25,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
   });
 
   return (
-    <section style={{ backgroundColor: "#0F1F35" }}>
+    <section className="frosted-card-dark frosted-section-spacing">
       <div ref={ref} className="mx-auto px-4 md:px-8 py-20 md:py-28" style={{ maxWidth: 1080 }}>
         <motion.p
           {...fade(0)}

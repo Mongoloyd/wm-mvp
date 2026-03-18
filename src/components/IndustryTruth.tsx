@@ -64,7 +64,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
   };
 
   return (
-    <section style={{ backgroundColor: "#FFFFFF" }}>
+    <section className="frosted-card-light frosted-section-spacing">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

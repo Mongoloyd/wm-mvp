@@ -18,7 +18,7 @@ interface FlowBEntryProps { onContinueToTool: () => void; onSwitchToFlowA: () =>
 const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
   return (
     <div id="flow-b">
-      <section style={{ backgroundColor: "hsl(0 0% 100%)" }}>
+      <section className="frosted-card-light frosted-section-spacing">
         <div className="mx-auto max-w-5xl px-4 pt-14 pb-16 md:px-8 md:pt-20 md:pb-24">
           <div className="inline-flex items-center gap-2 mb-5" style={{ background: "hsl(152 82% 96%)", border: "1px solid hsl(160 84% 39%)", borderRadius: 6, padding: "5px 14px" }}>
             <span style={{ color: "hsl(160 84% 39%)", fontSize: 14 }}>★</span>
@@ -57,7 +57,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
         </div>
       </section>
 
-      <section style={{ backgroundColor: "hsl(210 20% 98%)", borderTop: "1px solid hsl(220 13% 91%)" }}>
+      <section className="frosted-card-light frosted-section-spacing">
         <div className="mx-auto max-w-4xl px-4 py-14 md:px-8 md:py-20">
           <p className="text-center mb-4" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "hsl(192 100% 37%)", letterSpacing: "0.1em" }}>WHAT FLOW B GIVES YOU</p>
           <h2 className="text-center" style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(30px, 4vw, 38px)", fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(213 57% 14%)", marginBottom: 48 }}>
