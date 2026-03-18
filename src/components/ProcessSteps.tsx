@@ -4,7 +4,7 @@ import { motion, useInView } from "framer-motion";
 const steps = [
 {
   num: "01",
-  title: "Answer 4 quick questions",
+  title: "Answer 4 Questions",
   copy: "Window count, project type, county, and quote range. Takes 45 seconds."
 },
 {
