@@ -24,6 +24,7 @@ import ExitIntentModal from "@/components/ExitIntentModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
+import { useReportAccess } from "@/hooks/useReportAccess";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
@@ -49,6 +50,7 @@ const Index = () => {
   const [timeOnPage, setTimeOnPage] = useState(false);
 
   const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
+  const reportAccess = useReportAccess();
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
@@ -180,6 +182,7 @@ const Index = () => {
                 flags={reportFlags}
                 county={selectedCounty}
                 contractorName={analysisData.contractorName}
+                accessLevel={reportAccess}
                 onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
               />
               <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} />
@@ -191,6 +194,7 @@ const Index = () => {
                 redFlagCount={redFlagCount}
                 amberCount={amberCount}
                 greenCount={greenCount}
+                accessLevel={reportAccess}
               />
             </>
           )}
