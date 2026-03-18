@@ -248,7 +248,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
             </p>
 
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#9CA3AF", textAlign: "center", marginTop: 16 }}>
-              Accepted: PDF, JPG, PNG, HEIC · Max file size: 25MB
+              Accepted: PDF, JPG, PNG, HEIC · Max file size: 10MB
             </p>
           </div>
         </motion.div>
