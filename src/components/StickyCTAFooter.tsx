@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { Phone } from "lucide-react";
+
 interface StickyCTAFooterProps {
   onScanClick: () => void;
   onDemoClick: () => void;
@@ -7,6 +10,19 @@ interface StickyCTAFooterProps {
 }
 
 export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClick, isVisible, conversionType }: StickyCTAFooterProps) => {
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    const handleScroll = () => {
+      setIsScrolling(true);
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => setIsScrolling(false), 300);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => { window.removeEventListener('scroll', handleScroll); clearTimeout(scrollTimeout); };
+  }, []);
+
   if (!isVisible) return null;
 
   const postConversionText = conversionType === 'account'
@@ -16,14 +32,15 @@ export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClic
     : null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t shadow-lg p-3 px-4">
+    <div className={`fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t shadow-lg p-3 px-4 transition-opacity duration-300 ${isScrolling ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
       <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-between w-full">
         {conversionType ? (
           <div className="flex justify-center w-full">
             <button
               onClick={onPostConversionClick}
-              className="w-full max-w-[280px] bg-[#C8952A] hover:bg-[#b58625] text-white font-semibold py-3 px-6 rounded-md transition-colors text-sm sm:text-base"
+              className="w-full max-w-[280px] bg-[#C8952A] hover:bg-[#b58625] text-white font-semibold py-3 px-6 rounded-md transition-colors text-sm sm:text-base flex items-center justify-center gap-2"
             >
+              <Phone size={18} />
               {postConversionText}
             </button>
           </div>
