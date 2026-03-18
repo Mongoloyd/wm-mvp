@@ -11,6 +11,7 @@ interface EvidenceLockerProps {
   redFlagCount?: number;
   amberCount?: number;
   greenCount?: number;
+  accessLevel?: "preview" | "full";
 }
 
 const gradeConfig: Record<string, { color: string; bg: string }> = {

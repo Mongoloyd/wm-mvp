@@ -21,6 +21,7 @@ interface GradeRevealProps {
   onContractorMatchClick?: () => void;
   contractorName?: string | null;
   isLoading?: boolean;
+  accessLevel?: "preview" | "full";
 }
 
 const gradeConfig: Record<string, { color: string; bg: string; label: string; message: string }> = {
