@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "@/hooks/use-toast";
-import ContractorMatch from "./ContractorMatch";
-import EvidenceLocker from "./EvidenceLocker";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Flag {
   id: number;
@@ -20,6 +19,8 @@ interface GradeRevealProps {
   fairPriceLow?: number;
   fairPriceHigh?: number;
   onContractorMatchClick?: () => void;
+  contractorName?: string | null;
+  isLoading?: boolean;
 }
 
 const gradeConfig: Record<string, { color: string; bg: string; label: string; message: string }> = {
@@ -30,24 +31,33 @@ const gradeConfig: Record<string, { color: string; bg: string; label: string; me
   F: { color: "#991B1B", bg: "#FEF2F2", label: "CRITICAL ISSUES FOUND", message: "This Quote Has Critical Problems. You Are Likely Being Significantly Overcharged." },
 };
 
-const defaultFlags: Flag[] = [
-  { id: 1, severity: "red", label: "No Window Brand Specified", detail: "Your contractor can install any brand at any quality level.", tip: "Ask: 'What specific brand and model will you install?'" },
-  { id: 2, severity: "amber", label: "Labor Warranty: 1 Year Only", detail: "Industry standard is 2–5 years for this project type.", tip: "Negotiate: Request minimum 3-year labor warranty in writing." },
-  { id: 3, severity: "amber", label: "Payment Schedule: 50% Deposit", detail: "Deposits above 40% before work begins carry financial risk.", tip: "Counter with: 30% deposit, 40% at midpoint, 30% on completion." },
-  { id: 4, severity: "green", label: "Permit Cost Included", detail: "Permit fees are correctly included in your contract total.", tip: null },
-];
-
 const stagger = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.12, duration: 0.4 } });
 
 const GradeReveal = ({
   grade = "C",
-  dollarDelta = 4800,
+  dollarDelta,
   county = "Broward",
-  flags = defaultFlags,
-  fairPriceLow = 12600,
-  fairPriceHigh = 14200,
+  flags = [],
+  fairPriceLow,
+  fairPriceHigh,
   onContractorMatchClick,
+  contractorName,
+  isLoading,
 }: GradeRevealProps) => {
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto py-16 px-4 space-y-6">
+        <div className="flex flex-col items-center gap-4">
+          <Skeleton className="w-[120px] h-[120px] rounded-full" />
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+      </div>
+    );
+  }
   const config = gradeConfig[grade] || gradeConfig.C;
   const [counter, setCounter] = useState(0);
   const [copied, setCopied] = useState(false);
