@@ -18,7 +18,7 @@ interface FlowBEntryProps { onContinueToTool: () => void; onSwitchToFlowA: () =>
 const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
   return (
     <div id="flow-b">
-      <section style={{ backgroundColor: "hsl(0 0% 100%)" }}>
+      <section className="frosted-card-light frosted-section-spacing">
         <div className="mx-auto max-w-5xl px-4 pt-14 pb-16 md:px-8 md:pt-20 md:pb-24">
           <div className="inline-flex items-center gap-2 mb-5" style={{ background: "hsl(152 82% 96%)", border: "1px solid hsl(160 84% 39%)", borderRadius: 6, padding: "5px 14px" }}>
             <span style={{ color: "hsl(160 84% 39%)", fontSize: 14 }}>★</span>
