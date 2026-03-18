@@ -16,7 +16,7 @@ function serviceClient() {
 
 // Helper: upload a tiny test file to storage and create quote_files + scan_sessions rows
 async function setupTestSession(fileContent: Uint8Array, fileName: string) {
-  const supabase = anonClient();
+  const supabase = serviceClient();
   const sessionTag = crypto.randomUUID();
   const storagePath = `test/${sessionTag}/${fileName}`;
 
