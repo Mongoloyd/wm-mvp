@@ -68,10 +68,12 @@ const GradeReveal = ({
   const greenCount = flags.filter(f => f.severity === "green").length;
   const issueCount = redCount + amberCount;
 
+  const hasBenchmark = dollarDelta != null && fairPriceLow != null && fairPriceHigh != null;
+
   useEffect(() => {
-    if (counterStarted.current) return;
+    if (!hasBenchmark || counterStarted.current) return;
     counterStarted.current = true;
-    const target = Math.abs(dollarDelta);
+    const target = Math.abs(dollarDelta!);
     const duration = 1500;
     const start = performance.now();
     const animate = (now: number) => {
@@ -82,7 +84,7 @@ const GradeReveal = ({
       if (progress < 1) requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
-  }, [dollarDelta]);
+  }, [dollarDelta, hasBenchmark]);
 
   const scriptText = `Hi [Contractor Name], I've had a chance to review your quote in more detail and I have a few questions before I can move forward.\n\nFirst — can you confirm the specific brand and model of window you'll be installing? I want that in writing before we finalize anything.\n\nSecond — I'd like to see the labor warranty extended to at least three years. That's the standard I've seen for this scope of work.\n\nI'm ready to move forward if we can get those two things confirmed. What's the fastest way to get a revised quote?`;
 
