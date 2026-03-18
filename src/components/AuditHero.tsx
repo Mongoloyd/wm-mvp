@@ -136,31 +136,16 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 />
               </React.Suspense>
             </div>
-            <div className="flex flex-col mt-2">
+            <div className="mt-2 w-full sm:w-auto">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onFlowBClick?.()}
-                className="relative"
+                className="w-full sm:w-auto whitespace-nowrap bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-300 transition-colors rounded-[10px] px-6 py-3.5 cursor-pointer relative"
                 style={{
-                  background: "transparent",
-                  color: "#374151",
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 15,
                   fontWeight: 500,
-                  padding: "14px 24px",
-                  border: "1.5px solid #D1D5DB",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  transition: "border-color 0.2s, color 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#0F1F35";
-                  e.currentTarget.style.color = "#0F1F35";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#D1D5DB";
-                  e.currentTarget.style.color = "#374151";
                 }}
               >
                 <span
