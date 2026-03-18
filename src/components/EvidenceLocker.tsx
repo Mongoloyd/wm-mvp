@@ -48,7 +48,6 @@ const EvidenceLocker = ({
 
   Grade:               ${grade}
   Location:            ${county} County
-  Savings Opportunity: $${dollarDelta.toLocaleString()}
 
 ── RED FLAG ANALYSIS ─────────────
   • ${redFlagCount} critical flag(s)
