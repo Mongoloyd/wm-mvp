@@ -135,12 +135,12 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 />
               </React.Suspense>
             </div>
-            <div className="mt-2 w-full sm:w-auto">
+            <div className="mt-2 w-full lg:w-auto">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onFlowBClick?.()}
-                className="w-full sm:w-auto bg-emerald-950/40 hover:bg-emerald-900/60 border-2 border-emerald-800/60 hover:border-emerald-700/80 text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-colors rounded-[10px] py-3.5 px-4 sm:px-6 cursor-pointer relative flex flex-col sm:flex-row sm:items-center sm:gap-2"
+                className="w-full lg:w-auto bg-emerald-950/40 hover:bg-emerald-900/60 border-2 border-emerald-800/60 hover:border-emerald-700/80 text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-colors rounded-[10px] py-3.5 px-4 lg:px-6 cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2"
                 style={{
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 15,
@@ -167,7 +167,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                   </span>
                   <span>Getting Quotes Soon?</span>
                 </span>
-                <span className="ml-[4.5ch] sm:ml-0">We Can Arm You 1st →</span>
+                <span className="ml-[4.5ch] lg:ml-0">We Can Arm You 1st →</span>
               </motion.button>
             </div>
             <TrustBullets />
