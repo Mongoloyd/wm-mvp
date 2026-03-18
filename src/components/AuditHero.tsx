@@ -107,7 +107,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
               WindowMan built one — and it reads your quote in{" "}
               <strong style={{ color: "#0F1F35" }}>under 60 seconds</strong>.
             </p>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -118,13 +118,12 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 16,
                   fontWeight: 700,
-                  padding: "16px 32px",
                   borderRadius: 10,
                   border: "none",
                   boxShadow: "0 4px 14px rgba(200, 149, 42, 0.35)",
                   cursor: "pointer",
                 }}
-                className="w-full sm:w-auto whitespace-nowrap hover:shadow-lg transition-shadow"
+                className="w-full sm:w-auto whitespace-nowrap py-4 px-6 sm:px-8 hover:shadow-lg transition-shadow"
               >
                 Scan My Quote<span className="inline md:hidden lg:inline"> — It's Free</span>
               </motion.button>
@@ -141,7 +140,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onFlowBClick?.()}
-                className="w-full sm:w-auto whitespace-nowrap bg-emerald-950/40 hover:bg-emerald-900/60 border-2 border-emerald-800/60 hover:border-emerald-700/80 text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-colors rounded-[10px] px-6 py-3.5 cursor-pointer relative"
+                className="w-full sm:w-auto whitespace-nowrap bg-emerald-950/40 hover:bg-emerald-900/60 border-2 border-emerald-800/60 hover:border-emerald-700/80 text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-colors rounded-[10px] py-3.5 px-4 sm:px-6 cursor-pointer relative"
                 style={{
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 15,
