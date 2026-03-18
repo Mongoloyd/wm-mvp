@@ -140,7 +140,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onFlowBClick?.()}
-                className="w-full sm:w-auto whitespace-nowrap bg-emerald-950/40 hover:bg-emerald-900/60 border-2 border-emerald-800/60 hover:border-emerald-700/80 text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-colors rounded-[10px] py-3.5 px-4 sm:px-6 cursor-pointer relative"
+                className="w-full sm:w-auto sm:whitespace-nowrap bg-emerald-950/40 hover:bg-emerald-900/60 border-2 border-emerald-800/60 hover:border-emerald-700/80 text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-colors rounded-[10px] py-3.5 px-4 sm:px-6 cursor-pointer relative"
                 style={{
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 15,
