@@ -120,6 +120,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     setPhase("scanning");
     setActiveLogIndex(0);
     setProgressWidth(0);
+    setScanningMinDone(false);
 
     const startTime = performance.now();
     const animateProgress = () => {
@@ -134,12 +135,11 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
       addTimer(() => setActiveLogIndex(i), i * 1200);
     }
 
+    // Mark minimum animation duration complete after 8s
+    // The actual phase transition is gated on BOTH this AND real scan status
     addTimer(() => {
-      setActiveLogIndex(6);
-      setPhase("cliffhanger");
+      setScanningMinDone(true);
     }, 8000);
-
-    addTimer(() => setPhase("otp"), 10000);
   };
 
   const handleOtpChange = (index: number, value: string) => {
