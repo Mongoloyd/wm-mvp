@@ -120,20 +120,21 @@ const GradeReveal = ({
         </div>
       </section>
 
+      {hasBenchmark && (
       <section style={{ background: "white", borderTop: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           <motion.div {...stagger(3)}>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>YOUR QUOTE VS. FAIR MARKET</p>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "clamp(36px, 5vw, 44px)", fontWeight: 900, color: dollarDelta > 0 ? "#DC2626" : "#059669" }}>
-              {dollarDelta > 0 ? "+" : dollarDelta < 0 ? "-" : ""}${counter.toLocaleString()}
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "clamp(36px, 5vw, 44px)", fontWeight: 900, color: dollarDelta! > 0 ? "#DC2626" : "#059669" }}>
+              {dollarDelta! > 0 ? "+" : dollarDelta! < 0 ? "-" : ""}${counter.toLocaleString()}
             </p>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>
-              {dollarDelta > 0 ? `above fair market for ${county} County` : dollarDelta < 0 ? "below market — this quote is competitive" : "This quote is priced at the county benchmark"}
+              {dollarDelta! > 0 ? `above fair market for ${county} County` : dollarDelta! < 0 ? "below market — this quote is competitive" : "This quote is priced at the county benchmark"}
             </p>
           </motion.div>
           <motion.div {...stagger(3.5)}>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>FAIR MARKET RANGE · {county.toUpperCase()} COUNTY</p>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, fontWeight: 700, color: "#0099BB" }}>${fairPriceLow.toLocaleString()} – ${fairPriceHigh.toLocaleString()}</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, fontWeight: 700, color: "#0099BB" }}>${fairPriceLow!.toLocaleString()} – ${fairPriceHigh!.toLocaleString()}</p>
             <div style={{ position: "relative", marginTop: 12 }}>
               <div style={{ height: 8, background: "#E5E7EB", borderRadius: 4, overflow: "hidden" }}>
                 <div style={{ height: 8, borderRadius: 4, background: "linear-gradient(90deg, #0099BB, #059669)", width: "70%" }} />
@@ -154,6 +155,7 @@ const GradeReveal = ({
           </motion.div>
         </div>
       </section>
+      )}
 
       <section style={{ background: "#FAFAFA" }} className="py-12 md:py-16 px-4 md:px-8">
         <div className="max-w-4xl mx-auto">

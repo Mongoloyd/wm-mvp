@@ -23,21 +23,8 @@ import InteractiveDemoScan from "@/components/InteractiveDemoScan";
 import ExitIntentModal from "@/components/ExitIntentModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
-
-const mockAuditResult = {
-  grade: "C",
-  dollarDelta: 4800,
-  county: "Broward",
-  fairPriceLow: 12600,
-  fairPriceHigh: 14200,
-  firstName: "Maria",
-  flags: [
-    { id: 1, severity: "red" as const, label: "No Window Brand Specified", detail: "Your contractor can install any brand at any quality level.", tip: "Ask: 'What specific brand and model will you install?'" },
-    { id: 2, severity: "amber" as const, label: "Labor Warranty: 1 Year Only", detail: "Industry standard is 2–5 years for this project type.", tip: "Negotiate: Request minimum 3-year labor warranty in writing." },
-    { id: 3, severity: "amber" as const, label: "Payment Schedule: 50% Deposit", detail: "Deposits above 40% before work begins carry financial risk.", tip: "Counter with: 30% deposit, 40% at midpoint, 30% on completion." },
-    { id: 4, severity: "green" as const, label: "Permit Cost Included", detail: "Permit fees are correctly included in your contract total.", tip: null },
-  ],
-};
+import { useAnalysisData } from "@/hooks/useAnalysisData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const IS_DEV_MODE = false;
@@ -60,6 +47,8 @@ const Index = () => {
   const [recoveryBarDismissed, setRecoveryBarDismissed] = useState(() => localStorage.getItem("wm_recovery_bar_dismissed") === "true");
   const [scrolledPast70, setScrolledPast70] = useState(false);
   const [timeOnPage, setTimeOnPage] = useState(false);
+
+  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
@@ -87,6 +76,13 @@ const Index = () => {
   }, [flowMode, gradeRevealed]);
 
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
+
+  // Derive flag counts from real analysis data
+  const reportGrade = analysisData?.grade || "C";
+  const reportFlags = analysisData?.flags || [];
+  const redFlagCount = reportFlags.filter(f => f.severity === "red").length;
+  const amberCount = reportFlags.filter(f => f.severity === "amber").length;
+  const greenCount = reportFlags.filter(f => f.severity === "green").length;
 
   return (
     <div className="min-h-screen bg-background pb-[240px] sm:pb-[180px] lg:pb-32">
@@ -143,7 +139,7 @@ const Index = () => {
       )}
 
       {fileUploaded && !gradeRevealed && (
-        <ScanTheatrics isActive={true} selectedCounty={mockAuditResult.county} scanSessionId={scanSessionId}
+        <ScanTheatrics isActive={true} selectedCounty={selectedCounty} scanSessionId={scanSessionId}
           onRevealComplete={() => { setGradeRevealed(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           onInvalidDocument={() => { setFileUploaded(false); setScanSessionId(null); }}
           onNeedsBetterUpload={() => { setFileUploaded(false); setScanSessionId(null); }}
@@ -152,14 +148,52 @@ const Index = () => {
 
       {gradeRevealed && (
         <>
-          <GradeReveal {...mockAuditResult}
-            onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }} />
-          <ContractorMatch isVisible={contractorMatchVisible} county={mockAuditResult.county} grade={mockAuditResult.grade} dollarDelta={mockAuditResult.dollarDelta} />
-          <EvidenceLocker grade={mockAuditResult.grade} county={mockAuditResult.county} dollarDelta={mockAuditResult.dollarDelta} firstName={mockAuditResult.firstName}
-            onSecondScan={() => triggerTruthGate('second_opinion_scan')}
-            redFlagCount={mockAuditResult.flags.filter(f => f.severity === "red").length}
-            amberCount={mockAuditResult.flags.filter(f => f.severity === "amber").length}
-            greenCount={mockAuditResult.flags.filter(f => f.severity === "green").length} />
+          {analysisLoading ? (
+            <div className="max-w-4xl mx-auto py-16 px-4 space-y-6">
+              <div className="flex flex-col items-center gap-4">
+                <Skeleton className="w-[120px] h-[120px] rounded-full" />
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-72" />
+              </div>
+              <Skeleton className="h-32 w-full rounded-xl" />
+              <Skeleton className="h-24 w-full rounded-xl" />
+            </div>
+          ) : analysisError || !analysisData ? (
+            <div className="max-w-2xl mx-auto py-20 px-4 text-center">
+              <div className="rounded-xl border border-border bg-card p-8">
+                <p className="text-lg font-semibold text-foreground mb-2">Analysis Not Found</p>
+                <p className="text-sm text-muted-foreground mb-6">
+                  {analysisError || "We couldn't locate the analysis for this scan. The scan may still be processing."}
+                </p>
+                <button
+                  onClick={() => triggerTruthGate('retry_after_error')}
+                  className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
+                >
+                  Try Scanning Again
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <GradeReveal
+                grade={reportGrade}
+                flags={reportFlags}
+                county={selectedCounty}
+                contractorName={analysisData.contractorName}
+                onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
+              />
+              <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} />
+              <EvidenceLocker
+                grade={reportGrade}
+                county={selectedCounty}
+                firstName={analysisData.contractorName || undefined}
+                onSecondScan={() => triggerTruthGate('second_opinion_scan')}
+                redFlagCount={redFlagCount}
+                amberCount={amberCount}
+                greenCount={greenCount}
+              />
+            </>
+          )}
         </>
       )}
 
