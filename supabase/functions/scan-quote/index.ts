@@ -88,6 +88,9 @@ const GRADE_THRESHOLDS: Record<string, number> = { A: 85, B: 70, C: 55, D: 40 };
 
 const CONFIDENCE_THRESHOLD = 0.4;
 
+// Numeric rank for grade comparison — higher = better
+const GRADE_RANK: Record<string, number> = { A: 5, B: 4, C: 3, D: 2, F: 1 };
+
 function letterGrade(score: number): string {
   if (score >= GRADE_THRESHOLDS.A) return "A";
   if (score >= GRADE_THRESHOLDS.B) return "B";
