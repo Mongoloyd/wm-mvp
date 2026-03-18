@@ -36,7 +36,9 @@ const EvidenceLocker = ({
   redFlagCount = 1,
   amberCount = 2,
   greenCount = 1,
+  accessLevel = "full",
 }: EvidenceLockerProps) => {
+  const isFull = accessLevel === "full";
   const [email, setEmail] = useState("");
   const { toast } = useToast();
   const config = gradeConfig[grade] || gradeConfig.C;

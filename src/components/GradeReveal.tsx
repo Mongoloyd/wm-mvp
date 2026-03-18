@@ -44,7 +44,9 @@ const GradeReveal = ({
   onContractorMatchClick,
   contractorName,
   isLoading,
+  accessLevel = "full",
 }: GradeRevealProps) => {
+  const isFull = accessLevel === "full";
   const config = gradeConfig[grade] || gradeConfig.C;
   const [counter, setCounter] = useState(0);
   const [copied, setCopied] = useState(false);
