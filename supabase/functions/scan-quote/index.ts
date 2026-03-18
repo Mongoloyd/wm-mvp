@@ -52,6 +52,25 @@ interface ExtractionResult {
   hvhz_zone?: boolean;
 }
 
+/**
+ * Light pre-validation: only checks document-level fields exist.
+ * Used before full schema validation to catch invalid documents early.
+ */
+function validateDocumentClassification(raw: unknown): { success: true; data: Record<string, unknown> } | { success: false; error: string } {
+  if (!raw || typeof raw !== "object") return { success: false, error: "Not an object" };
+  const obj = raw as Record<string, unknown>;
+
+  if (typeof obj.document_type !== "string") return { success: false, error: "Missing document_type" };
+  if (typeof obj.is_window_door_related !== "boolean") return { success: false, error: "Missing is_window_door_related" };
+  if (typeof obj.confidence !== "number" || obj.confidence < 0 || obj.confidence > 1) return { success: false, error: "Invalid confidence" };
+
+  return { success: true, data: obj };
+}
+
+/**
+ * Full extraction validation: ensures line_items and detailed fields are present.
+ * Only called AFTER document is confirmed as window/door related.
+ */
 function validateExtraction(raw: unknown): { success: true; data: ExtractionResult } | { success: false; error: string } {
   if (!raw || typeof raw !== "object") return { success: false, error: "Not an object" };
   const obj = raw as Record<string, unknown>;
