@@ -1,10 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useScanPolling, ScanStatus } from "@/hooks/useScanPolling";
+import { toast } from "sonner";
 
 interface ScanTheatricsProps {
   isActive: boolean;
   selectedCounty?: string;
+  scanSessionId?: string | null;
   onRevealComplete?: () => void;
+  onInvalidDocument?: () => void;
+  onNeedsBetterUpload?: () => void;
 }
 
 const logSteps = [
@@ -26,7 +31,7 @@ const pillars = [
 
 type Phase = "scanning" | "cliffhanger" | "otp" | "pillars" | "reveal";
 
-const ScanTheatrics = ({ isActive, selectedCounty = "your", onRevealComplete }: ScanTheatricsProps) => {
+const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null, onRevealComplete, onInvalidDocument, onNeedsBetterUpload }: ScanTheatricsProps) => {
   const [phase, setPhase] = useState<Phase>("scanning");
   const [activeLogIndex, setActiveLogIndex] = useState(0);
   const [progressWidth, setProgressWidth] = useState(0);
@@ -34,8 +39,14 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", onRevealComplete }: 
   const [pillarsDone, setPillarsDone] = useState<boolean[]>([false, false, false, false]);
   const [showGrade, setShowGrade] = useState(false);
   const [skippedOtp, setSkippedOtp] = useState(false);
+  const [scanningMinDone, setScanningMinDone] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const timersRef = useRef<number[]>([]);
+
+  // Real polling — drives phase transitions
+  const { status: scanStatus, error: pollError } = useScanPolling({
+    scanSessionId: isActive ? scanSessionId : null,
+  });
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);
@@ -56,16 +67,60 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", onRevealComplete }: 
       setPillarsDone([false, false, false, false]);
       setShowGrade(false);
       setSkippedOtp(false);
+      setScanningMinDone(false);
       return;
     }
     startScanning();
     return clearTimers;
   }, [isActive]);
 
+  // React to real scan status changes
+  useEffect(() => {
+    if (!isActive) return;
+
+    if (scanStatus === "invalid_document") {
+      toast.error("This doesn't appear to be an impact window or door quote. Please upload a contractor quote.");
+      clearTimers();
+      onInvalidDocument?.();
+      return;
+    }
+
+    if (scanStatus === "needs_better_upload") {
+      toast.error("We couldn't read this file clearly enough. Please upload a higher quality scan or photo.");
+      clearTimers();
+      onNeedsBetterUpload?.();
+      return;
+    }
+
+    if (scanStatus === "error") {
+      toast.error("Something went wrong with the scan. Please try again.");
+      clearTimers();
+      onNeedsBetterUpload?.();
+      return;
+    }
+
+    // When scan is done (preview_ready/complete), transition from scanning to cliffhanger→otp
+    // but only after the minimum scanning animation has played
+    if ((scanStatus === "preview_ready" || scanStatus === "complete") && scanningMinDone && phase === "scanning") {
+      setActiveLogIndex(6);
+      setProgressWidth(100);
+      setPhase("cliffhanger");
+      addTimer(() => setPhase("otp"), 2000);
+    }
+  }, [scanStatus, scanningMinDone, phase, isActive]);
+
+  // Poll error handling
+  useEffect(() => {
+    if (pollError) {
+      toast.error(pollError);
+    }
+  }, [pollError]);
+
   const startScanning = () => {
     setPhase("scanning");
     setActiveLogIndex(0);
     setProgressWidth(0);
+    setScanningMinDone(false);
 
     const startTime = performance.now();
     const animateProgress = () => {
@@ -80,12 +135,11 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", onRevealComplete }: 
       addTimer(() => setActiveLogIndex(i), i * 1200);
     }
 
+    // Mark minimum animation duration complete after 8s
+    // The actual phase transition is gated on BOTH this AND real scan status
     addTimer(() => {
-      setActiveLogIndex(6);
-      setPhase("cliffhanger");
+      setScanningMinDone(true);
     }, 8000);
-
-    addTimer(() => setPhase("otp"), 10000);
   };
 
   const handleOtpChange = (index: number, value: string) => {

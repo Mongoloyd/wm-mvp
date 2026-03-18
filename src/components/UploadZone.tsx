@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 interface UploadZoneProps {
   isVisible: boolean;
-  onScanStart?: (fileName: string) => void;
+  onScanStart?: (fileName: string, scanSessionId: string) => void;
   sessionId?: string;
 }
 
@@ -126,7 +126,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       }
 
       // Step 5: Start theatrics immediately
-      onScanStart?.(file.name);
+      onScanStart?.(file.name, ssData.id);
 
       // Step 6: Invoke edge function (fire-and-forget for UX)
       const { error: fnError } = await supabase.functions.invoke("scan-quote", {

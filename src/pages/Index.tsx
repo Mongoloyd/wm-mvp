@@ -44,6 +44,7 @@ const Index = () => {
 
   const [flowMode, setFlowMode] = useState<'A' | 'B'>('A');
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [scanSessionId, setScanSessionId] = useState<string | null>(null);
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [truthGateHighlight, setTruthGateHighlight] = useState(false);
   const [fileUploaded, setFileUploaded] = useState(false);
@@ -135,15 +136,18 @@ const Index = () => {
                 highlight={truthGateHighlight}
                 onHighlightDone={() => setTruthGateHighlight(false)}
               />
-              <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={() => setFileUploaded(true)} />
+              <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={(_fileName, ssId) => { setScanSessionId(ssId); setFileUploaded(true); }} />
             </>
           )}
         </>
       )}
 
       {fileUploaded && !gradeRevealed && (
-        <ScanTheatrics isActive={true} selectedCounty={mockAuditResult.county}
-          onRevealComplete={() => { setGradeRevealed(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+        <ScanTheatrics isActive={true} selectedCounty={mockAuditResult.county} scanSessionId={scanSessionId}
+          onRevealComplete={() => { setGradeRevealed(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          onInvalidDocument={() => { setFileUploaded(false); setScanSessionId(null); }}
+          onNeedsBetterUpload={() => { setFileUploaded(false); setScanSessionId(null); }}
+        />
       )}
 
       {gradeRevealed && (
