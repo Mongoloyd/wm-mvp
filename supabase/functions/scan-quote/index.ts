@@ -613,10 +613,7 @@ Deno.serve(async (req: Request) => {
       }
 
       const extraction = validation.data;
-        return new Response(JSON.stringify({ scan_session_id, analysis_status: "low_confidence", confidence: extraction.confidence }), {
-          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+
 
       // 11. Score all pillars
       const gradeResult = computeGrade(extraction);
