@@ -143,8 +143,11 @@ const Index = () => {
       )}
 
       {fileUploaded && !gradeRevealed && (
-        <ScanTheatrics isActive={true} selectedCounty={mockAuditResult.county}
-          onRevealComplete={() => { setGradeRevealed(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+        <ScanTheatrics isActive={true} selectedCounty={mockAuditResult.county} scanSessionId={scanSessionId}
+          onRevealComplete={() => { setGradeRevealed(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          onInvalidDocument={() => { setFileUploaded(false); setScanSessionId(null); }}
+          onNeedsBetterUpload={() => { setFileUploaded(false); setScanSessionId(null); }}
+        />
       )}
 
       {gradeRevealed && (
