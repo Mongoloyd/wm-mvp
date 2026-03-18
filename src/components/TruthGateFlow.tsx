@@ -122,7 +122,7 @@ const Spinner = () => (
 
 const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDone }: { onLeadCaptured?: (sessionId: string) => void; onStepChange?: (step: number, county: string) => void; highlight?: boolean; onHighlightDone?: () => void }) => {
   const [glowing, setGlowing] = useState(false);
-
+  const { today: tickerToday } = useTickerStats();
   useEffect(() => {
     if (highlight) {
       setGlowing(true);

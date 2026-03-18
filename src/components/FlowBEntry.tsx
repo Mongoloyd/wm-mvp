@@ -96,7 +96,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
           </div>
           <div className="text-center mt-10">
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "hsl(220 9% 30%)", fontStyle: "italic" }}>Most Contractors Budget on the Assumption You Won't Check.<br className="hidden md:block" /> You're About to Become The UnExpected.</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "hsl(220 9% 64%)", marginTop: 8 }}>4,127 Florida Homeowners Did This Before Their Last Window Project.</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "hsl(220 9% 64%)", marginTop: 8 }}>{tickerTotal.toLocaleString()} Florida Homeowners Did This Before Their Last Window Project.</p>
           </div>
         </div>
       </section>
