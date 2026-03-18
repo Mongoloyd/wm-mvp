@@ -462,7 +462,6 @@ const EvidenceLocker = ({
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
