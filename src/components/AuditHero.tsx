@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import handScannerHero from "@/assets/hand-scanner-hero.webp";
+import { TrustBullets } from "./TrustBullets";
 
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
 
