@@ -172,28 +172,54 @@ const GradeReveal = ({
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
-            {flags.map((flag, i) => {
-              const s = severityStyles[flag.severity];
-              return (
-                <motion.div key={flag.id} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.3, duration: 0.35 }}
-                  style={{ background: "white", border: s.border, borderLeft: s.borderLeft, borderRadius: 10, padding: "20px 20px 20px 24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-                  <span style={{ display: "inline-block", background: s.badgeBg, borderRadius: 999, padding: "3px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700, color: s.badgeColor, letterSpacing: "0.06em" }}>{s.badgeText}</span>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: "#0F1F35", marginTop: 8 }}>{flag.label}</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#374151", lineHeight: 1.7, marginTop: 6 }}>{flag.detail}</p>
-                  {flag.tip && (
-                    <div style={{ background: s.tipBg, borderRadius: 8, padding: "12px 16px", marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
-                      <span style={{ fontSize: 16, flexShrink: 0 }}>💬</span>
-                      <div>
-                        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#C8952A", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>NEGOTIATION TIP</p>
-                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#374151", lineHeight: 1.6 }}>{flag.tip}</p>
+          {isFull ? (
+            <div className="flex flex-col gap-3">
+              {flags.map((flag, i) => {
+                const s = severityStyles[flag.severity];
+                return (
+                  <motion.div key={flag.id} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.3, duration: 0.35 }}
+                    style={{ background: "white", border: s.border, borderLeft: s.borderLeft, borderRadius: 10, padding: "20px 20px 20px 24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+                    <span style={{ display: "inline-block", background: s.badgeBg, borderRadius: 999, padding: "3px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700, color: s.badgeColor, letterSpacing: "0.06em" }}>{s.badgeText}</span>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: "#0F1F35", marginTop: 8 }}>{flag.label}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#374151", lineHeight: 1.7, marginTop: 6 }}>{flag.detail}</p>
+                    {flag.tip && (
+                      <div style={{ background: s.tipBg, borderRadius: 8, padding: "12px 16px", marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
+                        <span style={{ fontSize: 16, flexShrink: 0 }}>💬</span>
+                        <div>
+                          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#C8952A", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>NEGOTIATION TIP</p>
+                          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#374151", lineHeight: 1.6 }}>{flag.tip}</p>
+                        </div>
                       </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="flex flex-col gap-3" style={{ filter: "blur(6px)", pointerEvents: "none", userSelect: "none" }}>
+                {flags.slice(0, 3).map((flag, i) => {
+                  const s = severityStyles[flag.severity];
+                  return (
+                    <div key={flag.id} style={{ background: "white", border: s.border, borderLeft: s.borderLeft, borderRadius: 10, padding: "20px 20px 20px 24px" }}>
+                      <span style={{ display: "inline-block", background: s.badgeBg, borderRadius: 999, padding: "3px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700, color: s.badgeColor }}>{s.badgeText}</span>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: "#0F1F35", marginTop: 8 }}>██████████ ██████</p>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#374151", marginTop: 6 }}>████████ ██████ ████████ ██████████ ██████.</p>
                     </div>
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: "rgba(255,255,255,0.6)", borderRadius: 10 }}>
+                <div style={{ background: "#0F1F35", borderRadius: 12, padding: "24px 32px", textAlign: "center", boxShadow: "0 8px 32px rgba(15,31,53,0.2)" }}>
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 8 }}>🔒 VERIFICATION REQUIRED</p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "white", marginBottom: 4 }}>
+                    We found {issueCount} issue{issueCount !== 1 ? "s" : ""} in your quote.
+                  </p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#94A3B8" }}>Verify your phone number to see the full details.</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div style={{ background: "#0F1F35", borderRadius: 10, padding: "16px 20px", marginTop: 20 }} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "white" }}>{redCount} critical issue{redCount !== 1 ? "s" : ""}, {amberCount} caution{amberCount !== 1 ? "s" : ""}, {greenCount} item{greenCount !== 1 ? "s" : ""} correct.</p>
