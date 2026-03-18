@@ -88,7 +88,7 @@ const Index = () => {
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-[240px] sm:pb-[180px] lg:pb-32">
       <LinearHeader />
 
       {!gradeRevealed && (
