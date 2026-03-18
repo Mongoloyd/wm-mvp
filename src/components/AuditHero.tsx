@@ -107,7 +107,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
               WindowMan built one — and it reads your quote in{" "}
               <strong style={{ color: "#0F1F35" }}>under 60 seconds</strong>.
             </p>
-            <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full sm:w-auto">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -124,9 +124,9 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                   boxShadow: "0 4px 14px rgba(200, 149, 42, 0.35)",
                   cursor: "pointer",
                 }}
-                className="hover:shadow-lg transition-shadow"
+                className="w-full sm:w-auto whitespace-nowrap hover:shadow-lg transition-shadow"
               >
-                Scan My Quote — It's Free
+                Scan My Quote<span className="inline md:hidden lg:inline"> — It's Free</span>
               </motion.button>
               <React.Suspense fallback={<div className="h-[54px]" />}>
                 <PowerToolFlow
@@ -136,31 +136,16 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 />
               </React.Suspense>
             </div>
-            <div className="flex flex-col mt-2">
+            <div className="mt-2 w-full sm:w-auto">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onFlowBClick?.()}
-                className="relative"
+                className="w-full sm:w-auto whitespace-nowrap bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-300 transition-colors rounded-[10px] px-6 py-3.5 cursor-pointer relative"
                 style={{
-                  background: "transparent",
-                  color: "#374151",
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 15,
                   fontWeight: 500,
-                  padding: "14px 24px",
-                  border: "1.5px solid #D1D5DB",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  transition: "border-color 0.2s, color 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#0F1F35";
-                  e.currentTarget.style.color = "#0F1F35";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#D1D5DB";
-                  e.currentTarget.style.color = "#374151";
                 }}
               >
                 <span
