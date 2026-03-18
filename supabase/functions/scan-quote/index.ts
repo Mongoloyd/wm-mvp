@@ -612,6 +612,9 @@ Deno.serve(async (req: Request) => {
         confidence_score: extraction.confidence,
         grade: gradeResult.letterGrade,
         flags: flags,
+        // NOTE: dollar_delta stores raw total_quoted_price for now.
+        // It is NOT a true benchmark delta — benchmark comparison is planned future logic.
+        // Do not present this value as "overpayment" or "savings" in any UI.
         dollar_delta: extraction.total_quoted_price || null,
         proof_of_read: proofOfRead,
         preview_json: previewJson,
