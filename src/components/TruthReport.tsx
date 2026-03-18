@@ -385,7 +385,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               NEXT STEP
             </span>
             <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, color: "white", letterSpacing: "-0.02em", marginTop: 8, marginBottom: 8 }}>
-              Want a contractor who will do this job right?
+              Want a Contractor Who Will Do This job Right?
             </h2>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#D1D5DB", maxWidth: 560, margin: "0 auto 32px", lineHeight: 1.7 }}>
               Based on your Grade {grade} and the {issueCount} issue{issueCount !== 1 ? "s" : ""} found, I can introduce you to a vetted {county} County contractor who quotes fair.
