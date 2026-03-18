@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { useTickerStats } from '@/hooks/useTickerStats';
 
 interface ExitIntentModalProps { stepsCompleted: number; flowMode: 'A' | 'B' | 'C'; leadCaptured: boolean; flowBLeadCaptured: boolean; county: string; answers: { windowCount: string | null; projectType: string | null; county: string | null; quoteStage: string | null; firstName: string | null; email: string | null; phone: string | null }; onClose: () => void; onCTAClick: () => void; onLeadSubmit?: (data: { email: string; phone: string }) => void; onReminderSet?: (data: { date: string; time: string }) => void; }
 
