@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "@/hooks/use-toast";
-import ContractorMatch from "./ContractorMatch";
-import EvidenceLocker from "./EvidenceLocker";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Flag {
   id: number;
@@ -20,6 +19,8 @@ interface GradeRevealProps {
   fairPriceLow?: number;
   fairPriceHigh?: number;
   onContractorMatchClick?: () => void;
+  contractorName?: string | null;
+  isLoading?: boolean;
 }
 
 const gradeConfig: Record<string, { color: string; bg: string; label: string; message: string }> = {
@@ -30,23 +31,18 @@ const gradeConfig: Record<string, { color: string; bg: string; label: string; me
   F: { color: "#991B1B", bg: "#FEF2F2", label: "CRITICAL ISSUES FOUND", message: "This Quote Has Critical Problems. You Are Likely Being Significantly Overcharged." },
 };
 
-const defaultFlags: Flag[] = [
-  { id: 1, severity: "red", label: "No Window Brand Specified", detail: "Your contractor can install any brand at any quality level.", tip: "Ask: 'What specific brand and model will you install?'" },
-  { id: 2, severity: "amber", label: "Labor Warranty: 1 Year Only", detail: "Industry standard is 2–5 years for this project type.", tip: "Negotiate: Request minimum 3-year labor warranty in writing." },
-  { id: 3, severity: "amber", label: "Payment Schedule: 50% Deposit", detail: "Deposits above 40% before work begins carry financial risk.", tip: "Counter with: 30% deposit, 40% at midpoint, 30% on completion." },
-  { id: 4, severity: "green", label: "Permit Cost Included", detail: "Permit fees are correctly included in your contract total.", tip: null },
-];
-
 const stagger = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.12, duration: 0.4 } });
 
 const GradeReveal = ({
   grade = "C",
-  dollarDelta = 4800,
+  dollarDelta,
   county = "Broward",
-  flags = defaultFlags,
-  fairPriceLow = 12600,
-  fairPriceHigh = 14200,
+  flags = [],
+  fairPriceLow,
+  fairPriceHigh,
   onContractorMatchClick,
+  contractorName,
+  isLoading,
 }: GradeRevealProps) => {
   const config = gradeConfig[grade] || gradeConfig.C;
   const [counter, setCounter] = useState(0);
@@ -58,10 +54,12 @@ const GradeReveal = ({
   const greenCount = flags.filter(f => f.severity === "green").length;
   const issueCount = redCount + amberCount;
 
+  const hasBenchmark = dollarDelta != null && fairPriceLow != null && fairPriceHigh != null;
+
   useEffect(() => {
-    if (counterStarted.current) return;
+    if (!hasBenchmark || counterStarted.current) return;
     counterStarted.current = true;
-    const target = Math.abs(dollarDelta);
+    const target = Math.abs(dollarDelta!);
     const duration = 1500;
     const start = performance.now();
     const animate = (now: number) => {
@@ -72,9 +70,25 @@ const GradeReveal = ({
       if (progress < 1) requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
-  }, [dollarDelta]);
+  }, [dollarDelta, hasBenchmark]);
 
-  const scriptText = `Hi [Contractor Name], I've had a chance to review your quote in more detail and I have a few questions before I can move forward.\n\nFirst — can you confirm the specific brand and model of window you'll be installing? I want that in writing before we finalize anything.\n\nSecond — I'd like to see the labor warranty extended to at least three years. That's the standard I've seen for this scope of work.\n\nI'm ready to move forward if we can get those two things confirmed. What's the fastest way to get a revised quote?`;
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto py-16 px-4 space-y-6">
+        <div className="flex flex-col items-center gap-4">
+          <Skeleton className="w-[120px] h-[120px] rounded-full" />
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+      </div>
+    );
+  }
+
+  const displayName = contractorName || "[Contractor Name]";
+  const scriptText = `Hi ${displayName}, I've had a chance to review your quote in more detail and I have a few questions before I can move forward.\n\nFirst — can you confirm the specific brand and model of window you'll be installing? I want that in writing before we finalize anything.\n\nSecond — I'd like to see the labor warranty extended to at least three years. That's the standard I've seen for this scope of work.\n\nI'm ready to move forward if we can get those two things confirmed. What's the fastest way to get a revised quote?`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(scriptText);
@@ -106,20 +120,21 @@ const GradeReveal = ({
         </div>
       </section>
 
+      {hasBenchmark && (
       <section style={{ background: "white", borderTop: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           <motion.div {...stagger(3)}>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>YOUR QUOTE VS. FAIR MARKET</p>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "clamp(36px, 5vw, 44px)", fontWeight: 900, color: dollarDelta > 0 ? "#DC2626" : "#059669" }}>
-              {dollarDelta > 0 ? "+" : dollarDelta < 0 ? "-" : ""}${counter.toLocaleString()}
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "clamp(36px, 5vw, 44px)", fontWeight: 900, color: dollarDelta! > 0 ? "#DC2626" : "#059669" }}>
+              {dollarDelta! > 0 ? "+" : dollarDelta! < 0 ? "-" : ""}${counter.toLocaleString()}
             </p>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>
-              {dollarDelta > 0 ? `above fair market for ${county} County` : dollarDelta < 0 ? "below market — this quote is competitive" : "This quote is priced at the county benchmark"}
+              {dollarDelta! > 0 ? `above fair market for ${county} County` : dollarDelta! < 0 ? "below market — this quote is competitive" : "This quote is priced at the county benchmark"}
             </p>
           </motion.div>
           <motion.div {...stagger(3.5)}>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>FAIR MARKET RANGE · {county.toUpperCase()} COUNTY</p>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, fontWeight: 700, color: "#0099BB" }}>${fairPriceLow.toLocaleString()} – ${fairPriceHigh.toLocaleString()}</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, fontWeight: 700, color: "#0099BB" }}>${fairPriceLow!.toLocaleString()} – ${fairPriceHigh!.toLocaleString()}</p>
             <div style={{ position: "relative", marginTop: 12 }}>
               <div style={{ height: 8, background: "#E5E7EB", borderRadius: 4, overflow: "hidden" }}>
                 <div style={{ height: 8, borderRadius: 4, background: "linear-gradient(90deg, #0099BB, #059669)", width: "70%" }} />
@@ -140,6 +155,7 @@ const GradeReveal = ({
           </motion.div>
         </div>
       </section>
+      )}
 
       <section style={{ background: "#FAFAFA" }} className="py-12 md:py-16 px-4 md:px-8">
         <div className="max-w-4xl mx-auto">

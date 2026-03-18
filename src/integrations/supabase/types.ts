@@ -336,6 +336,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_analysis_preview: {
+        Args: { p_scan_session_id: string }
+        Returns: {
+          confidence_score: number
+          document_type: string
+          flags: Json
+          grade: string
+          preview_json: Json
+          proof_of_read: Json
+        }[]
+      }
       get_scan_status: {
         Args: { p_scan_session_id: string }
         Returns: {
