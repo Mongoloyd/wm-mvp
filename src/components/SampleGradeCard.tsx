@@ -133,7 +133,7 @@ const SampleGradeCard = () => {
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       className="relative overflow-hidden"
       style={{
-        background: "rgba(15, 23, 42, 0.70)",
+      background: "rgba(121, 125, 135, 0.95)",
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
         borderRadius: 20,
