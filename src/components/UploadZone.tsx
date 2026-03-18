@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 interface UploadZoneProps {
   isVisible: boolean;
-  onScanStart?: (fileName: string) => void;
+  onScanStart?: (fileName: string, scanSessionId: string) => void;
   sessionId?: string;
 }
 
