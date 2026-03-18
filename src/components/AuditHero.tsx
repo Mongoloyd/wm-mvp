@@ -135,7 +135,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 />
               </React.Suspense>
             </div>
-            <div className="mt-2 w-full sm:w-auto">
+            <div className="mt-2 w-full lg:w-auto">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
