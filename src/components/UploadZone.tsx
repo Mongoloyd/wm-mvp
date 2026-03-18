@@ -185,7 +185,13 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
                 <div onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-center mx-auto" style={{ width: 48, height: 48, borderRadius: "50%", background: "#ECFDF5", marginBottom: 12 }}>
                     <span style={{ color: "#059669", fontSize: 24, fontWeight: 700 }}>✓</span>
-                  </div>
+            </div>
+
+            {fileError && (
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#DC2626", textAlign: "center", marginTop: 12, fontWeight: 500 }}>
+                {fileError}
+              </p>
+            )}
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#0F1F35", fontWeight: 600 }}>
                     {file.name}
                   </p>
