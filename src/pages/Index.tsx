@@ -136,7 +136,7 @@ const Index = () => {
                 highlight={truthGateHighlight}
                 onHighlightDone={() => setTruthGateHighlight(false)}
               />
-              <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={() => setFileUploaded(true)} />
+              <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={(_fileName, ssId) => { setScanSessionId(ssId); setFileUploaded(true); }} />
             </>
           )}
         </>
