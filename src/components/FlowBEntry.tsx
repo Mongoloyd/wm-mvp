@@ -17,6 +17,7 @@ const timelineSteps = [
 interface FlowBEntryProps { onContinueToTool: () => void; onSwitchToFlowA: () => void; }
 
 const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
+  const { total: tickerTotal } = useTickerStats();
   return (
     <div id="flow-b">
       <section style={{ backgroundColor: "hsl(0 0% 100%)" }}>
