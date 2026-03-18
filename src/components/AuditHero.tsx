@@ -159,9 +159,6 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 />
               </React.Suspense>
             </div>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", marginTop: 4 }}>
-              No upload needed • Watch a live scan in 30 seconds
-            </p>
             <div className="flex flex-col mt-2">
               <motion.button
                 whileHover={{ scale: 1.02 }}
