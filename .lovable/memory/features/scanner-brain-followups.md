@@ -26,5 +26,9 @@ Scanner Brain verified follow-ups and tech debt for next passes
 ### 2. dollar_delta is NOT a true delta ⚠️
 - Stores raw total_quoted_price — NOT benchmarked
 
+## Tech debt: quote_files insert pattern
+- `quote_files` still uses `.insert().select("id").single()` — works because anon SELECT policy exists
+- When we tighten `quote_files` RLS, convert to client-generated UUID or backend-owned insert (same pattern as scan_sessions fix)
+
 ## Next scoped task
 - OTP hard gate (Twilio Verify)
