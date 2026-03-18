@@ -2,33 +2,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import handScannerHero from "@/assets/hand-scanner-hero.webp";
 import { TrustBullets } from "./TrustBullets";
+import SampleGradeCard from "./SampleGradeCard";
 
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
-
-const flagCards = [
-  {
-    stripe: "#DC2626",
-    icon: "⚠",
-    label: "No Window Brand Specified",
-    labelColor: "#DC2626",
-    sub: "Contractor can install any quality level",
-  },
-  {
-    stripe: "#F59E0B",
-    icon: "⚡",
-    label: "Labor Warranty: 1 Year Only",
-    labelColor: "#D97706",
-    sub: "Industry standard is 2–5 years",
-  },
-  {
-    stripe: "#059669",
-    icon: "✓",
-    label: "Permit Cost Included",
-    labelColor: "#059669",
-    sub: "This is correctly structured",
-  },
-];
-
 
 
 interface AuditHeroProps {
