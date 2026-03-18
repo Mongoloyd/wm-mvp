@@ -1,35 +1,53 @@
-import { Lock } from "lucide-react";
-
 interface StickyCTAFooterProps {
   onScanClick: () => void;
   onDemoClick: () => void;
+  onPostConversionClick: () => void;
   isVisible: boolean;
+  conversionType: 'scan' | 'account' | null;
 }
 
-export const StickyCTAFooter = ({ onScanClick, onDemoClick, isVisible }: StickyCTAFooterProps) => {
+export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClick, isVisible, conversionType }: StickyCTAFooterProps) => {
   if (!isVisible) return null;
 
+  const postConversionText = conversionType === 'account'
+    ? "Request a Free Estimate"
+    : conversionType === 'scan'
+    ? "Get Answers About Your Grade"
+    : null;
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t shadow-[0_-10px_30px_rgba(0,0,0,0.1)] p-3 px-4 animate-in slide-in-from-bottom-10">
-      <div className="max-w-2xl mx-auto flex flex-col items-center gap-2">
-        <div className="flex flex-row w-full justify-center gap-3">
-          <button
-            onClick={onScanClick}
-            className="flex-1 max-w-[240px] bg-[#22B6CB] hover:bg-[#1da3b8] text-white font-semibold py-3 px-4 rounded-md transition-colors text-sm sm:text-base"
-          >
-            Scan My Quote
-          </button>
-          <button
-            onClick={onDemoClick}
-            className="flex-1 max-w-[240px] bg-[#C8952A] hover:bg-[#b58625] text-white font-semibold py-3 px-4 rounded-md transition-colors text-sm sm:text-base"
-          >
-            Watch Live Demo
-          </button>
-        </div>
-        <p className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground mt-1">
-          <Lock size={10} className="text-muted-foreground" />
-          <span>256-bit Encrypted &middot; No Credit Card &middot; Results in 60s</span>
-        </p>
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t shadow-lg p-3 px-4">
+      <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-between w-full">
+        {conversionType ? (
+          <div className="flex justify-center w-full">
+            <button
+              onClick={onPostConversionClick}
+              className="w-full max-w-[280px] bg-[#C8952A] hover:bg-[#b58625] text-white font-semibold py-3 px-6 rounded-md transition-colors text-sm sm:text-base"
+            >
+              {postConversionText}
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="hidden md:block text-sm font-medium text-foreground">
+              Don't Sign Until You've Got Your Free WindowMan AI Truth Report →
+            </p>
+            <div className="flex justify-center gap-3 w-full md:w-auto">
+              <button
+                onClick={onScanClick}
+                className="flex-1 md:flex-none w-full max-w-[200px] bg-[#C8952A] hover:bg-[#b58625] text-white font-semibold py-3 px-4 rounded-md transition-colors text-sm sm:text-base"
+              >
+                Scan My Quote
+              </button>
+              <button
+                onClick={onDemoClick}
+                className="flex-1 md:flex-none w-full max-w-[200px] bg-[#22B6CB] hover:bg-[#1da3b8] text-white font-semibold py-3 px-4 rounded-md transition-colors text-sm sm:text-base"
+              >
+                Watch Live Demo
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

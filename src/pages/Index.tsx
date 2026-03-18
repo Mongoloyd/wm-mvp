@@ -64,6 +64,9 @@ const Index = () => {
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
 
   const anyLeadCaptured = flowMode === 'A' ? leadCaptured : flowBLeadCaptured;
+  const conversionType: 'scan' | 'account' | null = (leadCaptured || flowBLeadCaptured) ? 'account'
+    : gradeRevealed ? 'scan'
+    : null;
   const flowBComplete = flowMode === 'B' && quoteWatcherSet;
   const showRecoveryBar = IS_DEV_MODE || (scrolledPast70 && !anyLeadCaptured && timeOnPage && !recoveryBarDismissed && !gradeRevealed && !flowBComplete);
 
@@ -175,7 +178,9 @@ const Index = () => {
       <StickyCTAFooter
         onScanClick={() => triggerTruthGate('sticky_footer')}
         onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-        isVisible={!gradeRevealed && !showRecoveryBar}
+        onPostConversionClick={() => { /* placeholder: tel link or contact modal */ }}
+        isVisible={!showRecoveryBar}
+        conversionType={conversionType}
       />
     </div>
   );
