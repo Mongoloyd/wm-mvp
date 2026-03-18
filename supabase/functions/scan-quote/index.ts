@@ -539,44 +539,80 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      // 8. Validate extraction
-      const validation = validateExtraction(parsed);
-      if (!validation.success) {
-        console.error("Validation failed:", validation.error);
-        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
-        return new Response(JSON.stringify({ error: "Extraction validation failed", detail: validation.error, scan_session_id }), {
-          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      // 8. CLASSIFICATION GATE — check document type BEFORE full extraction validation
+      //    This catches invalid documents even when Gemini returns partial/malformed data.
+      const classCheck = validateDocumentClassification(parsed);
+
+      if (classCheck.success) {
+        const classData = classCheck.data;
+
+        // 8a. Invalid document gate (not window/door related)
+        if (classData.is_window_door_related === false) {
+          await supabase.from("scan_sessions").update({ status: "invalid_document" }).eq("id", scan_session_id);
+          await supabase.from("analyses").upsert({
+            scan_session_id,
+            lead_id: session.lead_id,
+            analysis_status: "invalid_document",
+            document_is_window_door_related: false,
+            document_type: classData.document_type as string,
+            confidence_score: classData.confidence as number,
+            rubric_version: RUBRIC_VERSION,
+          }, { onConflict: "scan_session_id" });
+
+          return new Response(JSON.stringify({
+            scan_session_id,
+            analysis_status: "invalid_document",
+            reason: "This file does not appear to be an impact window or door quote.",
+          }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
+        // 8b. Low confidence gate — document is related but unreadable
+        if ((classData.confidence as number) < CONFIDENCE_THRESHOLD) {
+          console.log(`Low confidence ${classData.confidence} for session ${scan_session_id}`);
+          await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
+          await supabase.from("analyses").upsert({
+            scan_session_id,
+            lead_id: session.lead_id,
+            analysis_status: "needs_better_upload",
+            document_is_window_door_related: true,
+            document_type: classData.document_type as string,
+            confidence_score: classData.confidence as number,
+            rubric_version: RUBRIC_VERSION,
+          }, { onConflict: "scan_session_id" });
+
+          return new Response(JSON.stringify({
+            scan_session_id,
+            analysis_status: "needs_better_upload",
+            confidence: classData.confidence,
+            reason: "We couldn't read this file clearly enough. Please upload a higher quality scan or photo.",
+          }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
       }
 
-      const extraction = validation.data;
-
-      // 9. Document validity gate
-      if (!extraction.is_window_door_related) {
-        await supabase.from("scan_sessions").update({ status: "invalid_document" }).eq("id", scan_session_id);
-
-        // Upsert minimal analyses row — no grade, no pillar, no flags
+      // 9. FULL EXTRACTION VALIDATION — only reached for window/door docs with sufficient confidence
+      const validation = validateExtraction(parsed);
+      if (!validation.success) {
+        console.error("Extraction validation failed:", validation.error);
+        // Document passed classification but extraction is incomplete — treat as needs_better_upload
+        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
         await supabase.from("analyses").upsert({
-          scan_session_id: scan_session_id,
+          scan_session_id,
           lead_id: session.lead_id,
-          analysis_status: "invalid_document",
-          document_is_window_door_related: false,
-          document_type: extraction.document_type,
-          confidence_score: extraction.confidence,
+          analysis_status: "needs_better_upload",
+          document_is_window_door_related: classCheck.success ? (classCheck.data.is_window_door_related as boolean) : null,
+          document_type: classCheck.success ? (classCheck.data.document_type as string) : null,
+          confidence_score: classCheck.success ? (classCheck.data.confidence as number) : null,
           rubric_version: RUBRIC_VERSION,
         }, { onConflict: "scan_session_id" });
 
         return new Response(JSON.stringify({
           scan_session_id,
-          analysis_status: "invalid_document",
-          reason: "This file does not appear to be an impact window or door quote.",
+          analysis_status: "needs_better_upload",
+          reason: "We found a window quote but couldn't extract all details. Please try a clearer upload.",
         }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // 10. Low confidence gate
-      if (extraction.confidence < CONFIDENCE_THRESHOLD) {
-        console.log(`Low confidence ${extraction.confidence} for session ${scan_session_id}`);
-        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
+      const extraction = validation.data;
         return new Response(JSON.stringify({ scan_session_id, analysis_status: "low_confidence", confidence: extraction.confidence }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
