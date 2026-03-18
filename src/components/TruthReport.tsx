@@ -462,7 +462,7 @@ function LockedOverlay({ issueCount }: { issueCount: number }) {
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "white", marginBottom: 4 }}>
             We found {issueCount} issue{issueCount !== 1 ? "s" : ""} in your quote.
           </p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#94A3B8" }}>Verify your phone number to see the full details.</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#94A3B8" }}>Verify Your Phone Number To See The Full Details.</p>
         </div>
       </div>
     </div>
