@@ -25,7 +25,7 @@ interface GradeRevealProps {
 const gradeConfig: Record<string, { color: string; bg: string; label: string; message: string }> = {
   A: { color: "#059669", bg: "#ECFDF5", label: "STRONG QUOTE", message: "Your quote is well-structured and competitively priced." },
   B: { color: "#84CC16", bg: "#F7FEE7", label: "ACCEPTABLE", message: "Your quote is acceptable with minor items worth addressing." },
-  C: { color: "#F97316", bg: "#FFF7ED", label: "REVIEW BEFORE SIGNING", message: "Your quote has issues that could cost you money." },
+  C: { color: "#F97316", bg: "#FFF7ED", label: "REVIEW BEFORE SIGNING", message: "Your Quote Has Issues That Could Cost You Money." },
   D: { color: "#DC2626", bg: "#FEF2F2", label: "SIGNIFICANT PROBLEMS FOUND", message: "Do not sign without renegotiating these issues." },
   F: { color: "#991B1B", bg: "#FEF2F2", label: "CRITICAL ISSUES FOUND", message: "This quote has critical problems. You are likely being significantly overcharged." },
 };
