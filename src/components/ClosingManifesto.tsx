@@ -11,7 +11,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
   const handleScanClick = () => { onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" }); };
 
   return (
-    <section className="frosted-card-dark frosted-section-spacing">
+    <section style={{ backgroundColor: "#0F1F35" }}>
       <div ref={ref} className="mx-auto max-w-4xl px-4 md:px-8 py-24 md:py-32 text-center">
         <motion.p initial={{ opacity: 0, y: 12 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4 }} style={{ fontFamily: "'Jost', sans-serif", fontSize: 13, color: "#94A3B8", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 40 }}>WHY WINDOWMAN EXISTS</motion.p>
         <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.1 }} style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(28px, 4vw, 36px)", color: "#F3F4F6", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.5, marginBottom: 24 }}>The Industry Built a System Where You Need Their Expertise to Understand Their Quote.</motion.p>

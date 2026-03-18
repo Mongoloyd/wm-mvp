@@ -70,7 +70,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
   };
 
   return (
-    <section id="how-it-works" className="frosted-card-light frosted-section-spacing">
+    <section id="how-it-works" style={{ backgroundColor: "#F9FAFB" }}>
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div
           initial={{ opacity: 0, y: 16 }}

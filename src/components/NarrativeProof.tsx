@@ -14,7 +14,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
   const handleScanClick = () => {onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" });};
 
   return (
-    <section className="frosted-card-light frosted-section-spacing">
+    <section style={{ backgroundColor: "#FFFFFF" }}>
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4 }} className="text-center">
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#0099BB", letterSpacing: "0.1em", marginBottom: 16 }}>REAL RESULTS FROM FLORIDA HOMEOWNERS</p>

@@ -133,7 +133,7 @@ const SampleGradeCard = () => {
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       className="relative overflow-hidden"
       style={{
-      background: "rgba(121, 125, 135, 0.95)",
+        background: "rgba(15, 23, 42, 0.70)",
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
         borderRadius: 20,
@@ -214,15 +214,15 @@ const SampleGradeCard = () => {
 
           {/* Financial callout */}
           <div className="relative mb-5" style={{
-            background: "#575C69",
-            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(0,0,0,0.80)",
+            border: "1px solid hsla(0,79%,50%,0.2)",
             borderRadius: 12, padding: "14px 18px",
           }}>
             <div className="flex items-baseline gap-2">
               <AnimatedCounter key={currentIndex} target={report.delta} />
               <span style={{
                 fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
-                color: "white",
+                color: "hsla(0,79%,65%,0.9)",
               }}>
                 Above Fair Market
               </span>
@@ -241,8 +241,8 @@ const SampleGradeCard = () => {
               const Icon = flag.icon;
               return (
                 <div key={i} className="flex overflow-hidden" style={{
-                  background: "#575C69",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "hsla(0,0%,100%,0.20)",
+                  border: "1px solid hsla(0,0%,100%,0.08)",
                   borderRadius: 10,
                 }}>
                   <div style={{ width: 3, backgroundColor: flag.stripe, flexShrink: 0 }} />
@@ -251,13 +251,13 @@ const SampleGradeCard = () => {
                     <div>
                       <p style={{
                         fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700,
-                        color: "white",
+                        color: flag.color,
                       }}>
                         {flag.label}
                       </p>
                       <p style={{
                         fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                        color: "#E2E8F0", marginTop: 2,
+                        color: "hsla(0,0%,100%,0.6)", marginTop: 2,
                       }}>
                         {flag.sub}
                       </p>
