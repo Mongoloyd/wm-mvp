@@ -326,7 +326,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "white" }}>
               {redCount} critical, {amberCount} caution, {greenCount} confirmed across 5 pillars.
             </p>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#94A3B8" }}>Grade {grade} · {flags.length} items reviewed</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#f7f7f7" }}>Grade {grade} · {flags.length} items reviewed</p>
           </div>
         </div>
       </section>
