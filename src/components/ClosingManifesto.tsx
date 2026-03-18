@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { useTickerStats } from "@/hooks/useTickerStats";
 
 const checks = ["No account required to receive your grade", "Scans are private — your contractor never knows", "Built by Florida homeowners who got tired of not knowing", "Used by 4,127+ Florida homeowners this year"];
 

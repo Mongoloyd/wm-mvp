@@ -546,7 +546,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
             }}
           />
           <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#6B7280" }}>
-            14 homeowners in {selectedCounty} found red flags today
+            {tickerToday} homeowners in {selectedCounty} found red flags today
           </span>
         </div>
       </motion.div>

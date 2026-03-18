@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import "@fontsource/dm-mono/500.css";
+import { useTickerStats } from "@/hooks/useTickerStats";
 
 const outcomes = [
   { bg: "hsl(152 82% 96%)", icon: "✓", iconColor: "hsl(160 84% 39%)", title: "Walk in knowing the fair price", sub: "Before they quote you a single number" },
