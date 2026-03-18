@@ -376,7 +376,7 @@ const EvidenceLocker = ({
               marginTop: 16,
             }}
           >
-            Outcome: ${dollarDelta.toLocaleString()} paid above market. No recourse.
+            Outcome: You paid whatever they asked. No recourse.
           </p>
         </motion.div>
 

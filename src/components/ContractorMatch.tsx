@@ -74,7 +74,7 @@ const ContractorMatch = ({ isVisible, grade = "C", county = "Broward" }: Contrac
                     <p style={{ marginTop: 4 }}>3. Their quote comes in writing with every specification named.</p>
                   </div>
                   <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => { console.log({ event: "wm_contractor_intro_requested", grade, dollarDelta }); setIntroRequested(true); }}
+                    onClick={() => { console.log({ event: "wm_contractor_intro_requested", grade }); setIntroRequested(true); }}
                     style={{ width: "100%", marginTop: 24, background: "#C8952A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, height: 54, borderRadius: 10, border: "none", cursor: "pointer" }}>
                     Yes — Make the Introduction →
                   </motion.button>
