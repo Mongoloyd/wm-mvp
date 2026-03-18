@@ -414,7 +414,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             </motion.button>
           </motion.div>
 
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", fontStyle: "italic", marginTop: 20 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#e2e2e2", fontStyle: "italic", marginTop: 20 }}>
             No obligation. Free estimate. Your contractor never sees this report unless you share it.
           </p>
         </div>
