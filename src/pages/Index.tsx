@@ -178,7 +178,9 @@ const Index = () => {
       <StickyCTAFooter
         onScanClick={() => triggerTruthGate('sticky_footer')}
         onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-        isVisible={!gradeRevealed && !showRecoveryBar}
+        onPostConversionClick={() => { /* placeholder: tel link or contact modal */ }}
+        isVisible={!showRecoveryBar}
+        conversionType={conversionType}
       />
     </div>
   );
