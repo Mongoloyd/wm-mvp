@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
 import { Check } from "lucide-react";
+import { useTickerStats } from "@/hooks/useTickerStats";
 import { supabase } from "@/integrations/supabase/client";
 
 const stepConfig = [
@@ -121,7 +122,7 @@ const Spinner = () => (
 
 const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDone }: { onLeadCaptured?: (sessionId: string) => void; onStepChange?: (step: number, county: string) => void; highlight?: boolean; onHighlightDone?: () => void }) => {
   const [glowing, setGlowing] = useState(false);
-
+  const { today: tickerToday } = useTickerStats();
   useEffect(() => {
     if (highlight) {
       setGlowing(true);
@@ -545,7 +546,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
             }}
           />
           <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#6B7280" }}>
-            14 homeowners in {selectedCounty} found red flags today
+            {tickerToday} homeowners in {selectedCounty} found red flags today
           </span>
         </div>
       </motion.div>

@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { useTickerStats } from "@/hooks/useTickerStats";
 
 const checks = ["No account required to receive your grade", "Scans are private — your contractor never knows", "Built by Florida homeowners who got tired of not knowing", "Used by 4,127+ Florida homeowners this year"];
 
@@ -8,6 +9,8 @@ interface ClosingManifestoProps { onScanClick?: () => void; onDemoClick?: () => 
 const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.2 });
+  const { total: tickerTotal } = useTickerStats();
+  const dynamicChecks = ["No account required to receive your grade", "Scans are private — your contractor never knows", "Built by Florida homeowners who got tired of not knowing", `Used by ${tickerTotal.toLocaleString()}+ Florida homeowners this year`];
   const handleScanClick = () => { onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" }); };
 
   return (
@@ -17,7 +20,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
         <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.1 }} style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(28px, 4vw, 36px)", color: "#F3F4F6", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.5, marginBottom: 24 }}>The Industry Built a System Where You Need Their Expertise to Understand Their Quote.</motion.p>
         <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.2 }} style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(28px, 4vw, 36px)", color: "#C8952A", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.5 }}>We Built a System Where You Don't.</motion.p>
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, delay: 0.35 }} className="grid grid-cols-2 gap-4 mx-auto mt-12" style={{ maxWidth: 560 }}>
-          {checks.map((text, i) => (<div key={i} className="flex items-start gap-2.5 text-left"><div className="flex items-center justify-center flex-shrink-0" style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }}><span style={{ color: "#FFFFFF", fontSize: 12, fontWeight: 700 }}>✓</span></div><span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#D1D5DB" }}>{text}</span></div>))}
+          {dynamicChecks.map((text, i) => (<div key={i} className="flex items-start gap-2.5 text-left"><div className="flex items-center justify-center flex-shrink-0" style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }}><span style={{ color: "#FFFFFF", fontSize: 12, fontWeight: 700 }}>✓</span></div><span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#D1D5DB" }}>{text}</span></div>))}
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, delay: 0.5 }} className="mt-14">
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleScanClick} style={{ background: "#C8952A", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, padding: "18px 48px", borderRadius: 12, border: "none", boxShadow: "0 6px 24px rgba(200, 149, 42, 0.4)", cursor: "pointer" }}>Scan My Quote — It's Free</motion.button>

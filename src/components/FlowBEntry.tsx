@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import "@fontsource/dm-mono/500.css";
+import { useTickerStats } from "@/hooks/useTickerStats";
 
 const outcomes = [
   { bg: "hsl(152 82% 96%)", icon: "✓", iconColor: "hsl(160 84% 39%)", title: "Walk in knowing the fair price", sub: "Before they quote you a single number" },
@@ -16,6 +17,7 @@ const timelineSteps = [
 interface FlowBEntryProps { onContinueToTool: () => void; onSwitchToFlowA: () => void; }
 
 const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
+  const { total: tickerTotal } = useTickerStats();
   return (
     <div id="flow-b">
       <section style={{ backgroundColor: "hsl(0 0% 100%)" }}>
@@ -94,7 +96,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
           </div>
           <div className="text-center mt-10">
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "hsl(220 9% 30%)", fontStyle: "italic" }}>Most Contractors Budget on the Assumption You Won't Check.<br className="hidden md:block" /> You're About to Become The UnExpected.</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "hsl(220 9% 64%)", marginTop: 8 }}>4,127 Florida Homeowners Did This Before Their Last Window Project.</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "hsl(220 9% 64%)", marginTop: 8 }}>{tickerTotal.toLocaleString()} Florida Homeowners Did This Before Their Last Window Project.</p>
           </div>
         </div>
       </section>
