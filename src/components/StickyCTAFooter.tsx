@@ -13,7 +13,7 @@ export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClic
   const [isScrolling, setIsScrolling] = useState(false);
 
   useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout;
+    let scrollTimeout: ReturnType<typeof setTimeout>;
     const handleScroll = () => {
       setIsScrolling(true);
       clearTimeout(scrollTimeout);
