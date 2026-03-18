@@ -107,18 +107,18 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
         return;
       }
 
-      // Step 4: Insert scan_sessions — fail → stop
-      const { data: ssData, error: ssError } = await supabase
+      // Step 4: Insert scan_sessions with client-generated ID — fail → stop
+      const scanSessionId = crypto.randomUUID();
+      const { error: ssError } = await supabase
         .from("scan_sessions")
         .insert({
+          id: scanSessionId,
           status: "uploading",
           lead_id: leadId,
           quote_file_id: qfData.id,
-        })
-        .select("id")
-        .single();
+        });
 
-      if (ssError || !ssData) {
+      if (ssError) {
         console.error("scan_sessions insert failed:", ssError);
         toast.error("Failed to start scan session. Please try again.");
         setUploading(false);
@@ -126,11 +126,11 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       }
 
       // Step 5: Start theatrics immediately
-      onScanStart?.(file.name, ssData.id);
+      onScanStart?.(file.name, scanSessionId);
 
       // Step 6: Invoke edge function (fire-and-forget for UX)
       const { error: fnError } = await supabase.functions.invoke("scan-quote", {
-        body: { scan_session_id: ssData.id },
+        body: { scan_session_id: scanSessionId },
       });
 
       if (fnError) {
