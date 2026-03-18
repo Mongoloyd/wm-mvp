@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 interface EvidenceLockerProps {
   grade?: string;
   county?: string;
-  dollarDelta?: number;
   firstName?: string;
   onSecondScan?: () => void;
   redFlagCount?: number;
