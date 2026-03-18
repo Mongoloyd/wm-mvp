@@ -182,6 +182,7 @@ const Index = () => {
                 flags={reportFlags}
                 county={selectedCounty}
                 contractorName={analysisData.contractorName}
+                accessLevel={reportAccess}
                 onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
               />
               <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} />
