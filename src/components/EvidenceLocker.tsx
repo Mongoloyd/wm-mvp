@@ -364,7 +364,7 @@ const EvidenceLocker = ({
               marginTop: 10,
             }}
           >
-            No window brand specified. No warranty negotiation. ${dollarDelta.toLocaleString()} above fair market. The
+            No window brand specified. No warranty negotiation. No leverage. The
             contractor gets a signature before 5pm. You get windows that may or may not be what you expected.
           </p>
           <p
