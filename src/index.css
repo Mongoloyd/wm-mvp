@@ -113,3 +113,39 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Frosted Layers design system */
+.frosted-page-bg {
+  background-color: hsl(216 25% 94%); /* #EEF2F7 */
+}
+
+.frosted-card-light {
+  background: hsla(0 0% 100% / 0.90);
+  backdrop-filter: blur(4px);
+  border-radius: 1rem;
+  border: 1px solid hsla(0 0% 0% / 0.05);
+  box-shadow: 0 1px 3px hsla(0 0% 0% / 0.06), 0 12px 48px hsla(0 0% 0% / 0.06);
+}
+
+.frosted-card-dark {
+  background: hsla(213 56% 13% / 0.95);
+  backdrop-filter: blur(4px);
+  border-radius: 1rem;
+  border: 1px solid hsla(0 0% 100% / 0.06);
+  box-shadow: 0 1px 3px hsla(195 100% 37% / 0.06), 0 12px 48px hsla(0 0% 0% / 0.12);
+  background-image: radial-gradient(ellipse at 50% 0%, hsla(187 100% 37% / 0.08), transparent 70%);
+}
+
+.frosted-section-spacing {
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .frosted-section-spacing {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+    margin-bottom: 2rem;
+  }
+}
