@@ -428,79 +428,40 @@ const EvidenceLocker = ({
         </motion.div>
       </div>
 
-      <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid #E5E7EB", paddingTop: 48 }}>
-        <h3
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 20,
-            fontWeight: 700,
-            color: "#0F1F35",
-            marginBottom: 8,
-          }}
-        >
-          Send a copy to your email.
-        </h3>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 24 }}>
-          We'll email you the full grade report, red flags, and negotiation script.
-          <br />
-          One link. No password.
-        </p>
-        <div className="flex flex-col md:flex-row gap-3 justify-center">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            style={{
-              flex: 1,
-              maxWidth: 320,
-              height: 48,
-              border: "1.5px solid #E5E7EB",
-              borderRadius: 8,
-              padding: "0 16px",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 15,
-              outline: "none",
-              transition: "border-color 0.15s, box-shadow 0.15s",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "#C8952A";
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(200,149,42,0.12)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "#E5E7EB";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          />
-          <button
-            onClick={() => console.log({ event: "wm_report_emailed", email })}
-            style={{
-              background: "#0F1F35",
-              color: "white",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 15,
-              fontWeight: 700,
-              padding: "0 24px",
-              height: 48,
-              borderRadius: 8,
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Email My Report →
-          </button>
+      {isFull ? (
+        <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid #E5E7EB", paddingTop: 48 }}>
+          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#0F1F35", marginBottom: 8 }}>
+            Send a copy to your email.
+          </h3>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 24 }}>
+            We'll email you the full grade report, red flags, and negotiation script.<br />One link. No password.
+          </p>
+          <div className="flex flex-col md:flex-row gap-3 justify-center">
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com"
+              style={{ flex: 1, maxWidth: 320, height: 48, border: "1.5px solid #E5E7EB", borderRadius: 8, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, outline: "none", transition: "border-color 0.15s, box-shadow 0.15s" }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "#C8952A"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(200,149,42,0.12)"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
+            />
+            <button onClick={() => console.log({ event: "wm_report_emailed", email })}
+              style={{ background: "#0F1F35", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "0 24px", height: 48, borderRadius: 8, border: "none", cursor: "pointer" }}>
+              Email My Report →
+            </button>
+          </div>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9CA3AF", fontStyle: "italic", marginTop: 12 }}>
+            No marketing emails. One report email only. Unsubscribe with one click.
+          </p>
         </div>
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 12,
-            color: "#9CA3AF",
-            fontStyle: "italic",
-            marginTop: 12,
-          }}
-        >
-          No marketing emails. One report email only. Unsubscribe with one click.
-        </p>
+      ) : (
+        <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid #E5E7EB", paddingTop: 48 }}>
+          <div style={{ background: "#0F1F35", borderRadius: 14, padding: "28px 24px", boxShadow: "0 8px 32px rgba(15,31,53,0.2)" }}>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 8 }}>🔒 FULL VAULT ACCESS LOCKED</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "white", marginBottom: 4 }}>
+              Verify your phone to unlock downloads, sharing, and email delivery.
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#94A3B8" }}>Quick SMS verification — takes 15 seconds.</p>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
