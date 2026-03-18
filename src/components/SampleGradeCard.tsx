@@ -241,8 +241,8 @@ const SampleGradeCard = () => {
               const Icon = flag.icon;
               return (
                 <div key={i} className="flex overflow-hidden" style={{
-                  background: "hsla(0,0%,100%,0.20)",
-                  border: "1px solid hsla(0,0%,100%,0.08)",
+                  background: "#575C69",
+                  border: "1px solid rgba(255,255,255,0.1)",
                   borderRadius: 10,
                 }}>
                   <div style={{ width: 3, backgroundColor: flag.stripe, flexShrink: 0 }} />
@@ -251,13 +251,13 @@ const SampleGradeCard = () => {
                     <div>
                       <p style={{
                         fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700,
-                        color: flag.color,
+                        color: "white",
                       }}>
                         {flag.label}
                       </p>
                       <p style={{
                         fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                        color: "hsla(0,0%,100%,0.6)", marginTop: 2,
+                        color: "#E2E8F0", marginTop: 2,
                       }}>
                         {flag.sub}
                       </p>
