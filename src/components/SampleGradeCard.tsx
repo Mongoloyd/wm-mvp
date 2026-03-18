@@ -241,7 +241,7 @@ const SampleGradeCard = () => {
               const Icon = flag.icon;
               return (
                 <div key={i} className="flex overflow-hidden" style={{
-                  background: "hsla(0,0%,100%,0.04)",
+                  background: "hsla(0,0%,100%,0.08)",
                   border: "1px solid hsla(0,0%,100%,0.08)",
                   borderRadius: 10,
                 }}>
