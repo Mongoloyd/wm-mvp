@@ -430,7 +430,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#9CA3AF" }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280" }}>
               This report is private. Only you can access it.
             </p>
           </div>
