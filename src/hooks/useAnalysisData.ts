@@ -54,12 +54,34 @@ function humanize(snake: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function normalizePillarKey(raw: string | undefined | null): string | null {
+  switch (raw) {
+    case "safety":
+      return "safety_code";
+    case "install":
+      return "install_scope";
+    case "price":
+      return "price_fairness";
+    case "finePrint":
+      return "fine_print";
+    case "warranty":
+      return "warranty";
+    default:
+      return raw || null;
+  }
+}
+
 interface RawFlag {
   flag?: string;
   severity?: string;
   pillar?: string;
   detail?: string;
   tip?: string;
+}
+
+interface PreviewPillarEntry {
+  score?: number | null;
+  status?: "pass" | "warn" | "fail" | "pending" | null;
 }
 
 function mapFlags(raw: unknown): AnalysisFlag[] {
@@ -70,15 +92,26 @@ function mapFlags(raw: unknown): AnalysisFlag[] {
     label: humanize(f.flag || "Unknown Issue"),
     detail: f.detail || "",
     tip: f.tip || null,
-    pillar: f.pillar || null,
+    pillar: normalizePillarKey(f.pillar),
   }));
 }
 
 function extractPillarScores(previewJson: unknown, flags: AnalysisFlag[]): PillarScore[] {
-  const raw = (previewJson as Record<string, unknown>)?.pillar_scores as Record<string, number> | undefined;
+  const raw = (previewJson as Record<string, unknown>)?.pillar_scores as Record<string, unknown> | undefined;
 
   return PILLAR_DEFS.map((def) => {
-    const score = raw?.[def.key] ?? null;
+    const entry = raw?.[def.key];
+    const normalizedEntry =
+      typeof entry === "number"
+        ? ({ score: entry } satisfies PreviewPillarEntry)
+        : (entry as PreviewPillarEntry | undefined);
+    const score = normalizedEntry?.score ?? null;
+    const explicitStatus = normalizedEntry?.status ?? null;
+
+    // New preview payloads intentionally expose only teaser-safe status bands.
+    if (score == null && explicitStatus) {
+      return { ...def, score: null, status: explicitStatus };
+    }
 
     // If no explicit score, infer status from flags associated with this pillar
     if (score == null) {

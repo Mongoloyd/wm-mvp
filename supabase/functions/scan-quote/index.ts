@@ -213,6 +213,16 @@ interface GradeResult {
   pillarScores: PillarScores;
 }
 
+type PreviewPillarStatus = "pass" | "warn" | "fail";
+
+interface PreviewPillarScores {
+  safety_code: { status: PreviewPillarStatus };
+  install_scope: { status: PreviewPillarStatus };
+  price_fairness: { status: PreviewPillarStatus };
+  fine_print: { status: PreviewPillarStatus };
+  warranty: { status: PreviewPillarStatus };
+}
+
 function computeGrade(data: ExtractionResult): GradeResult {
   const pillarScores: PillarScores = {
     safety: scoreSafety(data),
@@ -248,6 +258,23 @@ function computeGrade(data: ExtractionResult): GradeResult {
   }
 
   return { weightedAverage: weightedAvg, letterGrade: grade, hardCapApplied, pillarScores };
+}
+
+function toPreviewPillarStatus(score: number): PreviewPillarStatus {
+  if (score >= 70) return "pass";
+  if (score >= 40) return "warn";
+  return "fail";
+}
+
+function buildPreviewPillarScores(pillarScores: PillarScores): PreviewPillarScores {
+  return {
+    // Preview stays teaser-safe: expose only coarse bands, not the exact numeric internals.
+    safety_code: { status: toPreviewPillarStatus(pillarScores.safety) },
+    install_scope: { status: toPreviewPillarStatus(pillarScores.install) },
+    price_fairness: { status: toPreviewPillarStatus(pillarScores.price) },
+    fine_print: { status: toPreviewPillarStatus(pillarScores.finePrint) },
+    warranty: { status: toPreviewPillarStatus(pillarScores.warranty) },
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -641,6 +668,7 @@ Deno.serve(async (req: Request) => {
         hard_cap_applied: gradeResult.hardCapApplied,
         has_warranty: !!extraction.warranty,
         has_permits: !!extraction.permits,
+        pillar_scores: buildPreviewPillarScores(gradeResult.pillarScores),
       };
 
       // Full JSON: complete analysis — gated behind SMS verification on client
