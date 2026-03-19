@@ -25,15 +25,15 @@ import StickyCTAFooter from "@/components/StickyCTAFooter";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { DevPreviewState } from "@/dev/fixtures";
-import { getFixtureForState } from "@/dev/fixtures";
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
+import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "@/dev/fixtures";
+import { AlertTriangle, RotateCcw, FileX } from "lucide-react";
 
 const Index = () => {
   // ═══ DEV MODE: Set to true to force full unlocked report UI ═══
   const IS_DEV_MODE = true;
 
-  const [devState, setDevState] = useState<DevPreviewState>("off");
+  const [devState, setDevState] = useState<DevPreviewState>("none");
 
   const [flowMode, setFlowMode] = useState<'A' | 'B'>('A');
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -54,17 +54,12 @@ const Index = () => {
   const [scrolledPast70, setScrolledPast70] = useState(false);
   const [timeOnPage, setTimeOnPage] = useState(false);
 
-  // ═══ Dev preview state logic ═══
-  const isDevPreview = import.meta.env.DEV && devState !== "off";
-  const devFixture = isDevPreview ? getFixtureForState(devState) : null;
-  const devShowReport = isDevPreview && devState !== "invalid_document" && devState !== "needs_better_upload";
-  const devAccessLevel = devState === "full_report" || devState === "strong_report" ? "full" as const
-    : devState === "otp_gate" ? "preview" as const
-    : devState === "preview_report" ? "preview" as const
-    : undefined;
-
-  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed && !isDevPreview);
-  const reportAccess = useReportAccess({ forceLevel: isDevPreview ? devAccessLevel : "preview" });
+  // Dev preview overrides
+  const isDevPreview = IS_DEV_MODE && devState !== "none";
+  const devConfig = isDevPreview ? DEV_PREVIEW_CONFIGS[devState] : null;
+  const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
+  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
+  const reportAccess = useReportAccess({ forceLevel: "preview" });
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
@@ -93,70 +88,65 @@ const Index = () => {
 
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
 
-  // Use dev fixture data when in dev preview mode, otherwise real backend data
-  const activeData = isDevPreview && devFixture ? devFixture : analysisData;
+  // Resolve active data: dev fixtures override real backend data
+  const activeData = showReportFromDev ? devConfig!.analysisData : analysisData;
+  const activeAccess = isDevPreview && devConfig ? devConfig.accessLevel : reportAccess;
   const reportGrade = activeData?.grade || "C";
   const reportFlags = activeData?.flags || [];
-  const redFlagCount = reportFlags.filter(f => f.severity === "red").length;
-  const amberCount = reportFlags.filter(f => f.severity === "amber").length;
-  const greenCount = reportFlags.filter(f => f.severity === "green").length;
+  const shouldShowReport = showReportFromDev || gradeRevealed;
 
   return (
     <div className="min-h-screen bg-background pb-[240px] sm:pb-[180px] lg:pb-32">
       <LinearHeader />
 
-      {/* ═══ Dev Preview: Invalid Document State ═══ */}
-      {isDevPreview && devState === "invalid_document" && (
+      {/* ─── DEV: Special states (invalid doc, bad upload) ─── */}
+      {isDevPreview && devConfig?.specialState === "invalid_document" && (
         <div className="max-w-2xl mx-auto py-20 px-4 text-center">
-          <div className="rounded-xl border border-destructive/30 bg-card p-8">
-            <p className="text-lg font-semibold text-foreground mb-2">Not a Window/Door Quote</p>
-            <p className="text-sm text-muted-foreground mb-6">
-              The uploaded document doesn't appear to be an impact window or door quote. Please upload a contractor quote or proposal.
+          <div style={{ background: "white", border: "1.5px solid #FECACA", borderRadius: 14, padding: "40px 32px", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <FileX size={28} style={{ color: "#DC2626" }} />
+            </div>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, fontWeight: 800, color: "#0F1F35", marginBottom: 8 }}>
+              This Doesn't Appear to Be a Window Quote
             </p>
-            <button onClick={() => setDevState("off")}
-              className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
-              Try Another Document
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", lineHeight: 1.7, marginBottom: 24 }}>
+              Our scanner analyzed your document but couldn't identify it as a window or door quote. This might be a general invoice, contract, or unrelated document.
+            </p>
+            <button onClick={() => setDevState("none")}
+              style={{ background: "#0F1F35", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "14px 32px", borderRadius: 10, border: "none", cursor: "pointer" }}>
+              <span className="flex items-center gap-2 justify-center"><RotateCcw size={16} /> Upload a Different Document</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* ═══ Dev Preview: Needs Better Upload State ═══ */}
-      {isDevPreview && devState === "needs_better_upload" && (
+      {isDevPreview && devConfig?.specialState === "needs_better_upload" && (
         <div className="max-w-2xl mx-auto py-20 px-4 text-center">
-          <div className="rounded-xl border border-amber-500/30 bg-card p-8">
-            <p className="text-lg font-semibold text-foreground mb-2">We Need a Clearer Copy</p>
-            <p className="text-sm text-muted-foreground mb-6">
-              The document quality is too low for accurate analysis. Please upload a higher-resolution photo or the original PDF.
+          <div style={{ background: "white", border: "1.5px solid #FDE68A", borderRadius: 14, padding: "40px 32px", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FFFBEB", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <AlertTriangle size={28} style={{ color: "#D97706" }} />
+            </div>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, fontWeight: 800, color: "#0F1F35", marginBottom: 8 }}>
+              We Need a Clearer Image
             </p>
-            <button onClick={() => setDevState("off")}
-              className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
-              Upload a Better Copy
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", lineHeight: 1.7, marginBottom: 16 }}>
+              The uploaded file is too blurry or low-resolution for our scanner to read accurately. For best results:
+            </p>
+            <ul style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#374151", textAlign: "left", maxWidth: 360, margin: "0 auto 24px", lineHeight: 2 }}>
+              <li>📄 Use the original PDF if you have one</li>
+              <li>📸 Take a photo in good lighting, flat on a table</li>
+              <li>🔍 Make sure all text is legible and not cut off</li>
+            </ul>
+            <button onClick={() => setDevState("none")}
+              style={{ background: "#0F1F35", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "14px 32px", borderRadius: 10, border: "none", cursor: "pointer" }}>
+              <span className="flex items-center gap-2 justify-center"><RotateCcw size={16} /> Try Again</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* ═══ Dev Preview: Report States ═══ */}
-      {isDevPreview && devShowReport && activeData && (
-        <>
-          <TruthReport
-            grade={reportGrade}
-            flags={reportFlags}
-            pillarScores={activeData.pillarScores}
-            contractorName={activeData.contractorName}
-            county="Broward"
-            confidenceScore={activeData.confidenceScore}
-            documentType={activeData.documentType}
-            accessLevel={reportAccess}
-            onContractorMatchClick={() => setContractorMatchVisible(true)}
-            onSecondScan={() => setDevState("off")}
-          />
-          <ContractorMatch isVisible={contractorMatchVisible} county="Broward" grade={reportGrade} />
-        </>
-      )}
-
-      {!gradeRevealed && !isDevPreview && (
+      {/* ─── Normal acquisition flow (hidden when dev preview active) ─── */}
+      {!shouldShowReport && !isDevPreview && (
         <>
           <AnimatePresence mode="wait">
             {flowMode === 'A' ? (
@@ -206,7 +196,7 @@ const Index = () => {
         </>
       )}
 
-      {fileUploaded && !gradeRevealed && (
+      {fileUploaded && !gradeRevealed && !isDevPreview && (
         <ScanTheatrics isActive={true} selectedCounty={selectedCounty} scanSessionId={scanSessionId}
           onRevealComplete={() => { setGradeRevealed(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           onInvalidDocument={() => { setFileUploaded(false); setScanSessionId(null); }}
@@ -214,9 +204,10 @@ const Index = () => {
         />
       )}
 
-      {gradeRevealed && !isDevPreview && (
+      {/* ─── Report view (real or dev fixture) ─── */}
+      {shouldShowReport && (
         <>
-          {analysisLoading ? (
+          {!showReportFromDev && analysisLoading ? (
             <div className="max-w-4xl mx-auto py-16 px-4 space-y-6">
               <div className="flex flex-col items-center gap-4">
                 <Skeleton className="w-[120px] h-[120px] rounded-full" />
@@ -226,7 +217,7 @@ const Index = () => {
               <Skeleton className="h-32 w-full rounded-xl" />
               <Skeleton className="h-24 w-full rounded-xl" />
             </div>
-          ) : analysisError || !analysisData ? (
+          ) : !showReportFromDev && (analysisError || !analysisData) ? (
             <div className="max-w-2xl mx-auto py-20 px-4 text-center">
               <div className="rounded-xl border border-border bg-card p-8">
                 <p className="text-lg font-semibold text-foreground mb-2">Analysis Not Found</p>
@@ -239,27 +230,27 @@ const Index = () => {
                 </button>
               </div>
             </div>
-          ) : (
+          ) : activeData ? (
             <>
               <TruthReport
                 grade={reportGrade}
                 flags={reportFlags}
-                pillarScores={analysisData.pillarScores}
-                contractorName={analysisData.contractorName}
+                pillarScores={activeData.pillarScores}
+                contractorName={activeData.contractorName}
                 county={selectedCounty}
-                confidenceScore={analysisData.confidenceScore}
-                documentType={analysisData.documentType}
-                accessLevel={reportAccess}
+                confidenceScore={activeData.confidenceScore}
+                documentType={activeData.documentType}
+                accessLevel={activeAccess}
                 onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
                 onSecondScan={() => triggerTruthGate('second_opinion_scan')}
               />
               <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} />
             </>
-          )}
+          ) : null}
         </>
       )}
 
-      {!gradeRevealed && (
+      {!shouldShowReport && !isDevPreview && (
         <>
           <IndustryTruth onScanClick={() => triggerTruthGate('industry_truth')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <MarketMakerManifesto onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
@@ -287,8 +278,8 @@ const Index = () => {
         conversionType={conversionType}
       />
 
-      {/* Dev Preview Panel — only in dev mode */}
-      <DevPreviewPanel currentState={devState} onChange={setDevState} />
+      {/* Dev-only preview panel */}
+      {IS_DEV_MODE && <DevPreviewPanel currentState={devState} onChange={setDevState} />}
     </div>
   );
 };

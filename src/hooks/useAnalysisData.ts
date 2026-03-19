@@ -54,6 +54,23 @@ function humanize(snake: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function normalizePillarKey(raw: string | undefined | null): string | null {
+  switch (raw) {
+    case "safety":
+      return "safety_code";
+    case "install":
+      return "install_scope";
+    case "price":
+      return "price_fairness";
+    case "finePrint":
+      return "fine_print";
+    case "warranty":
+      return "warranty";
+    default:
+      return raw || null;
+  }
+}
+
 interface RawFlag {
   flag?: string;
   severity?: string;
@@ -62,11 +79,45 @@ interface RawFlag {
   tip?: string;
 }
 
-const CANONICAL_PILLAR_KEYS = new Set(PILLAR_DEFS.map((def) => def.key));
+interface PreviewPillarEntry {
+  score?: number | null;
+  status?: "pass" | "warn" | "fail" | "pending" | null;
+}
 
-function normalizePillarKey(raw: string | undefined | null): string | null {
-  if (!raw) return null;
-  return CANONICAL_PILLAR_KEYS.has(raw) ? raw : null;
+const ALLOWED_PILLAR_STATUSES = new Set<NonNullable<PreviewPillarEntry["status"]>>([
+  "pass",
+  "warn",
+  "fail",
+  "pending",
+]);
+
+function normalizePreviewPillarEntry(entry: unknown): PreviewPillarEntry | undefined {
+  // Allow bare numeric scores, but only if they are finite.
+  if (typeof entry === "number") {
+    return Number.isFinite(entry) ? { score: entry } : undefined;
+  }
+
+  if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
+    return undefined;
+  }
+
+  const candidate = entry as { score?: unknown; status?: unknown };
+  const result: PreviewPillarEntry = {};
+
+  if (typeof candidate.score === "number" && Number.isFinite(candidate.score)) {
+    result.score = candidate.score;
+  }
+
+  if (typeof candidate.status === "string" && ALLOWED_PILLAR_STATUSES.has(candidate.status as NonNullable<PreviewPillarEntry["status"]>)) {
+    result.status = candidate.status as NonNullable<PreviewPillarEntry["status"]>;
+  }
+
+  // If neither field is valid, treat as absent so we fall back to inference.
+  if (!("score" in result) && !("status" in result)) {
+    return undefined;
+  }
+
+  return result;
 }
 
 function mapFlags(raw: unknown): AnalysisFlag[] {
@@ -81,11 +132,41 @@ function mapFlags(raw: unknown): AnalysisFlag[] {
   }));
 }
 
-function extractPillarScores(previewJson: unknown): PillarScore[] {
-  const raw = (previewJson as Record<string, unknown>)?.pillar_scores as Record<string, number> | undefined;
+function extractPillarScores(previewJson: unknown, flags: AnalysisFlag[]): PillarScore[] {
+  const pillarScoresRaw = (previewJson as { pillar_scores?: unknown })?.pillar_scores;
+  const raw =
+    pillarScoresRaw && typeof pillarScoresRaw === "object" && !Array.isArray(pillarScoresRaw)
+      ? (pillarScoresRaw as Record<string, unknown>)
+      : undefined;
 
   return PILLAR_DEFS.map((def) => {
-    const score = raw?.[def.key] ?? null;
+    const entry = raw?.[def.key];
+    const normalizedEntry = normalizePreviewPillarEntry(entry);
+    const score = normalizedEntry?.score ?? null;
+    const explicitStatus = normalizedEntry?.status ?? null;
+
+    // New preview payloads intentionally expose only teaser-safe status bands.
+    if (score == null && explicitStatus) {
+      return { ...def, score: null, status: explicitStatus };
+    }
+
+    // If no explicit score, infer status from flags associated with this pillar
+    if (score == null) {
+      const pillarFlags = flags.filter(f => f.pillar === def.key);
+      const hasRed = pillarFlags.some(f => f.severity === "red");
+      const hasAmber = pillarFlags.some(f => f.severity === "amber");
+      const hasGreen = pillarFlags.some(f => f.severity === "green");
+
+      if (pillarFlags.length === 0) {
+        return { ...def, score: null, status: "pending" as const };
+      }
+
+      // Infer a rough score from flag severity
+      if (hasRed) return { ...def, score: null, status: "fail" as const };
+      if (hasAmber) return { ...def, score: null, status: "warn" as const };
+      if (hasGreen) return { ...def, score: null, status: "pass" as const };
+    }
+
     return { ...def, score, status: pillarStatus(score) };
   });
 }
@@ -141,7 +222,7 @@ export function useAnalysisData(
           flags,
           contractorName: (proofOfRead?.contractor_name as string) || null,
           confidenceScore: row.confidence_score ?? null,
-          pillarScores: extractPillarScores(row.preview_json),
+          pillarScores: extractPillarScores(row.preview_json, flags),
           documentType: row.document_type || null,
         });
       } catch (err) {

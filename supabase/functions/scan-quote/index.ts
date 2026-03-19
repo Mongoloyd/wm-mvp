@@ -96,12 +96,12 @@ function validateExtraction(raw: unknown): { success: true; data: ExtractionResu
 const RUBRIC_VERSION = "1.0.0";
 
 const PILLAR_WEIGHTS = {
-  safety_code: 0.25,
-  install_scope: 0.20,
-  price_fairness: 0.20,
-  fine_print: 0.20,
+  safety: 0.25,
+  install: 0.20,
+  price: 0.20,
+  finePrint: 0.20,
   warranty: 0.15,
-} as const;
+};
 
 const GRADE_THRESHOLDS: Record<string, number> = { A: 85, B: 70, C: 55, D: 40 };
 
@@ -199,10 +199,10 @@ function scoreWarranty(data: ExtractionResult): number {
 }
 
 interface PillarScores {
-  safety_code: number;
-  install_scope: number;
-  price_fairness: number;
-  fine_print: number;
+  safety: number;
+  install: number;
+  price: number;
+  finePrint: number;
   warranty: number;
 }
 
@@ -213,20 +213,30 @@ interface GradeResult {
   pillarScores: PillarScores;
 }
 
+type PreviewPillarStatus = "pass" | "warn" | "fail";
+
+interface PreviewPillarScores {
+  safety_code: { status: PreviewPillarStatus };
+  install_scope: { status: PreviewPillarStatus };
+  price_fairness: { status: PreviewPillarStatus };
+  fine_print: { status: PreviewPillarStatus };
+  warranty: { status: PreviewPillarStatus };
+}
+
 function computeGrade(data: ExtractionResult): GradeResult {
   const pillarScores: PillarScores = {
-    safety_code: scoreSafety(data),
-    install_scope: scoreInstall(data),
-    price_fairness: scorePrice(data),
-    fine_print: scoreFinePrint(data),
+    safety: scoreSafety(data),
+    install: scoreInstall(data),
+    price: scorePrice(data),
+    finePrint: scoreFinePrint(data),
     warranty: scoreWarranty(data),
   };
 
   let weightedAvg =
-    pillarScores.safety_code * PILLAR_WEIGHTS.safety_code +
-    pillarScores.install_scope * PILLAR_WEIGHTS.install_scope +
-    pillarScores.price_fairness * PILLAR_WEIGHTS.price_fairness +
-    pillarScores.fine_print * PILLAR_WEIGHTS.fine_print +
+    pillarScores.safety * PILLAR_WEIGHTS.safety +
+    pillarScores.install * PILLAR_WEIGHTS.install +
+    pillarScores.price * PILLAR_WEIGHTS.price +
+    pillarScores.finePrint * PILLAR_WEIGHTS.finePrint +
     pillarScores.warranty * PILLAR_WEIGHTS.warranty;
 
   weightedAvg = Math.round(weightedAvg * 100) / 100;
@@ -250,6 +260,23 @@ function computeGrade(data: ExtractionResult): GradeResult {
   return { weightedAverage: weightedAvg, letterGrade: grade, hardCapApplied, pillarScores };
 }
 
+function toPreviewPillarStatus(score: number): PreviewPillarStatus {
+  if (score >= GRADE_THRESHOLDS.B) return "pass";
+  if (score >= GRADE_THRESHOLDS.D) return "warn";
+  return "fail";
+}
+
+function buildPreviewPillarScores(pillarScores: PillarScores): PreviewPillarScores {
+  return {
+    // Preview stays teaser-safe: expose only coarse bands, not the exact numeric internals.
+    safety_code: { status: toPreviewPillarStatus(pillarScores.safety) },
+    install_scope: { status: toPreviewPillarStatus(pillarScores.install) },
+    price_fairness: { status: toPreviewPillarStatus(pillarScores.price) },
+    fine_print: { status: toPreviewPillarStatus(pillarScores.finePrint) },
+    warranty: { status: toPreviewPillarStatus(pillarScores.warranty) },
+  };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 4: FORENSIC (red flag detection)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -268,34 +295,34 @@ function detectFlags(data: ExtractionResult): Flag[] {
   // Safety flags
   const noDp = items.filter(i => !i.dp_rating);
   if (noDp.length > 0) {
-    flags.push({ flag: "missing_dp_rating", severity: "High", pillar: "safety_code", detail: `${noDp.length} item(s) missing DP rating` });
+    flags.push({ flag: "missing_dp_rating", severity: "High", pillar: "safety", detail: `${noDp.length} item(s) missing DP rating` });
   }
   const noNoa = items.filter(i => !i.noa_number);
   if (noNoa.length > 0) {
-    flags.push({ flag: "missing_noa_number", severity: "Medium", pillar: "safety_code", detail: `${noNoa.length} item(s) missing NOA number` });
+    flags.push({ flag: "missing_noa_number", severity: "Medium", pillar: "safety", detail: `${noNoa.length} item(s) missing NOA number` });
   }
 
   // Install flags
   if (!data.permits || data.permits.included === undefined) {
-    flags.push({ flag: "no_permits_mentioned", severity: "High", pillar: "install_scope", detail: "No permit responsibility stated" });
+    flags.push({ flag: "no_permits_mentioned", severity: "High", pillar: "install", detail: "No permit responsibility stated" });
   }
   if (!data.installation?.scope_detail) {
-    flags.push({ flag: "vague_install_scope", severity: "Medium", pillar: "install_scope", detail: "Installation scope is vague or missing" });
+    flags.push({ flag: "vague_install_scope", severity: "Medium", pillar: "install", detail: "Installation scope is vague or missing" });
   }
 
   // Price flags
   const noPrice = items.filter(i => i.unit_price === undefined && i.total_price === undefined);
   if (noPrice.length > 0) {
-    flags.push({ flag: "missing_line_item_pricing", severity: "High", pillar: "price_fairness", detail: `${noPrice.length} item(s) missing pricing` });
+    flags.push({ flag: "missing_line_item_pricing", severity: "High", pillar: "price", detail: `${noPrice.length} item(s) missing pricing` });
   }
 
   // Fine print flags
   if (!data.cancellation_policy) {
-    flags.push({ flag: "no_cancellation_policy", severity: "Low", pillar: "fine_print", detail: "No cancellation policy found" });
+    flags.push({ flag: "no_cancellation_policy", severity: "Low", pillar: "finePrint", detail: "No cancellation policy found" });
   }
   const unbranded = items.filter(i => !i.brand && !i.series);
   if (unbranded.length > 0) {
-    flags.push({ flag: "unspecified_brand", severity: "Medium", pillar: "fine_print", detail: `${unbranded.length} item(s) with unspecified brand/series` });
+    flags.push({ flag: "unspecified_brand", severity: "Medium", pillar: "finePrint", detail: `${unbranded.length} item(s) with unspecified brand/series` });
   }
 
   // Warranty flags
@@ -321,68 +348,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const EVENT_LOG_DEBUG_TEXT_LIMIT = 500;
-
-interface FailureEventContext {
-  scanSessionId: string;
-  quoteFileId?: string | null;
-  leadId?: string | null;
-}
-
-interface FailureEventOptions extends FailureEventContext {
-  stage: "gemini_http_error" | "gemini_empty_response" | "gemini_json_parse_failed" | "validation_failed";
-  timestamp: string;
-  geminiStatus?: number;
-  debugText?: string | null;
-  validationError?: string;
-}
-
-/**
- * Keep debug payloads small so event_logs stays lightweight and queryable.
- */
-function truncateDebugText(value: string | null | undefined): string | null {
-  if (!value) return null;
-  const normalized = value.replace(/\s+/g, " ").trim();
-  if (!normalized) return null;
-  return normalized.slice(0, EVENT_LOG_DEBUG_TEXT_LIMIT);
-}
-
-async function logControlledFailure(
-  supabase: ReturnType<typeof createClient>,
-  options: FailureEventOptions,
-): Promise<void> {
-  const metadata: Record<string, unknown> = {
-    scan_session_id: options.scanSessionId,
-    quote_file_id: options.quoteFileId ?? null,
-    failure_stage: options.stage,
-    timestamp: options.timestamp,
-  };
-
-  if (options.geminiStatus !== undefined) {
-    metadata.gemini_http_status = options.geminiStatus;
-  }
-
-  const truncatedText = truncateDebugText(options.debugText);
-  if (truncatedText) {
-    metadata.debug_text = truncatedText;
-  }
-
-  if (options.validationError) {
-    metadata.validation_error = options.validationError;
-  }
-
-  const { error } = await supabase.from("event_logs").insert({
-    session_id: options.scanSessionId,
-    lead_id: options.leadId ?? null,
-    event_name: "scan_quote_controlled_failure",
-    flow_type: "scan_quote",
-    route: "supabase/functions/scan-quote",
-    metadata,
-  });
-
-  if (error) {
-    console.error("Failed to insert controlled failure event log:", error);
-  }
 function jsonResponse(body: Record<string, unknown>, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -390,11 +355,8 @@ function jsonResponse(body: Record<string, unknown>, status: number): Response {
   });
 }
 
-type ScanSessionStatus = "idle" | "processing" | "preview_ready" | "complete" | "failed" | "invalid_document" | "needs_better_upload";
-
 export async function updateScanSessionStatus(
-  // deno-lint-ignore no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   scanSessionId: string,
   status: ScanSessionStatus,
   logMessage: string,
@@ -439,8 +401,7 @@ export async function updateScanSessionStatus(
 }
 
 export async function upsertAnalysisRecord(
-  // deno-lint-ignore no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   payload: Record<string, unknown>,
   logMessage: string,
   failureBody: Record<string, unknown>,
@@ -676,15 +637,6 @@ Deno.serve(async (req: Request) => {
       if (!geminiResp.ok) {
         const errText = await geminiResp.text();
         console.error("Gemini API error:", geminiResp.status, errText);
-        await logControlledFailure(supabase, {
-          scanSessionId: scan_session_id,
-          quoteFileId: session.quote_file_id,
-          leadId: session.lead_id,
-          stage: "gemini_http_error",
-          timestamp: new Date().toISOString(),
-          geminiStatus: geminiResp.status,
-          debugText: errText,
-        });
         // Stay in 'processing' for crash recovery
         return jsonResponse({
           error: "AI extraction failed",
@@ -699,20 +651,6 @@ Deno.serve(async (req: Request) => {
       const rawText = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!rawText) {
-        const responsePreview = JSON.stringify(geminiJson).slice(0, EVENT_LOG_DEBUG_TEXT_LIMIT);
-        console.error("No text in Gemini response:", responsePreview);
-        await logControlledFailure(supabase, {
-          scanSessionId: scan_session_id,
-          quoteFileId: session.quote_file_id,
-          leadId: session.lead_id,
-          stage: "gemini_empty_response",
-          timestamp: new Date().toISOString(),
-          debugText: responsePreview,
-        });
-        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
-        return new Response(JSON.stringify({ error: "AI returned empty response" }), {
-          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
         console.error("No text in Gemini response:", JSON.stringify(geminiJson).slice(0, 500));
         const emptyResponseStatusUpdate = await updateScanSessionStatus(
           supabase,
@@ -747,18 +685,6 @@ Deno.serve(async (req: Request) => {
         parsed = JSON.parse(cleanJson);
       } catch (parseErr) {
         console.error("JSON parse failed:", parseErr, "Raw:", cleanJson.slice(0, 500));
-        await logControlledFailure(supabase, {
-          scanSessionId: scan_session_id,
-          quoteFileId: session.quote_file_id,
-          leadId: session.lead_id,
-          stage: "gemini_json_parse_failed",
-          timestamp: new Date().toISOString(),
-          debugText: cleanJson,
-        });
-        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
-        return new Response(JSON.stringify({ error: "AI response not parseable", scan_session_id }), {
-          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
         const parseFailureStatusUpdate = await updateScanSessionStatus(
           supabase,
           scan_session_id,
@@ -887,15 +813,6 @@ Deno.serve(async (req: Request) => {
       const validation = validateExtraction(parsed);
       if (!validation.success) {
         console.error("Extraction validation failed:", validation.error);
-        await logControlledFailure(supabase, {
-          scanSessionId: scan_session_id,
-          quoteFileId: session.quote_file_id,
-          leadId: session.lead_id,
-          stage: "validation_failed",
-          timestamp: new Date().toISOString(),
-          validationError: validation.error,
-          debugText: cleanJson,
-        });
         // Document passed classification but extraction is incomplete — treat as needs_better_upload
         const extractionFailurePayload = {
           scan_session_id,
@@ -970,7 +887,7 @@ Deno.serve(async (req: Request) => {
         hard_cap_applied: gradeResult.hardCapApplied,
         has_warranty: !!extraction.warranty,
         has_permits: !!extraction.permits,
-        pillar_scores: gradeResult.pillarScores,
+        pillar_scores: buildPreviewPillarScores(gradeResult.pillarScores),
       };
 
       // Full JSON: complete analysis — gated behind SMS verification on client
