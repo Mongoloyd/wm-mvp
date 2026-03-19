@@ -377,7 +377,8 @@ export async function updateScanSessionStatus(
 }
 
 export async function upsertAnalysisRecord(
-  supabase: ReturnType<typeof createClient>,
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   payload: Record<string, unknown>,
   logMessage: string,
   failureBody: Record<string, unknown>,
