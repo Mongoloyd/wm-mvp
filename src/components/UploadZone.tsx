@@ -51,8 +51,9 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       if (uploadError) { console.error("Storage upload failed:", uploadError); toast.error("Upload failed. Please try again."); setUploading(false); return; }
       let leadId: string | null = null;
       if (sessionId) { const { data: leads } = await supabase.rpc("get_lead_by_session", { p_session_id: sessionId }); leadId = leads?.[0]?.id || null; }
-      const { data: qfData, error: qfError } = await supabase.from("quote_files").insert({ lead_id: leadId, storage_path: filePath, status: "pending" }).select("id").single();
-      if (qfError || !qfData) { console.error("quote_files insert failed:", qfError); toast.error("Failed to register your file. Please try again."); setUploading(false); return; }
+      const quoteFileId = crypto.randomUUID();
+      const { error: qfError } = await supabase.from("quote_files").insert({ id: quoteFileId, lead_id: leadId, storage_path: filePath, status: "pending" });
+      if (qfError) { console.error("quote_files insert failed:", qfError); toast.error("Failed to register your file. Please try again."); setUploading(false); return; }
       const scanSessionId = crypto.randomUUID();
       const { error: ssError } = await supabase.from("scan_sessions").insert({ id: scanSessionId, status: "uploading", lead_id: leadId, quote_file_id: qfData.id });
       if (ssError) { console.error("scan_sessions insert failed:", ssError); toast.error("Failed to start scan session. Please try again."); setUploading(false); return; }
