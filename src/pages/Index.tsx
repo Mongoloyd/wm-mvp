@@ -25,6 +25,9 @@ import StickyCTAFooter from "@/components/StickyCTAFooter";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { Skeleton } from "@/components/ui/skeleton";
+import DevPreviewPanel from "@/dev/DevPreviewPanel";
+import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "@/dev/fixtures";
+import { AlertTriangle, RotateCcw, FileX } from "lucide-react";
 
 const Index = () => {
   // ═══ DEV MODE: Set to true to force full unlocked report UI ═══
