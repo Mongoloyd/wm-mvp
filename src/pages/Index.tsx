@@ -26,6 +26,7 @@ import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { Skeleton } from "@/components/ui/skeleton";
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
+import { DevQuoteGenerator } from "@/components/dev/DevQuoteGenerator";
 import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "@/dev/fixtures";
 import { AlertTriangle, RotateCcw, FileX } from "lucide-react";
 
@@ -280,6 +281,7 @@ const Index = () => {
 
       {/* Dev-only preview panel */}
       {IS_DEV_MODE && <DevPreviewPanel currentState={devState} onChange={setDevState} />}
+      {import.meta.env.DEV && <DevQuoteGenerator />}
     </div>
   );
 };
