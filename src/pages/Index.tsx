@@ -97,8 +97,10 @@ const Index = () => {
 
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
 
-  const reportGrade = analysisData?.grade || "C";
-  const reportFlags = analysisData?.flags || [];
+  // Use dev fixture data when in dev preview mode, otherwise real backend data
+  const activeData = isDevPreview && devFixture ? devFixture : analysisData;
+  const reportGrade = activeData?.grade || "C";
+  const reportFlags = activeData?.flags || [];
   const redFlagCount = reportFlags.filter(f => f.severity === "red").length;
   const amberCount = reportFlags.filter(f => f.severity === "amber").length;
   const greenCount = reportFlags.filter(f => f.severity === "green").length;
