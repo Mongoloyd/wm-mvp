@@ -41,12 +41,14 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
     }
 
     setUploading(true);
-    setStatus(`Uploading ${scenarioKey}...`);
+    setStatus(`Fetching sample quote image...`);
 
     try {
-      // 1. Upload file to storage
-      const filePath = `${sessionId}/${Date.now()}_${mock.file.name}`;
-      const { error: uploadError } = await supabase.storage.from("quotes").upload(filePath, mock.file);
+      // 1. Get the real sample quote image and upload
+      const realFile = await mock.getFile();
+      const filePath = `${sessionId}/${Date.now()}_${realFile.name}`;
+      setStatus(`Uploading ${scenarioKey}...`);
+      const { error: uploadError } = await supabase.storage.from("quotes").upload(filePath, realFile);
       if (uploadError) {
         console.error("🧪 Storage upload failed:", uploadError);
         toast.error("Dev upload failed: " + uploadError.message);
@@ -93,7 +95,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       }
 
       // 5. Notify parent
-      onScanStart?.(mock.file.name, scanSessionId);
+      onScanStart?.(realFile.name, scanSessionId);
 
       // 6. Invoke scan-quote edge function
       setStatus(`⏳ Scanning ${scenarioKey}... (session: ${scanSessionId.slice(0, 8)})`);
