@@ -281,6 +281,7 @@ const Index = () => {
 
       {/* Dev-only preview panel */}
       {IS_DEV_MODE && <DevPreviewPanel currentState={devState} onChange={setDevState} />}
+      {import.meta.env.DEV && <DevQuoteGenerator />}
     </div>
   );
 };
