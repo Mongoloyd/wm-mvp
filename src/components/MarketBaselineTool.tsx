@@ -277,8 +277,8 @@ const MarketBaselineTool = ({ onLeadCaptured, onBaselineRevealed, onStepComplete
   );
 };
 
-const formLabelStyle: React.CSSProperties = { fontFamily: "'DM Mono', monospace", fontSize: 10, color: "hsl(220 9% 46%)", letterSpacing: "0.08em", display: "block", marginBottom: 5 };
-const formInputStyle: React.CSSProperties = { width: "100%", height: 48, border: "1.5px solid hsl(220 13% 91%)", borderRadius: 8, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, outline: "none", transition: "border-color 0.15s, box-shadow 0.15s", boxSizing: "border-box" };
+const formLabelStyle: React.CSSProperties = { fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF", letterSpacing: "0.08em", display: "block", marginBottom: 5 };
+const formInputStyle: React.CSSProperties = { width: "100%", height: 48, border: "1.5px solid #1A1A1A", borderRadius: 0, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#FFFFFF", background: "#0A0A0A", outline: "none", transition: "border-color 0.15s, box-shadow 0.15s", boxSizing: "border-box" };
 const formErrorStyle: React.CSSProperties = { fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#EF4444", marginTop: 4 };
 
 const MBValidationIcon = ({ valid }: { valid: boolean }) => (
