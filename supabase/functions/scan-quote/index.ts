@@ -261,8 +261,8 @@ function computeGrade(data: ExtractionResult): GradeResult {
 }
 
 function toPreviewPillarStatus(score: number): PreviewPillarStatus {
-  if (score >= 70) return "pass";
-  if (score >= 40) return "warn";
+  if (score >= GRADE_THRESHOLDS.B) return "pass";
+  if (score >= GRADE_THRESHOLDS.D) return "warn";
   return "fail";
 }
 
