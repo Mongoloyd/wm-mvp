@@ -278,6 +278,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 phase={phase}
                 scanText={SCAN_LINES[scanTextIndex]?.text}
                 scanProgress={scanProgress}
+                isDanger={!!SCAN_LINES[scanTextIndex]?.danger}
               />
             </motion.div>
           )}
