@@ -14,11 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Jost', 'Inter', 'system-ui', 'sans-serif'],
-        heading: ['Jost', 'sans-serif'],
-        display: ['Jost', 'sans-serif'],
-        body: ['Jost', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'monospace'],
+        sans: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
+        heading: ['Barlow Condensed', 'sans-serif'],
+        display: ['Barlow Condensed', 'sans-serif'],
+        body: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'DM Mono', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -54,36 +54,28 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        navy: {
-          DEFAULT: "hsl(var(--color-navy))",
-          light: "hsl(var(--color-navy-light))",
-          lighter: "hsl(var(--color-navy-lighter))",
+        obsidian: "hsl(var(--color-obsidian))",
+        surface: {
+          DEFAULT: "hsl(var(--color-surface))",
+          border: "hsl(var(--color-surface-border))",
         },
-        cyan: {
-          DEFAULT: "hsl(var(--color-cyan))",
-          light: "hsl(var(--color-cyan-light))",
-          text: "hsl(var(--cyan-text))",
+        cobalt: {
+          DEFAULT: "hsl(var(--color-cobalt))",
+          dim: "hsl(var(--color-cobalt-dim))",
         },
+        "vivid-orange": "hsl(var(--color-vivid-orange))",
         gold: {
-          DEFAULT: "hsl(var(--color-amber))",
-          light: "hsl(var(--color-gold-light))",
+          DEFAULT: "hsl(var(--color-gold-accent))",
         },
         emerald: {
           DEFAULT: "hsl(var(--color-emerald))",
-          light: "hsl(var(--color-green-light))",
-          text: "hsl(var(--emerald-text))",
         },
         danger: {
           DEFAULT: "hsl(var(--color-danger))",
-          light: "hsl(var(--color-red-light))",
-          text: "hsl(var(--danger-text))",
         },
-        warning: {
-          DEFAULT: "hsl(var(--color-warning))",
+        navy: {
+          DEFAULT: "hsl(var(--color-obsidian))",
         },
-        "amber-text": "hsl(var(--amber-text))",
-        "cyan-text": "hsl(var(--cyan-text))",
-        "emerald-text": "hsl(var(--emerald-text))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -96,9 +88,9 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "0px",
+        md: "0px",
+        sm: "0px",
       },
       keyframes: {
         "header-slide-down": {
@@ -110,27 +102,25 @@ export default {
           "50%": { opacity: "0.4" },
         },
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "shutter-flash": {
+          "0%": { opacity: "0" },
+          "10%": { opacity: "1" },
+          "100%": { opacity: "0" },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "header-slide-down": "header-slide-down 0.3s ease-out",
+        "accordion-down": "accordion-down 0.15s ease-out",
+        "accordion-up": "accordion-up 0.15s ease-out",
+        "header-slide-down": "header-slide-down 0.15s ease-out",
         "pulse-dot": "pulse-dot 2s infinite",
+        "shutter-flash": "shutter-flash 0.3s ease-out",
       },
     },
   },
