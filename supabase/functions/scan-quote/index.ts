@@ -331,7 +331,7 @@ function jsonResponse(body: Record<string, unknown>, status: number): Response {
 async function updateScanSessionStatus(
   supabase: ReturnType<typeof createClient>,
   scanSessionId: string,
-  status: string,
+  status: ScanSessionStatus,
   logMessage: string,
   failureBody?: Record<string, unknown>,
 ): Promise<{ success: true } | { success: false; response: Response }> {
