@@ -331,7 +331,8 @@ function jsonResponse(body: Record<string, unknown>, status: number): Response {
 type ScanSessionStatus = "idle" | "processing" | "preview_ready" | "complete" | "failed" | "invalid_document" | "needs_better_upload";
 
 export async function updateScanSessionStatus(
-  supabase: ReturnType<typeof createClient>,
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   scanSessionId: string,
   status: ScanSessionStatus,
   logMessage: string,
