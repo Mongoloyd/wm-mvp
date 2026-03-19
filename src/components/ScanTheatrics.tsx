@@ -23,10 +23,10 @@ const logSteps = [
 ];
 
 const pillars = [
-  { label: "PRICING ANALYSIS", text: "Benchmarking against {county} county market data...", color: "#0099BB", delay: 0.5 },
-  { label: "SPECIFICATION REVIEW", text: "Checking window brand, series, and glass specifications...", color: "#C8952A", delay: 1.2 },
-  { label: "WARRANTY AUDIT", text: "Reviewing labor and manufacturer warranty language...", color: "#7C3AED", delay: 2.0 },
-  { label: "PERMIT & FEE SCAN", text: "Verifying permit inclusion and installation fee structure...", color: "#059669", delay: 2.8 },
+  { label: "PRICING ANALYSIS", text: "Benchmarking against {county} county market data...", color: "#2563EB", delay: 0.5 },
+  { label: "SPECIFICATION REVIEW", text: "Checking window brand, series, and glass specifications...", color: "#F97316", delay: 1.2 },
+  { label: "WARRANTY AUDIT", text: "Reviewing labor and manufacturer warranty language...", color: "#2563EB", delay: 2.0 },
+  { label: "PERMIT & FEE SCAN", text: "Verifying permit inclusion and installation fee structure...", color: "#F97316", delay: 2.8 },
 ];
 
 type Phase = "scanning" | "cliffhanger" | "otp" | "pillars" | "reveal";
@@ -43,7 +43,6 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const timersRef = useRef<number[]>([]);
 
-  // Real polling — drives phase transitions
   const { status: scanStatus, error: pollError } = useScanPolling({
     scanSessionId: isActive ? scanSessionId : null,
   });
@@ -74,33 +73,26 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     return clearTimers;
   }, [isActive]);
 
-  // React to real scan status changes
   useEffect(() => {
     if (!isActive) return;
-
     if (scanStatus === "invalid_document") {
       toast.error("This doesn't appear to be an impact window or door quote. Please upload a contractor quote.");
       clearTimers();
       onInvalidDocument?.();
       return;
     }
-
     if (scanStatus === "needs_better_upload") {
       toast.error("We couldn't read this file clearly enough. Please upload a higher quality scan or photo.");
       clearTimers();
       onNeedsBetterUpload?.();
       return;
     }
-
     if (scanStatus === "error") {
       toast.error("Something went wrong with the scan. Please try again.");
       clearTimers();
       onNeedsBetterUpload?.();
       return;
     }
-
-    // When scan is done (preview_ready/complete), transition from scanning to cliffhanger→otp
-    // but only after the minimum scanning animation has played
     if ((scanStatus === "preview_ready" || scanStatus === "complete") && scanningMinDone && phase === "scanning") {
       setActiveLogIndex(6);
       setProgressWidth(100);
@@ -109,11 +101,8 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     }
   }, [scanStatus, scanningMinDone, phase, isActive]);
 
-  // Poll error handling
   useEffect(() => {
-    if (pollError) {
-      toast.error(pollError);
-    }
+    if (pollError) toast.error(pollError);
   }, [pollError]);
 
   const startScanning = () => {
@@ -134,12 +123,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     for (let i = 1; i <= 6; i++) {
       addTimer(() => setActiveLogIndex(i), i * 1200);
     }
-
-    // Mark minimum animation duration complete after 8s
-    // The actual phase transition is gated on BOTH this AND real scan status
-    addTimer(() => {
-      setScanningMinDone(true);
-    }, 8000);
+    addTimer(() => setScanningMinDone(true), 8000);
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -147,20 +131,12 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     const newVals = [...otpValues];
     newVals[index] = value;
     setOtpValues(newVals);
-
-    if (value && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-
-    if (value && index === 5) {
-      addTimer(() => handleOtpSubmit(), 300);
-    }
+    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+    if (value && index === 5) addTimer(() => handleOtpSubmit(), 300);
   };
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otpValues[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
-    }
+    if (e.key === "Backspace" && !otpValues[index] && index > 0) otpRefs.current[index - 1]?.focus();
   };
 
   const handleOtpSubmit = () => {
@@ -179,29 +155,18 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     setPhase("pillars");
     setPillarsDone([false, false, false, false]);
     setShowGrade(false);
-
     pillars.forEach((p, i) => {
       addTimer(() => {
-        setPillarsDone((prev) => {
-          const next = [...prev];
-          next[i] = true;
-          return next;
-        });
+        setPillarsDone((prev) => { const next = [...prev]; next[i] = true; return next; });
       }, (p.delay + 1.2) * 1000);
     });
-
     addTimer(() => setShowGrade(true), 5000);
-
     if (!skipped) {
-      addTimer(() => {
-        console.log({ event: "wm_grade_revealed" });
-        onRevealComplete?.();
-      }, 7000);
+      addTimer(() => { console.log({ event: "wm_grade_revealed" }); onRevealComplete?.(); }, 7000);
     }
   };
 
   const county = selectedCounty;
-
   if (!isActive) return null;
 
   return (
@@ -209,7 +174,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "#0F1F35",
+        backgroundColor: "#0A0A0A",
         zIndex: 9000,
         display: "flex",
         flexDirection: "column",
@@ -225,17 +190,18 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 20,
+              background: "#111111",
+              border: "1px solid #1A1A1A",
+              borderRadius: 0,
               padding: "48px 40px",
               maxWidth: 520,
               width: "100%",
               textAlign: "center",
             }}
           >
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#0099BB", letterSpacing: "0.1em", marginBottom: 32 }}>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#2563EB", letterSpacing: "0.1em", marginBottom: 32 }}>
               WINDOWMAN AI · ANALYZING QUOTE
             </p>
 
@@ -243,7 +209,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
               {logSteps.map((step, i) => {
                 if (i > activeLogIndex) return null;
                 const isComplete = i < activeLogIndex;
-                const dotColor = isComplete ? "#059669" : "#0099BB";
+                const dotColor = isComplete ? "#2563EB" : "#F97316";
                 const text = isComplete ? step.done : step.active.replace("{county}", county);
 
                 return (
@@ -251,7 +217,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                     key={i}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.15 }}
                     className="flex items-center gap-2.5"
                     style={{ marginBottom: 8 }}
                   >
@@ -269,7 +235,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                       style={{
                         fontFamily: "'DM Mono', monospace",
                         fontSize: 13,
-                        color: isComplete ? "#94A3B8" : "#E2E8F0",
+                        color: isComplete ? "#6B7280" : "#E5E5E5",
                       }}
                     >
                       {text}
@@ -279,12 +245,12 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
               })}
             </div>
 
-            <div style={{ marginTop: 24, background: "rgba(255,255,255,0.08)", height: 6, borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ marginTop: 24, background: "#1A1A1A", height: 6, borderRadius: 0, overflow: "hidden" }}>
               <motion.div
                 style={{
                   height: 6,
-                  borderRadius: 3,
-                  background: "linear-gradient(90deg, #0099BB, #C8952A)",
+                  borderRadius: 0,
+                  background: "linear-gradient(90deg, #2563EB, #F97316)",
                   width: `${progressWidth}%`,
                 }}
                 animate={phase === "cliffhanger" ? { opacity: [0.7, 1, 0.7] } : {}}
@@ -296,10 +262,11 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
+                transition={{ duration: 0.15 }}
                 style={{
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 12,
-                  color: "#C8952A",
+                  color: "#F97316",
                   letterSpacing: "0.05em",
                   marginTop: 16,
                 }}
@@ -316,19 +283,20 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
             initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.15 }}
             style={{
-              background: "#FFFFFF",
-              borderRadius: 16,
+              background: "#111111",
+              borderRadius: 0,
+              border: "1px solid #1A1A1A",
               padding: "32px 28px",
               maxWidth: 400,
               width: "100%",
-              boxShadow: "0 16px 48px rgba(0,0,0,0.4)",
+              boxShadow: "0 16px 48px rgba(0,0,0,0.6)",
               textAlign: "center",
             }}
           >
             <div style={{ fontSize: 32, marginBottom: 16 }}>📱</div>
-            <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#0F1F35" }}>
+            <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 700, color: "#E5E5E5", textTransform: "uppercase", letterSpacing: "0.02em" }}>
               Enter the code we sent to your mobile.
             </h3>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginBottom: 24 }}>
@@ -349,22 +317,23 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                   style={{
                     width: 48,
                     height: 56,
-                    border: "1.5px solid #E5E7EB",
-                    borderRadius: 8,
+                    border: "1.5px solid #1A1A1A",
+                    borderRadius: 0,
+                    background: "#0A0A0A",
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 24,
                     fontWeight: 700,
-                    color: "#0F1F35",
+                    color: "#E5E5E5",
                     textAlign: "center",
                     outline: "none",
                     transition: "border-color 0.15s, box-shadow 0.15s",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#C8952A";
-                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(200,149,42,0.15)";
+                    e.currentTarget.style.borderColor = "#2563EB";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.15)";
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#E5E7EB";
+                    e.currentTarget.style.borderColor = "#1A1A1A";
                     e.currentTarget.style.boxShadow = "none";
                   }}
                 />
@@ -378,12 +347,12 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
               style={{
                 width: "100%",
                 height: 50,
-                background: "#059669",
+                background: "#2563EB",
                 color: "#FFFFFF",
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 16,
                 fontWeight: 700,
-                borderRadius: 10,
+                borderRadius: 0,
                 border: "none",
                 cursor: "pointer",
               }}
@@ -391,7 +360,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
               Unlock My Grade Report →
             </motion.button>
 
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9CA3AF", marginTop: 12, lineHeight: 1.7 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", marginTop: 12, lineHeight: 1.7 }}>
               Enter the code to unlock your full analysis — or{" "}
               <button
                 onClick={handleOtpSkip}
@@ -406,7 +375,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
               Didn't receive it?{" "}
               <button
                 onClick={() => console.log({ event: "wm_otp_resend" })}
-                style={{ fontFamily: "inherit", fontSize: "inherit", color: "#0099BB", background: "none", border: "none", textDecoration: "none", cursor: "pointer" }}
+                style={{ fontFamily: "inherit", fontSize: "inherit", color: "#2563EB", background: "none", border: "none", textDecoration: "none", cursor: "pointer" }}
               >
                 Resend code
               </button>
@@ -419,6 +388,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
             key="pillars"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ duration: 0.15 }}
             style={{ maxWidth: 520, width: "100%", textAlign: "center" }}
           >
             {!showGrade && (
@@ -440,33 +410,33 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                transition={{ duration: 0.15 }}
                 className="flex flex-col items-center"
               >
                 <div
                   style={{
                     width: 120,
                     height: 120,
-                    borderRadius: "50%",
-                    background: "#FFF7ED",
+                    borderRadius: 0,
+                    background: "rgba(249,115,22,0.08)",
                     border: "3px solid #F97316",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow: "0 0 40px rgba(249,115,22,0.4)",
+                    boxShadow: "0 0 40px rgba(249,115,22,0.3)",
                   }}
                 >
-                  <span style={{ fontFamily: "'Jost', sans-serif", fontSize: 64, fontWeight: 900, color: "#F97316" }}>
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 64, fontWeight: 900, color: "#F97316" }}>
                     C
                   </span>
                 </div>
 
                 {skippedOtp ? (
                   <>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#FFFFFF", marginTop: 20 }}>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#E5E5E5", marginTop: 20 }}>
                       Your quote scored a C.
                     </p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#94A3B8", marginTop: 8, maxWidth: 360, lineHeight: 1.6 }}>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginTop: 8, maxWidth: 360, lineHeight: 1.6 }}>
                       This is a basic score. Verify your phone to unlock your full report with line-by-line pricing breakdown, red flags, and negotiation tips.
                     </p>
                     <div className="flex flex-col gap-3 mt-6 w-full" style={{ maxWidth: 320 }}>
@@ -481,12 +451,12 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                         style={{
                           width: "100%",
                           height: 48,
-                          background: "#059669",
+                          background: "#2563EB",
                           color: "#FFFFFF",
                           fontFamily: "'DM Sans', sans-serif",
                           fontSize: 15,
                           fontWeight: 700,
-                          borderRadius: 10,
+                          borderRadius: 0,
                           border: "none",
                           cursor: "pointer",
                         }}
@@ -513,7 +483,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                     </div>
                   </>
                 ) : (
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#FFFFFF", marginTop: 20 }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E5E5", marginTop: 20 }}>
                     Your grade is ready.
                   </p>
                 )}
@@ -542,33 +512,34 @@ const PillarCard = ({
   <motion.div
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
-    transition={{ duration: 0.35, delay }}
+    transition={{ duration: 0.15, delay }}
     style={{
-      background: "rgba(255,255,255,0.06)",
-      borderRadius: 12,
+      background: "#111111",
+      border: "1px solid #1A1A1A",
+      borderRadius: 0,
       padding: "16px 20px",
       marginBottom: 12,
       textAlign: "left",
     }}
   >
-    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#94A3B8", letterSpacing: "0.1em", marginBottom: 4 }}>
+    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.1em", marginBottom: 4 }}>
       {label}
     </p>
-    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E2E8F0", marginBottom: 8 }}>
+    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E5E5", marginBottom: 8 }}>
       {isDone ? "Complete" : text}
     </p>
-    <div style={{ background: "rgba(255,255,255,0.08)", height: 4, borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ background: "#1A1A1A", height: 4, borderRadius: 0, overflow: "hidden" }}>
       <motion.div
         initial={{ width: "0%" }}
         animate={{ width: isDone ? "100%" : "60%" }}
-        transition={{ duration: isDone ? 0.3 : 1.2, ease: "easeOut" }}
-        style={{ height: 4, borderRadius: 2, backgroundColor: color }}
+        transition={{ duration: isDone ? 0.15 : 1.2, ease: "easeOut" }}
+        style={{ height: 4, borderRadius: 0, backgroundColor: color }}
       />
     </div>
     {isDone && (
       <div className="flex items-center gap-1.5 mt-1.5">
-        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#059669", display: "inline-block" }} />
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#059669" }}>Complete</span>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#2563EB", display: "inline-block" }} />
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#2563EB" }}>Complete</span>
       </div>
     )}
   </motion.div>
