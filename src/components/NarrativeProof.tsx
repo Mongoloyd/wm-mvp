@@ -33,7 +33,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
                   </div>
                   <div>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "#E5E5E5" }}>{story.name}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB" }}>{story.location}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>{story.location}</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-center" style={{ width: 44, height: 44, border: `2px solid ${story.gradeColor}`, background: `${story.gradeColor}15` }}>

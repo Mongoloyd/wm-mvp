@@ -40,7 +40,7 @@ const FlowCEntry = ({ quoteStage, onSwitchToA }: FlowCEntryProps) => {
           style={{ borderRadius: 0, background: '#2563EB', padding: '16px 36px', fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: '#FFFFFF', boxShadow: '0 4px 16px rgba(37,99,235,0.35)', cursor: 'pointer', border: 'none' }}>
           Lock In My Leverage →
         </button>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#E5E7EB', marginTop: 14 }}>I do have a written quote —{' '}<span onClick={onSwitchToA} style={{ color: '#2563EB', textDecoration: 'underline', cursor: 'pointer' }}>scan it instead →</span></p>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B7280', marginTop: 14 }}>I do have a written quote —{' '}<span onClick={onSwitchToA} style={{ color: '#2563EB', textDecoration: 'underline', cursor: 'pointer' }}>scan it instead →</span></p>
       </div>
     </motion.section>
   );

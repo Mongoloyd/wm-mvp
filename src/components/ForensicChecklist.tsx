@@ -29,8 +29,8 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
           </div>
 
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style={{ background: "#0A0A0A", padding: "18px 28px", borderBottom: "1px solid #1A1A1A" }}>
-            <div className="shrink-0"><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#F97316", fontWeight: 700, letterSpacing: "0.15em" }}>WINDOWMAN.PRO</p><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB" }}>Forensic Intelligence Division</p></div>
-            <div className="text-left sm:text-center flex-1"><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#E5E5E5", fontWeight: 700 }}>HOMEOWNER'S FORENSIC CHECKLIST</p><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB" }}>Pre-Quote Site Visit Edition</p></div>
+            <div className="shrink-0"><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#F97316", fontWeight: 700, letterSpacing: "0.15em" }}>WINDOWMAN.PRO</p><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280" }}>Forensic Intelligence Division</p></div>
+            <div className="text-left sm:text-center flex-1"><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#E5E5E5", fontWeight: 700 }}>HOMEOWNER'S FORENSIC CHECKLIST</p><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280" }}>Pre-Quote Site Visit Edition</p></div>
             <div className="shrink-0"><div style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.3)", borderRadius: 0, padding: "5px 10px" }}><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#F97316", fontWeight: 700, letterSpacing: "0.08em" }}>CONFIDENTIAL</p></div></div>
           </div>
 

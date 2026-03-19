@@ -86,7 +86,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
                     {step.preview === "grade" && (
                       <div className="relative mt-3 md:mx-auto" style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: 0, padding: "12px 14px", maxWidth: 280 }}>
                         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 40, fontWeight: 800, color: "#F97316", filter: "blur(5px)", userSelect: "none", lineHeight: 1, textAlign: "center" }}>C</p>
-                        <p className="absolute inset-0 flex items-center justify-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", fontStyle: "italic" }}>Your Grade Waits Here</p>
+                        <p className="absolute inset-0 flex items-center justify-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", fontStyle: "italic" }}>Your Grade Waits Here</p>
                       </div>
                     )}
                   </div>
