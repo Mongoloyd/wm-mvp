@@ -303,7 +303,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30, delay: 0.1 }}
+                  transition={{ duration: 0.15, ease: "easeInOut" as const }}
                   className={`flex h-16 w-16 items-center justify-center rounded-none border-[2.5px] ${activeScan.gradeBorder} ${activeScan.gradeBg}`}
                 >
                   <span className={`font-display text-[36px] font-black leading-none ${activeScan.gradeColor}`}>
