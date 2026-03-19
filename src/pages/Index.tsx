@@ -33,6 +33,8 @@ const Index = () => {
   // ═══ DEV MODE: Set to true to force full unlocked report UI ═══
   const IS_DEV_MODE = true;
 
+  const [devState, setDevState] = useState<DevPreviewState>("none");
+
   const [flowMode, setFlowMode] = useState<'A' | 'B'>('A');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [scanSessionId, setScanSessionId] = useState<string | null>(null);
@@ -52,10 +54,10 @@ const Index = () => {
   const [scrolledPast70, setScrolledPast70] = useState(false);
   const [timeOnPage, setTimeOnPage] = useState(false);
 
-  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
-  const reportAccess = useReportAccess({ forceLevel: "preview" });
-
-  useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
+  // Dev preview overrides
+  const isDevPreview = IS_DEV_MODE && devState !== "none";
+  const devConfig = isDevPreview ? DEV_PREVIEW_CONFIGS[devState] : null;
+  const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
 
   const anyLeadCaptured = flowMode === 'A' ? leadCaptured : flowBLeadCaptured;
