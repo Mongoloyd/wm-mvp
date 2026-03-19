@@ -32,49 +32,29 @@ const SocialProofStrip = () => {
       ref={ref}
       initial={{ opacity: 0, y: 10 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay: 0.3 }}
+      transition={{ duration: 0.15, delay: 0.1 }}
       className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-center"
-      style={{ backgroundColor: "#0F1F35" }}
+      style={{ backgroundColor: "#0A0A0A", borderTop: "1px solid #1A1A1A", borderBottom: "1px solid #1A1A1A" }}
     >
       <div
-        className="inline-flex items-center divide-x rounded-lg border overflow-hidden"
-        style={{ borderColor: "rgba(255,255,255,0.15)" }}
+        className="inline-flex items-center divide-x overflow-hidden"
+        style={{ borderColor: "#1A1A1A", border: "1px solid #1A1A1A" }}
       >
-        {/* Left: Total */}
         <div className="flex items-center gap-2 px-4 py-2">
-          <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#C8952A" }} />
-          <span
-            className="font-bold tabular-nums"
-            style={{ fontFamily: "'DM Mono', monospace", fontSize: 16, color: "#C8952A" }}
-          >
+          <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#2563EB" }} />
+          <span className="font-bold tabular-nums" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, color: "#2563EB" }}>
             {totalCount.toLocaleString()}
           </span>
-          <span
-            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94A3B8", whiteSpace: "nowrap" }}
-          >
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", whiteSpace: "nowrap" }}>
             quotes scanned
           </span>
         </div>
-
-        {/* Right: Today */}
-        <div
-          className="flex items-center gap-2 px-4 py-2"
-          style={{ backgroundColor: "rgba(200,149,42,0.08)" }}
-        >
+        <div className="flex items-center gap-2 px-4 py-2" style={{ backgroundColor: "rgba(37,99,235,0.05)" }}>
           <div className="relative flex h-2 w-2 flex-shrink-0">
-            <span
-              className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-              style={{ backgroundColor: "#059669", animationIterationCount: 3 }}
-            />
-            <span
-              className="relative inline-flex rounded-full h-2 w-2"
-              style={{ backgroundColor: "#059669" }}
-            />
+            <span className="animate-ping absolute inline-flex h-full w-full opacity-75" style={{ backgroundColor: "#2563EB", borderRadius: "50%", animationIterationCount: 3 }} />
+            <span className="relative inline-flex h-2 w-2" style={{ backgroundColor: "#2563EB", borderRadius: "50%" }} />
           </div>
-          <span
-            className="font-semibold tabular-nums"
-            style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: "#C8952A", whiteSpace: "nowrap" }}
-          >
+          <span className="font-semibold tabular-nums" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 14, color: "#E5E5E5", whiteSpace: "nowrap" }}>
             +{todayCount} today
           </span>
         </div>

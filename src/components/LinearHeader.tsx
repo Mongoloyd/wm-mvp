@@ -19,41 +19,65 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full backdrop-blur-md bg-white/95 transition-all duration-300 ease-in-out border-b ${
-      scrolled ? "py-2 shadow-sm border-slate-200/50" : "py-4 border-transparent"}`
-      }>
-      
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        width: "100%",
+        backgroundColor: "rgba(10,10,10,0.95)",
+        backdropFilter: "blur(12px)",
+        borderBottom: "1px solid #1A1A1A",
+        transition: "padding 0.15s ease",
+        padding: scrolled ? "8px 0" : "16px 0",
+      }}
+    >
       <div className="flex items-center justify-between px-4 md:px-8">
-        {/* Logo */}
-        <a href="/" className="font-['DM_Sans'] font-[800] text-lg select-none">
-          <span className="text-[#0F1F35]">WINDOW</span>
-          <span className="text-[#C8952A]">MAN</span>
-          <sup className="text-[10px] text-gray-500 font-normal tracking-widest ml-0.5 align-super">.PRO</sup>
+        <a href="/" className="select-none" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "0.02em" }}>
+          <span style={{ color: "#E5E5E5" }}>WINDOW</span>
+          <span style={{ color: "#C8952A" }}>MAN</span>
+          <sup style={{ fontSize: 9, color: "#6B7280", fontWeight: 400, letterSpacing: "0.15em", marginLeft: 2, verticalAlign: "super" }}>.PRO</sup>
         </a>
 
-        {/* Desktop: micro-copy + CTA */}
         <div className="hidden md:flex items-center gap-3">
-          
-
-          
           <button
             onClick={onCtaClick}
-            className="bg-[#C8952A] text-white font-semibold px-5 py-2.5 rounded-md hover:brightness-110 transition-all">
-            
+            style={{
+              backgroundColor: "#2563EB",
+              color: "#FFFFFF",
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: 14,
+              padding: "10px 20px",
+              border: "none",
+              cursor: "pointer",
+              transition: "background-color 0.15s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#1D4ED8"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#2563EB"; }}
+          >
             {ctaText}
           </button>
         </div>
 
-        {/* Mobile: CTA only */}
         <button
           onClick={onCtaClick}
-          className="md:hidden bg-[#C8952A] text-white font-semibold px-3 py-1.5 text-sm rounded-md hover:brightness-110 transition-all">
-          
+          className="md:hidden"
+          style={{
+            backgroundColor: "#2563EB",
+            color: "#FFFFFF",
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: 700,
+            fontSize: 13,
+            padding: "6px 12px",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
           {ctaText}
         </button>
       </div>
-    </header>);
-
+    </header>
+  );
 };
 
 export default LinearHeader;
