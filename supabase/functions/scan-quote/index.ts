@@ -321,6 +321,70 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const EVENT_LOG_DEBUG_TEXT_LIMIT = 500;
+
+interface FailureEventContext {
+  scanSessionId: string;
+  quoteFileId?: string | null;
+  leadId?: string | null;
+}
+
+interface FailureEventOptions extends FailureEventContext {
+  stage: "gemini_http_error" | "gemini_empty_response" | "gemini_json_parse_failed" | "validation_failed";
+  timestamp: string;
+  geminiStatus?: number;
+  debugText?: string | null;
+  validationError?: string;
+}
+
+/**
+ * Keep debug payloads small so event_logs stays lightweight and queryable.
+ */
+function truncateDebugText(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) return null;
+  return normalized.slice(0, EVENT_LOG_DEBUG_TEXT_LIMIT);
+}
+
+async function logControlledFailure(
+  supabase: ReturnType<typeof createClient>,
+  options: FailureEventOptions,
+): Promise<void> {
+  const metadata: Record<string, unknown> = {
+    scan_session_id: options.scanSessionId,
+    quote_file_id: options.quoteFileId ?? null,
+    failure_stage: options.stage,
+    timestamp: options.timestamp,
+  };
+
+  if (options.geminiStatus !== undefined) {
+    metadata.gemini_http_status = options.geminiStatus;
+  }
+
+  const truncatedText = truncateDebugText(options.debugText);
+  if (truncatedText) {
+    metadata.debug_text = truncatedText;
+  }
+
+  if (options.validationError) {
+    metadata.validation_error = options.validationError;
+  }
+
+  const { error } = await supabase.from("event_logs").insert({
+    session_id: options.scanSessionId,
+    lead_id: options.leadId ?? null,
+    event_name: "scan_quote_controlled_failure",
+    flow_type: "scan_quote",
+    route: "supabase/functions/scan-quote",
+    metadata,
+  });
+
+  if (error) {
+    console.error("Failed to insert controlled failure event log:", error);
+  }
+}
+
 function mimeFromPath(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase() || "";
   const map: Record<string, string> = {
@@ -504,6 +568,15 @@ Deno.serve(async (req: Request) => {
       if (!geminiResp.ok) {
         const errText = await geminiResp.text();
         console.error("Gemini API error:", geminiResp.status, errText);
+        await logControlledFailure(supabase, {
+          scanSessionId: scan_session_id,
+          quoteFileId: session.quote_file_id,
+          leadId: session.lead_id,
+          stage: "gemini_http_error",
+          timestamp: new Date().toISOString(),
+          geminiStatus: geminiResp.status,
+          debugText: errText,
+        });
         // Stay in 'processing' for crash recovery
         return new Response(JSON.stringify({ error: "AI extraction failed" }), {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -515,7 +588,16 @@ Deno.serve(async (req: Request) => {
       const rawText = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!rawText) {
-        console.error("No text in Gemini response:", JSON.stringify(geminiJson).slice(0, 500));
+        const responsePreview = JSON.stringify(geminiJson).slice(0, EVENT_LOG_DEBUG_TEXT_LIMIT);
+        console.error("No text in Gemini response:", responsePreview);
+        await logControlledFailure(supabase, {
+          scanSessionId: scan_session_id,
+          quoteFileId: session.quote_file_id,
+          leadId: session.lead_id,
+          stage: "gemini_empty_response",
+          timestamp: new Date().toISOString(),
+          debugText: responsePreview,
+        });
         await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
         return new Response(JSON.stringify({ error: "AI returned empty response" }), {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -533,6 +615,14 @@ Deno.serve(async (req: Request) => {
         parsed = JSON.parse(cleanJson);
       } catch (parseErr) {
         console.error("JSON parse failed:", parseErr, "Raw:", cleanJson.slice(0, 500));
+        await logControlledFailure(supabase, {
+          scanSessionId: scan_session_id,
+          quoteFileId: session.quote_file_id,
+          leadId: session.lead_id,
+          stage: "gemini_json_parse_failed",
+          timestamp: new Date().toISOString(),
+          debugText: cleanJson,
+        });
         await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
         return new Response(JSON.stringify({ error: "AI response not parseable", scan_session_id }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -593,6 +683,15 @@ Deno.serve(async (req: Request) => {
       const validation = validateExtraction(parsed);
       if (!validation.success) {
         console.error("Extraction validation failed:", validation.error);
+        await logControlledFailure(supabase, {
+          scanSessionId: scan_session_id,
+          quoteFileId: session.quote_file_id,
+          leadId: session.lead_id,
+          stage: "validation_failed",
+          timestamp: new Date().toISOString(),
+          validationError: validation.error,
+          debugText: cleanJson,
+        });
         // Document passed classification but extraction is incomplete — treat as needs_better_upload
         await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
         await supabase.from("analyses").upsert({
