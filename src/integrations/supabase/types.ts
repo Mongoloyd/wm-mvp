@@ -347,6 +347,12 @@ export type Database = {
           proof_of_read: Json
         }[]
       }
+      get_lead_by_session: {
+        Args: { p_session_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
       get_scan_status: {
         Args: { p_scan_session_id: string }
         Returns: {

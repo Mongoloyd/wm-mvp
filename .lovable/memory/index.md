@@ -21,7 +21,6 @@ These still have old white/light styling and need noir treatment:
 - FlowBEntry.tsx — white bg → obsidian, green accents → cobalt
 - ForensicChecklist.tsx — white/light → obsidian
 - QuoteWatcher.tsx — navy → obsidian
-- UploadZone.tsx — white → obsidian
 - ContractorMatch.tsx — navy → obsidian
 - EvidenceLocker.tsx — white → obsidian
 - FlowCEntry.tsx — card bg → obsidian
@@ -60,3 +59,12 @@ These still have old white/light styling and need noir treatment:
 - No anon SELECT on analyses or phone_verifications
 - Storage: no public URLs, signed URLs only via edge functions
 - Existing leads/quote_files RLS is broad (temporary MVP) — tighten with auth in Phase 2
+
+## RLS Hardening (2026-03-19)
+- leads: dropped broad anon SELECT + UPDATE policies; replaced with `get_lead_by_session(p_session_id)` SECURITY DEFINER RPC
+- leads: anon INSERT remains (WITH CHECK true) — acceptable for lead creation
+- scan_sessions: tightened anon INSERT to `WITH CHECK (user_id IS NULL)` — prevents identity spoofing
+- quote_files: dropped unnecessary anon SELECT policy — frontend only uses INSERT .select("id")
+- event_logs: anon INSERT unchanged (telemetry, no sensitive data)
+- analyses + phone_verifications: intentional deny-all (no policies, RLS on) — access via SECURITY DEFINER RPCs or service role only
+- UploadZone.tsx updated to use `supabase.rpc("get_lead_by_session")` instead of direct table query
