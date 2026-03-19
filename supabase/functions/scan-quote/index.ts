@@ -739,7 +739,7 @@ Deno.serve(async (req: Request) => {
           const lowConfidencePayload = {
             scan_session_id,
             lead_id: session.lead_id,
-            analysis_status: "needs_better_upload",
+            analysis_status: "invalid_document",
             document_is_window_door_related: true,
             document_type: classData.document_type as string,
             confidence_score: classData.confidence as number,
@@ -790,7 +790,7 @@ Deno.serve(async (req: Request) => {
         const extractionFailurePayload = {
           scan_session_id,
           lead_id: session.lead_id,
-          analysis_status: "needs_better_upload",
+          analysis_status: "invalid_document",
           document_is_window_door_related: classCheck.success ? (classCheck.data.is_window_door_related as boolean) : null,
           document_type: classCheck.success ? (classCheck.data.document_type as string) : null,
           confidence_score: classCheck.success ? (classCheck.data.confidence as number) : null,
