@@ -10,7 +10,50 @@ const DS = { fontUI: "'Inter', system-ui, sans-serif", fontMono: "'IBM Plex Mono
 const DS_PAGE_STYLES = `.ds-wrapper * { box-sizing: border-box; } .ds-wrapper button:focus-visible { outline: 2px solid rgba(6,182,212,0.6); outline-offset: 2px; }`;
 const T = { bg: "#070b12", surface: "#0e1420", card: "rgba(255,255,255,0.033)", border: "rgba(255,255,255,0.08)", cyan: "#06b6d4", cyanDim: "rgba(6,182,212,0.15)", red: "#ef4444", amber: "#f59e0b", green: "#10b981", text: "#f1f5f9", muted: "rgba(241,245,249,0.90)", faint: "rgba(241,245,249,0.75)", fontSans: "'Inter', system-ui, sans-serif", fontMono: "'IBM Plex Mono', monospace" };
 const DEMO = { contractor: "Sunshine Premium Windows LLC", date: "2026-02-28", city: "Pompano Beach", zip: "33060", openings: 12, totalPrice: 26500, pricePerOpening: 2208, score: 55, grade: "D+", hardCap: { statute: "FL §489.126", ceiling: 45 }, pillars: [{ label: "Safety", score: 42, status: "flag" }, { label: "Scope", score: 60, status: "warn" }, { label: "Price", score: 45, status: "flag" }, { label: "Fine Print", score: 38, status: "flag" }, { label: "Warranty", score: 58, status: "warn" }] };
-const SCAN_LINES = [{ text: "Initializing Window Man AI scanner...", ms: 0, type: "info" }, { text: "Parsing document structure — 14 pages detected...", ms: 500, type: "info" }, { text: "Extracting contractor identity fields...", ms: 1050, type: "info" }, { text: "  → Contractor : Sunshine Premium Windows LLC", ms: 1350, type: "data" }, { text: "  → License #  : NOT FOUND ON CONTRACT ⚠", ms: 1600, type: "warn" }, { text: "Parsing payment + deposit terms...", ms: 2050, type: "info" }, { text: "  → Deposit clause    : EXCEEDS FL STATUTORY LIMIT", ms: 2350, type: "danger" }, { text: "  → Payment milestones: NOT DEFINED", ms: 2600, type: "warn" }, { text: "  → Tax inclusion     : AMBIGUOUS", ms: 2820, type: "warn" }, { text: "Checking Florida hurricane compliance database...", ms: 3200, type: "info" }, { text: "  → NOA numbers       : MISSING", ms: 3500, type: "danger" }, { text: "  → Design pressure   : NOT LISTED", ms: 3750, type: "danger" }, { text: "  → FL Product Approval: Partial (FL12345 only)", ms: 4000, type: "warn" }, { text: "  → Installation method: NOT SPECIFIED", ms: 4200, type: "warn" }, { text: "Scanning contract fine print...", ms: 4600, type: "info" }, { text: "  → Arbitration clause    : FOUND — limits your rights", ms: 4900, type: "warn" }, { text: "  → Price escalation clause: FOUND — price can increase", ms: 5150, type: "danger" }, { text: "  → Lien waiver           : MISSING — lien risk on home", ms: 5400, type: "danger" }, { text: "  → Cancellation clause   : MISSING", ms: 5620, type: "danger" }, { text: "  → Completion timeline   : NOT STATED", ms: 5820, type: "warn" }, { text: "Detecting sales pressure tactics...", ms: 6200, type: "info" }, { text: "  → 'Today only' pricing  : DETECTED", ms: 6500, type: "danger" }, { text: "  → High-pressure language: DETECTED", ms: 6720, type: "danger" }, { text: "Evaluating warranty terms...", ms: 7100, type: "info" }, { text: "  → Labor warranty  : 1 YEAR — dangerously low", ms: 7380, type: "danger" }, { text: "  → Transferability : NOT TRANSFERABLE", ms: 7600, type: "warn" }, { text: "  → 'Lifetime' claim: CONTRADICTED by 10-year terms", ms: 7820, type: "warn" }, { text: "Computing final risk score...", ms: 8200, type: "info" }, { text: "  → Applying FL §489.126 deposit hard cap...", ms: 8600, type: "warn" }, { text: "  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100%", ms: 9000, type: "info" }, { text: "ANALYSIS COMPLETE — 10 CRITICAL ISSUES DETECTED", ms: 9500, type: "complete" }];
+const SCAN_LINES = [
+  // Phase 1: Init (~0-1.5s) — mechanical, fast
+  { text: "Initializing Window Man AI scanner...", ms: 0, type: "info" },
+  { text: "Parsing document structure — 14 pages detected...", ms: 600, type: "info" },
+  { text: "Extracting contractor identity fields...", ms: 1300, type: "info" },
+  { text: "  → Contractor : Sunshine Premium Windows LLC", ms: 1700, type: "data" },
+  // First warning — slight pause to register
+  { text: "  → License #  : NOT FOUND ON CONTRACT ⚠", ms: 2600, type: "warn" },
+  // Phase 2: Payment terms (~3-5.5s) — danger lines get dramatic pauses
+  { text: "Parsing payment + deposit terms...", ms: 3300, type: "info" },
+  { text: "  → Deposit clause    : EXCEEDS FL STATUTORY LIMIT", ms: 4500, type: "danger" },
+  { text: "  → Payment milestones: NOT DEFINED", ms: 5100, type: "warn" },
+  { text: "  → Tax inclusion     : AMBIGUOUS", ms: 5600, type: "warn" },
+  // Phase 3: Hurricane compliance (~6-10s) — heaviest danger cluster
+  { text: "Checking Florida hurricane compliance database...", ms: 6300, type: "info" },
+  { text: "  → NOA numbers       : MISSING", ms: 7500, type: "danger" },
+  { text: "  → Design pressure   : NOT LISTED", ms: 8700, type: "danger" },
+  { text: "  → FL Product Approval: Partial (FL12345 only)", ms: 9300, type: "warn" },
+  { text: "  → Installation method: NOT SPECIFIED", ms: 9800, type: "warn" },
+  // Phase 4: Fine print (~10.5-14.5s) — relentless danger discovery
+  { text: "Scanning contract fine print...", ms: 10500, type: "info" },
+  { text: "  → Arbitration clause    : FOUND — limits your rights", ms: 11100, type: "warn" },
+  { text: "  → Price escalation clause: FOUND — price can increase", ms: 12200, type: "danger" },
+  { text: "  → Lien waiver           : MISSING — lien risk on home", ms: 13300, type: "danger" },
+  { text: "  → Cancellation clause   : MISSING", ms: 14400, type: "danger" },
+  { text: "  → Completion timeline   : NOT STATED", ms: 15000, type: "warn" },
+  // Phase 5: Sales pressure (~15.5-17s)
+  { text: "Detecting sales pressure tactics...", ms: 15700, type: "info" },
+  { text: "  → 'Today only' pricing  : DETECTED", ms: 16800, type: "danger" },
+  { text: "  → High-pressure language: DETECTED", ms: 17500, type: "danger" },
+  // Phase 6: Warranty (~18-20s)
+  { text: "Evaluating warranty terms...", ms: 18200, type: "info" },
+  { text: "  → Labor warranty  : 1 YEAR — dangerously low", ms: 19300, type: "danger" },
+  // ~81% — SYSTEM ALERT: pre-freeze warning flash
+  { text: "⚠ THREAT LEVEL: CRITICAL — ADDITIONAL CALIBRATION REQUIRED", ms: 20000, type: "system_alert" },
+  { text: "  → Transferability : NOT TRANSFERABLE", ms: 20800, type: "warn" },
+  { text: "  → 'Lifetime' claim: CONTRADICTED by 10-year terms", ms: 21400, type: "warn" },
+  // ~91% — TRIGGER: calibration gate freeze
+  { text: "Computing final risk score...", ms: 22400, type: "info" },
+  // Post-calibration resume lines
+  { text: "  → Applying FL §489.126 deposit hard cap...", ms: 23000, type: "warn" },
+  { text: "  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100%", ms: 23600, type: "info" },
+  { text: "ANALYSIS COMPLETE — 10 CRITICAL ISSUES DETECTED", ms: 24200, type: "complete" },
+];
 
 // The trigger line text that causes the calibration freeze
 const CALIBRATION_TRIGGER_TEXT = "Computing final risk score...";
