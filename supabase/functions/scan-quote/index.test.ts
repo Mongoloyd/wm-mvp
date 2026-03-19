@@ -1,13 +1,34 @@
 import "https://deno.land/std@0.224.0/dotenv/load.ts";
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals, assertExists } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/scan-quote`;
+
+type PersistedAnalysis = {
+  scan_session_id: string;
+  analysis_status: string;
+  grade: string | null;
+  proof_of_read: unknown;
+  preview_json: unknown;
+  full_json: unknown;
+};
+
+type PersistedSession = {
+  id: string;
+  status: string;
+};
 
 function anonClient() {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function serviceRoleClient() {
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
@@ -82,6 +103,44 @@ async function invokeScan(scanSessionId: string) {
   return { status: resp.status, body };
 }
 
+async function fetchPersistedState(scanSessionId: string) {
+  const supabase = serviceRoleClient();
+
+  const [
+    { data: rawAnalysis, error: analysisError },
+    { data: rawSession, error: sessionError },
+  ] = await Promise.all([
+    supabase
+      .from("analyses")
+      .select("scan_session_id, analysis_status, grade, proof_of_read, preview_json, full_json")
+      .eq("scan_session_id", scanSessionId)
+      .maybeSingle(),
+    supabase
+      .from("scan_sessions")
+      .select("id, status")
+      .eq("id", scanSessionId)
+      .single(),
+  ]);
+
+  if (analysisError) throw new Error(`analyses fetch failed: ${analysisError.message}`);
+  if (sessionError) throw new Error(`scan_sessions fetch failed: ${sessionError.message}`);
+
+  return {
+    analysis: rawAnalysis as PersistedAnalysis | null,
+    session: rawSession as PersistedSession,
+  };
+}
+
+function assertStoredFailureState(
+  analysis: PersistedAnalysis | null,
+  session: PersistedSession,
+  expectedStatus: string,
+) {
+  assertExists(analysis, `Expected an analyses row for ${expectedStatus}`);
+  assertEquals(analysis.analysis_status, expectedStatus);
+  assertEquals(session.status, expectedStatus);
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // TEST 1: Valid window quote (PDF)
 // ─────────────────────────────────────────────────────────────────────
@@ -111,20 +170,27 @@ Deno.test("valid quote → complete with grade", async () => {
   const { scanSessionId } = await setupTestSession(pdfBytes, "valid-quote.pdf");
 
   const { status, body } = await invokeScan(scanSessionId);
+  const { analysis, session } = await fetchPersistedState(scanSessionId);
   console.log("Test 1:", JSON.stringify(body));
 
   assertEquals(status, 200);
-  if (body.analysis_status === "complete") {
-    assertEquals(["A", "B", "C", "D", "F"].includes(body.grade), true, `Expected A-F, got ${body.grade}`);
-  } else {
-    console.log("Note: non-complete status:", body.analysis_status, "— acceptable for minimal PDF");
-  }
+  assertEquals(body.analysis_status, "complete");
+  assertExists(analysis, "Expected an analyses row for a completed scan");
+  assertEquals(analysis.scan_session_id, scanSessionId);
+  assertEquals(analysis.analysis_status, "complete");
+  assertExists(analysis.grade, "Expected grade to be stored");
+  assertExists(analysis.proof_of_read, "Expected proof_of_read to be stored");
+  assertExists(analysis.preview_json, "Expected preview_json to be stored");
+  assertExists(analysis.full_json, "Expected full_json to be stored");
+  assertEquals(session.status, "preview_ready");
+  assertEquals(["A", "B", "C", "D", "F"].includes(analysis.grade), true, `Expected A-F, got ${analysis.grade}`);
+  assertEquals(body.grade, analysis.grade);
 });
 
 // ─────────────────────────────────────────────────────────────────────
 // TEST 2: Invalid document (grocery receipt PDF)
 // ─────────────────────────────────────────────────────────────────────
-Deno.test("invalid document → invalid_document status", async () => {
+Deno.test("invalid document → persisted invalid or low-confidence status", async () => {
   const receiptText = [
     "PUBLIX SUPERMARKET 1234 - Miami FL",
     "Bananas 3lb $1.47",
@@ -137,37 +203,31 @@ Deno.test("invalid document → invalid_document status", async () => {
   const { scanSessionId } = await setupTestSession(pdfBytes, "grocery-receipt.pdf");
 
   const { status, body } = await invokeScan(scanSessionId);
+  const { analysis, session } = await fetchPersistedState(scanSessionId);
   console.log("Test 2:", JSON.stringify(body));
 
   assertEquals(status, 200);
-  // Should be classified as invalid_document OR needs_better_upload — NOT complete
-  const validStatuses = ["invalid_document", "needs_better_upload"];
-  if (body.analysis_status && validStatuses.includes(body.analysis_status)) {
-    console.log("Correctly classified as:", body.analysis_status);
-  } else if (body.reason) {
-    console.log("Got rejection with reason:", body.reason);
-  } else {
-    console.log("Note: Gemini classified as:", body.analysis_status || "unknown", "— review needed");
-  }
+  const expectedStatus = body.analysis_status;
+  assert(expectedStatus === "invalid_document" || expectedStatus === "needs_better_upload");
+  assertStoredFailureState(analysis, session, expectedStatus);
 });
 
 // ─────────────────────────────────────────────────────────────────────
 // TEST 3: Garbled content → controlled failure
 // ─────────────────────────────────────────────────────────────────────
-Deno.test("garbled content → controlled failure state", async () => {
+Deno.test("garbled content → persisted controlled failure state", async () => {
   const garbage = new Uint8Array(512);
   crypto.getRandomValues(garbage);
   const { scanSessionId } = await setupTestSession(garbage, "garbled.png");
 
   const { status, body } = await invokeScan(scanSessionId);
+  const { analysis, session } = await fetchPersistedState(scanSessionId);
   console.log("Test 3:", JSON.stringify(body));
 
-  // Acceptable: 200 with controlled status OR 502 from Gemini
-  if (status === 200) {
-    console.log("Controlled result:", body.analysis_status || body.error);
-  } else {
-    console.log("Gemini rejection status:", status);
-  }
+  assertEquals(status, 200);
+  const expectedStatus = body.analysis_status;
+  assert(expectedStatus === "invalid_document" || expectedStatus === "needs_better_upload");
+  assertStoredFailureState(analysis, session, expectedStatus);
 });
 
 // ─────────────────────────────────────────────────────────────────────
