@@ -20,9 +20,9 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
   return (
     <header
       className={`sticky top-0 z-50 w-full backdrop-blur-md bg-white/95 transition-all duration-300 ease-in-out border-b ${
-        scrolled ? "py-2 shadow-sm border-slate-200/50" : "py-4 border-transparent"
-      }`}
-    >
+      scrolled ? "py-2 shadow-sm border-slate-200/50" : "py-4 border-transparent"}`
+      }>
+      
       <div className="flex items-center justify-between px-4 md:px-8">
         {/* Logo */}
         <a href="/" className="font-['DM_Sans'] font-[800] text-lg select-none">
@@ -33,13 +33,13 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
 
         {/* Desktop: micro-copy + CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <span className="text-[10px] text-slate-500 uppercase tracking-wider">
-            No credit card required.
-          </span>
+          
+
+          
           <button
             onClick={onCtaClick}
-            className="bg-[#C8952A] text-white font-semibold px-5 py-2.5 rounded-md hover:brightness-110 transition-all"
-          >
+            className="bg-[#C8952A] text-white font-semibold px-5 py-2.5 rounded-md hover:brightness-110 transition-all">
+            
             {ctaText}
           </button>
         </div>
@@ -47,13 +47,13 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
         {/* Mobile: CTA only */}
         <button
           onClick={onCtaClick}
-          className="md:hidden bg-[#C8952A] text-white font-semibold px-3 py-1.5 text-sm rounded-md hover:brightness-110 transition-all"
-        >
+          className="md:hidden bg-[#C8952A] text-white font-semibold px-3 py-1.5 text-sm rounded-md hover:brightness-110 transition-all">
+          
           {ctaText}
         </button>
       </div>
-    </header>
-  );
+    </header>);
+
 };
 
 export default LinearHeader;
