@@ -95,7 +95,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       }
 
       // 5. Notify parent
-      onScanStart?.(mock.file.name, scanSessionId);
+      onScanStart?.(realFile.name, scanSessionId);
 
       // 6. Invoke scan-quote edge function
       setStatus(`⏳ Scanning ${scenarioKey}... (session: ${scanSessionId.slice(0, 8)})`);
