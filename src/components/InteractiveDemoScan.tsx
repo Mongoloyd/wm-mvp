@@ -163,7 +163,7 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: a
             className="absolute bottom-6 left-6 right-6 bg-card/95 backdrop-blur-md border border-cobalt/30 shadow-2xl rounded-none p-4 z-20"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className={`font-mono text-[10px] font-bold tracking-widest uppercase animate-pulse ${SCAN_LINES[scanTextIndex]?.danger ? 'text-destructive' : 'text-cobalt'} transition-colors duration-300`}>
+              <span className={`font-mono text-[10px] font-bold tracking-widest uppercase animate-pulse ${isDanger ? 'text-destructive' : 'text-cobalt'} transition-colors duration-300`}>
                 AI Engine Active
               </span>
               <span className="font-mono text-[10px] text-muted-foreground font-bold">{scanProgress}%</span>
