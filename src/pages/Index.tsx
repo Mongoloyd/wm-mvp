@@ -218,7 +218,7 @@ const Index = () => {
         />
       )}
 
-      {gradeRevealed && (
+      {gradeRevealed && !isDevPreview && (
         <>
           {analysisLoading ? (
             <div className="max-w-4xl mx-auto py-16 px-4 space-y-6">
