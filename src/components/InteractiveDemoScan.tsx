@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type Phase = "doc" | "scan" | "reveal" | "hook";
 
-const SCAN_LINES = [
-  "Extracting line items...",
-  "Checking county benchmarks...",
-  "Scanning warranty language...",
-  "Brand specification check...",
-  "Calculating fair-market delta...",
+const SCAN_LINES: { text: string; danger?: boolean }[] = [
+  { text: "Extracting line items..." },
+  { text: "Checking county benchmarks..." },
+  { text: "Scanning warranty language...", danger: true },
+  { text: "Brand specification check...", danger: true },
+  { text: "Calculating fair-market delta..." },
 ];
 
 const SCANS = [
