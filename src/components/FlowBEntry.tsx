@@ -80,7 +80,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
                       <div className="relative mt-3 md:mx-auto" style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: 0, padding: "12px 14px", maxWidth: 280 }}>
                         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", marginBottom: 6 }}>FAIR MARKET RANGE · BROWARD CO.</p>
                         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 18, fontWeight: 700, color: "#2563EB", filter: "blur(5px)", userSelect: "none" }}>$12,400 – $14,800</p>
-                        <p className="absolute inset-0 flex items-center justify-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", fontStyle: "italic", paddingTop: 16 }}>Unlock after step 3</p>
+                        <p className="absolute inset-0 flex items-center justify-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", fontStyle: "italic", paddingTop: 16 }}>Unlock after step 3</p>
                       </div>
                     )}
                     {step.preview === "grade" && (
