@@ -100,9 +100,9 @@ const GradeReveal = ({
   };
 
   const severityStyles = {
-    red: { border: "1.5px solid #FECACA", borderLeft: "4px solid #DC2626", badgeBg: "#FEF2F2", badgeColor: "#DC2626", badgeText: "⚠ CRITICAL", tipBg: "rgba(249,115,22,0.08)" },
-    amber: { border: "1.5px solid #FDE68A", borderLeft: "4px solid #F59E0B", badgeBg: "#FFFBEB", badgeColor: "#D97706", badgeText: "⚡ REVIEW", tipBg: "rgba(245,158,11,0.08)" },
-    green: { border: "1.5px solid #A7F3D0", borderLeft: "4px solid #059669", badgeBg: "#ECFDF5", badgeColor: "#059669", badgeText: "✓ CONFIRMED", tipBg: "" },
+    red: { border: "1.5px solid rgba(220,38,38,0.3)", borderLeft: "4px solid #DC2626", badgeBg: "rgba(220,38,38,0.12)", badgeColor: "#DC2626", badgeText: "⚠ CRITICAL", tipBg: "rgba(249,115,22,0.08)" },
+    amber: { border: "1.5px solid rgba(245,158,11,0.3)", borderLeft: "4px solid #F59E0B", badgeBg: "rgba(245,158,11,0.12)", badgeColor: "#D97706", badgeText: "⚡ REVIEW", tipBg: "rgba(245,158,11,0.08)" },
+    green: { border: "1.5px solid rgba(5,150,105,0.3)", borderLeft: "4px solid #059669", badgeBg: "rgba(5,150,105,0.12)", badgeColor: "#059669", badgeText: "✓ CONFIRMED", tipBg: "" },
   };
 
   return (
