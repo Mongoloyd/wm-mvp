@@ -62,6 +62,13 @@ interface RawFlag {
   tip?: string;
 }
 
+const CANONICAL_PILLAR_KEYS = new Set(PILLAR_DEFS.map((def) => def.key));
+
+function normalizePillarKey(raw: string | undefined | null): string | null {
+  if (!raw) return null;
+  return CANONICAL_PILLAR_KEYS.has(raw) ? raw : null;
+}
+
 function mapFlags(raw: unknown): AnalysisFlag[] {
   if (!Array.isArray(raw)) return [];
   return (raw as RawFlag[]).map((f, i) => ({
@@ -70,33 +77,15 @@ function mapFlags(raw: unknown): AnalysisFlag[] {
     label: humanize(f.flag || "Unknown Issue"),
     detail: f.detail || "",
     tip: f.tip || null,
-    pillar: f.pillar || null,
+    pillar: normalizePillarKey(f.pillar),
   }));
 }
 
-function extractPillarScores(previewJson: unknown, flags: AnalysisFlag[]): PillarScore[] {
+function extractPillarScores(previewJson: unknown): PillarScore[] {
   const raw = (previewJson as Record<string, unknown>)?.pillar_scores as Record<string, number> | undefined;
 
   return PILLAR_DEFS.map((def) => {
     const score = raw?.[def.key] ?? null;
-
-    // If no explicit score, infer status from flags associated with this pillar
-    if (score == null) {
-      const pillarFlags = flags.filter(f => f.pillar === def.key);
-      const hasRed = pillarFlags.some(f => f.severity === "red");
-      const hasAmber = pillarFlags.some(f => f.severity === "amber");
-      const hasGreen = pillarFlags.some(f => f.severity === "green");
-
-      if (pillarFlags.length === 0) {
-        return { ...def, score: null, status: "pending" as const };
-      }
-
-      // Infer a rough score from flag severity
-      if (hasRed) return { ...def, score: null, status: "fail" as const };
-      if (hasAmber) return { ...def, score: null, status: "warn" as const };
-      if (hasGreen) return { ...def, score: null, status: "pass" as const };
-    }
-
     return { ...def, score, status: pillarStatus(score) };
   });
 }
@@ -152,7 +141,7 @@ export function useAnalysisData(
           flags,
           contractorName: (proofOfRead?.contractor_name as string) || null,
           confidenceScore: row.confidence_score ?? null,
-          pillarScores: extractPillarScores(row.preview_json, flags),
+          pillarScores: extractPillarScores(row.preview_json),
           documentType: row.document_type || null,
         });
       } catch (err) {
