@@ -15,17 +15,17 @@ interface EvidenceLockerProps {
 }
 
 const gradeConfig: Record<string, { color: string; bg: string }> = {
-  A: { color: "#059669", bg: "#ECFDF5" },
-  B: { color: "#84CC16", bg: "#F7FEE7" },
-  C: { color: "#F97316", bg: "#FFF7ED" },
-  D: { color: "#DC2626", bg: "#FEF2F2" },
-  F: { color: "#991B1B", bg: "#FEF2F2" },
+  A: { color: "#059669", bg: "rgba(5,150,105,0.12)" },
+  B: { color: "#84CC16", bg: "rgba(132,204,22,0.12)" },
+  C: { color: "#F97316", bg: "rgba(249,115,22,0.12)" },
+  D: { color: "#DC2626", bg: "rgba(220,38,38,0.12)" },
+  F: { color: "#991B1B", bg: "rgba(220,38,38,0.12)" },
 };
 
 const stagger = (i: number) => ({
   initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0 },
-  transition: { delay: i * 0.1 + 0.2, duration: 0.35 },
+  transition: { delay: i * 0.05 + 0.1, duration: 0.15, ease: 'easeInOut' as const },
 });
 
 const EvidenceLocker = ({
@@ -94,7 +94,7 @@ const EvidenceLocker = ({
   };
 
   return (
-    <div style={{ background: "white" }} className="py-16 md:py-20 px-4 md:px-8">
+    <div style={{ background: "#0A0A0A" }} className="py-16 md:py-20 px-4 md:px-8">
       <motion.div {...stagger(0)} className="max-w-4xl mx-auto text-center">
         <p
           style={{
@@ -111,7 +111,7 @@ const EvidenceLocker = ({
           style={{
             fontFamily: "'Jost', sans-serif",
             fontSize: "clamp(32px, 5vw, 40px)",
-            color: "#0F1F35",
+            color: "#FFFFFF",
             fontWeight: 800,
             letterSpacing: "-0.02em",
           }}
@@ -137,14 +137,14 @@ const EvidenceLocker = ({
         {...stagger(1)}
         className="max-w-3xl mx-auto"
         style={{
-          border: "2px solid #E5E7EB",
-          borderRadius: 20,
-          boxShadow: "0 8px 40px rgba(15,31,53,0.10)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: 0,
+          boxShadow: "none",
           overflow: "hidden",
-          background: "white",
+          background: "#0A0A0A",
         }}
       >
-        <div style={{ background: "#0F1F35", padding: "16px 24px" }} className="flex justify-between items-center">
+        <div style={{ background: "#0A0A0A", padding: "16px 24px" }} className="flex justify-between items-center">
           <div className="flex items-center gap-2.5">
             <Lock size={18} color="#C8952A" />
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "white", fontWeight: 700 }}>
@@ -156,7 +156,7 @@ const EvidenceLocker = ({
             style={{
               background: "rgba(5,150,105,0.2)",
               border: "1px solid rgba(5,150,105,0.4)",
-              borderRadius: 999,
+              borderRadius: 0,
               padding: "4px 12px",
             }}
           >
@@ -211,9 +211,9 @@ const EvidenceLocker = ({
             right={
               <span
                 style={{
-                  background: "#FDF3E3",
+                  background: "rgba(200,149,42,0.15)",
                   border: "1px solid #C8952A",
-                  borderRadius: 999,
+                  borderRadius: 0,
                   padding: "3px 10px",
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 11,
@@ -232,9 +232,9 @@ const EvidenceLocker = ({
             right={
               <span
                 style={{
-                  background: "#ECFDF5",
+                  background: "rgba(5,150,105,0.12)",
                   border: "1px solid #059669",
-                  borderRadius: 999,
+                  borderRadius: 0,
                   padding: "3px 10px",
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 11,
@@ -248,7 +248,7 @@ const EvidenceLocker = ({
           />
           <div
             className="flex items-center justify-between"
-            style={{ background: "#F9FAFB", borderRadius: 10, padding: "14px 16px", marginTop: 4 }}
+            style={{ background: "#111111", borderRadius: 0, padding: "14px 16px", marginTop: 4 }}
           >
             <div className="flex items-center gap-3">
               <div
@@ -279,13 +279,13 @@ const EvidenceLocker = ({
                 onSecondScan?.();
               }}
               style={{
-                border: "1.5px solid #E5E7EB",
+                border: "1px solid rgba(255,255,255,0.1)",
                 borderRadius: 6,
                 padding: "4px 10px",
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 12,
                 color: "#E5E7EB",
-                background: "white",
+                background: "#0A0A0A",
                 cursor: "pointer",
               }}
             >
@@ -296,7 +296,7 @@ const EvidenceLocker = ({
 
         <div
           className="flex flex-wrap justify-between items-center gap-3"
-          style={{ padding: "20px 24px", background: "#F9FAFB", borderTop: "1px solid #E5E7EB" }}
+          style={{ padding: "20px 24px", background: "#111111", borderTop: "1px solid rgba(255,255,255,0.1)" }}
         >
           <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB" }}>
             Last updated: Today
@@ -305,14 +305,14 @@ const EvidenceLocker = ({
             <button
               onClick={handleDownload}
               style={{
-                border: "1.5px solid #E5E7EB",
-                background: "white",
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "#0A0A0A",
                 borderRadius: 8,
                 padding: "8px 16px",
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
-                color: "#374151",
+                color: "#E5E7EB",
                 cursor: "pointer",
               }}
             >
@@ -321,14 +321,14 @@ const EvidenceLocker = ({
             <button
               onClick={handleShare}
               style={{
-                border: "1.5px solid #E5E7EB",
-                background: "white",
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "#0A0A0A",
                 borderRadius: 8,
                 padding: "8px 16px",
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
-                color: "#374151",
+                color: "#E5E7EB",
                 cursor: "pointer",
               }}
             >
@@ -341,7 +341,7 @@ const EvidenceLocker = ({
       <div className="max-w-4xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
         <motion.div
           {...stagger(2)}
-          style={{ background: "#FEF2F2", border: "1.5px solid #FECACA", borderRadius: 14, padding: "28px 24px" }}
+          style={{ background: "rgba(220,38,38,0.12)", border: "1.5px solid #FECACA", borderRadius: 0, padding: "28px 24px" }}
         >
           <p
             style={{
@@ -355,14 +355,14 @@ const EvidenceLocker = ({
           >
             WITHOUT WINDOWMAN
           </p>
-          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#0F1F35" }}>
+          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#FFFFFF" }}>
             You sign the original quote.
           </h3>
           <p
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 14,
-              color: "#374151",
+              color: "#E5E7EB",
               lineHeight: 1.8,
               marginTop: 10,
             }}
@@ -385,7 +385,7 @@ const EvidenceLocker = ({
 
         <motion.div
           {...stagger(3)}
-          style={{ background: "#ECFDF5", border: "1.5px solid #A7F3D0", borderRadius: 14, padding: "28px 24px" }}
+          style={{ background: "rgba(5,150,105,0.12)", border: "1.5px solid #A7F3D0", borderRadius: 0, padding: "28px 24px" }}
         >
           <p
             style={{
@@ -399,14 +399,14 @@ const EvidenceLocker = ({
           >
             WITH YOUR WINDOWMAN VAULT
           </p>
-          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#0F1F35" }}>
+          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#FFFFFF" }}>
             You call back with the script.
           </h3>
           <p
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 14,
-              color: "#374151",
+              color: "#E5E7EB",
               lineHeight: 1.8,
               marginTop: 10,
             }}
@@ -429,8 +429,8 @@ const EvidenceLocker = ({
       </div>
 
       {isFull ? (
-        <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid #E5E7EB", paddingTop: 48 }}>
-          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#0F1F35", marginBottom: 8 }}>
+        <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 48 }}>
+          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#FFFFFF", marginBottom: 8 }}>
             Send a copy to your email.
           </h3>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 24 }}>
@@ -438,12 +438,12 @@ const EvidenceLocker = ({
           </p>
           <div className="flex flex-col md:flex-row gap-3 justify-center">
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com"
-              style={{ flex: 1, maxWidth: 320, height: 48, border: "1.5px solid #E5E7EB", borderRadius: 8, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, outline: "none", transition: "border-color 0.15s, box-shadow 0.15s" }}
+              style={{ flex: 1, maxWidth: 320, height: 48, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, outline: "none", transition: "border-color 0.15s, box-shadow 0.15s" }}
               onFocus={(e) => { e.currentTarget.style.borderColor = "#C8952A"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(200,149,42,0.12)"; }}
               onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
             />
             <button onClick={() => console.log({ event: "wm_report_emailed", email })}
-              style={{ background: "#0F1F35", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "0 24px", height: 48, borderRadius: 8, border: "none", cursor: "pointer" }}>
+              style={{ background: "#0A0A0A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "0 24px", height: 48, borderRadius: 8, border: "none", cursor: "pointer" }}>
               Email My Report →
             </button>
           </div>
@@ -452,8 +452,8 @@ const EvidenceLocker = ({
           </p>
         </div>
       ) : (
-        <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid #E5E7EB", paddingTop: 48 }}>
-          <div style={{ background: "#0F1F35", borderRadius: 14, padding: "28px 24px", boxShadow: "0 8px 32px rgba(15,31,53,0.2)" }}>
+        <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 48 }}>
+          <div style={{ background: "#0A0A0A", borderRadius: 0, padding: "28px 24px", boxShadow: "0 8px 32px rgba(15,31,53,0.2)" }}>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 8 }}>🔒 FULL VAULT ACCESS LOCKED</p>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "white", marginBottom: 4 }}>
               Verify your phone to unlock downloads, sharing, and email delivery.
@@ -477,11 +477,11 @@ const VaultRow = ({
   sub: string;
   right: React.ReactNode;
 }) => (
-  <div className="flex items-center justify-between" style={{ padding: "14px 0", borderBottom: "1px solid #E5E7EB" }}>
+  <div className="flex items-center justify-between" style={{ padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
     <div className="flex items-center gap-3">
       {icon}
       <div>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: "#0F1F35" }}>{title}</p>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: "#FFFFFF" }}>{title}</p>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB" }}>{sub}</p>
       </div>
     </div>

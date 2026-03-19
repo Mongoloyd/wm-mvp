@@ -37,9 +37,9 @@ type Step = 1 | 2 | 3 | "calc" | "gate" | "reveal";
 const slideVariants = { enter: { x: 40, opacity: 0 }, center: { x: 0, opacity: 1 }, exit: { x: -40, opacity: 0 } };
 
 const OptionButton = ({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) => (
-  <button onClick={onClick} style={{ background: selected ? "hsl(152 82% 96%)" : "hsl(0 0% 100%)", border: `1.5px solid ${selected ? "hsl(160 84% 39%)" : "hsl(220 13% 91%)"}`, borderRadius: 10, padding: "18px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: selected ? "hsl(160 84% 39%)" : "hsl(220 9% 30%)", textAlign: "center", cursor: "pointer", transition: "all 0.15s ease", boxShadow: selected ? "0 0 0 3px hsla(160 84% 39% / 0.15)" : "none" }}
-    onMouseEnter={(e) => { if (!selected) { e.currentTarget.style.borderColor = "hsl(160 84% 39%)"; e.currentTarget.style.background = "hsl(152 82% 96%)"; e.currentTarget.style.color = "hsl(160 84% 39%)"; } }}
-    onMouseLeave={(e) => { if (!selected) { e.currentTarget.style.borderColor = "hsl(220 13% 91%)"; e.currentTarget.style.background = "hsl(0 0% 100%)"; e.currentTarget.style.color = "hsl(220 9% 30%)"; } }}>
+  <button onClick={onClick} style={{ background: selected ? "hsl(160 84% 39% / 0.12)" : "hsl(0 0% 7%)", border: `1px solid ${selected ? "hsl(160 84% 39%)" : "hsl(0 0% 15%)"}`, borderRadius: 0, padding: "18px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: selected ? "hsl(160 84% 39%)" : "hsl(0 0% 91%)", textAlign: "center", cursor: "pointer", transition: "all 0.15s ease", boxShadow: selected ? "0 0 0 3px hsla(160 84% 39% / 0.15)" : "none" }}
+    onMouseEnter={(e) => { if (!selected) { e.currentTarget.style.borderColor = "hsl(160 84% 39%)"; e.currentTarget.style.background = "hsl(160 84% 39% / 0.12)"; e.currentTarget.style.color = "hsl(160 84% 39%)"; } }}
+    onMouseLeave={(e) => { if (!selected) { e.currentTarget.style.borderColor = "hsl(0 0% 15%)"; e.currentTarget.style.background = "hsl(0 0% 7%)"; e.currentTarget.style.color = "hsl(0 0% 91%)"; } }}>
     {label}
   </button>
 );
@@ -143,28 +143,28 @@ const MarketBaselineTool = ({ onLeadCaptured, onBaselineRevealed, onStepComplete
   };
 
   return (
-    <section id="market-baseline" style={{ backgroundColor: "hsl(0 0% 100%)" }}>
+    <section id="market-baseline" style={{ backgroundColor: "hsl(0 0% 4%)" }}>
       <div className="mx-auto max-w-2xl px-4 py-16 md:px-8 md:py-24">
         <p className="text-center mb-3" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "hsl(192 100% 37%)", letterSpacing: "0.1em" }}>FAIR-MARKET BASELINE GENERATOR</p>
-        <h2 className="text-center" style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(30px, 4vw, 38px)", fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(213 57% 14%)", marginBottom: 10 }}>Don't Walk Into a Sales Pitch Unarmed.</h2>
-        <p className="text-center" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "hsl(220 9% 30%)", lineHeight: 1.7, marginBottom: 8 }}>Generate your county-specific pricing baseline so you know the fair price before they even open their briefcase.</p>
+        <h2 className="text-center" style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(30px, 4vw, 38px)", fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(0 0% 100%)", marginBottom: 10 }}>Don't Walk Into a Sales Pitch Unarmed.</h2>
+        <p className="text-center" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "hsl(0 0% 91%)", lineHeight: 1.7, marginBottom: 8 }}>Generate your county-specific pricing baseline so you know the fair price before they even open their briefcase.</p>
 
         {step !== "reveal" && (
           <>
             <p className="text-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "hsl(220 9% 46%)", marginBottom: 32 }}>
               {typeof step === "number" ? `Step ${step} of 3 — ${stepLabels[step - 1]}` : step === "calc" ? "Calculating baseline…" : "Step 3 of 3 — Complete"}
             </p>
-            <div style={{ height: 4, background: "hsl(220 13% 91%)", borderRadius: 2, marginBottom: 32, overflow: "hidden" }}>
+            <div style={{ height: 4, background: "hsl(0 0% 12%)", borderRadius: 2, marginBottom: 32, overflow: "hidden" }}>
               <motion.div style={{ height: "100%", background: "hsl(36 77% 47%)", borderRadius: 2 }} animate={{ width: progressPercent }} transition={{ type: "spring", stiffness: 300, damping: 30 }} />
             </div>
           </>
         )}
 
-        <div style={{ background: "hsl(0 0% 100%)", border: "1.5px solid hsl(220 13% 91%)", borderRadius: 16, padding: "clamp(24px, 4vw, 40px)", boxShadow: "0 0 30px rgba(56, 182, 255, 0.3), 0 0 60px rgba(56, 182, 255, 0.15), 0 0 100px rgba(56, 182, 255, 0.08)", minHeight: 260, overflow: "hidden" }}>
+        <div style={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 10%)", borderRadius: 0, padding: "clamp(24px, 4vw, 40px)", boxShadow: "0 0 30px rgba(56, 182, 255, 0.1), 0 0 60px rgba(56, 182, 255, 0.05)", minHeight: 260, overflow: "hidden" }}>
           <AnimatePresence mode="wait">
             {typeof step === "number" && (
               <motion.div key={`step-${step}`} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }}>
-                <h3 style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(26px, 3.5vw, 32px)", fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(213 57% 14%)", marginBottom: 8 }}>{steps[step - 1].question}</h3>
+                <h3 style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(26px, 3.5vw, 32px)", fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(0 0% 100%)", marginBottom: 8 }}>{steps[step - 1].question}</h3>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "hsl(220 9% 46%)", marginBottom: 28 }}>{steps[step - 1].sub}</p>
                 <div className="grid grid-cols-2 gap-3">
                   {steps[step - 1].options.map((opt) => (<OptionButton key={opt} label={opt} selected={selected === opt} onClick={() => handleOptionClick(steps[step - 1].key, opt)} />))}
@@ -173,7 +173,7 @@ const MarketBaselineTool = ({ onLeadCaptured, onBaselineRevealed, onStepComplete
             )}
 
             {step === "calc" && (
-              <motion.div key="calc" variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="flex flex-col items-center justify-center py-8" style={{ background: "hsl(192 76% 94%)", borderRadius: 12, margin: -8, padding: 40 }}>
+              <motion.div key="calc" variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="flex flex-col items-center justify-center py-8" style={{ background: "hsl(192 100% 37% / 0.08)", borderRadius: 0, margin: -8, padding: 40 }}>
                 <div className="mb-4" style={{ width: 48, height: 48, borderRadius: "50%", background: "hsl(192 100% 37%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.6, repeat: Infinity }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M16.36 16.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M16.36 7.64l1.42-1.42" /></svg>
@@ -187,22 +187,22 @@ const MarketBaselineTool = ({ onLeadCaptured, onBaselineRevealed, onStepComplete
 
             {step === "gate" && (
               <motion.div key="gate" variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }}>
-                <div className="inline-flex items-center gap-2 mb-5" style={{ background: "hsl(192 76% 94%)", border: "1px solid hsl(192 100% 37%)", borderRadius: 6, padding: "5px 14px" }}>
+                <div className="inline-flex items-center gap-2 mb-5" style={{ background: "hsl(192 100% 37% / 0.08)", border: "1px solid hsl(192 100% 37%)", borderRadius: 0, padding: "5px 14px" }}>
                   <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "hsl(192 100% 37%)" }}>✓ BASELINE CALCULATED · {countyShort.toUpperCase()} COUNTY · 427 PROJECTS</span>
                 </div>
-                <h3 style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(213 57% 14%)", marginBottom: 4 }}>Your Baseline is Ready.</h3>
+                <h3 style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(0 0% 100%)", marginBottom: 4 }}>Your Baseline is Ready.</h3>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "hsl(220 9% 46%)", marginBottom: 24 }}>"Get the data you need to negotiate like a pro. Unlock your price range and the Forensic Checklist now." — free.</p>
 
-                <div className="relative overflow-hidden mb-6" style={{ background: "hsl(210 20% 98%)", borderRadius: 10, padding: "16px 20px" }}>
+                <div className="relative overflow-hidden mb-6" style={{ background: "hsl(0 0% 7%)", borderRadius: 0, padding: "16px 20px" }}>
                   <div style={{ filter: `blur(${blurAmount}px)`, pointerEvents: "none" }}>
                     <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "hsl(220 9% 46%)", letterSpacing: "0.1em", marginBottom: 4 }}>FAIR MARKET RANGE · {countyShort.toUpperCase()} CO.</p>
                     <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 26, fontWeight: 900, color: "hsl(192 100% 37%)" }}>${priceRange[0].toLocaleString()} – ${priceRange[1].toLocaleString()}</p>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(220 9% 46%)", marginTop: 4 }}>For {answers.windowCount} · {countyShort} County · Q1 2025</p>
                   </div>
                   {showOverlay && (
-                    <motion.div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: "hsla(210 20% 98% / 0.7)" }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
+                    <motion.div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: "hsla(0 0% 4% / 0.8)" }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
                       <span style={{ fontSize: 20 }}>🔒</span>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: "hsl(213 57% 14%)", marginTop: 8 }}>Enter your details below to unlock</p>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: "hsl(0 0% 100%)", marginTop: 8 }}>Enter your details below to unlock</p>
                       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(220 9% 46%)" }}>Free · No contractor contact</p>
                     </motion.div>
                   )}
@@ -252,7 +252,7 @@ const MarketBaselineTool = ({ onLeadCaptured, onBaselineRevealed, onStepComplete
                   </label>
                   <motion.button type="submit" disabled={submitState === "submitting" || submitState === "success"}
                     whileHover={submitState === "idle" || submitState === "error" ? { scale: 1.01 } : {}} whileTap={submitState === "idle" || submitState === "error" ? { scale: 0.98 } : {}}
-                    style={{ width: "100%", height: 54, background: submitState === "success" ? "#047857" : submitState === "error" ? "#DC2626" : "hsl(160 84% 39%)", color: "hsl(0 0% 100%)", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, borderRadius: 10, border: "none", boxShadow: "0 4px 16px hsla(160 84% 39% / 0.35)", cursor: submitState === "submitting" ? "not-allowed" : "pointer", marginTop: 8, opacity: submitState === "submitting" ? 0.85 : 1, transition: "background 0.2s, opacity 0.2s" }}>
+                    style={{ width: "100%", height: 54, background: submitState === "success" ? "#047857" : submitState === "error" ? "#DC2626" : "hsl(160 84% 39%)", color: "hsl(0 0% 100%)", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, borderRadius: 0, border: "none", boxShadow: "0 4px 16px hsla(160 84% 39% / 0.35)", cursor: submitState === "submitting" ? "not-allowed" : "pointer", marginTop: 8, opacity: submitState === "submitting" ? 0.85 : 1, transition: "background 0.2s, opacity 0.2s" }}>
                     {submitState === "idle" && "Unlock My Baseline + Checklist →"}
                     {submitState === "submitting" && "Analyzing..."}
                     {submitState === "success" && (<span className="inline-flex items-center gap-2"><Check size={18} /> Unlocked!</span>)}
@@ -298,25 +298,25 @@ const RevealedBaseline = ({ county, windowCount, priceRange, avgOverage, onCheck
 
   return (
     <div>
-      <div style={{ background: "hsl(192 76% 94%)", border: "1.5px solid hsl(192 100% 37%)", borderRadius: 12, padding: "24px 20px" }}>
+      <div style={{ background: "hsl(192 100% 37% / 0.08)", border: "1px solid hsl(192 100% 37%)", borderRadius: 0, padding: "24px 20px" }}>
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "hsl(192 100% 37%)", letterSpacing: "0.1em", marginBottom: 8 }}>YOUR FAIR-MARKET BASELINE</p>
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 32, fontWeight: 900, color: "hsl(192 100% 37%)" }}>${displayLow.toLocaleString()} – ${displayHigh.toLocaleString()}</p>
-        <div className="flex flex-col gap-1 mt-3" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(220 9% 30%)" }}>
+        <div className="flex flex-col gap-1 mt-3" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(0 0% 91%)" }}>
           <p>For {windowCount} in {county} County</p>
           <p>Based on 427 comparable projects · Q1 2025 data</p>
           <p style={{ fontStyle: "italic", color: "hsl(220 9% 46%)" }}>Any quote significantly above ${priceRange[1].toLocaleString()} should trigger a full audit.</p>
         </div>
-        <div style={{ marginTop: 16, padding: "12px 16px", background: "hsl(0 0% 100%)", borderRadius: 8 }}>
+        <div style={{ marginTop: 16, padding: "12px 16px", background: "hsl(0 0% 7%)", borderRadius: 0 }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: "hsl(0 72% 51%)" }}>⚠ The average quote in {county} County comes in ${avgOverage.toLocaleString()} above this range.</p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(220 9% 46%)", marginTop: 4 }}>Now you'll know if yours does too.</p>
         </div>
       </div>
       <div className="flex flex-col md:flex-row gap-3 mt-6">
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { onChecklistClick?.(); }}
-          style={{ background: "hsl(36 77% 47%)", color: "hsl(0 0% 100%)", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "14px 24px", borderRadius: 8, border: "none", cursor: "pointer" }}>
+          style={{ background: "hsl(36 77% 47%)", color: "hsl(0 0% 100%)", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "14px 24px", borderRadius: 0, border: "none", cursor: "pointer" }}>
           View My Forensic Checklist →
         </motion.button>
-        <button onClick={onReminderClick} style={{ background: "hsl(0 0% 100%)", border: "1.5px solid hsl(220 13% 91%)", color: "hsl(220 9% 30%)", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 20px", borderRadius: 8, cursor: "pointer" }}>
+        <button onClick={onReminderClick} style={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 10%)", color: "hsl(0 0% 91%)", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 20px", borderRadius: 0, cursor: "pointer" }}>
           Set My Quote Reminder →
         </button>
       </div>
