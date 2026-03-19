@@ -468,7 +468,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               onChange={(e) => setTcpaConsent(e.target.checked)}
               style={{ width: 16, height: 16, marginTop: 2, accentColor: "#2563EB", flexShrink: 0 }}
             />
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
               By providing your number, you consent to receive one call regarding your quote analysis.
               No spam, no contractor contact without permission.
             </span>
