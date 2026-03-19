@@ -52,7 +52,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
             style={{ background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, padding: "16px 36px", borderRadius: 0, border: "none", boxShadow: "0 4px 16px rgba(37,99,235,0.35)", cursor: "pointer" }}>
             Build My Baseline — It's Free →
           </motion.button>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", marginTop: 14 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", marginTop: 14 }}>
             Actually, I do have a quote —{" "}
             <button onClick={onSwitchToFlowA} style={{ background: "none", border: "none", color: "#2563EB", textDecoration: "underline", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, padding: 0 }}>Scan it instead →</button>
           </p>
