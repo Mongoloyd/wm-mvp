@@ -27,11 +27,7 @@ import { useReportAccess } from "@/hooks/useReportAccess";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DevPreviewState } from "@/dev/fixtures";
 import { getFixtureForState } from "@/dev/fixtures";
-
-// Lazy-load dev panel so it's tree-shaken in production
-const DevPreviewPanel = import.meta.env.DEV
-  ? (await import("@/dev/DevPreviewPanel")).default
-  : () => null;
+import DevPreviewPanel from "@/dev/DevPreviewPanel";
 
 const Index = () => {
   // ═══ DEV MODE: Set to true to force full unlocked report UI ═══
