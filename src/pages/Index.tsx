@@ -57,7 +57,11 @@ const Index = () => {
   // Dev preview overrides
   const isDevPreview = IS_DEV_MODE && devState !== "none";
   const devConfig = isDevPreview ? DEV_PREVIEW_CONFIGS[devState] : null;
-  const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
+
+  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
+  const reportAccess = useReportAccess({ forceLevel: "preview" });
+
+  useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
 
   const anyLeadCaptured = flowMode === 'A' ? leadCaptured : flowBLeadCaptured;
@@ -84,11 +88,12 @@ const Index = () => {
 
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
 
-  const reportGrade = analysisData?.grade || "C";
-  const reportFlags = analysisData?.flags || [];
-  const redFlagCount = reportFlags.filter(f => f.severity === "red").length;
-  const amberCount = reportFlags.filter(f => f.severity === "amber").length;
-  const greenCount = reportFlags.filter(f => f.severity === "green").length;
+  // Resolve active data: dev fixtures override real backend data
+  const activeData = showReportFromDev ? devConfig!.analysisData : analysisData;
+  const activeAccess = isDevPreview && devConfig ? devConfig.accessLevel : reportAccess;
+  const reportGrade = activeData?.grade || "C";
+  const reportFlags = activeData?.flags || [];
+  const shouldShowReport = showReportFromDev || gradeRevealed;
 
   return (
     <div className="min-h-screen bg-background pb-[240px] sm:pb-[180px] lg:pb-32">
