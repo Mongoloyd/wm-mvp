@@ -57,7 +57,7 @@ const Index = () => {
   // Dev preview overrides
   const isDevPreview = IS_DEV_MODE && devState !== "none";
   const devConfig = isDevPreview ? DEV_PREVIEW_CONFIGS[devState] : null;
-
+  const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
   const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
   const reportAccess = useReportAccess({ forceLevel: "preview" });
 
