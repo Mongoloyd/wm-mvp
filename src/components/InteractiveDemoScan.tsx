@@ -154,7 +154,7 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: a
             initial={{ top: "-10%" }}
             animate={{ top: "110%" }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" as const }}
-            className={`absolute left-0 right-0 h-[2px] ${SCAN_LINES[scanTextIndex]?.danger ? 'bg-destructive shadow-[0_0_20px_4px_rgba(249,115,22,0.4)]' : 'bg-cobalt shadow-[0_0_20px_4px_rgba(56,130,246,0.4)]'} z-10 transition-colors duration-300`}
+            className={`absolute left-0 right-0 h-[2px] ${isDanger ? 'bg-destructive shadow-[0_0_20px_4px_rgba(249,115,22,0.4)]' : 'bg-cobalt shadow-[0_0_20px_4px_rgba(56,130,246,0.4)]'} z-10 transition-colors duration-300`}
           />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
