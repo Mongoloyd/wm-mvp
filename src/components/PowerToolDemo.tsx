@@ -10,7 +10,50 @@ const DS = { fontUI: "'Inter', system-ui, sans-serif", fontMono: "'IBM Plex Mono
 const DS_PAGE_STYLES = `.ds-wrapper * { box-sizing: border-box; } .ds-wrapper button:focus-visible { outline: 2px solid rgba(6,182,212,0.6); outline-offset: 2px; }`;
 const T = { bg: "#070b12", surface: "#0e1420", card: "rgba(255,255,255,0.033)", border: "rgba(255,255,255,0.08)", cyan: "#06b6d4", cyanDim: "rgba(6,182,212,0.15)", red: "#ef4444", amber: "#f59e0b", green: "#10b981", text: "#f1f5f9", muted: "rgba(241,245,249,0.90)", faint: "rgba(241,245,249,0.75)", fontSans: "'Inter', system-ui, sans-serif", fontMono: "'IBM Plex Mono', monospace" };
 const DEMO = { contractor: "Sunshine Premium Windows LLC", date: "2026-02-28", city: "Pompano Beach", zip: "33060", openings: 12, totalPrice: 26500, pricePerOpening: 2208, score: 55, grade: "D+", hardCap: { statute: "FL §489.126", ceiling: 45 }, pillars: [{ label: "Safety", score: 42, status: "flag" }, { label: "Scope", score: 60, status: "warn" }, { label: "Price", score: 45, status: "flag" }, { label: "Fine Print", score: 38, status: "flag" }, { label: "Warranty", score: 58, status: "warn" }] };
-const SCAN_LINES = [{ text: "Initializing Window Man AI scanner...", ms: 0, type: "info" }, { text: "Parsing document structure — 14 pages detected...", ms: 500, type: "info" }, { text: "Extracting contractor identity fields...", ms: 1050, type: "info" }, { text: "  → Contractor : Sunshine Premium Windows LLC", ms: 1350, type: "data" }, { text: "  → License #  : NOT FOUND ON CONTRACT ⚠", ms: 1600, type: "warn" }, { text: "Parsing payment + deposit terms...", ms: 2050, type: "info" }, { text: "  → Deposit clause    : EXCEEDS FL STATUTORY LIMIT", ms: 2350, type: "danger" }, { text: "  → Payment milestones: NOT DEFINED", ms: 2600, type: "warn" }, { text: "  → Tax inclusion     : AMBIGUOUS", ms: 2820, type: "warn" }, { text: "Checking Florida hurricane compliance database...", ms: 3200, type: "info" }, { text: "  → NOA numbers       : MISSING", ms: 3500, type: "danger" }, { text: "  → Design pressure   : NOT LISTED", ms: 3750, type: "danger" }, { text: "  → FL Product Approval: Partial (FL12345 only)", ms: 4000, type: "warn" }, { text: "  → Installation method: NOT SPECIFIED", ms: 4200, type: "warn" }, { text: "Scanning contract fine print...", ms: 4600, type: "info" }, { text: "  → Arbitration clause    : FOUND — limits your rights", ms: 4900, type: "warn" }, { text: "  → Price escalation clause: FOUND — price can increase", ms: 5150, type: "danger" }, { text: "  → Lien waiver           : MISSING — lien risk on home", ms: 5400, type: "danger" }, { text: "  → Cancellation clause   : MISSING", ms: 5620, type: "danger" }, { text: "  → Completion timeline   : NOT STATED", ms: 5820, type: "warn" }, { text: "Detecting sales pressure tactics...", ms: 6200, type: "info" }, { text: "  → 'Today only' pricing  : DETECTED", ms: 6500, type: "danger" }, { text: "  → High-pressure language: DETECTED", ms: 6720, type: "danger" }, { text: "Evaluating warranty terms...", ms: 7100, type: "info" }, { text: "  → Labor warranty  : 1 YEAR — dangerously low", ms: 7380, type: "danger" }, { text: "  → Transferability : NOT TRANSFERABLE", ms: 7600, type: "warn" }, { text: "  → 'Lifetime' claim: CONTRADICTED by 10-year terms", ms: 7820, type: "warn" }, { text: "Computing final risk score...", ms: 8200, type: "info" }, { text: "  → Applying FL §489.126 deposit hard cap...", ms: 8600, type: "warn" }, { text: "  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100%", ms: 9000, type: "info" }, { text: "ANALYSIS COMPLETE — 10 CRITICAL ISSUES DETECTED", ms: 9500, type: "complete" }];
+const SCAN_LINES = [
+  // Phase 1: Init (~0-1.5s) — mechanical, fast
+  { text: "Initializing Window Man AI scanner...", ms: 0, type: "info" },
+  { text: "Parsing document structure — 14 pages detected...", ms: 600, type: "info" },
+  { text: "Extracting contractor identity fields...", ms: 1300, type: "info" },
+  { text: "  → Contractor : Sunshine Premium Windows LLC", ms: 1700, type: "data" },
+  // First warning — slight pause to register
+  { text: "  → License #  : NOT FOUND ON CONTRACT ⚠", ms: 2600, type: "warn" },
+  // Phase 2: Payment terms (~3-5.5s) — danger lines get dramatic pauses
+  { text: "Parsing payment + deposit terms...", ms: 3300, type: "info" },
+  { text: "  → Deposit clause    : EXCEEDS FL STATUTORY LIMIT", ms: 4500, type: "danger" },
+  { text: "  → Payment milestones: NOT DEFINED", ms: 5100, type: "warn" },
+  { text: "  → Tax inclusion     : AMBIGUOUS", ms: 5600, type: "warn" },
+  // Phase 3: Hurricane compliance (~6-10s) — heaviest danger cluster
+  { text: "Checking Florida hurricane compliance database...", ms: 6300, type: "info" },
+  { text: "  → NOA numbers       : MISSING", ms: 7500, type: "danger" },
+  { text: "  → Design pressure   : NOT LISTED", ms: 8700, type: "danger" },
+  { text: "  → FL Product Approval: Partial (FL12345 only)", ms: 9300, type: "warn" },
+  { text: "  → Installation method: NOT SPECIFIED", ms: 9800, type: "warn" },
+  // Phase 4: Fine print (~10.5-14.5s) — relentless danger discovery
+  { text: "Scanning contract fine print...", ms: 10500, type: "info" },
+  { text: "  → Arbitration clause    : FOUND — limits your rights", ms: 11100, type: "warn" },
+  { text: "  → Price escalation clause: FOUND — price can increase", ms: 12200, type: "danger" },
+  { text: "  → Lien waiver           : MISSING — lien risk on home", ms: 13300, type: "danger" },
+  { text: "  → Cancellation clause   : MISSING", ms: 14400, type: "danger" },
+  { text: "  → Completion timeline   : NOT STATED", ms: 15000, type: "warn" },
+  // Phase 5: Sales pressure (~15.5-17s)
+  { text: "Detecting sales pressure tactics...", ms: 15700, type: "info" },
+  { text: "  → 'Today only' pricing  : DETECTED", ms: 16800, type: "danger" },
+  { text: "  → High-pressure language: DETECTED", ms: 17500, type: "danger" },
+  // Phase 6: Warranty (~18-20s)
+  { text: "Evaluating warranty terms...", ms: 18200, type: "info" },
+  { text: "  → Labor warranty  : 1 YEAR — dangerously low", ms: 19300, type: "danger" },
+  // ~81% — SYSTEM ALERT: pre-freeze warning flash
+  { text: "⚠ THREAT LEVEL: CRITICAL — ADDITIONAL CALIBRATION REQUIRED", ms: 20000, type: "system_alert" },
+  { text: "  → Transferability : NOT TRANSFERABLE", ms: 20800, type: "warn" },
+  { text: "  → 'Lifetime' claim: CONTRADICTED by 10-year terms", ms: 21400, type: "warn" },
+  // ~91% — TRIGGER: calibration gate freeze
+  { text: "Computing final risk score...", ms: 22400, type: "info" },
+  // Post-calibration resume lines
+  { text: "  → Applying FL §489.126 deposit hard cap...", ms: 23000, type: "warn" },
+  { text: "  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100%", ms: 23600, type: "info" },
+  { text: "ANALYSIS COMPLETE — 10 CRITICAL ISSUES DETECTED", ms: 24200, type: "complete" },
+];
 
 // The trigger line text that causes the calibration freeze
 const CALIBRATION_TRIGGER_TEXT = "Computing final risk score...";
@@ -277,10 +320,198 @@ function CalibrationGateModal({ onSubmit }) {
 
 /* ============================================================
    ScanTerminal — renders the terminal UI
+   Enhanced with: Red Flag Counter, Threat Level Bar, System Alert flash
    ============================================================ */
 function ScanTerminal({ lines, progress, terminalRef, firstName }) {
   const isComplete = progress === 100;
-  return (<div style={{ minHeight: "100vh", background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px", fontFamily: T.fontMono, position: "relative", overflow: "hidden" }}><div style={{ width: "100%", maxWidth: "700px", position: "relative", zIndex: 1 }}><div style={{ textAlign: "center", marginBottom: "30px" }}><div style={{ display: "inline-flex", alignItems: "center", gap: "9px", background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.24)", borderRadius: "99px", padding: "7px 18px", marginBottom: "18px" }}><span style={{ width: "8px", height: "8px", borderRadius: "50%", background: T.cyan, display: "inline-block", animation: isComplete ? "none" : "blink 1s ease-in-out infinite" }} /><span style={{ fontSize: "11px", color: T.cyan, letterSpacing: "2px", fontWeight: 600 }}>{isComplete ? "SCAN COMPLETE" : "SCANNING IN PROGRESS"}</span></div><h1 style={{ fontSize: "28px", fontWeight: 800, color: T.text, margin: "0 0 10px", fontFamily: T.fontSans, lineHeight: 1.2 }}>{firstName ? `${firstName}, your` : "Your"} <span style={{ color: T.cyan }}>Truth Report</span> is being built</h1></div><div style={{ background: "#080d14", border: "1px solid rgba(6,182,212,0.14)", borderRadius: "16px", overflow: "hidden" }}><div style={{ background: "rgba(6,182,212,0.055)", padding: "10px 16px", borderBottom: "1px solid rgba(6,182,212,0.1)", display: "flex", alignItems: "center", gap: "7px" }}>{["#ef4444", "#f59e0b", "#10b981"].map((c) => (<div key={c} style={{ width: "10px", height: "10px", borderRadius: "50%", background: c, opacity: 0.75 }} />))}<span style={{ fontSize: "11px", color: "rgba(6,182,212,0.55)", marginLeft: "8px" }}>windowman-ai-scanner — v2.4.1</span></div><div ref={terminalRef} style={{ padding: "16px 20px", height: "300px", overflowY: "auto", scrollBehavior: "smooth" }}>{lines.map((line, i) => { const color = line.type === "danger" ? T.red : line.type === "warn" ? T.amber : line.type === "complete" ? T.cyan : line.type === "data" ? T.green : "rgba(241,245,249,0.55)"; const isDataLine = line.type === "data" || line.type === "complete"; return (<div key={i} style={{ fontSize: "13px", color, lineHeight: "1.95", fontWeight: line.type === "complete" ? 700 : 400 }}>{!isDataLine && <span style={{ color: "rgba(6,182,212,0.35)", marginRight: "9px" }}>$</span>}{line.text}</div>); })}{lines.length > 0 && !isComplete && <div style={{ fontSize: "13px", color: T.muted, lineHeight: "1.95" }}><span style={{ color: "rgba(6,182,212,0.35)", marginRight: "9px" }}>$</span><span style={{ animation: "blink 0.9s step-end infinite" }}>▋</span></div>}</div><div style={{ padding: "12px 20px 16px", borderTop: "1px solid rgba(255,255,255,0.05)" }}><div style={{ display: "flex", justifyContent: "space-between", marginBottom: "7px" }}><span style={{ fontSize: "11px", color: T.faint, letterSpacing: "1px" }}>ANALYSIS PROGRESS</span><span style={{ fontSize: "11px", fontWeight: 700, color: isComplete ? T.red : T.cyan }}>{progress}%</span></div><div style={{ height: "5px", background: "rgba(255,255,255,0.06)", borderRadius: "99px" }}><div style={{ height: "100%", borderRadius: "99px", background: isComplete ? `linear-gradient(90deg, ${T.red}, #f97316)` : `linear-gradient(90deg, ${T.cyan}, #38bdf8)`, width: `${progress}%`, transition: "width 0.3s ease" }} /></div></div></div></div><style>{`@keyframes blink{0%,100%{opacity:1}50%{opacity:0}} @keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}`}</style></div>);
+
+  // Red flag counter: count danger + warn lines
+  const flagCount = lines.filter((l) => l.type === "danger" || l.type === "warn").length;
+
+  // Threat level derived from flag count
+  const threatLevel = flagCount >= 6 ? "CRITICAL" : flagCount >= 3 ? "ELEVATED" : "LOW";
+  const threatColor = threatLevel === "CRITICAL" ? T.red : threatLevel === "ELEVATED" ? T.amber : T.green;
+  const threatBarPct = Math.min((flagCount / 12) * 100, 100);
+
+  // System alert present — flash terminal border red
+  const hasSystemAlert = lines.some((l) => l.type === "system_alert");
+
+  return (
+    <div style={{
+      minHeight: "100vh", background: T.bg,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      padding: "40px 20px", fontFamily: T.fontMono, position: "relative", overflow: "hidden",
+    }}>
+      <div style={{ width: "100%", maxWidth: "700px", position: "relative", zIndex: 1 }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "30px" }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: "9px",
+            background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.24)",
+            borderRadius: "99px", padding: "7px 18px", marginBottom: "18px",
+          }}>
+            <span style={{
+              width: "8px", height: "8px", borderRadius: "50%", background: T.cyan,
+              display: "inline-block", animation: isComplete ? "none" : "blink 1s ease-in-out infinite",
+            }} />
+            <span style={{ fontSize: "11px", color: T.cyan, letterSpacing: "2px", fontWeight: 600 }}>
+              {isComplete ? "SCAN COMPLETE" : "SCANNING IN PROGRESS"}
+            </span>
+          </div>
+          <h1 style={{
+            fontSize: "28px", fontWeight: 800, color: T.text,
+            margin: "0 0 10px", fontFamily: T.fontSans, lineHeight: 1.2,
+          }}>
+            {firstName ? `${firstName}, your` : "Your"}{" "}
+            <span style={{ color: T.cyan }}>Truth Report</span> is being built
+          </h1>
+        </div>
+
+        {/* Terminal card */}
+        <div style={{
+          background: "#080d14",
+          border: `1px solid ${hasSystemAlert ? "rgba(239,68,68,0.6)" : "rgba(6,182,212,0.14)"}`,
+          borderRadius: "16px", overflow: "hidden",
+          transition: "border-color 0.4s ease",
+          boxShadow: hasSystemAlert ? "0 0 30px rgba(239,68,68,0.15), inset 0 0 30px rgba(239,68,68,0.03)" : "none",
+        }}>
+          {/* Terminal header bar */}
+          <div style={{
+            background: "rgba(6,182,212,0.055)", padding: "10px 16px",
+            borderBottom: "1px solid rgba(6,182,212,0.1)",
+            display: "flex", alignItems: "center", gap: "7px",
+          }}>
+            {["#ef4444", "#f59e0b", "#10b981"].map((c) => (
+              <div key={c} style={{ width: "10px", height: "10px", borderRadius: "50%", background: c, opacity: 0.75 }} />
+            ))}
+            <span style={{ fontSize: "11px", color: "rgba(6,182,212,0.55)", marginLeft: "8px", flex: 1 }}>
+              windowman-ai-scanner — v2.4.1
+            </span>
+            {/* Red Flag Counter Badge */}
+            {flagCount > 0 && (
+              <div
+                key={flagCount}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "5px",
+                  background: flagCount >= 6 ? "rgba(239,68,68,0.18)" : "rgba(245,158,11,0.15)",
+                  border: `1px solid ${flagCount >= 6 ? "rgba(239,68,68,0.4)" : "rgba(245,158,11,0.35)"}`,
+                  borderRadius: "99px", padding: "3px 10px",
+                  animation: "flagPulse 0.4s ease-out",
+                }}
+              >
+                <span style={{ fontSize: "10px" }}>🚩</span>
+                <span style={{
+                  fontSize: "10px", fontWeight: 800, letterSpacing: "0.5px",
+                  color: flagCount >= 6 ? T.red : T.amber,
+                  fontFamily: T.fontMono,
+                }}>
+                  {flagCount} {flagCount === 1 ? "FLAG" : "FLAGS"}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Terminal body */}
+          <div ref={terminalRef} style={{ padding: "16px 20px", height: "300px", overflowY: "auto", scrollBehavior: "smooth" }}>
+            {lines.map((line, i) => {
+              // System alert line gets special treatment
+              if (line.type === "system_alert") {
+                return (
+                  <div key={i} style={{
+                    fontSize: "13px", color: T.red, lineHeight: "1.95", fontWeight: 700,
+                    background: "rgba(239,68,68,0.08)",
+                    borderLeft: `3px solid ${T.red}`,
+                    padding: "2px 0 2px 10px", margin: "4px 0",
+                    animation: "alertFlash 0.6s ease-out",
+                  }}>
+                    {line.text}
+                  </div>
+                );
+              }
+
+              const color = line.type === "danger" ? T.red
+                : line.type === "warn" ? T.amber
+                : line.type === "complete" ? T.cyan
+                : line.type === "data" ? T.green
+                : "rgba(241,245,249,0.55)";
+              const isDataLine = line.type === "data" || line.type === "complete";
+              return (
+                <div key={i} style={{
+                  fontSize: "13px", color, lineHeight: "1.95",
+                  fontWeight: line.type === "complete" ? 700 : 400,
+                }}>
+                  {!isDataLine && <span style={{ color: "rgba(6,182,212,0.35)", marginRight: "9px" }}>$</span>}
+                  {line.text}
+                </div>
+              );
+            })}
+            {lines.length > 0 && !isComplete && (
+              <div style={{ fontSize: "13px", color: T.muted, lineHeight: "1.95" }}>
+                <span style={{ color: "rgba(6,182,212,0.35)", marginRight: "9px" }}>$</span>
+                <span style={{ animation: "blink 0.9s step-end infinite" }}>▋</span>
+              </div>
+            )}
+          </div>
+
+          {/* Footer: Progress bar + Threat level */}
+          <div style={{ padding: "12px 20px 16px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+            {/* Progress */}
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "7px" }}>
+              <span style={{ fontSize: "11px", color: T.faint, letterSpacing: "1px" }}>ANALYSIS PROGRESS</span>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: isComplete ? T.red : T.cyan }}>{progress}%</span>
+            </div>
+            <div style={{ height: "5px", background: "rgba(255,255,255,0.06)", borderRadius: "99px" }}>
+              <div style={{
+                height: "100%", borderRadius: "99px",
+                background: isComplete
+                  ? `linear-gradient(90deg, ${T.red}, #f97316)`
+                  : `linear-gradient(90deg, ${T.cyan}, #38bdf8)`,
+                width: `${progress}%`, transition: "width 0.3s ease",
+              }} />
+            </div>
+
+            {/* Threat Level Bar */}
+            {flagCount > 0 && (
+              <div style={{ marginTop: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
+                  <span style={{ fontSize: "10px", color: T.faint, letterSpacing: "1.5px", fontWeight: 600 }}>THREAT LEVEL</span>
+                  <span style={{
+                    fontSize: "10px", fontWeight: 800, letterSpacing: "1px",
+                    color: threatColor,
+                    animation: threatLevel === "CRITICAL" ? "pulse 1.1s ease-in-out infinite" : "none",
+                  }}>
+                    {threatLevel}
+                  </span>
+                </div>
+                <div style={{
+                  height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "99px",
+                  overflow: "hidden",
+                }}>
+                  <div style={{
+                    height: "100%", borderRadius: "99px",
+                    background: threatLevel === "CRITICAL"
+                      ? `linear-gradient(90deg, ${T.amber}, ${T.red})`
+                      : threatLevel === "ELEVATED"
+                      ? `linear-gradient(90deg, ${T.green}, ${T.amber})`
+                      : T.green,
+                    width: `${threatBarPct}%`,
+                    transition: "width 0.5s ease, background 0.5s ease",
+                  }} />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <style>{`
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+        @keyframes flagPulse{0%{transform:scale(1.25)}100%{transform:scale(1)}}
+        @keyframes alertFlash{0%{background:rgba(239,68,68,0.25)}100%{background:rgba(239,68,68,0.08)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.45}}
+      `}</style>
+    </div>
+  );
 }
 
 function ScoreReveal({ score }) { const color = score < 60 ? T.red : score < 80 ? T.amber : T.green; return (<div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: T.fontSans, flexDirection: "column", gap: "8px" }}><div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "3px", color: "rgba(239,68,68,0.8)", fontFamily: T.fontMono, marginBottom: "8px" }}>RISK SCORE</div><div style={{ fontSize: "128px", fontWeight: 800, lineHeight: 1, color }}>{score}</div><div style={{ fontSize: "18px", color: T.muted, marginTop: "4px" }}>out of 100 — Grade: <span style={{ color: T.red, fontWeight: 800 }}>{DEMO.grade}</span></div><div style={{ marginTop: "20px", fontSize: "17px", fontWeight: 700, color: T.red, animation: "pulse 1.1s ease-in-out infinite" }}>10 Critical Issues Detected</div><style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.45}}`}</style></div>); }
