@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import hiddenContractImg from "@/assets/hidden-contract-terms.avif";
 import forensicReportImg from "@/assets/forensic-analysis-report.avif";
-import noaLetterImg from "@/assets/noa-letter.avif";
+import excludesLaborImg from "@/assets/excludes-labor.avif";
 import EvidenceImage from "./EvidenceImage";
 import EvidenceCarousel from "./EvidenceCarousel";
 import EvidenceLightbox from "./EvidenceLightbox";
