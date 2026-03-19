@@ -50,8 +50,8 @@ const severityStyles = {
 const stagger = (i: number) => ({
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
-  transition: { delay: i * 0.04, duration: 0.15, ease: 'easeInOut' as const as const }
-});
+  transition: { delay: i * 0.04, duration: 0.15, ease: 'easeInOut' as const }
+}) as const;
 
 const TruthReport = ({
   grade,
