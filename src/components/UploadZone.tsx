@@ -50,7 +50,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       const { error: uploadError } = await supabase.storage.from("quotes").upload(filePath, file);
       if (uploadError) { console.error("Storage upload failed:", uploadError); toast.error("Upload failed. Please try again."); setUploading(false); return; }
       let leadId: string | null = null;
-      if (sessionId) { const { data: leads } = await supabase.from("leads").select("id").eq("session_id", sessionId).limit(1); leadId = leads?.[0]?.id || null; }
+      if (sessionId) { const { data: leads } = await supabase.rpc("get_lead_by_session", { p_session_id: sessionId }); leadId = leads?.[0]?.id || null; }
       const { data: qfData, error: qfError } = await supabase.from("quote_files").insert({ lead_id: leadId, storage_path: filePath, status: "pending" }).select("id").single();
       if (qfError || !qfData) { console.error("quote_files insert failed:", qfError); toast.error("Failed to register your file. Please try again."); setUploading(false); return; }
       const scanSessionId = crypto.randomUUID();
