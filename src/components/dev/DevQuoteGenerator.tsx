@@ -41,11 +41,12 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
     }
 
     setUploading(true);
-    setStatus(`Uploading ${scenarioKey}...`);
+    setStatus(`Fetching sample quote image...`);
 
     try {
-      // 1. Upload file to storage
-      const filePath = `${sessionId}/${Date.now()}_${mock.file.name}`;
+      // 1. Get the real sample quote image and upload
+      const realFile = await mock.getFile();
+      const filePath = `${sessionId}/${Date.now()}_${realFile.name}`;
       const { error: uploadError } = await supabase.storage.from("quotes").upload(filePath, mock.file);
       if (uploadError) {
         console.error("🧪 Storage upload failed:", uploadError);
