@@ -32,7 +32,7 @@ const gradeConfig: Record<string, { color: string; bg: string; label: string; me
   F: { color: "#991B1B", bg: "rgba(220,38,38,0.12)", label: "CRITICAL ISSUES FOUND", message: "This Quote Has Critical Problems. You Are Likely Being Significantly Overcharged." },
 };
 
-const stagger = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.06, duration: 0.15, ease: 'easeInOut' as const } });
+const stagger = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.06, duration: 0.15, ease: 'easeInOut' as const as const } });
 
 const GradeReveal = ({
   grade = "C",
@@ -106,12 +106,12 @@ const GradeReveal = ({
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" as const }}
       style={{ borderRadius: 0, border: "1px solid rgba(0, 242, 255, 0.12)", boxShadow: "0 4px 24px rgba(0, 242, 255, 0.08), 0 20px 60px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.06)", overflow: "hidden" }}>
 
       <section style={{ background: "#0A0A0A" }} className="py-16 md:py-20 px-4 md:px-8">
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-          <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" }}
+          <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" as const }}
             style={{ width: 120, height: 120, borderRadius: "50%", border: `4px solid ${config.color}`, background: "#111111", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 6px ${config.color}1A` }}
             className="w-[120px] h-[120px] md:w-[160px] md:h-[160px]">
             <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(80px, 10vw, 96px)", fontWeight: 900, color: config.color }}>{grade}</span>

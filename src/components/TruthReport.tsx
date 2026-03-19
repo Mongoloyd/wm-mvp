@@ -50,7 +50,7 @@ const severityStyles = {
 const stagger = (i: number) => ({
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
-  transition: { delay: i * 0.04, duration: 0.15, ease: 'easeInOut' as const }
+  transition: { delay: i * 0.04, duration: 0.15, ease: 'easeInOut' as const as const }
 });
 
 const TruthReport = ({
@@ -128,7 +128,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               </div>
             }
             <motion.div
-              initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" }}
+              initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" as const }}
               style={{
                 width: 80, height: 80, borderRadius: "50%",
                 border: `4px solid ${config.color}`, background: "#0A0A0A",
@@ -509,7 +509,7 @@ function LockedOverlay({ issueCount }: {issueCount: number;}) {
             <div style={{ height: 4, borderRadius: 0, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
               <motion.div
                 animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                transition={{ duration: 0.4, ease: "easeOut" as const }}
                 style={{
                   height: "100%",
                   borderRadius: 0,
