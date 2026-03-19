@@ -32,7 +32,7 @@ const gradeConfig: Record<string, { color: string; bg: string; label: string; me
   F: { color: "#991B1B", bg: "rgba(220,38,38,0.12)", label: "CRITICAL ISSUES FOUND", message: "This Quote Has Critical Problems. You Are Likely Being Significantly Overcharged." },
 };
 
-const stagger = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.06, duration: 0.15, ease: 'easeInOut' } });
+const stagger = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.06, duration: 0.15, ease: 'easeInOut' as const } });
 
 const GradeReveal = ({
   grade = "C",
