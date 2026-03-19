@@ -6,6 +6,12 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import {
+  corsHeaders,
+  jsonResponse,
+  updateScanSessionStatus,
+  upsertAnalysisRecord,
+} from "./helpers.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 1: SCHEMA (Zod-like runtime validation — manual for Deno compat)
@@ -315,85 +321,6 @@ function detectFlags(data: ExtractionResult): Flag[] {
 // stays in 'processing' with no analyses row. A recovery sweep can detect
 // sessions stuck in 'processing' for >N minutes and re-invoke this function.
 // The upsert pattern on analyses ensures re-invocation is safe (idempotent).
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-function jsonResponse(body: Record<string, unknown>, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
-async function updateScanSessionStatus(
-  supabase: ReturnType<typeof createClient>,
-  scanSessionId: string,
-  status: ScanSessionStatus,
-  logMessage: string,
-  failureBody?: Record<string, unknown>,
-): Promise<{ success: true } | { success: false; response: Response }> {
-  const { data, error } = await supabase
-    .from("scan_sessions")
-    .update({ status })
-    .eq("id", scanSessionId)
-    .select("id");
-
-  if (error) {
-    console.error(logMessage, error);
-    return {
-      success: false,
-      response: jsonResponse(
-        failureBody ?? {
-          error: "Failed to persist scan session state",
-          scan_session_id: scanSessionId,
-        },
-        500,
-      ),
-    };
-  }
-
-  if (!data || data.length === 0) {
-    console.error(
-      `${logMessage} — no scan_sessions row updated for id=${scanSessionId}`,
-    );
-    return {
-      success: false,
-      response: jsonResponse(failureBody ?? {
-        error: "Failed to persist scan session state",
-        scan_session_id: scanSessionId,
-        analysis_status: "processing",
-        scan_session_status: "processing",
-      }, 500),
-    };
-  }
-
-  return { success: true };
-}
-
-async function upsertAnalysisRecord(
-  supabase: ReturnType<typeof createClient>,
-  payload: Record<string, unknown>,
-  logMessage: string,
-  failureBody: Record<string, unknown>,
-  status = 500,
-): Promise<{ success: true } | { success: false; response: Response }> {
-  const { error } = await supabase
-    .from("analyses")
-    .upsert(payload, { onConflict: "scan_session_id" });
-
-  if (error) {
-    console.error(logMessage, error);
-    return {
-      success: false,
-      response: jsonResponse(failureBody, status),
-    };
-  }
-
-  return { success: true };
-}
 
 function mimeFromPath(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase() || "";
