@@ -581,10 +581,10 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           className="transform -translate-y-1"
           style={{
             background: "#111111",
-            border: "1px solid rgba(255,255,255,0.1)",
+            border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: 0,
             padding: "clamp(32px, 5vw, 40px)",
-            boxShadow: "0 20px 50px rgba(0,0,0,0.8), 0 8px 24px rgba(30,64,175,0.2)",
+            boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 30px 20px -10px rgba(255,255,255,0.03), 0 8px 24px rgba(30,64,175,0.15)",
             minHeight: 280,
             overflow: "hidden",
           }}
