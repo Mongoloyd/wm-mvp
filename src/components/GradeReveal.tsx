@@ -32,7 +32,7 @@ const gradeConfig: Record<string, { color: string; bg: string; label: string; me
   F: { color: "#991B1B", bg: "rgba(220,38,38,0.12)", label: "CRITICAL ISSUES FOUND", message: "This Quote Has Critical Problems. You Are Likely Being Significantly Overcharged." },
 };
 
-const stagger = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.12, duration: 0.4 } });
+const stagger = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.06, duration: 0.15, ease: 'easeInOut' } });
 
 const GradeReveal = ({
   grade = "C",
@@ -106,13 +106,13 @@ const GradeReveal = ({
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" }}
       style={{ borderRadius: 0, border: "1px solid rgba(0, 242, 255, 0.12)", boxShadow: "0 4px 24px rgba(0, 242, 255, 0.08), 0 20px 60px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.06)", overflow: "hidden" }}>
 
       <section style={{ background: "#0A0A0A" }} className="py-16 md:py-20 px-4 md:px-8">
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-          <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.05, 1] }} transition={{ duration: 0.6, times: [0, 0.7, 1] }}
-            style={{ width: 120, height: 120, borderRadius: "50%", border: `4px solid ${config.color}`, background: "#0A0A0A", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 12px ${config.color}1A, 0 0 48px ${config.color}33` }}
+          <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" }}
+            style={{ width: 120, height: 120, borderRadius: "50%", border: `4px solid ${config.color}`, background: "#111111", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 6px ${config.color}1A` }}
             className="w-[120px] h-[120px] md:w-[160px] md:h-[160px]">
             <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(80px, 10vw, 96px)", fontWeight: 900, color: config.color }}>{grade}</span>
           </motion.div>
@@ -249,14 +249,14 @@ const GradeReveal = ({
               <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", color: "#FFFFFF", marginBottom: 8 }}>What do you want to do with this?</h2>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#9CA3AF", marginBottom: 32 }}>Your analysis is saved. You can come back to it anytime.</p>
               <div className="flex flex-col md:flex-row justify-center gap-4">
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                   onClick={() => { console.log({ event: "wm_contractor_match_clicked", grade, dollarDelta }); onContractorMatchClick?.(); }}
                   className="flex flex-col items-center"
                   style={{ background: "#C8952A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, padding: "16px 36px", borderRadius: 0, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(200,149,42,0.35)" }}>
                   <span>Get a Counter-Quote From a Vetted Contractor</span>
                   <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 4 }}>We'll find contractors who quote fair in {county} County</span>
                 </motion.button>
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                   onClick={() => { console.log({ event: "wm_report_downloaded" }); toast({ title: "Report saved to your downloads" }); }}
                   style={{ background: "#0A0A0A", border: "1px solid rgba(255,255,255,0.1)", color: "#E5E7EB", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 0, cursor: "pointer" }}>
                   ⬇ Download PDF Report

@@ -50,7 +50,7 @@ const severityStyles = {
 const stagger = (i: number) => ({
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
-  transition: { delay: i * 0.08, duration: 0.4 }
+  transition: { delay: i * 0.04, duration: 0.15, ease: 'easeInOut' }
 });
 
 const TruthReport = ({
@@ -128,12 +128,12 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               </div>
             }
             <motion.div
-              initial={{ scale: 0 }} animate={{ scale: [0, 1.05, 1] }} transition={{ duration: 0.6, times: [0, 0.7, 1] }}
+              initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" }}
               style={{
                 width: 80, height: 80, borderRadius: "50%",
                 border: `4px solid ${config.color}`, background: "#0A0A0A",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: `0 0 0 8px ${config.color}1A`
+                boxShadow: `0 0 0 6px ${config.color}1A`
               }}>
               <span style={{ fontFamily: "'Jost', sans-serif", fontSize: 48, fontWeight: 900, color: config.color, lineHeight: 1 }}>{grade}</span>
             </motion.div>
@@ -393,7 +393,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           </motion.div>
 
           <motion.div {...stagger(9)} className="flex flex-col md:flex-row justify-center gap-4">
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+            <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
             onClick={onContractorMatchClick}
             className="flex items-center justify-center gap-2"
             style={{
@@ -405,7 +405,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <Users size={20} />
               Get a Counter-Quote From a Vetted Contractor
             </motion.button>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+            <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
             onClick={onSecondScan}
             style={{
               background: "rgba(255,255,255,0.06)", border: "1.5px solid rgba(255,255,255,0.15)",
