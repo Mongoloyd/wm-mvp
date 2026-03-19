@@ -50,7 +50,7 @@ export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClic
           </div>
         ) : (
           <>
-            <p className="hidden md:block text-sm font-medium" style={{ color: "#6B7280" }}>
+            <p className="hidden md:block text-sm font-medium" style={{ color: "#E5E7EB" }}>
               Don't Sign Until You've Got Your Free WindowMan AI Truth Report →
             </p>
             <div className="flex justify-center gap-3 w-full md:w-auto">

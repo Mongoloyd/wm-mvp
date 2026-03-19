@@ -235,7 +235,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                       style={{
                         fontFamily: "'DM Mono', monospace",
                         fontSize: 13,
-                        color: isComplete ? "#6B7280" : "#E5E5E5",
+                        color: isComplete ? "#E5E7EB" : "#E5E5E5",
                       }}
                     >
                       {text}
@@ -299,7 +299,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
             <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 700, color: "#E5E5E5", textTransform: "uppercase", letterSpacing: "0.02em" }}>
               Enter the code we sent to your mobile.
             </h3>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginBottom: 24 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginBottom: 24 }}>
               We use this to secure your report.
             </p>
 
@@ -360,18 +360,18 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
               Unlock My Grade Report →
             </motion.button>
 
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", marginTop: 12, lineHeight: 1.7 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", marginTop: 12, lineHeight: 1.7 }}>
               Enter the code to unlock your full analysis — or{" "}
               <button
                 onClick={handleOtpSkip}
-                style={{ fontFamily: "inherit", fontSize: "inherit", color: "#6B7280", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}
+                style={{ fontFamily: "inherit", fontSize: "inherit", color: "#E5E7EB", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}
               >
                 skip for now
               </button>{" "}
               and access a partial summary.
             </p>
 
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", marginTop: 8 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", marginTop: 8 }}>
               Didn't receive it?{" "}
               <button
                 onClick={() => console.log({ event: "wm_otp_resend" })}
@@ -436,7 +436,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#E5E5E5", marginTop: 20 }}>
                       Your quote scored a C.
                     </p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginTop: 8, maxWidth: 360, lineHeight: 1.6 }}>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 8, maxWidth: 360, lineHeight: 1.6 }}>
                       This is a basic score. Verify your phone to unlock your full report with line-by-line pricing breakdown, red flags, and negotiation tips.
                     </p>
                     <div className="flex flex-col gap-3 mt-6 w-full" style={{ maxWidth: 320 }}>
@@ -471,7 +471,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                         style={{
                           fontFamily: "'DM Sans', sans-serif",
                           fontSize: 13,
-                          color: "#6B7280",
+                          color: "#E5E7EB",
                           background: "none",
                           border: "none",
                           cursor: "pointer",
@@ -522,7 +522,7 @@ const PillarCard = ({
       textAlign: "left",
     }}
   >
-    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.1em", marginBottom: 4 }}>
+    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", letterSpacing: "0.1em", marginBottom: 4 }}>
       {label}
     </p>
     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E5E5", marginBottom: 8 }}>

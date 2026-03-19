@@ -77,7 +77,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
             <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.02em", textTransform: "uppercase", marginBottom: 8 }}>
               Drop your quote to start the scan.
             </h2>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 28 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 28 }}>
               PDF, photo, or screenshot — any format works.
             </p>
 
@@ -100,9 +100,9 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
 
               {!file ? (
                 <>
-                  <Upload size={48} style={{ color: "#6B7280", margin: "0 auto 12px" }} />
+                  <Upload size={48} style={{ color: "#E5E7EB", margin: "0 auto 12px" }} />
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E5E5", fontWeight: 600 }}>Drag your quote here</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", marginTop: 4 }}>or click to browse files</p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", marginTop: 4 }}>or click to browse files</p>
                 </>
               ) : (
                 <div onClick={(e) => e.stopPropagation()}>
@@ -110,7 +110,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
                     <span style={{ color: "#2563EB", fontSize: 24, fontWeight: 700 }}>✓</span>
                   </div>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E5E5", fontWeight: 600 }}>{file.name}</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", marginTop: 2 }}>{formatSize(file.size)}</p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", marginTop: 2 }}>{formatSize(file.size)}</p>
                   <button onClick={(e) => { e.stopPropagation(); setFile(null); if (inputRef.current) inputRef.current.value = ""; }}
                     style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#2563EB", background: "none", border: "none", textDecoration: "underline", cursor: "pointer", marginTop: 8 }}>
                     Change file
@@ -129,13 +129,13 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
               </motion.button>
             )}
 
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", textAlign: "center", marginTop: 16 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", textAlign: "center", marginTop: 16 }}>
               Don't have a digital copy?{" "}
               <button onClick={() => console.log({ event: "wm_photo_option_clicked" })} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#2563EB", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}>
                 Take a photo with your phone →
               </button>
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#6B7280", textAlign: "center", marginTop: 16 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#E5E7EB", textAlign: "center", marginTop: 16 }}>
               Accepted: PDF, JPG, PNG, HEIC · Max file size: 10MB
             </p>
           </div>

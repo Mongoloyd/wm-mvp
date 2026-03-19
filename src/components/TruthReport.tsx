@@ -38,7 +38,7 @@ const statusConfig = {
   pass: { color: "#059669", bg: "#ECFDF5", border: "#A7F3D0", label: "PASS" },
   warn: { color: "#D97706", bg: "#FFFBEB", border: "#FDE68A", label: "REVIEW" },
   fail: { color: "#DC2626", bg: "#FEF2F2", border: "#FECACA", label: "FAIL" },
-  pending: { color: "#6B7280", bg: "#F3F4F6", border: "#E5E7EB", label: "PENDING" }
+  pending: { color: "#E5E7EB", bg: "#F3F4F6", border: "#E5E7EB", label: "PENDING" }
 };
 
 const severityStyles = {
@@ -116,14 +116,14 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <h1 style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, color: "#0F1F35", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
               WindowMan Truth Report™
             </h1>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginTop: 4 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 4 }}>
               {county} County · {reportDate} · {documentType ? humanizeDocType(documentType) : "Quote Document"}
             </p>
           </div>
           <div className="flex items-center gap-4">
             {confidenceScore != null &&
             <div className="text-right hidden md:block">
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.08em" }}>CONFIDENCE</p>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", letterSpacing: "0.08em" }}>CONFIDENCE</p>
                 <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 18, fontWeight: 700, color: confidenceScore >= 70 ? "#059669" : "#D97706" }}>{Math.round(confidenceScore)}%</p>
               </div>
             }
@@ -163,7 +163,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, color: "#0F1F35", letterSpacing: "-0.02em", marginBottom: 6 }}>
               How Your Quote Scores Across 5 Key Areas
             </h2>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginBottom: 28 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginBottom: 28 }}>
               Each pillar is scored independently against {county} County standards.
             </p>
           </motion.div>
@@ -215,7 +215,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   }}>{sc.label}</span>
 
                   {pillarFlags.length > 0 &&
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#6B7280", marginTop: 8 }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#E5E7EB", marginTop: 8 }}>
                       {pillarFlags.filter((f) => f.severity === "red").length > 0 && `${pillarFlags.filter((f) => f.severity === "red").length} critical`}
                       {pillarFlags.filter((f) => f.severity === "red").length > 0 && pillarFlags.filter((f) => f.severity === "amber").length > 0 && " · "}
                       {pillarFlags.filter((f) => f.severity === "amber").length > 0 && `${pillarFlags.filter((f) => f.severity === "amber").length} caution`}
@@ -238,7 +238,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, color: "#0F1F35", letterSpacing: "-0.02em", marginTop: 4 }}>
                   {issueCount} Issue{issueCount !== 1 ? "s" : ""} Identified
                 </h2>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280" }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB" }}>
                   {redCount} critical · {amberCount} caution · {greenCount} confirmed
                 </p>
               </div>
@@ -277,7 +277,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                           }}>{s.badgeText}</span>
                             {pillarLabel &&
                           <span style={{
-                            fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6B7280",
+                            fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#E5E7EB",
                             letterSpacing: "0.06em", background: "#F3F4F6", borderRadius: 999, padding: "2px 8px"
                           }}>{pillarLabel}</span>
                           }
@@ -342,7 +342,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, color: "#0F1F35", letterSpacing: "-0.02em", marginTop: 4, marginBottom: 6 }}>
                 Your Word-for-Word Script
               </h2>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginBottom: 20 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginBottom: 20 }}>
                 Customized for {displayName} based on the {issueCount} issue{issueCount !== 1 ? "s" : ""} found in your quote.
               </p>
             </motion.div>
@@ -427,12 +427,12 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#0F1F35", fontWeight: 700 }}>WindowMan Truth Report™</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280" }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB" }}>
               {reportDate} · {county} County · Grade {grade}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280" }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB" }}>
               This report is private. Only you can access it.
             </p>
           </div>

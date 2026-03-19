@@ -22,7 +22,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
     <section style={{ backgroundColor: "#0A0A0A" }}>
       <div ref={ref} className="mx-auto max-w-4xl px-4 md:px-8 py-24 md:py-32 text-center">
         <motion.p initial={{ opacity: 0, y: 12 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }}
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: "#6B7280", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 40 }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: "#E5E7EB", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 40 }}>
           WHY WINDOWMAN EXISTS
         </motion.p>
         <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.05 }}
@@ -41,7 +41,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
               <div className="flex items-center justify-center flex-shrink-0" style={{ width: 24, height: 24, background: "rgba(37,99,235,0.15)" }}>
                 <span style={{ color: "#2563EB", fontSize: 12, fontWeight: 700 }}>✓</span>
               </div>
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280" }}>{text}</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB" }}>{text}</span>
             </div>
           ))}
         </motion.div>

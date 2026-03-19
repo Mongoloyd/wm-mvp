@@ -283,10 +283,10 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E5E5", fontWeight: 700, marginTop: 8 }}>
               Quotes in {selectedCounty} in the {selectedRange} range...
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginTop: 6 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 6 }}>
               ...score between C and D on average. 67% contain at least one red flag.
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", fontStyle: "italic", marginTop: 8 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", fontStyle: "italic", marginTop: 8 }}>
               Your actual grade requires your quote. But you're in a high-risk range.
             </p>
           </div>
@@ -318,7 +318,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           >
             {cfg.question}
           </h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginBottom: 28 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginBottom: 28 }}>
             {cfg.sub}
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -373,7 +373,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         >
           See What's In Your Quote.
         </h2>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 24 }}>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 24 }}>
           Enter your details to run the scan.
         </p>
 
@@ -405,7 +405,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
           <div>
             <label style={labelStyle}>
-              EMAIL ADDRESS <span style={{ color: "#6B7280", fontWeight: 400 }}>(your grade report is sent here)</span>
+              EMAIL ADDRESS <span style={{ color: "#E5E7EB", fontWeight: 400 }}>(your grade report is sent here)</span>
             </label>
             <div style={{ position: "relative" }}>
               <input
@@ -432,7 +432,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
           <div>
             <label style={labelStyle}>
-              MOBILE NUMBER <span style={{ color: "#6B7280", fontWeight: 400 }}>(one-time code to unlock your report)</span>
+              MOBILE NUMBER <span style={{ color: "#E5E7EB", fontWeight: 400 }}>(one-time code to unlock your report)</span>
             </label>
             <div style={{ position: "relative" }}>
               <input
@@ -468,7 +468,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               onChange={(e) => setTcpaConsent(e.target.checked)}
               style={{ width: 16, height: 16, marginTop: 2, accentColor: "#2563EB", flexShrink: 0 }}
             />
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", lineHeight: 1.5 }}>
               By providing your number, you consent to receive one call regarding your quote analysis.
               No spam, no contractor contact without permission.
             </span>
@@ -515,7 +515,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 12,
-            color: "#6B7280",
+            color: "#E5E7EB",
             lineHeight: 1.8,
             textAlign: "center",
             marginTop: 14,
@@ -547,7 +547,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               flexShrink: 0,
             }}
           />
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#6B7280" }}>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#E5E7EB" }}>
             {tickerToday} homeowners in {selectedCounty} found red flags today
           </span>
         </div>
@@ -599,7 +599,7 @@ const labelStyle: React.CSSProperties = {
   display: "block",
   fontFamily: "'DM Mono', monospace",
   fontSize: 10,
-  color: "#6B7280",
+  color: "#E5E7EB",
   letterSpacing: "0.08em",
   marginBottom: 6,
 };

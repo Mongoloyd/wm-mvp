@@ -127,16 +127,16 @@ const GradeReveal = ({
       <section style={{ background: "white", borderTop: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           <motion.div {...stagger(3)}>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>YOUR QUOTE VS. FAIR MARKET</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", letterSpacing: "0.12em", marginBottom: 8 }}>YOUR QUOTE VS. FAIR MARKET</p>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "clamp(36px, 5vw, 44px)", fontWeight: 900, color: dollarDelta! > 0 ? "#DC2626" : "#059669" }}>
               {dollarDelta! > 0 ? "+" : dollarDelta! < 0 ? "-" : ""}${counter.toLocaleString()}
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB" }}>
               {dollarDelta! > 0 ? `above fair market for ${county} County` : dollarDelta! < 0 ? "below market — this quote is competitive" : "This quote is priced at the county benchmark"}
             </p>
           </motion.div>
           <motion.div {...stagger(3.5)}>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>FAIR MARKET RANGE · {county.toUpperCase()} COUNTY</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", letterSpacing: "0.12em", marginBottom: 8 }}>FAIR MARKET RANGE · {county.toUpperCase()} COUNTY</p>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, fontWeight: 700, color: "#0099BB" }}>${fairPriceLow!.toLocaleString()} – ${fairPriceHigh!.toLocaleString()}</p>
             <div style={{ position: "relative", marginTop: 12 }}>
               <div style={{ height: 8, background: "#E5E7EB", borderRadius: 4, overflow: "hidden" }}>
@@ -145,14 +145,14 @@ const GradeReveal = ({
               <div style={{ position: "absolute", top: -3, left: "75%", width: 14, height: 14, borderRadius: "50%", background: config.color, border: "2px solid white", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
             </div>
             <div className="flex justify-between mt-1.5">
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#6B7280" }}>p25 — budget range</span>
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#6B7280" }}>p75 — premium range</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#E5E7EB" }}>p25 — budget range</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#E5E7EB" }}>p75 — premium range</span>
             </div>
           </motion.div>
           <motion.div {...stagger(4)}>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.12em", marginBottom: 8 }}>SAMPLE SIZE</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", letterSpacing: "0.12em", marginBottom: 8 }}>SAMPLE SIZE</p>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 32, fontWeight: 700, color: "#0F1F35" }}>847</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>real {county} County quotes in our database</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB" }}>real {county} County quotes in our database</p>
             <div style={{ borderTop: "1px solid #E5E7EB", margin: "12px 0" }} />
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>Data as of Q1 2025</p>
           </motion.div>
@@ -165,7 +165,7 @@ const GradeReveal = ({
           <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
             <div>
               <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35" }}>What We Found</h2>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280" }}>{issueCount} issue{issueCount !== 1 ? "s" : ""} identified · {greenCount} item{greenCount !== 1 ? "s" : ""} confirmed correct</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB" }}>{issueCount} issue{issueCount !== 1 ? "s" : ""} identified · {greenCount} item{greenCount !== 1 ? "s" : ""} confirmed correct</p>
             </div>
             <div className="hidden md:block" style={{ background: "#E8F7FB", border: "1px solid #0099BB", borderRadius: 6, padding: "6px 12px" }}>
               <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#0099BB", letterSpacing: "0.08em" }}>BASED ON {county.toUpperCase()} COUNTY BENCHMARKS</span>
@@ -233,9 +233,9 @@ const GradeReveal = ({
           <section style={{ background: "white", borderTop: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
             <div className="max-w-4xl mx-auto">
               <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35" }}>How to handle this quote.</h2>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginTop: 8, marginBottom: 28 }}>Use this exact language when you call your contractor back.</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginTop: 8, marginBottom: 28 }}>Use this exact language when you call your contractor back.</p>
               <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderLeft: "4px solid #0099BB", borderRadius: 10, padding: "24px 28px", position: "relative", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-                <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "white", border: "1px solid #E5E7EB", borderRadius: 6, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", cursor: "pointer" }}>
+                <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "white", border: "1px solid #E5E7EB", borderRadius: 6, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", cursor: "pointer" }}>
                   {copied ? "✓ Copied" : "Copy Script"}
                 </button>
                 <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#0099BB", letterSpacing: "0.1em", marginBottom: 16 }}>WORD-FOR-WORD SCRIPT</p>
@@ -247,7 +247,7 @@ const GradeReveal = ({
           <section style={{ background: "#FAFAFA", borderTop: "1px solid #E5E7EB" }} className="py-12 md:py-16 px-4 md:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", color: "#0F1F35", marginBottom: 8 }}>What do you want to do with this?</h2>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 32 }}>Your analysis is saved. You can come back to it anytime.</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 32 }}>Your analysis is saved. You can come back to it anytime.</p>
               <div className="flex flex-col md:flex-row justify-center gap-4">
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => { console.log({ event: "wm_contractor_match_clicked", grade, dollarDelta }); onContractorMatchClick?.(); }}

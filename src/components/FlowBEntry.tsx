@@ -29,10 +29,10 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
           <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(42px, 5.5vw, 58px)", fontWeight: 800, letterSpacing: "0.02em", color: "#E5E5E5", lineHeight: 1.15, marginBottom: 20, textTransform: "uppercase" }}>
             You Don't Have a Quote Yet.<br /><span style={{ color: "#2563EB" }}>Perfect. You Still Have All The Power.</span>
           </h1>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(19px, 2vw, 21px)", color: "#6B7280", lineHeight: 1.75, marginBottom: 12, maxWidth: 640 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(19px, 2vw, 21px)", color: "#E5E7EB", lineHeight: 1.75, marginBottom: 12, maxWidth: 640 }}>
             Contractors walk in knowing the market price.<br />Most homeowners don't. WindowMan flips that.
           </p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#6B7280", lineHeight: 1.7, marginBottom: 36, maxWidth: 580 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E7EB", lineHeight: 1.7, marginBottom: 36, maxWidth: 580 }}>
             In 2 minutes, we'll generate your county-specific fair-market baseline. So when the contractor opens their briefcase, you already know the number they're hoping you don't.
           </p>
           <div className="flex flex-col md:flex-row gap-5 mb-10" style={{ maxWidth: 680 }}>
@@ -43,7 +43,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
                 </div>
                 <div>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, color: "#E5E5E5" }}>{item.title}</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", marginTop: 2 }}>{item.sub}</p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", marginTop: 2 }}>{item.sub}</p>
                 </div>
               </div>
             ))}
@@ -52,7 +52,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
             style={{ background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, padding: "16px 36px", borderRadius: 0, border: "none", boxShadow: "0 4px 16px rgba(37,99,235,0.35)", cursor: "pointer" }}>
             Build My Baseline — It's Free →
           </motion.button>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", marginTop: 14 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", marginTop: 14 }}>
             Actually, I do have a quote —{" "}
             <button onClick={onSwitchToFlowA} style={{ background: "none", border: "none", color: "#2563EB", textDecoration: "underline", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, padding: 0 }}>Scan it instead →</button>
           </p>
@@ -75,18 +75,18 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
                   <div className="md:mt-4 md:text-center">
                     <span className="inline-block mb-2" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 500, background: step.badgeBg, color: step.badgeColor, padding: "3px 10px", borderRadius: 0 }}>{step.badgeText}</span>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "#E5E5E5", marginBottom: 6 }}>{step.title}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>{step.copy}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 1.6 }}>{step.copy}</p>
                     {step.preview === "price" && (
                       <div className="relative mt-3 md:mx-auto" style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: 0, padding: "12px 14px", maxWidth: 280 }}>
-                        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", marginBottom: 6 }}>FAIR MARKET RANGE · BROWARD CO.</p>
+                        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", marginBottom: 6 }}>FAIR MARKET RANGE · BROWARD CO.</p>
                         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 18, fontWeight: 700, color: "#2563EB", filter: "blur(5px)", userSelect: "none" }}>$12,400 – $14,800</p>
-                        <p className="absolute inset-0 flex items-center justify-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", fontStyle: "italic", paddingTop: 16 }}>Unlock after step 3</p>
+                        <p className="absolute inset-0 flex items-center justify-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", fontStyle: "italic", paddingTop: 16 }}>Unlock after step 3</p>
                       </div>
                     )}
                     {step.preview === "grade" && (
                       <div className="relative mt-3 md:mx-auto" style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: 0, padding: "12px 14px", maxWidth: 280 }}>
                         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 40, fontWeight: 800, color: "#F97316", filter: "blur(5px)", userSelect: "none", lineHeight: 1, textAlign: "center" }}>C</p>
-                        <p className="absolute inset-0 flex items-center justify-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", fontStyle: "italic" }}>Your Grade Waits Here</p>
+                        <p className="absolute inset-0 flex items-center justify-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", fontStyle: "italic" }}>Your Grade Waits Here</p>
                       </div>
                     )}
                   </div>
@@ -95,8 +95,8 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
             </div>
           </div>
           <div className="text-center mt-10">
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#6B7280", fontStyle: "italic" }}>Most contractors budget on the assumption you won't check.<br className="hidden md:block" /> You're about to become the unexpected.</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginTop: 8 }}>{tickerTotal.toLocaleString()} Florida homeowners did this before their last window project.</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E7EB", fontStyle: "italic" }}>Most contractors budget on the assumption you won't check.<br className="hidden md:block" /> You're about to become the unexpected.</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 8 }}>{tickerTotal.toLocaleString()} Florida homeowners did this before their last window project.</p>
           </div>
         </div>
       </section>

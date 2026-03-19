@@ -35,7 +35,7 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
         <a href="/" className="select-none" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "0.02em" }}>
           <span style={{ color: "#E5E5E5" }}>WINDOW</span>
           <span style={{ color: "#C8952A" }}>MAN</span>
-          <sup style={{ fontSize: 9, color: "#6B7280", fontWeight: 400, letterSpacing: "0.15em", marginLeft: 2, verticalAlign: "super" }}>.PRO</sup>
+          <sup style={{ fontSize: 9, color: "#E5E7EB", fontWeight: 400, letterSpacing: "0.15em", marginLeft: 2, verticalAlign: "super" }}>.PRO</sup>
         </a>
 
         <div className="hidden md:flex items-center gap-3">
