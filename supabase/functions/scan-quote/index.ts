@@ -345,12 +345,13 @@ async function updateScanSessionStatus(
     console.error(logMessage, error);
     return {
       success: false,
-      response: jsonResponse(failureBody ?? {
-        error: "Failed to persist scan session state",
-        scan_session_id: scanSessionId,
-        analysis_status: "processing",
-        scan_session_status: "processing",
-      }, 500),
+      response: jsonResponse(
+        failureBody ?? {
+          error: "Failed to persist scan session state",
+          scan_session_id: scanSessionId,
+        },
+        500,
+      ),
     };
   }
 
