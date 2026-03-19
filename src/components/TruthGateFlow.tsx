@@ -432,7 +432,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
           <div>
             <label style={labelStyle}>
-              MOBILE NUMBER <span style={{ color: "#E5E7EB", fontWeight: 400 }}>(one-time code to unlock your report)</span>
+              MOBILE NUMBER <span style={{ color: "#6B7280", fontWeight: 400 }}>(one-time code to unlock your report)</span>
             </label>
             <div style={{ position: "relative" }}>
               <input
