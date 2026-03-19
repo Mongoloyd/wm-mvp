@@ -25,10 +25,15 @@ import StickyCTAFooter from "@/components/StickyCTAFooter";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { DevPreviewState } from "@/dev/fixtures";
+import { getFixtureForState } from "@/dev/fixtures";
+import DevPreviewPanel from "@/dev/DevPreviewPanel";
 
 const Index = () => {
   // ═══ DEV MODE: Set to true to force full unlocked report UI ═══
   const IS_DEV_MODE = true;
+
+  const [devState, setDevState] = useState<DevPreviewState>("off");
 
   const [flowMode, setFlowMode] = useState<'A' | 'B'>('A');
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -49,8 +54,17 @@ const Index = () => {
   const [scrolledPast70, setScrolledPast70] = useState(false);
   const [timeOnPage, setTimeOnPage] = useState(false);
 
-  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
-  const reportAccess = useReportAccess({ forceLevel: "preview" });
+  // ═══ Dev preview state logic ═══
+  const isDevPreview = import.meta.env.DEV && devState !== "off";
+  const devFixture = isDevPreview ? getFixtureForState(devState) : null;
+  const devShowReport = isDevPreview && devState !== "invalid_document" && devState !== "needs_better_upload";
+  const devAccessLevel = devState === "full_report" || devState === "strong_report" ? "full" as const
+    : devState === "otp_gate" ? "preview" as const
+    : devState === "preview_report" ? "preview" as const
+    : undefined;
+
+  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed && !isDevPreview);
+  const reportAccess = useReportAccess({ forceLevel: isDevPreview ? devAccessLevel : "preview" });
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
@@ -79,8 +93,10 @@ const Index = () => {
 
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
 
-  const reportGrade = analysisData?.grade || "C";
-  const reportFlags = analysisData?.flags || [];
+  // Use dev fixture data when in dev preview mode, otherwise real backend data
+  const activeData = isDevPreview && devFixture ? devFixture : analysisData;
+  const reportGrade = activeData?.grade || "C";
+  const reportFlags = activeData?.flags || [];
   const redFlagCount = reportFlags.filter(f => f.severity === "red").length;
   const amberCount = reportFlags.filter(f => f.severity === "amber").length;
   const greenCount = reportFlags.filter(f => f.severity === "green").length;
@@ -89,7 +105,58 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-[240px] sm:pb-[180px] lg:pb-32">
       <LinearHeader />
 
-      {!gradeRevealed && (
+      {/* ═══ Dev Preview: Invalid Document State ═══ */}
+      {isDevPreview && devState === "invalid_document" && (
+        <div className="max-w-2xl mx-auto py-20 px-4 text-center">
+          <div className="rounded-xl border border-destructive/30 bg-card p-8">
+            <p className="text-lg font-semibold text-foreground mb-2">Not a Window/Door Quote</p>
+            <p className="text-sm text-muted-foreground mb-6">
+              The uploaded document doesn't appear to be an impact window or door quote. Please upload a contractor quote or proposal.
+            </p>
+            <button onClick={() => setDevState("off")}
+              className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
+              Try Another Document
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Dev Preview: Needs Better Upload State ═══ */}
+      {isDevPreview && devState === "needs_better_upload" && (
+        <div className="max-w-2xl mx-auto py-20 px-4 text-center">
+          <div className="rounded-xl border border-amber-500/30 bg-card p-8">
+            <p className="text-lg font-semibold text-foreground mb-2">We Need a Clearer Copy</p>
+            <p className="text-sm text-muted-foreground mb-6">
+              The document quality is too low for accurate analysis. Please upload a higher-resolution photo or the original PDF.
+            </p>
+            <button onClick={() => setDevState("off")}
+              className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
+              Upload a Better Copy
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Dev Preview: Report States ═══ */}
+      {isDevPreview && devShowReport && activeData && (
+        <>
+          <TruthReport
+            grade={reportGrade}
+            flags={reportFlags}
+            pillarScores={activeData.pillarScores}
+            contractorName={activeData.contractorName}
+            county="Broward"
+            confidenceScore={activeData.confidenceScore}
+            documentType={activeData.documentType}
+            accessLevel={reportAccess}
+            onContractorMatchClick={() => setContractorMatchVisible(true)}
+            onSecondScan={() => setDevState("off")}
+          />
+          <ContractorMatch isVisible={contractorMatchVisible} county="Broward" grade={reportGrade} />
+        </>
+      )}
+
+      {!gradeRevealed && !isDevPreview && (
         <>
           <AnimatePresence mode="wait">
             {flowMode === 'A' ? (
@@ -147,7 +214,7 @@ const Index = () => {
         />
       )}
 
-      {gradeRevealed && (
+      {gradeRevealed && !isDevPreview && (
         <>
           {analysisLoading ? (
             <div className="max-w-4xl mx-auto py-16 px-4 space-y-6">
@@ -219,6 +286,9 @@ const Index = () => {
         isVisible={!showRecoveryBar}
         conversionType={conversionType}
       />
+
+      {/* Dev Preview Panel — only in dev mode */}
+      <DevPreviewPanel currentState={devState} onChange={setDevState} />
     </div>
   );
 };
