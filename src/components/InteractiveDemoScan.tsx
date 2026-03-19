@@ -270,7 +270,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.15, ease: "easeOut" as const }}
               className="w-full flex-1"
             >
               <MockDocument
