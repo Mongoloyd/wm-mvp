@@ -281,7 +281,15 @@ const Index = () => {
 
       {/* Dev-only preview panel */}
       {IS_DEV_MODE && <DevPreviewPanel currentState={devState} onChange={setDevState} />}
-      {import.meta.env.DEV && <DevQuoteGenerator />}
+      {import.meta.env.DEV && (
+        <DevQuoteGenerator
+          sessionId={sessionId}
+          onScanStart={(fileName, scanId) => {
+            setScanSessionId(scanId);
+            setFileUploaded(true);
+          }}
+        />
+      )}
     </div>
   );
 };
