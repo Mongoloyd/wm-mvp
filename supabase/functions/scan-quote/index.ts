@@ -321,6 +321,63 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function jsonResponse(body: Record<string, unknown>, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+async function updateScanSessionStatus(
+  supabase: ReturnType<typeof createClient>,
+  scanSessionId: string,
+  status: string,
+  logMessage: string,
+  failureBody?: Record<string, unknown>,
+): Promise<{ success: true } | { success: false; response: Response }> {
+  const { error } = await supabase
+    .from("scan_sessions")
+    .update({ status })
+    .eq("id", scanSessionId);
+
+  if (error) {
+    console.error(logMessage, error);
+    return {
+      success: false,
+      response: jsonResponse(failureBody ?? {
+        error: "Failed to persist scan session state",
+        scan_session_id: scanSessionId,
+        analysis_status: "processing",
+        scan_session_status: "processing",
+      }, 500),
+    };
+  }
+
+  return { success: true };
+}
+
+async function upsertAnalysisRecord(
+  supabase: ReturnType<typeof createClient>,
+  payload: Record<string, unknown>,
+  logMessage: string,
+  failureBody: Record<string, unknown>,
+  status = 500,
+): Promise<{ success: true } | { success: false; response: Response }> {
+  const { error } = await supabase
+    .from("analyses")
+    .upsert(payload, { onConflict: "scan_session_id" });
+
+  if (error) {
+    console.error(logMessage, error);
+    return {
+      success: false,
+      response: jsonResponse(failureBody, status),
+    };
+  }
+
+  return { success: true };
+}
+
 function mimeFromPath(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase() || "";
   const map: Record<string, string> = {
@@ -396,9 +453,7 @@ Deno.serve(async (req: Request) => {
   try {
     const { scan_session_id } = await req.json();
     if (!scan_session_id) {
-      return new Response(JSON.stringify({ error: "scan_session_id required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "scan_session_id required" }, 400);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -407,9 +462,7 @@ Deno.serve(async (req: Request) => {
 
     if (!geminiKey) {
       console.error("GEMINI_API_KEY not configured");
-      return new Response(JSON.stringify({ error: "AI service not configured" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "AI service not configured" }, 500);
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -425,13 +478,17 @@ Deno.serve(async (req: Request) => {
 
     if (sessionErr || !session) {
       console.error("Session not found:", sessionErr);
-      return new Response(JSON.stringify({ error: "Session not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Session not found" }, 404);
     }
 
     // 2. Set status to processing
-    await supabase.from("scan_sessions").update({ status: "processing" }).eq("id", scan_session_id);
+    const processingUpdate = await updateScanSessionStatus(
+      supabase,
+      scan_session_id,
+      "processing",
+      "scan_sessions processing update failed",
+    );
+    if (!processingUpdate.success) return processingUpdate.response;
 
     try {
       // 3. Load quote file
@@ -443,10 +500,26 @@ Deno.serve(async (req: Request) => {
 
       if (qfErr || !qf) {
         console.error("Quote file not found:", qfErr);
-        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
-        return new Response(JSON.stringify({ error: "Quote file not found" }), {
-          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const missingFileStatusUpdate = await updateScanSessionStatus(
+          supabase,
+          scan_session_id,
+          "needs_better_upload",
+          "scan_sessions needs_better_upload update failed after missing quote file",
+          {
+            error: "Failed to persist scan session state",
+            scan_session_id,
+            analysis_status: "processing",
+            scan_session_status: "processing",
+          },
+        );
+        if (!missingFileStatusUpdate.success) return missingFileStatusUpdate.response;
+
+        return jsonResponse({
+          error: "Quote file not found",
+          scan_session_id,
+          analysis_status: "needs_better_upload",
+          scan_session_status: "needs_better_upload",
+        }, 404);
       }
 
       // 4. Download file from storage
@@ -456,10 +529,26 @@ Deno.serve(async (req: Request) => {
 
       if (dlErr || !fileData) {
         console.error("File download failed:", dlErr);
-        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
-        return new Response(JSON.stringify({ error: "File download failed" }), {
-          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const downloadFailureStatusUpdate = await updateScanSessionStatus(
+          supabase,
+          scan_session_id,
+          "needs_better_upload",
+          "scan_sessions needs_better_upload update failed after file download error",
+          {
+            error: "Failed to persist scan session state",
+            scan_session_id,
+            analysis_status: "processing",
+            scan_session_status: "processing",
+          },
+        );
+        if (!downloadFailureStatusUpdate.success) return downloadFailureStatusUpdate.response;
+
+        return jsonResponse({
+          error: "File download failed",
+          scan_session_id,
+          analysis_status: "needs_better_upload",
+          scan_session_status: "needs_better_upload",
+        }, 500);
       }
 
       // 5. Base64 encode file
@@ -505,9 +594,12 @@ Deno.serve(async (req: Request) => {
         const errText = await geminiResp.text();
         console.error("Gemini API error:", geminiResp.status, errText);
         // Stay in 'processing' for crash recovery
-        return new Response(JSON.stringify({ error: "AI extraction failed" }), {
-          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({
+          error: "AI extraction failed",
+          scan_session_id,
+          analysis_status: "processing",
+          scan_session_status: "processing",
+        }, 502);
       }
 
       // 7. Parse Gemini response
@@ -516,10 +608,26 @@ Deno.serve(async (req: Request) => {
 
       if (!rawText) {
         console.error("No text in Gemini response:", JSON.stringify(geminiJson).slice(0, 500));
-        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
-        return new Response(JSON.stringify({ error: "AI returned empty response" }), {
-          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const emptyResponseStatusUpdate = await updateScanSessionStatus(
+          supabase,
+          scan_session_id,
+          "needs_better_upload",
+          "scan_sessions needs_better_upload update failed after empty Gemini response",
+          {
+            error: "Failed to persist scan session state",
+            scan_session_id,
+            analysis_status: "processing",
+            scan_session_status: "processing",
+          },
+        );
+        if (!emptyResponseStatusUpdate.success) return emptyResponseStatusUpdate.response;
+
+        return jsonResponse({
+          error: "AI returned empty response",
+          scan_session_id,
+          analysis_status: "needs_better_upload",
+          scan_session_status: "needs_better_upload",
+        }, 502);
       }
 
       // Strip markdown fences if present
@@ -533,10 +641,26 @@ Deno.serve(async (req: Request) => {
         parsed = JSON.parse(cleanJson);
       } catch (parseErr) {
         console.error("JSON parse failed:", parseErr, "Raw:", cleanJson.slice(0, 500));
-        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
-        return new Response(JSON.stringify({ error: "AI response not parseable", scan_session_id }), {
-          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const parseFailureStatusUpdate = await updateScanSessionStatus(
+          supabase,
+          scan_session_id,
+          "needs_better_upload",
+          "scan_sessions needs_better_upload update failed after Gemini JSON parse error",
+          {
+            error: "Failed to persist scan session state",
+            scan_session_id,
+            analysis_status: "processing",
+            scan_session_status: "processing",
+          },
+        );
+        if (!parseFailureStatusUpdate.success) return parseFailureStatusUpdate.response;
+
+        return jsonResponse({
+          error: "AI response not parseable",
+          scan_session_id,
+          analysis_status: "needs_better_upload",
+          scan_session_status: "needs_better_upload",
+        }, 200);
       }
 
       // 8. CLASSIFICATION GATE — check document type BEFORE full extraction validation
@@ -548,8 +672,7 @@ Deno.serve(async (req: Request) => {
 
         // 8a. Invalid document gate (not window/door related)
         if (classData.is_window_door_related === false) {
-          await supabase.from("scan_sessions").update({ status: "invalid_document" }).eq("id", scan_session_id);
-          await supabase.from("analyses").upsert({
+          const invalidDocumentUpsertPayload = {
             scan_session_id,
             lead_id: session.lead_id,
             analysis_status: "invalid_document",
@@ -557,20 +680,46 @@ Deno.serve(async (req: Request) => {
             document_type: classData.document_type as string,
             confidence_score: classData.confidence as number,
             rubric_version: RUBRIC_VERSION,
-          }, { onConflict: "scan_session_id" });
+          };
+          const invalidDocumentAnalysisUpsert = await upsertAnalysisRecord(
+            supabase,
+            invalidDocumentUpsertPayload,
+            "analyses upsert failed",
+            {
+              error: "Failed to persist analysis state",
+              scan_session_id,
+              analysis_status: "processing",
+              scan_session_status: "processing",
+            },
+          );
+          if (!invalidDocumentAnalysisUpsert.success) return invalidDocumentAnalysisUpsert.response;
 
-          return new Response(JSON.stringify({
+          const invalidDocumentStatusUpdate = await updateScanSessionStatus(
+            supabase,
+            scan_session_id,
+            "invalid_document",
+            "scan_sessions invalid_document update failed",
+            {
+              error: "Failed to persist scan session state",
+              scan_session_id,
+              analysis_status: "invalid_document",
+              scan_session_status: "processing",
+            },
+          );
+          if (!invalidDocumentStatusUpdate.success) return invalidDocumentStatusUpdate.response;
+
+          return jsonResponse({
             scan_session_id,
             analysis_status: "invalid_document",
+            scan_session_status: "invalid_document",
             reason: "This file does not appear to be an impact window or door quote.",
-          }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }, 200);
         }
 
         // 8b. Low confidence gate — document is related but unreadable
         if ((classData.confidence as number) < CONFIDENCE_THRESHOLD) {
           console.log(`Low confidence ${classData.confidence} for session ${scan_session_id}`);
-          await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
-          await supabase.from("analyses").upsert({
+          const lowConfidencePayload = {
             scan_session_id,
             lead_id: session.lead_id,
             analysis_status: "needs_better_upload",
@@ -578,14 +727,41 @@ Deno.serve(async (req: Request) => {
             document_type: classData.document_type as string,
             confidence_score: classData.confidence as number,
             rubric_version: RUBRIC_VERSION,
-          }, { onConflict: "scan_session_id" });
+          };
+          const lowConfidenceAnalysisUpsert = await upsertAnalysisRecord(
+            supabase,
+            lowConfidencePayload,
+            "analyses upsert failed",
+            {
+              error: "Failed to persist analysis state",
+              scan_session_id,
+              analysis_status: "processing",
+              scan_session_status: "processing",
+            },
+          );
+          if (!lowConfidenceAnalysisUpsert.success) return lowConfidenceAnalysisUpsert.response;
 
-          return new Response(JSON.stringify({
+          const lowConfidenceStatusUpdate = await updateScanSessionStatus(
+            supabase,
+            scan_session_id,
+            "needs_better_upload",
+            "scan_sessions needs_better_upload update failed",
+            {
+              error: "Failed to persist scan session state",
+              scan_session_id,
+              analysis_status: "needs_better_upload",
+              scan_session_status: "processing",
+            },
+          );
+          if (!lowConfidenceStatusUpdate.success) return lowConfidenceStatusUpdate.response;
+
+          return jsonResponse({
             scan_session_id,
             analysis_status: "needs_better_upload",
+            scan_session_status: "needs_better_upload",
             confidence: classData.confidence,
             reason: "We couldn't read this file clearly enough. Please upload a higher quality scan or photo.",
-          }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }, 200);
         }
       }
 
@@ -594,8 +770,7 @@ Deno.serve(async (req: Request) => {
       if (!validation.success) {
         console.error("Extraction validation failed:", validation.error);
         // Document passed classification but extraction is incomplete — treat as needs_better_upload
-        await supabase.from("scan_sessions").update({ status: "needs_better_upload" }).eq("id", scan_session_id);
-        await supabase.from("analyses").upsert({
+        const extractionFailurePayload = {
           scan_session_id,
           lead_id: session.lead_id,
           analysis_status: "needs_better_upload",
@@ -603,13 +778,40 @@ Deno.serve(async (req: Request) => {
           document_type: classCheck.success ? (classCheck.data.document_type as string) : null,
           confidence_score: classCheck.success ? (classCheck.data.confidence as number) : null,
           rubric_version: RUBRIC_VERSION,
-        }, { onConflict: "scan_session_id" });
+        };
+        const extractionFailureAnalysisUpsert = await upsertAnalysisRecord(
+          supabase,
+          extractionFailurePayload,
+          "analyses upsert failed",
+          {
+            error: "Failed to persist analysis state",
+            scan_session_id,
+            analysis_status: "processing",
+            scan_session_status: "processing",
+          },
+        );
+        if (!extractionFailureAnalysisUpsert.success) return extractionFailureAnalysisUpsert.response;
 
-        return new Response(JSON.stringify({
+        const extractionFailureStatusUpdate = await updateScanSessionStatus(
+          supabase,
+          scan_session_id,
+          "needs_better_upload",
+          "scan_sessions needs_better_upload update failed",
+          {
+            error: "Failed to persist scan session state",
+            scan_session_id,
+            analysis_status: "needs_better_upload",
+            scan_session_status: "processing",
+          },
+        );
+        if (!extractionFailureStatusUpdate.success) return extractionFailureStatusUpdate.response;
+
+        return jsonResponse({
           scan_session_id,
           analysis_status: "needs_better_upload",
+          scan_session_status: "needs_better_upload",
           reason: "We found a window quote but couldn't extract all details. Please try a clearer upload.",
-        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }, 200);
       }
 
       const extraction = validation.data;
@@ -655,7 +857,7 @@ Deno.serve(async (req: Request) => {
       };
 
       // 13. Upsert full analyses row
-      await supabase.from("analyses").upsert({
+      const completeAnalysisUpsert = await upsertAnalysisRecord(supabase, {
         scan_session_id: scan_session_id,
         lead_id: session.lead_id,
         analysis_status: "complete",
@@ -672,30 +874,50 @@ Deno.serve(async (req: Request) => {
         preview_json: previewJson,
         full_json: fullJson,
         rubric_version: RUBRIC_VERSION,
-      }, { onConflict: "scan_session_id" });
+      }, "analyses upsert failed", {
+        error: "Failed to persist analysis state",
+        scan_session_id,
+        analysis_status: "processing",
+        scan_session_status: "processing",
+      });
+      if (!completeAnalysisUpsert.success) return completeAnalysisUpsert.response;
 
       // 14. Update session to preview_ready
-      await supabase.from("scan_sessions").update({ status: "preview_ready" }).eq("id", scan_session_id);
+      const previewReadyStatusUpdate = await updateScanSessionStatus(
+        supabase,
+        scan_session_id,
+        "preview_ready",
+        "scan_sessions preview_ready update failed",
+        {
+          error: "Failed to persist scan session state",
+          scan_session_id,
+          analysis_status: "complete",
+          scan_session_status: "processing",
+          grade: gradeResult.letterGrade,
+        },
+      );
+      if (!previewReadyStatusUpdate.success) return previewReadyStatusUpdate.response;
 
-      return new Response(JSON.stringify({
+      return jsonResponse({
         scan_session_id,
         analysis_status: "complete",
+        scan_session_status: "preview_ready",
         grade: gradeResult.letterGrade,
-      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }, 200);
 
     } catch (innerErr) {
       // CRASH RECOVERY: session stays in 'processing' — recoverable by sweep
       console.error("Unexpected error during scan processing:", innerErr);
-      return new Response(JSON.stringify({
+      return jsonResponse({
         error: "Internal processing error",
         scan_session_id,
-      }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        analysis_status: "processing",
+        scan_session_status: "processing",
+      }, 500);
     }
 
   } catch (outerErr) {
     console.error("scan-quote outer error:", outerErr);
-    return new Response(JSON.stringify({ error: "Bad request" }), {
-      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "Bad request" }, 400);
   }
 });
