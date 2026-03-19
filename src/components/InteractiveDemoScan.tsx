@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type Phase = "doc" | "scan" | "reveal" | "hook";
 
-const SCAN_LINES = [
-  "Extracting line items...",
-  "Checking county benchmarks...",
-  "Scanning warranty language...",
-  "Brand specification check...",
-  "Calculating fair-market delta...",
+const SCAN_LINES: { text: string; danger?: boolean }[] = [
+  { text: "Extracting line items..." },
+  { text: "Checking county benchmarks..." },
+  { text: "Scanning warranty language...", danger: true },
+  { text: "Brand specification check...", danger: true },
+  { text: "Calculating fair-market delta..." },
 ];
 
 const SCANS = [
@@ -99,7 +99,7 @@ function useCounter(target: number, duration: number, active: boolean) {
 }
 
 /* ── Mock Document ─────────────────────────────────────────── */
-const MockDocument = ({ activeScan, phase, scanText, scanProgress }: any) => {
+const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: any) => {
   const isScanning = phase === "scan";
 
   return (
@@ -153,8 +153,8 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress }: any) => {
           <motion.div
             initial={{ top: "-10%" }}
             animate={{ top: "110%" }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="absolute left-0 right-0 h-[2px] bg-cobalt shadow-[0_0_20px_4px_rgba(56,130,246,0.4)] z-10"
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" as const }}
+            className={`absolute left-0 right-0 h-[2px] ${isDanger ? 'bg-destructive shadow-[0_0_20px_4px_rgba(249,115,22,0.4)]' : 'bg-cobalt shadow-[0_0_20px_4px_rgba(56,130,246,0.4)]'} z-10 transition-colors duration-300`}
           />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -163,7 +163,7 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress }: any) => {
             className="absolute bottom-6 left-6 right-6 bg-card/95 backdrop-blur-md border border-cobalt/30 shadow-2xl rounded-none p-4 z-20"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="font-mono text-[10px] text-cobalt font-bold tracking-widest uppercase animate-pulse">
+              <span className={`font-mono text-[10px] font-bold tracking-widest uppercase animate-pulse ${isDanger ? 'text-destructive' : 'text-cobalt'} transition-colors duration-300`}>
                 AI Engine Active
               </span>
               <span className="font-mono text-[10px] text-muted-foreground font-bold">{scanProgress}%</span>
@@ -171,8 +171,8 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress }: any) => {
             <p className="font-mono text-[11px] text-foreground mb-3 h-4">{scanText}</p>
             <div className="h-1 w-full bg-muted rounded-none overflow-hidden">
               <div
-                className="h-full bg-cyan ease-linear"
-                style={{ width: `${scanProgress}%`, transitionProperty: "width", transitionDuration: "1200ms" }}
+                className={`h-full ${isDanger ? 'bg-destructive' : 'bg-cyan'} ease-linear transition-all duration-300`}
+                style={{ width: `${scanProgress}%`, transitionProperty: "width, background-color", transitionDuration: "1200ms, 300ms" }}
               />
             </div>
           </motion.div>
@@ -270,14 +270,15 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.15, ease: "easeOut" as const }}
               className="w-full flex-1"
             >
               <MockDocument
                 activeScan={activeScan}
                 phase={phase}
-                scanText={SCAN_LINES[scanTextIndex]}
+                scanText={SCAN_LINES[scanTextIndex]?.text}
                 scanProgress={scanProgress}
+                isDanger={!!SCAN_LINES[scanTextIndex]?.danger}
               />
             </motion.div>
           )}
@@ -289,7 +290,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.15, ease: "easeOut" as const }}
               className="w-full flex-1 flex flex-col"
             >
               {/* Sample badge */}
@@ -303,7 +304,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30, delay: 0.1 }}
+                  transition={{ duration: 0.15, ease: "easeInOut" as const }}
                   className={`flex h-16 w-16 items-center justify-center rounded-none border-[2.5px] ${activeScan.gradeBorder} ${activeScan.gradeBg}`}
                 >
                   <span className={`font-display text-[36px] font-black leading-none ${activeScan.gradeColor}`}>

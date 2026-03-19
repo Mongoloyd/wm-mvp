@@ -42,9 +42,9 @@ const statusConfig = {
 };
 
 const severityStyles = {
-  red: { border: "1.5px solid #FECACA", borderLeft: "4px solid #DC2626", badgeBg: "#FEF2F2", badgeColor: "#DC2626", badgeText: "⚠ CRITICAL", tipBg: "rgba(249,115,22,0.08)" },
-  amber: { border: "1.5px solid #FDE68A", borderLeft: "4px solid #F59E0B", badgeBg: "#FFFBEB", badgeColor: "#D97706", badgeText: "⚡ REVIEW", tipBg: "rgba(245,158,11,0.08)" },
-  green: { border: "1.5px solid #A7F3D0", borderLeft: "4px solid #059669", badgeBg: "#ECFDF5", badgeColor: "#059669", badgeText: "✓ CONFIRMED", tipBg: "" }
+  red: { border: "1.5px solid rgba(220,38,38,0.3)", borderLeft: "4px solid #DC2626", badgeBg: "rgba(220,38,38,0.12)", badgeColor: "#DC2626", badgeText: "⚠ CRITICAL", tipBg: "rgba(249,115,22,0.08)" },
+  amber: { border: "1.5px solid rgba(245,158,11,0.3)", borderLeft: "4px solid #F59E0B", badgeBg: "rgba(245,158,11,0.12)", badgeColor: "#D97706", badgeText: "⚡ REVIEW", tipBg: "rgba(245,158,11,0.08)" },
+  green: { border: "1.5px solid rgba(5,150,105,0.3)", borderLeft: "4px solid #059669", badgeBg: "rgba(5,150,105,0.12)", badgeColor: "#059669", badgeText: "✓ CONFIRMED", tipBg: "" }
 };
 
 const stagger = (i: number) => ({
@@ -356,10 +356,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             className="flex items-center gap-1.5"
             style={{
               position: "absolute", top: 16, right: 16,
-              background: copied ? "#ECFDF5" : "white", border: `1px solid ${copied ? "#A7F3D0" : "#E5E7EB"}`,
-              borderRadius: 6, padding: "6px 14px",
+              background: copied ? "rgba(5,150,105,0.12)" : "#111111", border: `1px solid ${copied ? "rgba(5,150,105,0.3)" : "rgba(255,255,255,0.1)"}`,
+              borderRadius: 0, padding: "6px 14px",
               fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
-              color: copied ? "#059669" : "#374151", cursor: "pointer",
+              color: copied ? "#059669" : "#E5E7EB", cursor: "pointer",
               transition: "all 0.15s"
             }}>
                 {copied ? <Check size={13} /> : <Copy size={13} />}
