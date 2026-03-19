@@ -109,7 +109,58 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-[240px] sm:pb-[180px] lg:pb-32">
       <LinearHeader />
 
-      {!gradeRevealed && (
+      {/* ═══ Dev Preview: Invalid Document State ═══ */}
+      {isDevPreview && devState === "invalid_document" && (
+        <div className="max-w-2xl mx-auto py-20 px-4 text-center">
+          <div className="rounded-xl border border-destructive/30 bg-card p-8">
+            <p className="text-lg font-semibold text-foreground mb-2">Not a Window/Door Quote</p>
+            <p className="text-sm text-muted-foreground mb-6">
+              The uploaded document doesn't appear to be an impact window or door quote. Please upload a contractor quote or proposal.
+            </p>
+            <button onClick={() => setDevState("off")}
+              className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
+              Try Another Document
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Dev Preview: Needs Better Upload State ═══ */}
+      {isDevPreview && devState === "needs_better_upload" && (
+        <div className="max-w-2xl mx-auto py-20 px-4 text-center">
+          <div className="rounded-xl border border-amber-500/30 bg-card p-8">
+            <p className="text-lg font-semibold text-foreground mb-2">We Need a Clearer Copy</p>
+            <p className="text-sm text-muted-foreground mb-6">
+              The document quality is too low for accurate analysis. Please upload a higher-resolution photo or the original PDF.
+            </p>
+            <button onClick={() => setDevState("off")}
+              className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
+              Upload a Better Copy
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Dev Preview: Report States ═══ */}
+      {isDevPreview && devShowReport && activeData && (
+        <>
+          <TruthReport
+            grade={reportGrade}
+            flags={reportFlags}
+            pillarScores={activeData.pillarScores}
+            contractorName={activeData.contractorName}
+            county="Broward"
+            confidenceScore={activeData.confidenceScore}
+            documentType={activeData.documentType}
+            accessLevel={reportAccess}
+            onContractorMatchClick={() => setContractorMatchVisible(true)}
+            onSecondScan={() => setDevState("off")}
+          />
+          <ContractorMatch isVisible={contractorMatchVisible} county="Broward" grade={reportGrade} />
+        </>
+      )}
+
+      {!gradeRevealed && !isDevPreview && (
         <>
           <AnimatePresence mode="wait">
             {flowMode === 'A' ? (
