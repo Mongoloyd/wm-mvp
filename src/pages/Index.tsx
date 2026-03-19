@@ -290,6 +290,9 @@ const Index = () => {
         isVisible={!showRecoveryBar}
         conversionType={conversionType}
       />
+
+      {/* Dev Preview Panel — only in dev mode */}
+      <DevPreviewPanel currentState={devState} onChange={setDevState} />
     </div>
   );
 };
