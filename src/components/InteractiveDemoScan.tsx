@@ -99,7 +99,7 @@ function useCounter(target: number, duration: number, active: boolean) {
 }
 
 /* ── Mock Document ─────────────────────────────────────────── */
-const MockDocument = ({ activeScan, phase, scanText, scanProgress }: any) => {
+const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: any) => {
   const isScanning = phase === "scan";
 
   return (
