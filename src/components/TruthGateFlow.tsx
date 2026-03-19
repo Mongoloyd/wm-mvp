@@ -599,7 +599,7 @@ const labelStyle: React.CSSProperties = {
   display: "block",
   fontFamily: "'DM Mono', monospace",
   fontSize: 10,
-  color: "#E5E7EB",
+  color: "#6B7280",
   letterSpacing: "0.08em",
   marginBottom: 6,
 };

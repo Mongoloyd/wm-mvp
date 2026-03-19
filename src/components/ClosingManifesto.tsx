@@ -22,7 +22,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
     <section style={{ backgroundColor: "#0A0A0A" }}>
       <div ref={ref} className="mx-auto max-w-4xl px-4 md:px-8 py-24 md:py-32 text-center">
         <motion.p initial={{ opacity: 0, y: 12 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }}
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: "#E5E7EB", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 40 }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: "#6B7280", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 40 }}>
           WHY WINDOWMAN EXISTS
         </motion.p>
         <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.05 }}
