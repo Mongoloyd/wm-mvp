@@ -328,7 +328,7 @@ function jsonResponse(body: Record<string, unknown>, status: number): Response {
   });
 }
 
-async function updateScanSessionStatus(
+export async function updateScanSessionStatus(
   supabase: ReturnType<typeof createClient>,
   scanSessionId: string,
   status: ScanSessionStatus,
@@ -373,7 +373,7 @@ async function updateScanSessionStatus(
   return { success: true };
 }
 
-async function upsertAnalysisRecord(
+export async function upsertAnalysisRecord(
   supabase: ReturnType<typeof createClient>,
   payload: Record<string, unknown>,
   logMessage: string,
