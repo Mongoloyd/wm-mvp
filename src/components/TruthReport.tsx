@@ -445,7 +445,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 /* ─── LOCKED OVERLAY (preview mode) ─── */
 function LockedOverlay({ issueCount }: {issueCount: number;}) {
   const [step, setStep] = useState<"phone" | "sending" | "otp" | "verifying">("phone");
-  const { displayValue, isValid, handleChange } = usePhoneInput();
+  const { displayValue, rawDigits, isValid, handleChange } = usePhoneInput();
   const [otpValue, setOtpValue] = useState("");
 
   const handleSendCode = () => {
@@ -459,8 +459,14 @@ function LockedOverlay({ issueCount }: {issueCount: number;}) {
     setStep("verifying");
   };
 
+  const isPhoneStep = step === "phone" || step === "sending";
+  const isOtpStep = step === "otp" || step === "verifying";
+  const digitCount = rawDigits.length;
+  const progressPercent = isPhoneStep ? 50 + (digitCount / 10) * 40 : 95;
+
   return (
     <div className="relative">
+      {/* Blurred redacted findings behind */}
       <div className="flex flex-col gap-3" style={{ filter: "blur(6px)", pointerEvents: "none", userSelect: "none" }}>
         {[1, 2, 3].map((i) =>
         <div key={i} style={{
@@ -474,113 +480,187 @@ function LockedOverlay({ issueCount }: {issueCount: number;}) {
         )}
       </div>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: "rgba(250,250,250,0.7)", borderRadius: 10 }}>
-        <div style={{
-          background: "#0F1F35",
-          borderRadius: 14,
-          padding: "32px 36px 36px",
-          textAlign: "center",
-          boxShadow: "0 8px 40px rgba(15,31,53,0.35), 0 0 0 1px rgba(255,255,255,0.04) inset",
-          width: "100%",
-          maxWidth: 380
-        }}>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 10 }}>
-            🔒 VERIFICATION REQUIRED
-          </p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#f7f7f7", marginBottom: 6 }}>
-            We found {issueCount} issue{issueCount !== 1 ? "s" : ""} in your quote.
-          </p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#94A3B8", marginBottom: 24 }}>
-            Verify Your Number To See The Full Details.
-          </p>
+      {/* Gate overlay */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: "rgba(250,250,250,0.75)", borderRadius: 10, backdropFilter: "blur(2px)" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 16, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            background: "linear-gradient(180deg, #0F1F35 0%, #162A45 100%)",
+            borderRadius: 16,
+            padding: "28px 32px 32px",
+            textAlign: "center",
+            boxShadow: "0 12px 48px rgba(15,31,53,0.45), 0 0 0 1px rgba(200,149,42,0.12) inset, 0 1px 0 rgba(255,255,255,0.04) inset",
+            width: "100%",
+            maxWidth: 400
+          }}>
+
+          {/* ─── Progress indicator (Zeigarnik) ─── */}
+          <div style={{ marginBottom: 20 }}>
+            <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#C8952A", letterSpacing: "0.1em", fontWeight: 700 }}>
+                {isPhoneStep ? "STEP 2 OF 2" : "FINAL STEP"}
+              </span>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#94A3B8", letterSpacing: "0.06em" }}>
+                {isPhoneStep ? "ALMOST UNLOCKED" : "VERIFYING"}
+              </span>
+            </div>
+            <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+              <motion.div
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                style={{
+                  height: "100%",
+                  borderRadius: 999,
+                  background: "linear-gradient(90deg, #C8952A, #E2B04A)",
+                  boxShadow: "0 0 8px rgba(200,149,42,0.4)"
+                }}
+              />
+            </div>
+          </div>
+
+          {/* ─── Lock icon + headline ─── */}
+          <div style={{ marginBottom: 6 }}>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 8 }}>
+              🔒 VERIFICATION REQUIRED
+            </p>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, fontWeight: 800, color: "#FFFFFF", lineHeight: 1.25, marginBottom: 6 }}>
+              We found {issueCount} issue{issueCount !== 1 ? "s" : ""} in your quote.
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#94A3B8", marginBottom: 20 }}>
+              Verify your number to see the full details.
+            </p>
+          </div>
 
           <AnimatePresence mode="wait">
-            {(step === "phone" || step === "sending") &&
-            <motion.div
-              key="phone-step"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col items-center gap-4">
-              
-                <input
-                type="tel"
-                value={displayValue}
-                onChange={handleChange}
-                placeholder="(555) 555-5555"
-                style={{
-                  width: "100%",
-                  maxWidth: 320,
-                  height: 48,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "0.5px solid #f7f7f7",
-                  borderRadius: 10,
-                  padding: "0 16px",
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 17,
-                  fontWeight: 500,
-                  color: "#f7f7f7",
-                  textAlign: "center",
-                  letterSpacing: "0.02em",
-                  outline: "none",
-                  transition: "border-color 0.2s, box-shadow 0.2s"
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#C8952A";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(200,149,42,0.15)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#f7f7f7";
-                  e.currentTarget.style.boxShadow = "none";
-                }} />
-              
+            {isPhoneStep && (
+              <motion.div
+                key="phone-step"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                className="flex flex-col items-center gap-3"
+              >
+                {/* Phone input — high contrast */}
+                <div style={{ width: "100%", maxWidth: 320, position: "relative" }}>
+                  <div style={{
+                    position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
+                    fontFamily: "'DM Mono', monospace", fontSize: 14, color: "#94A3B8", fontWeight: 600,
+                    pointerEvents: "none"
+                  }}>
+                    +1
+                  </div>
+                  <input
+                    type="tel"
+                    value={displayValue}
+                    onChange={handleChange}
+                    placeholder="(555) 555-5555"
+                    autoFocus
+                    style={{
+                      width: "100%",
+                      height: 54,
+                      background: "rgba(255,255,255,0.07)",
+                      border: isValid ? "2px solid #C8952A" : digitCount > 0 ? "2px solid rgba(255,255,255,0.2)" : "2px solid rgba(255,255,255,0.1)",
+                      borderRadius: 12,
+                      padding: "0 16px 0 40px",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 19,
+                      fontWeight: 600,
+                      color: "#FFFFFF",
+                      textAlign: "center",
+                      letterSpacing: "0.03em",
+                      outline: "none",
+                      transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s",
+                      boxShadow: isValid ? "0 0 0 4px rgba(200,149,42,0.15), 0 2px 12px rgba(0,0,0,0.2)" : "0 2px 12px rgba(0,0,0,0.2)",
+                      caretColor: "#C8952A"
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.background = "rgba(255,255,255,0.07)";
+                    }}
+                  />
+                  {/* Digit counter */}
+                  {digitCount > 0 && digitCount < 10 && (
+                    <span style={{
+                      position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
+                      fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#64748B"
+                    }}>
+                      {digitCount}/10
+                    </span>
+                  )}
+                  {isValid && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      style={{
+                        position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
+                        color: "#C8952A", fontSize: 16
+                      }}
+                    >
+                      ✓
+                    </motion.span>
+                  )}
+                </div>
+
+                {/* CTA Button */}
                 <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleSendCode}
-                disabled={!isValid || step === "sending"}
-                style={{
-                  width: "100%",
-                  maxWidth: 320,
-                  height: 48,
-                  background: isValid ? "linear-gradient(135deg, #C8952A, #E2B04A)" : "rgba(200,149,42,0.3)",
-                  color: "white",
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  borderRadius: 10,
-                  border: "none",
-                  cursor: isValid && step !== "sending" ? "pointer" : "not-allowed",
-                  boxShadow: isValid ? "0 4px 20px rgba(200,149,42,0.35)" : "none",
-                  transition: "all 0.2s",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8
-                }}>
-                
-                  {step === "sending" ?
-                <>
+                  whileHover={isValid ? { scale: 1.02, y: -1 } : {}}
+                  whileTap={isValid ? { scale: 0.97 } : {}}
+                  onClick={handleSendCode}
+                  disabled={!isValid || step === "sending"}
+                  style={{
+                    width: "100%",
+                    maxWidth: 320,
+                    height: 54,
+                    background: isValid
+                      ? "linear-gradient(135deg, #C8952A 0%, #E2B04A 50%, #C8952A 100%)"
+                      : "rgba(200,149,42,0.2)",
+                    backgroundSize: "200% 100%",
+                    color: isValid ? "white" : "rgba(255,255,255,0.4)",
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 17,
+                    fontWeight: 800,
+                    borderRadius: 12,
+                    border: isValid ? "1px solid rgba(226,176,74,0.3)" : "1px solid transparent",
+                    cursor: isValid && step !== "sending" ? "pointer" : "not-allowed",
+                    boxShadow: isValid
+                      ? "0 6px 24px rgba(200,149,42,0.4), 0 2px 8px rgba(200,149,42,0.2)"
+                      : "none",
+                    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    letterSpacing: "0.01em"
+                  }}
+                >
+                  {step === "sending" ? (
+                    <>
                       <Loader2 size={18} className="animate-spin" />
                       Sending Code…
-                    </> :
-
-                `Reveal ${issueCount} Issue${issueCount !== 1 ? "s" : ""}`
-                }
+                    </>
+                  ) : (
+                    <>
+                      🔓 Reveal {issueCount} Issue{issueCount !== 1 ? "s" : ""}
+                    </>
+                  )}
                 </motion.button>
               </motion.div>
-            }
+            )}
 
-            {(step === "otp" || step === "verifying") &&
-            <motion.div
-              key="otp-step"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col items-center gap-4">
-              
+            {isOtpStep && (
+              <motion.div
+                key="otp-step"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                className="flex flex-col items-center gap-4"
+              >
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#94A3B8" }}>
                   Enter the 6-digit code sent to your phone
                 </p>
@@ -588,70 +668,70 @@ function LockedOverlay({ issueCount }: {issueCount: number;}) {
                   <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
                     <InputOTPGroup>
                       {[0, 1, 2, 3, 4, 5].map((i) =>
-                    <InputOTPSlot
-                      key={i}
-                      index={i}
-                      className="!border-[#f7f7f733] !bg-[rgba(255,255,255,0.04)] !text-[#f7f7f7] !w-11 !h-12 !text-lg !font-semibold" />
-
-                    )}
+                        <InputOTPSlot
+                          key={i}
+                          index={i}
+                          className="!border-[#f7f7f733] !bg-[rgba(255,255,255,0.06)] !text-[#f7f7f7] !w-12 !h-14 !text-xl !font-bold"
+                        />
+                      )}
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
                 <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleVerify}
-                disabled={otpValue.length < 6 || step === "verifying"}
-                style={{
-                  width: "100%",
-                  maxWidth: 320,
-                  height: 48,
-                  background: otpValue.length === 6 ? "linear-gradient(135deg, #C8952A, #E2B04A)" : "rgba(200,149,42,0.3)",
-                  color: "white",
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  borderRadius: 10,
-                  border: "none",
-                  cursor: otpValue.length === 6 && step !== "verifying" ? "pointer" : "not-allowed",
-                  boxShadow: otpValue.length === 6 ? "0 4px 20px rgba(200,149,42,0.35)" : "none",
-                  transition: "all 0.2s",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8
-                }}>
-                
-                  {step === "verifying" ?
-                <>
+                  whileHover={otpValue.length === 6 ? { scale: 1.02 } : {}}
+                  whileTap={otpValue.length === 6 ? { scale: 0.97 } : {}}
+                  onClick={handleVerify}
+                  disabled={otpValue.length < 6 || step === "verifying"}
+                  style={{
+                    width: "100%",
+                    maxWidth: 320,
+                    height: 54,
+                    background: otpValue.length === 6 ? "linear-gradient(135deg, #C8952A, #E2B04A)" : "rgba(200,149,42,0.2)",
+                    color: otpValue.length === 6 ? "white" : "rgba(255,255,255,0.4)",
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 17,
+                    fontWeight: 800,
+                    borderRadius: 12,
+                    border: otpValue.length === 6 ? "1px solid rgba(226,176,74,0.3)" : "1px solid transparent",
+                    cursor: otpValue.length === 6 && step !== "verifying" ? "pointer" : "not-allowed",
+                    boxShadow: otpValue.length === 6 ? "0 6px 24px rgba(200,149,42,0.4)" : "none",
+                    transition: "all 0.3s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8
+                  }}
+                >
+                  {step === "verifying" ? (
+                    <>
                       <Loader2 size={18} className="animate-spin" />
                       Verifying…
-                    </> :
-
-                "Verify & Unlock"
-                }
+                    </>
+                  ) : (
+                    "Verify & Unlock Report"
+                  )}
                 </motion.button>
                 <button
-                onClick={() => {setStep("phone");setOtpValue("");}}
-                style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94A3B8",
-                  textDecoration: "underline", textUnderlineOffset: 2
-                }}>
-                
+                  onClick={() => { setStep("phone"); setOtpValue(""); }}
+                  style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94A3B8",
+                    textDecoration: "underline", textUnderlineOffset: 2
+                  }}
+                >
                   Use a different number
                 </button>
               </motion.div>
-            }
+            )}
           </AnimatePresence>
 
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#94A3B8", marginTop: 16 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#64748B", marginTop: 16, lineHeight: 1.5 }}>
             We'll text a 6-digit code. No spam, ever.
           </p>
-        </div>
+        </motion.div>
       </div>
-    </div>);
-
+    </div>
+  );
 }
 
 function humanizeDocType(dt: string): string {
