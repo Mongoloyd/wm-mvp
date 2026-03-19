@@ -84,6 +84,42 @@ interface PreviewPillarEntry {
   status?: "pass" | "warn" | "fail" | "pending" | null;
 }
 
+const ALLOWED_PILLAR_STATUSES = new Set<NonNullable<PreviewPillarEntry["status"]>>([
+  "pass",
+  "warn",
+  "fail",
+  "pending",
+]);
+
+function normalizePreviewPillarEntry(entry: unknown): PreviewPillarEntry | undefined {
+  // Allow bare numeric scores, but only if they are finite.
+  if (typeof entry === "number") {
+    return Number.isFinite(entry) ? { score: entry } : undefined;
+  }
+
+  if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
+    return undefined;
+  }
+
+  const candidate = entry as { score?: unknown; status?: unknown };
+  const result: PreviewPillarEntry = {};
+
+  if (typeof candidate.score === "number" && Number.isFinite(candidate.score)) {
+    result.score = candidate.score;
+  }
+
+  if (typeof candidate.status === "string" && ALLOWED_PILLAR_STATUSES.has(candidate.status as NonNullable<PreviewPillarEntry["status"]>)) {
+    result.status = candidate.status as NonNullable<PreviewPillarEntry["status"]>;
+  }
+
+  // If neither field is valid, treat as absent so we fall back to inference.
+  if (!("score" in result) && !("status" in result)) {
+    return undefined;
+  }
+
+  return result;
+}
+
 function mapFlags(raw: unknown): AnalysisFlag[] {
   if (!Array.isArray(raw)) return [];
   return (raw as RawFlag[]).map((f, i) => ({
@@ -97,14 +133,15 @@ function mapFlags(raw: unknown): AnalysisFlag[] {
 }
 
 function extractPillarScores(previewJson: unknown, flags: AnalysisFlag[]): PillarScore[] {
-  const raw = (previewJson as Record<string, unknown>)?.pillar_scores as Record<string, unknown> | undefined;
+  const pillarScoresRaw = (previewJson as { pillar_scores?: unknown })?.pillar_scores;
+  const raw =
+    pillarScoresRaw && typeof pillarScoresRaw === "object" && !Array.isArray(pillarScoresRaw)
+      ? (pillarScoresRaw as Record<string, unknown>)
+      : undefined;
 
   return PILLAR_DEFS.map((def) => {
     const entry = raw?.[def.key];
-    const normalizedEntry =
-      typeof entry === "number"
-        ? ({ score: entry } satisfies PreviewPillarEntry)
-        : (entry as PreviewPillarEntry | undefined);
+    const normalizedEntry = normalizePreviewPillarEntry(entry);
     const score = normalizedEntry?.score ?? null;
     const explicitStatus = normalizedEntry?.status ?? null;
 
