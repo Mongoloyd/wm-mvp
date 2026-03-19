@@ -25,10 +25,19 @@ import StickyCTAFooter from "@/components/StickyCTAFooter";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { DevPreviewState } from "@/dev/fixtures";
+import { getFixtureForState } from "@/dev/fixtures";
+
+// Lazy-load dev panel so it's tree-shaken in production
+const DevPreviewPanel = import.meta.env.DEV
+  ? (await import("@/dev/DevPreviewPanel")).default
+  : () => null;
 
 const Index = () => {
   // ═══ DEV MODE: Set to true to force full unlocked report UI ═══
   const IS_DEV_MODE = true;
+
+  const [devState, setDevState] = useState<DevPreviewState>("off");
 
   const [flowMode, setFlowMode] = useState<'A' | 'B'>('A');
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -49,8 +58,17 @@ const Index = () => {
   const [scrolledPast70, setScrolledPast70] = useState(false);
   const [timeOnPage, setTimeOnPage] = useState(false);
 
-  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed);
-  const reportAccess = useReportAccess({ forceLevel: "preview" });
+  // ═══ Dev preview state logic ═══
+  const isDevPreview = import.meta.env.DEV && devState !== "off";
+  const devFixture = isDevPreview ? getFixtureForState(devState) : null;
+  const devShowReport = isDevPreview && devState !== "invalid_document" && devState !== "needs_better_upload";
+  const devAccessLevel = devState === "full_report" || devState === "strong_report" ? "full" as const
+    : devState === "otp_gate" ? "preview" as const
+    : devState === "preview_report" ? "preview" as const
+    : undefined;
+
+  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, gradeRevealed && !isDevPreview);
+  const reportAccess = useReportAccess({ forceLevel: isDevPreview ? devAccessLevel : "preview" });
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
