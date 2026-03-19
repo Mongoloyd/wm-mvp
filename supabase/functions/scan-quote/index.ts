@@ -96,12 +96,12 @@ function validateExtraction(raw: unknown): { success: true; data: ExtractionResu
 const RUBRIC_VERSION = "1.0.0";
 
 const PILLAR_WEIGHTS = {
-  safety: 0.25,
-  install: 0.20,
-  price: 0.20,
-  finePrint: 0.20,
+  safety_code: 0.25,
+  install_scope: 0.20,
+  price_fairness: 0.20,
+  fine_print: 0.20,
   warranty: 0.15,
-};
+} as const;
 
 const GRADE_THRESHOLDS: Record<string, number> = { A: 85, B: 70, C: 55, D: 40 };
 
@@ -199,10 +199,10 @@ function scoreWarranty(data: ExtractionResult): number {
 }
 
 interface PillarScores {
-  safety: number;
-  install: number;
-  price: number;
-  finePrint: number;
+  safety_code: number;
+  install_scope: number;
+  price_fairness: number;
+  fine_print: number;
   warranty: number;
 }
 
@@ -215,18 +215,18 @@ interface GradeResult {
 
 function computeGrade(data: ExtractionResult): GradeResult {
   const pillarScores: PillarScores = {
-    safety: scoreSafety(data),
-    install: scoreInstall(data),
-    price: scorePrice(data),
-    finePrint: scoreFinePrint(data),
+    safety_code: scoreSafety(data),
+    install_scope: scoreInstall(data),
+    price_fairness: scorePrice(data),
+    fine_print: scoreFinePrint(data),
     warranty: scoreWarranty(data),
   };
 
   let weightedAvg =
-    pillarScores.safety * PILLAR_WEIGHTS.safety +
-    pillarScores.install * PILLAR_WEIGHTS.install +
-    pillarScores.price * PILLAR_WEIGHTS.price +
-    pillarScores.finePrint * PILLAR_WEIGHTS.finePrint +
+    pillarScores.safety_code * PILLAR_WEIGHTS.safety_code +
+    pillarScores.install_scope * PILLAR_WEIGHTS.install_scope +
+    pillarScores.price_fairness * PILLAR_WEIGHTS.price_fairness +
+    pillarScores.fine_print * PILLAR_WEIGHTS.fine_print +
     pillarScores.warranty * PILLAR_WEIGHTS.warranty;
 
   weightedAvg = Math.round(weightedAvg * 100) / 100;
@@ -268,34 +268,34 @@ function detectFlags(data: ExtractionResult): Flag[] {
   // Safety flags
   const noDp = items.filter(i => !i.dp_rating);
   if (noDp.length > 0) {
-    flags.push({ flag: "missing_dp_rating", severity: "High", pillar: "safety", detail: `${noDp.length} item(s) missing DP rating` });
+    flags.push({ flag: "missing_dp_rating", severity: "High", pillar: "safety_code", detail: `${noDp.length} item(s) missing DP rating` });
   }
   const noNoa = items.filter(i => !i.noa_number);
   if (noNoa.length > 0) {
-    flags.push({ flag: "missing_noa_number", severity: "Medium", pillar: "safety", detail: `${noNoa.length} item(s) missing NOA number` });
+    flags.push({ flag: "missing_noa_number", severity: "Medium", pillar: "safety_code", detail: `${noNoa.length} item(s) missing NOA number` });
   }
 
   // Install flags
   if (!data.permits || data.permits.included === undefined) {
-    flags.push({ flag: "no_permits_mentioned", severity: "High", pillar: "install", detail: "No permit responsibility stated" });
+    flags.push({ flag: "no_permits_mentioned", severity: "High", pillar: "install_scope", detail: "No permit responsibility stated" });
   }
   if (!data.installation?.scope_detail) {
-    flags.push({ flag: "vague_install_scope", severity: "Medium", pillar: "install", detail: "Installation scope is vague or missing" });
+    flags.push({ flag: "vague_install_scope", severity: "Medium", pillar: "install_scope", detail: "Installation scope is vague or missing" });
   }
 
   // Price flags
   const noPrice = items.filter(i => i.unit_price === undefined && i.total_price === undefined);
   if (noPrice.length > 0) {
-    flags.push({ flag: "missing_line_item_pricing", severity: "High", pillar: "price", detail: `${noPrice.length} item(s) missing pricing` });
+    flags.push({ flag: "missing_line_item_pricing", severity: "High", pillar: "price_fairness", detail: `${noPrice.length} item(s) missing pricing` });
   }
 
   // Fine print flags
   if (!data.cancellation_policy) {
-    flags.push({ flag: "no_cancellation_policy", severity: "Low", pillar: "finePrint", detail: "No cancellation policy found" });
+    flags.push({ flag: "no_cancellation_policy", severity: "Low", pillar: "fine_print", detail: "No cancellation policy found" });
   }
   const unbranded = items.filter(i => !i.brand && !i.series);
   if (unbranded.length > 0) {
-    flags.push({ flag: "unspecified_brand", severity: "Medium", pillar: "finePrint", detail: `${unbranded.length} item(s) with unspecified brand/series` });
+    flags.push({ flag: "unspecified_brand", severity: "Medium", pillar: "fine_print", detail: `${unbranded.length} item(s) with unspecified brand/series` });
   }
 
   // Warranty flags
@@ -641,6 +641,7 @@ Deno.serve(async (req: Request) => {
         hard_cap_applied: gradeResult.hardCapApplied,
         has_warranty: !!extraction.warranty,
         has_permits: !!extraction.permits,
+        pillar_scores: gradeResult.pillarScores,
       };
 
       // Full JSON: complete analysis — gated behind SMS verification on client
