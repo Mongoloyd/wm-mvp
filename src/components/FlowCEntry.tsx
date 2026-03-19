@@ -21,7 +21,7 @@ const FlowCEntry = ({ quoteStage, onSwitchToA }: FlowCEntryProps) => {
         </div>
         <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 'clamp(42px, 5.5vw, 54px)', fontWeight: 800, color: '#E5E5E5', lineHeight: 1.15, textTransform: 'uppercase', letterSpacing: '0.02em' }}>{isAppointment ? 'You have a visit coming up.' : 'You have a number.'}</h2>
         <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 'clamp(42px, 5.5vw, 54px)', fontWeight: 800, color: '#F97316', lineHeight: 1.15, textTransform: 'uppercase', letterSpacing: '0.02em' }}>It's not in writing yet. That means you still have leverage.</h2>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, color: '#6B7280', lineHeight: 1.75, maxWidth: 580, marginTop: 14 }}>The moment a contractor puts it on paper, the anchor is set. Right now, you can still change the number before the contract arrives.</p>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, color: '#E5E7EB', lineHeight: 1.75, maxWidth: 580, marginTop: 14 }}>The moment a contractor puts it on paper, the anchor is set. Right now, you can still change the number before the contract arrives.</p>
         <div style={{ marginTop: 16, marginBottom: 32, borderLeft: '3px solid #F97316', background: 'rgba(249,115,22,0.06)', padding: 16, maxWidth: 580 }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: '#F97316' }}>Your leverage isn't just gone when you sign. It's actively shrinking right now.</p>
         </div>
@@ -31,7 +31,7 @@ const FlowCEntry = ({ quoteStage, onSwitchToA }: FlowCEntryProps) => {
               <div style={{ width: 36, height: 36, borderRadius: 0, background: '#111111', border: '1px solid #1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><span style={{ color: o.iconColor, fontSize: 14 }}>{o.icon}</span></div>
               <div>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#E5E5E5' }}>{o.title}</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B7280', marginTop: 2 }}>{o.sub}</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#E5E7EB', marginTop: 2 }}>{o.sub}</p>
               </div>
             </div>
           ))}

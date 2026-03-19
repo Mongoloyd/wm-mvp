@@ -27,9 +27,9 @@ const ScanPreview = () => {
   return (
     <div className="mx-auto relative overflow-hidden" style={{ maxWidth: 480, background: "#111111", border: "1px solid #1A1A1A", borderRadius: 0, padding: "32px 28px", minHeight: 200 }}>
       <AnimatePresence mode="wait">
-        {phase === 1 && (<motion.div key="p1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="flex flex-col items-center"><span style={{ fontSize: 64, lineHeight: 1 }}>📄</span><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#6B7280", marginTop: 12 }}>Your quote.pdf</p></motion.div>)}
+        {phase === 1 && (<motion.div key="p1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="flex flex-col items-center"><span style={{ fontSize: 64, lineHeight: 1 }}>📄</span><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#E5E7EB", marginTop: 12 }}>Your quote.pdf</p></motion.div>)}
         {phase === 2 && (<motion.div key="p2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="flex flex-col items-center"><span style={{ fontSize: 64, lineHeight: 1 }}>📄</span><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#2563EB", letterSpacing: "0.08em", marginTop: 16, minHeight: 18 }}>{scanTexts[scanTextIdx]}</p></motion.div>)}
-        {phase === 3 && (<motion.div key="p3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="flex flex-col items-center"><div className="flex items-center gap-4"><motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.15 }} className="flex items-center justify-center" style={{ width: 80, height: 80, borderRadius: 0, border: "3px solid #F97316", background: "rgba(249,115,22,0.08)" }}><span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 44, fontWeight: 900, color: "#F97316" }}>C</span></motion.div><div><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, fontWeight: 700, color: "#F97316" }}>+$4,200</p><p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280" }}>above fair market</p></div></div><p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: "#2563EB", marginTop: 16 }}>⚡ 2 red flags identified</p></motion.div>)}
+        {phase === 3 && (<motion.div key="p3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="flex flex-col items-center"><div className="flex items-center gap-4"><motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.15 }} className="flex items-center justify-center" style={{ width: 80, height: 80, borderRadius: 0, border: "3px solid #F97316", background: "rgba(249,115,22,0.08)" }}><span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 44, fontWeight: 900, color: "#F97316" }}>C</span></motion.div><div><p style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, fontWeight: 700, color: "#F97316" }}>+$4,200</p><p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB" }}>above fair market</p></div></div><p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: "#2563EB", marginTop: 16 }}>⚡ 2 red flags identified</p></motion.div>)}
       </AnimatePresence>
     </div>
   );
@@ -68,14 +68,14 @@ const QuoteWatcher = ({ onSwitchToFlowA, onViewChecklist, onReminderSet }: Quote
                   <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "#2563EB" }}>SET YOUR QUOTE REMINDER</span>
                 </div>
                 <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 800, letterSpacing: "0.02em", color: "#E5E5E5", textTransform: "uppercase" }}>When is your contractor visiting?</h3>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", marginTop: 8, marginBottom: 28 }}>We'll text you 15 minutes after they leave.</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 8, marginBottom: 28 }}>We'll text you 15 minutes after they leave.</p>
                 <div className="mb-3">
-                  <label style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>APPOINTMENT DATE</label>
+                  <label style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>APPOINTMENT DATE</label>
                   <input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} min={todayStr}
                     style={{ width: "100%", height: 48, border: "1.5px solid #1A1A1A", borderRadius: 0, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E5E5", background: "#0A0A0A", outline: "none" }} />
                 </div>
                 <div className="mb-4">
-                  <label style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7280", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>APPROXIMATE APPOINTMENT TIME</label>
+                  <label style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>APPROXIMATE APPOINTMENT TIME</label>
                   <input type="time" value={appointmentTime} onChange={(e) => setAppointmentTime(e.target.value)}
                     style={{ width: "100%", height: 48, border: "1.5px solid #1A1A1A", borderRadius: 0, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E5E5", background: "#0A0A0A", outline: "none" }} />
                 </div>
@@ -98,7 +98,7 @@ const QuoteWatcher = ({ onSwitchToFlowA, onViewChecklist, onReminderSet }: Quote
                   <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M7 14l5 5 9-9" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </div>
                 <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#E5E5E5" }}>Reminder set. We'll be there.</h3>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", lineHeight: 1.75, marginTop: 12 }}>We'll text your mobile on {formatDateDisplay(appointmentDate)} at {reminderTime}.</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", lineHeight: 1.75, marginTop: 12 }}>We'll text your mobile on {formatDateDisplay(appointmentDate)} at {reminderTime}.</p>
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onViewChecklist} className="mt-6 inline-block"
                   style={{ background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "14px 28px", borderRadius: 0, border: "none", cursor: "pointer" }}>
                   View My Forensic Checklist →
@@ -112,7 +112,7 @@ const QuoteWatcher = ({ onSwitchToFlowA, onViewChecklist, onReminderSet }: Quote
       <div className="mx-auto max-w-3xl px-4 pb-16 md:pb-28 text-center" style={{ marginTop: 40 }}>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 700, letterSpacing: "0.02em", color: "#E5E5E5", textTransform: "uppercase" }}>Most homeowners decide whether to sign based on how the contractor made them feel.</p>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "0.02em", color: "#2563EB", marginTop: 12, textTransform: "uppercase" }}>You'll decide based on what the data says.</p>
-        <button onClick={() => onSwitchToFlowA?.()} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", marginTop: 16, display: "inline-block" }}>Already have a quote? Scan it now →</button>
+        <button onClick={() => onSwitchToFlowA?.()} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", marginTop: 16, display: "inline-block" }}>Already have a quote? Scan it now →</button>
       </div>
     </section>
   );

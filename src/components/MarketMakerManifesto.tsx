@@ -31,7 +31,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
         <motion.h2 {...fade(0.02)} className="text-center mx-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(36px, 5vw, 48px)", color: "#E5E5E5", fontWeight: 800, lineHeight: 1.15, maxWidth: 680, marginBottom: 16, textTransform: "uppercase", letterSpacing: "0.01em" }}>
           WE KEEP BOTH SIDES HONEST
         </motion.h2>
-        <motion.p {...fade(0.04)} className="text-center mx-auto" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, color: "#6B7280", lineHeight: 1.7, maxWidth: 560, marginBottom: 56 }}>
+        <motion.p {...fade(0.04)} className="text-center mx-auto" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, color: "#E5E7EB", lineHeight: 1.7, maxWidth: 560, marginBottom: 56 }}>
           Most services profit from information asymmetry.<br />WindowMan profits from eliminating it.
         </motion.p>
 
@@ -67,12 +67,12 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
         <motion.div {...fade(0.1)} className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
             { icon: <Check size={16} color="#2563EB" strokeWidth={3} />, title: "What Do You Get — Free", borderColor: "rgba(37,99,235,0.2)", bgColor: "rgba(37,99,235,0.04)", content: listItems.map((item, i) => (
-              <div key={i} className="flex gap-2 items-start" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", lineHeight: 2.0 }}>
+              <div key={i} className="flex gap-2 items-start" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 2.0 }}>
                 <span style={{ color: "#2563EB", flexShrink: 0 }}>→</span><span>{item}</span>
               </div>
             ))},
-            { icon: <Scale size={16} color="#C8952A" strokeWidth={2.5} />, title: "​So How Do I Make Money", borderColor: "rgba(200,149,42,0.2)", bgColor: "rgba(200,149,42,0.04)", content: <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", lineHeight: 1.9, marginTop: 12 }}>WindowMan earns a percentage of the sale — only when you choose to work with one of our contractors and your project is completed. We never charge homeowners.</p> },
-            { icon: <BarChart3 size={16} color="#2563EB" strokeWidth={2.5} />, title: "Why Work With Me", borderColor: "rgba(37,99,235,0.2)", bgColor: "rgba(37,99,235,0.04)", content: <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", lineHeight: 1.9, marginTop: 12 }}>Every homeowner we introduce already understands fair-market pricing. Our contractors walk into conversations that are already halfway won.</p> },
+            { icon: <Scale size={16} color="#C8952A" strokeWidth={2.5} />, title: "​So How Do I Make Money", borderColor: "rgba(200,149,42,0.2)", bgColor: "rgba(200,149,42,0.04)", content: <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 1.9, marginTop: 12 }}>WindowMan earns a percentage of the sale — only when you choose to work with one of our contractors and your project is completed. We never charge homeowners.</p> },
+            { icon: <BarChart3 size={16} color="#2563EB" strokeWidth={2.5} />, title: "Why Work With Me", borderColor: "rgba(37,99,235,0.2)", bgColor: "rgba(37,99,235,0.04)", content: <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 1.9, marginTop: 12 }}>Every homeowner we introduce already understands fair-market pricing. Our contractors walk into conversations that are already halfway won.</p> },
           ].map((card, i) => (
             <div key={i} style={{ background: card.bgColor, border: `1px solid ${card.borderColor}`, padding: "26px 22px" }}>
               <div className="flex items-center gap-2.5" style={{ marginBottom: 14 }}>

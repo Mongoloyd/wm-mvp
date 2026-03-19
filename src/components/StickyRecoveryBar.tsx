@@ -41,7 +41,7 @@ const StickyRecoveryBar = ({ stepsCompleted, county, isVisible, onDismiss, flowM
               </div>
               <div className="flex items-center gap-2.5 flex-1 sm:flex-none justify-center sm:justify-end">
                 <button onClick={handleCta} style={{ background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700, padding: "10px 16px", borderRadius: 0, border: "none", boxShadow: "0 2px 10px rgba(37,99,235,0.3)", cursor: "pointer", whiteSpace: "nowrap" }}>{displayCta}</button>
-                <button onClick={() => { if (!isDevMode) localStorage.setItem("wm_recovery_bar_dismissed", "true"); onDismiss(); }} style={{ background: "transparent", border: "none", width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#6B7280", fontSize: 16, cursor: "pointer" }} aria-label="Dismiss">×</button>
+                <button onClick={() => { if (!isDevMode) localStorage.setItem("wm_recovery_bar_dismissed", "true"); onDismiss(); }} style={{ background: "transparent", border: "none", width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#E5E7EB", fontSize: 16, cursor: "pointer" }} aria-label="Dismiss">×</button>
               </div>
             </div>
           </div>

@@ -66,7 +66,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
               fontFamily: "'DM Sans', sans-serif",
               fontSize: "clamp(16px, 2vw, 18px)",
               fontWeight: 400,
-              color: "#6B7280",
+              color: "#E5E7EB",
               lineHeight: 1.7,
               marginBottom: 32,
             }}>

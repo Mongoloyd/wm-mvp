@@ -19,7 +19,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
           <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#2563EB", letterSpacing: "0.1em", marginBottom: 16 }}>REAL RESULTS FROM FLORIDA HOMEOWNERS</p>
           <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(32px, 5vw, 48px)", color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.01em", marginBottom: 12, textTransform: "uppercase" }}>WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#6B7280", marginBottom: 48 }}>These Are Outcomes Not Reviews</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E7EB", marginBottom: 48 }}>These Are Outcomes Not Reviews</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -41,7 +41,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
                 </div>
               </div>
               <div style={{ marginTop: 20 }}>
-                {story.narrative.map((p, j) => <p key={j} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", lineHeight: 1.8, marginTop: j > 0 ? 12 : 0 }}>{p}</p>)}
+                {story.narrative.map((p, j) => <p key={j} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", lineHeight: 1.8, marginTop: j > 0 ? 12 : 0 }}>{p}</p>)}
               </div>
               <div className="flex items-center gap-3" style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", padding: "16px 20px", marginTop: 20 }}>
                 <span style={{ color: "#2563EB", fontSize: 20 }}>✓</span>
@@ -59,7 +59,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
           <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.01em", textTransform: "uppercase" }}>
             YOUR QUOTE IS EITHER PRICED FAIRLY OR IT ISN'T.
           </h3>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, color: "#6B7280", fontStyle: "italic", marginTop: 12 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, color: "#E5E7EB", fontStyle: "italic", marginTop: 12 }}>
             Right Now, The Contractor Knows Which One. You Don't.
           </p>
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleScanClick}

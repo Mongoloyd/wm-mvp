@@ -122,7 +122,7 @@ const EvidenceLocker = ({
           style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 16,
-            color: "#6B7280",
+            color: "#E5E7EB",
             marginTop: 8,
             marginBottom: 40,
           }}
@@ -284,7 +284,7 @@ const EvidenceLocker = ({
                 padding: "4px 10px",
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 12,
-                color: "#6B7280",
+                color: "#E5E7EB",
                 background: "white",
                 cursor: "pointer",
               }}
@@ -298,7 +298,7 @@ const EvidenceLocker = ({
           className="flex flex-wrap justify-between items-center gap-3"
           style={{ padding: "20px 24px", background: "#F9FAFB", borderTop: "1px solid #E5E7EB" }}
         >
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB" }}>
             Last updated: Today
           </span>
           <div className="flex gap-3">
@@ -433,7 +433,7 @@ const EvidenceLocker = ({
           <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#0F1F35", marginBottom: 8 }}>
             Send a copy to your email.
           </h3>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginBottom: 24 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 24 }}>
             We'll email you the full grade report, red flags, and negotiation script.<br />One link. No password.
           </p>
           <div className="flex flex-col md:flex-row gap-3 justify-center">
@@ -482,7 +482,7 @@ const VaultRow = ({
       {icon}
       <div>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: "#0F1F35" }}>{title}</p>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280" }}>{sub}</p>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB" }}>{sub}</p>
       </div>
     </div>
     {right}

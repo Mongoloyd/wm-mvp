@@ -44,7 +44,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
                   <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 15, fontWeight: 700, color: "#2563EB" }}>{step.num}</span>
                 </div>
                 <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "#E5E5E5", marginTop: 12 }}>{step.title}</h3>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", lineHeight: 1.6, marginTop: 4 }}>{step.copy}</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 1.6, marginTop: 4 }}>{step.copy}</p>
               </motion.div>
             ))}
           </div>
@@ -59,7 +59,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
               </div>
               <div>
                 <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "#E5E5E5" }}>{step.title}</h3>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", lineHeight: 1.6, marginTop: 4 }}>{step.copy}</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 1.6, marginTop: 4 }}>{step.copy}</p>
               </div>
             </motion.div>
           ))}
@@ -75,7 +75,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
                 <div className="flex items-center justify-center flex-shrink-0" style={{ width: 28, height: 28, backgroundColor: `${d.color}15` }}>
                   <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 14, color: d.color, fontWeight: 700 }}>{d.icon}</span>
                 </div>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", lineHeight: 1.6 }}>{d.text}</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", lineHeight: 1.6 }}>{d.text}</p>
               </div>
             ))}
           </div>

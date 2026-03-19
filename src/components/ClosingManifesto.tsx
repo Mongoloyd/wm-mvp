@@ -41,7 +41,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
               <div className="flex items-center justify-center flex-shrink-0" style={{ width: 24, height: 24, background: "rgba(37,99,235,0.15)" }}>
                 <span style={{ color: "#2563EB", fontSize: 12, fontWeight: 700 }}>✓</span>
               </div>
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280" }}>{text}</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB" }}>{text}</span>
             </div>
           ))}
         </motion.div>

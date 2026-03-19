@@ -32,7 +32,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           <h2 className="mx-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(34px, 5vw, 48px)", color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.01em", maxWidth: 700, marginBottom: 16, lineHeight: 1.15, textTransform: "uppercase" }}>
             THE IMPACT WINDOW INDUSTRY HAS NO PRICING STANDARD.
           </h2>
-          <p className="mx-auto" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, color: "#6B7280", maxWidth: 640, lineHeight: 1.75, marginBottom: 60 }}>
+          <p className="mx-auto" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, color: "#E5E7EB", maxWidth: 640, lineHeight: 1.75, marginBottom: 60 }}>
             That means the contractor who wrote your quote decided what to include, how to describe it, and whether to specify the brand.
           </p>
         </motion.div>
@@ -49,7 +49,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
                 <span style={{ fontSize: 24, lineHeight: 1 }}>{block.icon}</span>
               </div>
               <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#E5E5E5", marginTop: 16, textTransform: "uppercase", letterSpacing: "0.02em" }}>{block.heading}</h3>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", lineHeight: 1.7, marginTop: 8 }}>{block.copy}</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", lineHeight: 1.7, marginTop: 8 }}>{block.copy}</p>
               <span style={{ display: "inline-block", marginTop: 12, background: "rgba(249,115,22,0.1)", color: block.badgeColor, padding: "3px 10px", fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, border: `1px solid ${block.badgeColor}33` }}>{block.badge}</span>
             </motion.div>
           ))}

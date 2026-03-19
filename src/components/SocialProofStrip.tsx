@@ -45,7 +45,7 @@ const SocialProofStrip = () => {
           <span className="font-bold tabular-nums" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, color: "#2563EB" }}>
             {totalCount.toLocaleString()}
           </span>
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", whiteSpace: "nowrap" }}>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", whiteSpace: "nowrap" }}>
             quotes scanned
           </span>
         </div>

@@ -37,7 +37,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
           <div className="relative z-10 flex gap-4 items-start" style={{ padding: "28px 28px 20px", borderBottom: "1px solid #1A1A1A" }}>
             <div>
               <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#E5E5E5", textTransform: "uppercase" }}>5 Questions Contractors Hope You Never Ask</p>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#6B7280", lineHeight: 1.75, marginTop: 6 }}>These questions expose the information asymmetry in every impact window sales pitch. Bring this checklist to your site visit.</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", lineHeight: 1.75, marginTop: 6 }}>These questions expose the information asymmetry in every impact window sales pitch. Bring this checklist to your site visit.</p>
             </div>
           </div>
 
@@ -58,7 +58,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
                 </div>
                 <div style={{ marginTop: 12, background: "#0A0A0A", borderRadius: 0, padding: "14px 16px" }}>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: q.labelColor, marginBottom: 8 }}>{q.label}</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280", lineHeight: 1.7 }}>{q.why}</p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 1.7 }}>{q.why}</p>
                 </div>
                 <div style={{ marginTop: 12, background: "#111111", borderLeft: `3px solid ${q.askBorder}`, borderRadius: 0, padding: "10px 14px" }}>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: q.askColor, letterSpacing: "0.08em", marginBottom: 4 }}>{q.askLabel}</p>
@@ -70,7 +70,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
 
           <div className="relative z-10" style={{ padding: "24px 28px", borderTop: "1px solid #1A1A1A", background: "#0A0A0A" }}>
             <div className="flex items-center gap-3 mb-3">
-              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#6B7280" }}>{checkedCount} of 5 reviewed</p>
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#E5E7EB" }}>{checkedCount} of 5 reviewed</p>
               <div className="flex-1" style={{ height: 4, background: "#1A1A1A", borderRadius: 0, overflow: "hidden" }}>
                 <motion.div style={{ height: "100%", background: "#2563EB", borderRadius: 0 }} animate={{ width: `${(checkedCount / 5) * 100}%` }} transition={{ duration: 0.15 }} />
               </div>
@@ -92,7 +92,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
 
         <div className="text-center" style={{ background: "#111111", border: "1px solid #1A1A1A", padding: "40px 28px", borderRadius: 0, marginTop: 32 }}>
           <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, letterSpacing: "0.02em", color: "#E5E5E5", textTransform: "uppercase" }}>Now set the reminder.</h3>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", marginTop: 8 }}>When is your contractor visiting? We'll text you 15 minutes after they leave.</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginTop: 8 }}>When is your contractor visiting? We'll text you 15 minutes after they leave.</p>
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onSetReminder} className="mt-5 inline-block"
             style={{ background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "14px 32px", borderRadius: 0, border: "none", boxShadow: "0 4px 14px rgba(37,99,235,0.35)", cursor: "pointer" }}>
             Set My Quote Reminder →
