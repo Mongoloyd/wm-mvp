@@ -171,7 +171,7 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: a
             <p className="font-mono text-[11px] text-foreground mb-3 h-4">{scanText}</p>
             <div className="h-1 w-full bg-muted rounded-none overflow-hidden">
               <div
-                className={`h-full ${SCAN_LINES[scanTextIndex]?.danger ? 'bg-destructive' : 'bg-cyan'} ease-linear transition-all duration-300`}
+                className={`h-full ${isDanger ? 'bg-destructive' : 'bg-cyan'} ease-linear transition-all duration-300`}
                 style={{ width: `${scanProgress}%`, transitionProperty: "width, background-color", transitionDuration: "1200ms, 300ms" }}
               />
             </div>
