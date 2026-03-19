@@ -335,13 +335,29 @@ async function updateScanSessionStatus(
   logMessage: string,
   failureBody?: Record<string, unknown>,
 ): Promise<{ success: true } | { success: false; response: Response }> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("scan_sessions")
     .update({ status })
-    .eq("id", scanSessionId);
+    .eq("id", scanSessionId)
+    .select("id");
 
   if (error) {
     console.error(logMessage, error);
+    return {
+      success: false,
+      response: jsonResponse(failureBody ?? {
+        error: "Failed to persist scan session state",
+        scan_session_id: scanSessionId,
+        analysis_status: "processing",
+        scan_session_status: "processing",
+      }, 500),
+    };
+  }
+
+  if (!data || data.length === 0) {
+    console.error(
+      `${logMessage} — no scan_sessions row updated for id=${scanSessionId}`,
+    );
     return {
       success: false,
       response: jsonResponse(failureBody ?? {
