@@ -913,7 +913,52 @@ Deno.serve(async (req: Request) => {
           grade: gradeResult.letterGrade,
         },
       );
-      if (!previewReadyStatusUpdate.success) return previewReadyStatusUpdate.response;
+      if (!previewReadyStatusUpdate.success) {
+        // COMPENSATING ACTION:
+        // If the scan session status failed to transition to preview_ready,
+        // roll the analysis_status back from "complete" to "processing"
+        // so that analyses + scan_sessions remain logically aligned.
+        try {
+          const rollbackAnalysis = await upsertAnalysisRecord(
+            supabase,
+            {
+              scan_session_id: scan_session_id,
+              lead_id: session.lead_id,
+              analysis_status: "processing",
+              document_is_window_door_related: true,
+              document_type: extraction.document_type,
+              confidence_score: extraction.confidence,
+              grade: gradeResult.letterGrade,
+              flags: flags,
+              dollar_delta: extraction.total_quoted_price || null,
+              proof_of_read: proofOfRead,
+              preview_json: previewJson,
+              full_json: fullJson,
+              rubric_version: RUBRIC_VERSION,
+            },
+            "analyses rollback after scan_sessions preview_ready failure",
+            {
+              error: "Failed to rollback analysis after scan session status failure",
+              scan_session_id,
+              analysis_status: "processing",
+              scan_session_status: "processing",
+              grade: gradeResult.letterGrade,
+            },
+          );
+          if (!rollbackAnalysis.success) {
+            console.error(
+              "Rollback of analysis record after scan_sessions preview_ready failure also failed",
+              rollbackAnalysis.response,
+            );
+          }
+        } catch (rollbackErr) {
+          console.error(
+            "Unexpected error during analysis rollback after scan_sessions preview_ready failure",
+            rollbackErr,
+          );
+        }
+        return previewReadyStatusUpdate.response;
+      }
 
       return jsonResponse({
         scan_session_id,
