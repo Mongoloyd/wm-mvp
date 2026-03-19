@@ -515,7 +515,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 12,
-            color: "#E5E7EB",
+            color: "#6B7280",
             lineHeight: 1.8,
             textAlign: "center",
             marginTop: 14,
