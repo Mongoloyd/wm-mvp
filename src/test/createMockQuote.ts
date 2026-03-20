@@ -175,7 +175,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
   {
     key: "mixedPillars",
     label: "Mixed Pillars",
-    description: "A-grade safety (all DP/NOA) but F warranty (none) and C install",
+    description: "A-grade safety (all DP/NOA) but weak warranty and sparse install",
     expectedGrade: "B",
     extraction: {
       document_type: "impact_window_quote",
@@ -191,6 +191,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
         { description: "PGT WinGuard Impact Single Hung", quantity: 2, unit_price: 1800, total_price: 3600, brand: "PGT", series: "WinGuard", dp_rating: "DP50", noa_number: "NOA 17-0501.06", dimensions: "36x60" },
         { description: "CGI Sentinel Impact Slider - hurricane", quantity: 1, unit_price: 4500, total_price: 4500, brand: "CGI", series: "Sentinel", dp_rating: "DP50", noa_number: "NOA 18-0312.02", dimensions: "72x80" },
       ],
+      warranty: { details: "Contact manufacturer for warranty terms." },
       installation: { scope_detail: "Replace openings" },
     },
   },
