@@ -241,7 +241,7 @@ export function usePhonePipeline(
       setErrorMsg("Network error. Please try again.");
       setCooldown(0);
     }
-  }, [cooldown, e164]);
+  }, [cooldown, activePhone]);
 
   /* ── reset ───────────────────────────────────────────── */
 
