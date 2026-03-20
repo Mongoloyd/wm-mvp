@@ -12,7 +12,8 @@
  * This is a cosmetic toggle — not a security boundary.
  */
 
-import { useScanFunnelSafe } from "../state/ScanFunnelContext";
+import { useContext } from "react";
+import { ScanFunnelContext } from "../state/ScanFunnelContext";
 
 export type ReportAccessLevel = "preview" | "full";
 
