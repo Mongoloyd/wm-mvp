@@ -335,6 +335,7 @@ function detectFlags(data: ExtractionResult): Flag[] {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 5: ORCHESTRATION (HTTP handler)
+type ScanSessionStatus = "idle" | "uploading" | "processing" | "preview_ready" | "complete" | "invalid_document" | "needs_better_upload" | "error";
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // CRASH RECOVERY:
