@@ -65,7 +65,7 @@ const Demo = () => {
         </p>
       </div>
 
-      <TruthReportV2
+      <TruthReportFindings
         analysis={{
           grade: DEMO_DATA.grade,
           flags: DEMO_DATA.flags,
