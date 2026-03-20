@@ -1,5 +1,5 @@
 /**
- * TruthReportV2 — Findings-first post-scan report.
+ * TruthReportFindings — Findings-first post-scan report.
  *
  * Preview mode: findings are fully locked (severity color + pillar only).
  * Three verification touchpoints: VerifyBanner, clickable lock rows, VerifyGate (v2).
@@ -123,7 +123,7 @@ const fadeUp = (delay: number) => ({
 
 /* ── Component ────────────────────────────────────────────────── */
 
-export function TruthReportV2({ analysis }: V2Props) {
+export function TruthReportFindings({ analysis }: V2Props) {
   const {
     grade,
     flags,

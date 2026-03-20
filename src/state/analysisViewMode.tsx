@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-export type AnalysisViewMode = "v1" | "v2";
+export type AnalysisViewMode = "classic" | "findings";
 
 const STORAGE_KEY = "wm:analysisViewMode";
 
@@ -14,13 +14,15 @@ type AnalysisViewModeContextValue = {
 const AnalysisViewModeContext = createContext<AnalysisViewModeContextValue | null>(null);
 
 function readInitialMode(): AnalysisViewMode {
-  if (typeof window === "undefined") return "v1";
+  if (typeof window === "undefined") return "classic";
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  return raw === "v2" ? "v2" : "v1";
+  // Support legacy "v2" values from existing localStorage
+  if (raw === "findings" || raw === "v2") return "findings";
+  return "classic";
 }
 
 export function AnalysisViewModeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<AnalysisViewMode>("v1");
+  const [mode, setModeState] = useState<AnalysisViewMode>("classic");
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export function AnalysisViewModeProvider({ children }: { children: React.ReactNo
   }, []);
 
   const toggleMode = useCallback(() => {
-    setModeState((prev) => (prev === "v1" ? "v2" : "v1"));
+    setModeState((prev) => (prev === "classic" ? "findings" : "classic"));
   }, []);
 
   const value = useMemo(

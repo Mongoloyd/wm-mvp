@@ -32,7 +32,7 @@ export function AnalysisViewModeToggle({ className = "", compact = false }: Prop
           <div className={`${label} font-bold tracking-wide text-white/90`}>POST‑SCAN VIEW</div>
           {!compact && (
             <div className="mt-0.5 text-[11px] text-white/60">
-              Switch between V1 scorecard and V2 findings UI
+              Switch between Classic scorecard and Findings UI
             </div>
           )}
         </div>
@@ -40,22 +40,22 @@ export function AnalysisViewModeToggle({ className = "", compact = false }: Prop
         <div className="flex w-[240px] items-center gap-1 rounded-xl bg-black/25 p-1">
           <button
             type="button"
-            onClick={() => setMode("v1")}
-            className={`${pillBase} ${mode === "v1" ? active : inactive}`}
-            aria-pressed={mode === "v1"}
-            aria-label="Switch to V1 scorecard view"
+            onClick={() => setMode("classic")}
+            className={`${pillBase} ${mode === "classic" ? active : inactive}`}
+            aria-pressed={mode === "classic"}
+            aria-label="Switch to Classic scorecard view"
           >
-            V1 Scorecard
+            Classic
           </button>
 
           <button
             type="button"
-            onClick={() => setMode("v2")}
-            className={`${pillBase} ${mode === "v2" ? active : inactive}`}
-            aria-pressed={mode === "v2"}
-            aria-label="Switch to V2 findings-first view"
+            onClick={() => setMode("findings")}
+            className={`${pillBase} ${mode === "findings" ? active : inactive}`}
+            aria-pressed={mode === "findings"}
+            aria-label="Switch to Findings-first view"
           >
-            V2 Findings
+            Findings
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import LinearHeader from "@/components/LinearHeader";
-import { TruthReportV2 } from "@/components/TruthReportV2/TruthReportV2";
+import { TruthReportFindings } from "@/components/TruthReportFindings/TruthReportFindings";
 import type { AnalysisData } from "@/hooks/useAnalysisData";
 
 /**
@@ -65,7 +65,7 @@ const Demo = () => {
         </p>
       </div>
 
-      <TruthReportV2
+      <TruthReportFindings
         analysis={{
           grade: DEMO_DATA.grade,
           flags: DEMO_DATA.flags,

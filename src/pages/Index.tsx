@@ -23,7 +23,7 @@ import ExitIntentModal from "@/components/ExitIntentModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
-import { useReportAccess } from "@/hooks/useReportAccess";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
 import { DevQuoteGenerator } from "@/components/dev/DevQuoteGenerator";
@@ -60,7 +60,7 @@ const Index = () => {
   const devConfig = isDevPreview ? DEV_PREVIEW_CONFIGS[devState] : null;
   const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
   const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, fileUploaded);
-  const reportAccess = useReportAccess({ forceLevel: "preview" });
+  
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
@@ -91,7 +91,7 @@ const Index = () => {
 
   // Resolve active data: dev fixtures override real backend data
   const activeData = showReportFromDev ? devConfig!.analysisData : analysisData;
-  const activeAccess = isDevPreview && devConfig ? devConfig.accessLevel : reportAccess;
+  
   const reportGrade = activeData?.grade || "C";
   const reportFlags = activeData?.flags || [];
   const shouldShowReport = showReportFromDev || gradeRevealed;
@@ -241,7 +241,7 @@ const Index = () => {
                 county={selectedCounty}
                 confidenceScore={activeData.confidenceScore}
                 documentType={activeData.documentType}
-                accessLevel={activeAccess}
+                
                 qualityBand={activeData.qualityBand}
                 hasWarranty={activeData.hasWarranty}
                 hasPermits={activeData.hasPermits}

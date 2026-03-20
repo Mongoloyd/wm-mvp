@@ -1,8 +1,9 @@
 import React from "react";
 import { useAnalysisViewMode } from "../../state/analysisViewMode";
+import { useReportAccess } from "@/hooks/useReportAccess";
 
-import TruthReport from "../TruthReport";
-import { TruthReportV2 } from "../TruthReportV2/TruthReportV2";
+import TruthReportClassic from "../TruthReportClassic";
+import { TruthReportFindings } from "../TruthReportFindings/TruthReportFindings";
 
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 
@@ -14,7 +15,6 @@ type Props = {
   county: string;
   confidenceScore: number | null;
   documentType: string | null;
-  accessLevel: "preview" | "full";
   qualityBand?: "good" | "fair" | "poor" | null;
   hasWarranty?: boolean | null;
   hasPermits?: boolean | null;
@@ -27,12 +27,13 @@ type Props = {
 
 export function PostScanReportSwitcher(props: Props) {
   const { mode, isReady } = useAnalysisViewMode();
+  const accessLevel = useReportAccess();
 
   if (!isReady) return null;
 
-  if (mode === "v2") {
-    return <TruthReportV2 analysis={props} />;
+  if (mode === "findings") {
+    return <TruthReportFindings analysis={{ ...props, accessLevel }} />;
   }
 
-  return <TruthReport {...props} />;
+  return <TruthReportClassic {...props} accessLevel={accessLevel} />;
 }

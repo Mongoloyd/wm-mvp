@@ -2,7 +2,7 @@
  * ScanFunnelContext — Funnel-scoped state for the quote-upload flow.
  *
  * Tracks phone, OTP, lead, session, and scan state so that
- * downstream components (ScanTheatrics, VerifyGate, TruthReportV2)
+ * downstream components (ScanTheatrics, VerifyGate, TruthReportFindings)
  * can branch correctly without prop-threading.
  *
  * Wrap the quote-upload funnel subtree with <ScanFunnelProvider>.
@@ -123,7 +123,7 @@ export function ScanFunnelProvider({ children }: { children: React.ReactNode }) 
   );
 }
 
-/* ── Hook ──────────────────────────────────────────────── */
+/* ── Hooks ─────────────────────────────────────────────── */
 
 export function useScanFunnel(): ScanFunnelContextValue {
   const ctx = useContext(ScanFunnelContext);
@@ -131,4 +131,9 @@ export function useScanFunnel(): ScanFunnelContextValue {
     throw new Error("useScanFunnel must be used within a <ScanFunnelProvider>");
   }
   return ctx;
+}
+
+/** Safe version — returns null if outside provider (for shared hooks like useReportAccess) */
+export function useScanFunnelSafe(): ScanFunnelContextValue | null {
+  return useContext(ScanFunnelContext);
 }

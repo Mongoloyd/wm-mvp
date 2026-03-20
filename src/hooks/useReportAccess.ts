@@ -2,13 +2,17 @@
  * Report access level hook.
  * Determines whether the user sees the teaser (preview) or full Truth Report.
  *
- * In production: access is gated by phone_verified_at via backend RPC.
+ * Reads verification state from ScanFunnelContext when available,
+ * falls back to options for standalone usage.
+ *
  * In dev mode: bypass forces "full" access for UI design iteration.
  *
  * SECURITY: This hook controls UI rendering only.
  * The backend MUST independently gate full_json behind verification.
  * This is a cosmetic toggle — not a security boundary.
  */
+
+import { useScanFunnelSafe } from "@/state/ScanFunnelContext";
 
 export type ReportAccessLevel = "preview" | "full";
 
@@ -32,6 +36,10 @@ export function useReportAccess(
   // Dev bypass: always show full report for design iteration
   if (DEV_REPORT_BYPASS) return "full";
 
-  // Production: gate on verification state
+  // Check ScanFunnelContext if available
+  const funnel = useScanFunnelSafe();
+  if (funnel?.phoneStatus === "verified") return "full";
+
+  // Fallback: gate on verification state from options
   return isPhoneVerified ? "full" : "preview";
 }
