@@ -244,14 +244,32 @@ function computeGrade(data: ExtractionResult): GradeResult {
   let grade = letterGrade(weightedAvg);
   let hardCapApplied: string | null = null;
 
-  // Hard cap: no impact product mentions
-  const hasImpact = data.line_items.some(i => /impact|hurricane|storm/i.test(i.description || ""));
-  if (!hasImpact && data.line_items.length > 0) {
-    if (GRADE_RANK[grade] <= GRADE_RANK["D"]) { /* already at or below D */ }
-    else { grade = "D"; hardCapApplied = "no_impact_products"; }
+  // Hard cap: no warranty section at all → max C
+  if (!data.warranty && data.line_items.length > 0) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = "no_warranty_section";
+    }
   }
 
-  // Hard cap: zero line items
+  // Hard cap: safety pillar critically low → max C
+  if (pillarScores.safety < 25 && data.line_items.length > 0) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = hardCapApplied ? hardCapApplied + "+critical_safety" : "critical_safety";
+    }
+  }
+
+  // Hard cap: no impact product mentions → max D
+  const hasImpact = data.line_items.some(i => /impact|hurricane|storm/i.test(i.description || ""));
+  if (!hasImpact && data.line_items.length > 0) {
+    if (GRADE_RANK[grade] > GRADE_RANK["D"]) {
+      grade = "D";
+      hardCapApplied = hardCapApplied ? hardCapApplied + "+no_impact_products" : "no_impact_products";
+    }
+  }
+
+  // Hard cap: zero line items → F
   if (data.line_items.length === 0) {
     grade = "F";
     hardCapApplied = "zero_line_items";
