@@ -80,6 +80,9 @@ export function usePhonePipeline(
   options?: {
     scanSessionId?: string | null;
     onVerified?: () => void;
+    /** Pre-known phone from upstream (e.g. ScanFunnelContext). When set,
+     *  submitOtp / resend / submitPhone use this instead of local input. */
+    externalPhoneE164?: string | null;
   }
 ): UsePhonePipelineReturn {
   const { displayValue, rawDigits, e164, isValid, handleChange, setValue } =
@@ -89,6 +92,12 @@ export function usePhonePipeline(
   const [errorMsg, setErrorMsg] = useState("");
   const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /**
+   * The single source of truth for the phone number used by all actions.
+   * Priority: external funnel phone > local input phone.
+   */
+  const activePhone = options?.externalPhoneE164 || e164;
 
   // Cooldown ticker
   useEffect(() => {
@@ -125,23 +134,30 @@ export function usePhonePipeline(
   const submitPhone = useCallback(async (): Promise<PipelineStartResult> => {
     setErrorMsg("");
 
-    // 1. Screen
-    const screen = screenPhone(rawDigits);
-    if (screen.ok === false) {
-      setPhoneStatus("invalid");
-      setErrorMsg(screen.reason);
-      return { status: "blocked", error: screen.reason };
+    // If we have an external phone, skip local screening entirely
+    const hasExternal = !!options?.externalPhoneE164;
+    let normalizedE164: string;
+
+    if (hasExternal) {
+      normalizedE164 = options!.externalPhoneE164!;
+    } else {
+      // Screen local input
+      const screen = screenPhone(rawDigits);
+      if (screen.ok === false) {
+        setPhoneStatus("invalid");
+        setErrorMsg(screen.reason);
+        return { status: "blocked", error: screen.reason };
+      }
+      normalizedE164 = screen.e164;
     }
 
-    const normalizedE164 = screen.e164;
-
-    // 2. validate_only — done
+    // validate_only — done
     if (mode === "validate_only") {
       setPhoneStatus("valid");
       return { status: "valid", e164: normalizedE164 };
     }
 
-    // 3. validate_and_send_otp — call send-otp
+    // validate_and_send_otp — call send-otp
     setPhoneStatus("sending_otp");
     try {
       const { data, error } = await supabase.functions.invoke("send-otp", {
@@ -164,7 +180,7 @@ export function usePhonePipeline(
       setErrorMsg(msg);
       return { status: "error", error: msg };
     }
-  }, [rawDigits, mode]);
+  }, [rawDigits, mode, options?.externalPhoneE164]);
 
   /* ── submitOtp ───────────────────────────────────────── */
 
