@@ -503,8 +503,10 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const geminiKey = Deno.env.get("GEMINI_API_KEY");
+    const _devBypassSecretEarly = Deno.env.get("DEV_BYPASS_SECRET");
+    const _isDevBypass = dev_extraction_override && dev_secret && _devBypassSecretEarly && dev_secret === _devBypassSecretEarly;
 
-    if (!geminiKey) {
+    if (!geminiKey && !_isDevBypass) {
       console.error("GEMINI_API_KEY not configured");
       return jsonResponse({ error: "AI service not configured" }, 500);
     }
