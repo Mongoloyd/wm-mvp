@@ -241,7 +241,7 @@ export function useAnalysisData(
           qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
           hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
           hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
-          analysisStatus: (row as Record<string, unknown>).analysis_status as string ?? null,
+          analysisStatus: typeof (row as any).analysis_status === "string" ? (row as any).analysis_status : null,
         });
       } catch (err) {
         console.error("useAnalysisData exception:", err);
