@@ -2,7 +2,7 @@
  * TruthReportV2 — Findings-first post-scan report.
  *
  * Preview mode: findings are fully locked (severity color + pillar only).
- * Three verification touchpoints: VerifyBanner, clickable lock rows, VerifyGate.
+ * Three verification touchpoints: VerifyBanner, clickable lock rows, VerifyGate (v2).
  *
  * Full mode: all findings, details, tips, and negotiation tools revealed.
  */
