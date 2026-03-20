@@ -22,6 +22,7 @@ type Props = {
   lineItemCount?: number | null;
   onContractorMatchClick: () => void;
   onSecondScan: () => void;
+  scanSessionId?: string | null;
 };
 
 export function PostScanReportSwitcher(props: Props) {
