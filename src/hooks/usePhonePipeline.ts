@@ -225,7 +225,7 @@ export function usePhonePipeline(
   /* ── resend ──────────────────────────────────────────── */
 
   const resend = useCallback(async () => {
-    if (cooldown > 0 || !e164) return;
+    if (cooldown > 0 || !activePhone) return;
     setErrorMsg("");
     setCooldown(RESEND_COOLDOWN_SECONDS);
 
