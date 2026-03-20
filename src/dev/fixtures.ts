@@ -12,6 +12,7 @@ export type DevPreviewState =
   | "grade_a_full"
   | "grade_c_preview"
   | "grade_d_full"
+  | "grade_d_preview"
   | "otp_gate"
   | "invalid_document"
   | "needs_better_upload";
@@ -130,6 +131,12 @@ export const DEV_PREVIEW_CONFIGS: Record<DevPreviewState, DevPreviewConfig> = {
     label: "Grade C (Preview)",
     description: "Locked teaser with OTP gate hidden",
     analysisData: GRADE_C_DATA,
+    accessLevel: "preview",
+  },
+  grade_d_preview: {
+    label: "Grade D (Preview)",
+    description: "Locked teaser, problem quote",
+    analysisData: GRADE_D_DATA,
     accessLevel: "preview",
   },
   grade_d_full: {

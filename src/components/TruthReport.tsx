@@ -267,7 +267,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 }}>
                   <div style={{ color: sc.color, marginBottom: 10 }}>{icon}</div>
 
-                  {pillar.score != null ?
+                  {isFull && pillar.score != null ?
                   <div style={{ position: "relative", width: 56, height: 56, marginBottom: 10 }}>
                       <svg viewBox="0 0 56 56" style={{ transform: "rotate(-90deg)" }}>
                         <circle cx="28" cy="28" r="24" fill="none" stroke="#E5E7EB" strokeWidth="4" />
