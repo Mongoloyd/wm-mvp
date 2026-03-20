@@ -88,6 +88,13 @@ const GRADE_D_DATA: AnalysisData = {
   contractorName: "WindowWorld Express",
   confidenceScore: 65,
   documentType: "proposal",
+  pageCount: 1,
+  openingCount: 10,
+  lineItemCount: 3,
+  qualityBand: "poor",
+  hasWarranty: null,
+  hasPermits: null,
+  analysisStatus: "complete",
   flags: [
     { id: 1, severity: "red", label: "Price 38% Above Market", detail: "Total quoted is $12,500 above Broward County Q1 2025 benchmark for this scope.", tip: "Get at least two competing quotes before signing.", pillar: "price_fairness" },
     { id: 2, severity: "red", label: "Missing NOA Codes", detail: "No product approval numbers anywhere in the document.", tip: "Do not proceed without verifiable NOA numbers.", pillar: "safety_code" },
