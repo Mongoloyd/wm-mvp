@@ -131,7 +131,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {confidenceScore != null &&
+            {isFull && confidenceScore != null &&
             <div className="text-right hidden md:block">
                 <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF", letterSpacing: "0.08em" }}>CONFIDENCE</p>
                 <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 18, fontWeight: 700, color: confidenceScore >= 70 ? "#059669" : "#D97706" }}>{Math.round(confidenceScore)}%</p>
