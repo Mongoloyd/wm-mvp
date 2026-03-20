@@ -14,6 +14,11 @@ interface TruthReportProps {
   confidenceScore: number | null;
   documentType: string | null;
   accessLevel: "preview" | "full";
+  qualityBand?: "good" | "fair" | "poor" | null;
+  hasWarranty?: boolean | null;
+  hasPermits?: boolean | null;
+  pageCount?: number | null;
+  lineItemCount?: number | null;
   onContractorMatchClick: () => void;
   onSecondScan: () => void;
 }
