@@ -43,6 +43,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       rubricVersion: null,
       flagCount: 0,
       pillarScores: null,
+      hardCap: null,
       match: false,
     };
 
