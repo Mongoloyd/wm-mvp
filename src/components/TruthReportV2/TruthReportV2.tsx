@@ -313,7 +313,7 @@ export function TruthReportV2({ analysis }: V2Props) {
         <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase mb-4">
           COVERAGE MAP
         </p>
-        <p className="text-xs text-foreground/50 mb-4 max-w-[500px]">
+        <p className="text-xs text-foreground/50 mb-4">
           Areas of your quote that our scan reviewed. This is not a judgment — it shows what was assessed.
         </p>
 
