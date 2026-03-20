@@ -13,6 +13,7 @@ interface RunResult {
   expectedTerminal?: string;
   actualGrade: string | null;
   actualStatus: string | null;
+  rubricVersion: string | null;
   flagCount: number;
   pillarScores: Record<string, string> | null;
   match: boolean;
@@ -38,6 +39,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       expectedTerminal: fixture.expectedTerminal,
       actualGrade: null,
       actualStatus: null,
+      rubricVersion: null,
       flagCount: 0,
       pillarScores: null,
       match: false,
@@ -117,6 +119,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       const row = Array.isArray(rows) ? rows[0] : rows;
       result.actualGrade = row.grade;
       result.actualStatus = "complete";
+      result.rubricVersion = row.rubric_version || null;
       result.flagCount = Array.isArray(row.flags) ? row.flags.length : 0;
 
       // Extract pillar scores from preview_json
@@ -250,6 +253,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
                 <th style={{ textAlign: "center", padding: "4px 8px" }}>Match</th>
                 <th style={{ textAlign: "center", padding: "4px 8px" }}>Flags</th>
                 <th style={{ textAlign: "left", padding: "4px 8px" }}>Pillars</th>
+                <th style={{ textAlign: "center", padding: "4px 8px" }}>Rubric</th>
                 <th style={{ textAlign: "left", padding: "4px 8px" }}>Error</th>
               </tr>
             </thead>
@@ -271,6 +275,9 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
                           </span>
                         ))
                       : "—"}
+                  </td>
+                  <td style={{ textAlign: "center", padding: "4px 8px", fontSize: 11, color: "#C8952A" }}>
+                    {r.rubricVersion || "—"}
                   </td>
                   <td style={{ padding: "4px 8px", color: "#ef4444", fontSize: 11, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {r.error || ""}

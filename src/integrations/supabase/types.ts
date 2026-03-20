@@ -354,6 +354,20 @@ export type Database = {
           id: string
         }[]
       }
+      get_rubric_stats: {
+        Args: never
+        Returns: {
+          avg_confidence: number
+          grade_a: number
+          grade_b: number
+          grade_c: number
+          grade_d: number
+          grade_f: number
+          invalid_count: number
+          rubric_version: string
+          total_count: number
+        }[]
+      }
       get_scan_status: {
         Args: { p_scan_session_id: string }
         Returns: {
