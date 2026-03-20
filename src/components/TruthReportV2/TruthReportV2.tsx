@@ -382,7 +382,7 @@ export function TruthReportV2({ analysis }: V2Props) {
             {` · Grade ${grade}`}
           </p>
         </div>
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-[12px] text-muted-foreground">
           This report is private. Only you can access it.
         </p>
       </motion.div>
