@@ -13,6 +13,7 @@ interface RunResult {
   expectedTerminal?: string;
   actualGrade: string | null;
   actualStatus: string | null;
+  rubricVersion: string | null;
   flagCount: number;
   pillarScores: Record<string, string> | null;
   match: boolean;
