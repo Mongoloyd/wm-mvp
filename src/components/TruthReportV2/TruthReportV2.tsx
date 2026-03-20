@@ -226,78 +226,97 @@ export function TruthReportV2({ analysis }: V2Props) {
           </p>
 
           <div className="flex flex-col gap-px bg-surface-border">
-            {topFindings.map((flag, i) => {
-              const sev = SEV[flag.severity];
-
-              /* ── PREVIEW: severity color + pillar only ── */
-              if (isPreview) {
-                return (
-                  <motion.button
-                    key={flag.id}
-                    {...fadeUp(0.18 + i * 0.06)}
-                    onClick={() => setModalOpen(true)}
-                    className={`relative bg-surface border-l-[3px] ${sev.border} px-5 py-4 text-left w-full transition-colors hover:bg-surface-border/30 group cursor-pointer`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {/* Severity dot */}
-                      <div className={`w-2.5 h-2.5 rounded-full ${sev.dot} shrink-0`} />
-
-                      {/* Pillar name */}
-                      <span className="text-xs font-mono text-muted-foreground tracking-wide">
-                        {COVERAGE_AREAS.find((c) => c.key === flag.pillar)?.label || flag.pillar || "General"}
-                      </span>
-
-                      {/* Verify prompt */}
-                      <span className="ml-auto flex items-center gap-1.5 text-xs text-gold font-mono opacity-70 group-hover:opacity-100 transition-opacity">
-                        <Lock size={11} />
-                        Verify to read →
-                      </span>
-                    </div>
-                  </motion.button>
-                );
-              }
-
-              /* ── FULL: show everything ── */
-              return (
-                <motion.div
-                  key={flag.id}
-                  {...fadeUp(0.18 + i * 0.06)}
-                  className={`relative bg-surface border-l-[3px] ${sev.border} px-5 py-4`}
-                >
-                  <div className="flex items-start gap-3">
-                    {sev.icon}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`inline-block px-2 py-0.5 text-[10px] font-mono font-bold tracking-wider ${sev.badge}`}>
-                          {sev.tag}
+            {isPreview ? (
+              /* ── PREVIEW: group by pillar, show worst severity + count ── */
+              (() => {
+                const pillarMap = new Map<string, { pillar: string; count: number; worstSeverity: "red" | "amber" | "green" }>();
+                const sevOrder = { red: 0, amber: 1, green: 2 };
+                for (const flag of sortedFlags) {
+                  const key = flag.pillar || "_general";
+                  const existing = pillarMap.get(key);
+                  if (!existing) {
+                    pillarMap.set(key, { pillar: key, count: 1, worstSeverity: flag.severity });
+                  } else {
+                    existing.count++;
+                    if (sevOrder[flag.severity] < sevOrder[existing.worstSeverity]) {
+                      existing.worstSeverity = flag.severity;
+                    }
+                  }
+                }
+                return Array.from(pillarMap.values()).map((group, i) => {
+                  const sev = SEV[group.worstSeverity];
+                  const pillarLabel = COVERAGE_AREAS.find((c) => c.key === group.pillar)?.label || group.pillar || "General";
+                  return (
+                    <motion.button
+                      key={group.pillar}
+                      {...fadeUp(0.18 + i * 0.06)}
+                      onClick={() => setModalOpen(true)}
+                      className={`relative bg-surface border-l-[3px] ${sev.border} px-5 py-4 text-left w-full transition-colors hover:bg-surface-border/30 group cursor-pointer`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2.5 h-2.5 rounded-full ${sev.dot} shrink-0`} />
+                        <span className="text-xs font-mono text-muted-foreground tracking-wide">
+                          {pillarLabel}
                         </span>
-                        {flag.pillar && (
-                          <span className="text-[10px] font-mono text-muted-foreground tracking-wide">
-                            {COVERAGE_AREAS.find((c) => c.key === flag.pillar)?.label || flag.pillar}
+                        {group.count > 1 && (
+                          <span className={`text-[10px] font-mono font-bold ${sev.badge} px-1.5 py-0.5`}>
+                            {group.count} findings
                           </span>
                         )}
+                        <span className="ml-auto flex items-center gap-1.5 text-xs text-gold font-mono opacity-70 group-hover:opacity-100 transition-opacity">
+                          <Lock size={11} />
+                          Verify to read →
+                        </span>
                       </div>
-                      <h3 className="text-sm font-semibold text-foreground leading-snug">
-                        {flag.label}
-                      </h3>
-                      <p className="mt-1.5 text-xs text-foreground/60 leading-relaxed">
-                        {flag.detail}
-                      </p>
-                      {flag.tip && (
-                        <p className="mt-2 text-xs text-foreground/50 italic border-t border-surface-border pt-2">
-                          {flag.tip}
+                    </motion.button>
+                  );
+                });
+              })()
+            ) : (
+              /* ── FULL: show everything ── */
+              topFindings.map((flag, i) => {
+                const sev = SEV[flag.severity];
+                return (
+                  <motion.div
+                    key={flag.id}
+                    {...fadeUp(0.18 + i * 0.06)}
+                    className={`relative bg-surface border-l-[3px] ${sev.border} px-5 py-4`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {sev.icon}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className={`inline-block px-2 py-0.5 text-[10px] font-mono font-bold tracking-wider ${sev.badge}`}>
+                            {sev.tag}
+                          </span>
+                          {flag.pillar && (
+                            <span className="text-[10px] font-mono text-muted-foreground tracking-wide">
+                              {COVERAGE_AREAS.find((c) => c.key === flag.pillar)?.label || flag.pillar}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-sm font-semibold text-foreground leading-snug">
+                          {flag.label}
+                        </h3>
+                        <p className="mt-1.5 text-xs text-foreground/60 leading-relaxed">
+                          {flag.detail}
                         </p>
-                      )}
+                        {flag.tip && (
+                          <p className="mt-2 text-xs text-foreground/50 italic border-t border-surface-border pt-2">
+                            {flag.tip}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })
+            )}
           </div>
 
-          {remainingCount > 0 && (
+          {!isPreview && remainingCount > 0 && (
             <p className="mt-3 text-xs text-muted-foreground">
-              + {remainingCount} more {remainingCount === 1 ? "finding" : "findings"}{isPreview ? " (unlock to view)" : ""}
+              + {remainingCount} more {remainingCount === 1 ? "finding" : "findings"}
             </p>
           )}
         </motion.div>
