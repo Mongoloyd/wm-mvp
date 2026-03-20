@@ -67,7 +67,7 @@ const DEFAULT_STATE: ScanFunnelState = {
 
 /* ── Context ───────────────────────────────────────────── */
 
-const ScanFunnelContext = createContext<ScanFunnelContextValue | null>(null);
+export const ScanFunnelContext = createContext<ScanFunnelContextValue | null>(null);
 
 /* ── Provider ──────────────────────────────────────────── */
 

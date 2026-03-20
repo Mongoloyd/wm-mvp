@@ -38,7 +38,7 @@ export function useReportAccess(
   if (DEV_REPORT_BYPASS) return "full";
 
   // Check ScanFunnelContext if available
-  const funnel = useScanFunnelSafe();
+  const funnel = useContext(ScanFunnelContext);
   if (funnel?.phoneStatus === "verified") return "full";
 
   // Fallback: gate on verification state from options
