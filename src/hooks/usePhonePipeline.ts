@@ -186,7 +186,7 @@ export function usePhonePipeline(
 
   const submitOtp = useCallback(
     async (code: string): Promise<PipelineVerifyResult> => {
-      if (code.length < 6 || !e164) {
+      if (code.length < 6 || !activePhone) {
         return { status: "error", error: "Enter the full 6-digit code." };
       }
 
