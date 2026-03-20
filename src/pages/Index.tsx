@@ -233,7 +233,7 @@ const Index = () => {
             </div>
           ) : activeData ? (
             <>
-              <TruthReport
+              <PostScanReportSwitcher
                 grade={reportGrade}
                 flags={reportFlags}
                 pillarScores={activeData.pillarScores}
