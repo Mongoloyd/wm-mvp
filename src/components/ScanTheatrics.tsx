@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useScanPolling, ScanStatus } from "@/hooks/useScanPolling";
 import { toast } from "sonner";
+import type { AnalysisData } from "@/hooks/useAnalysisData";
 
 interface ScanTheatricsProps {
   isActive: boolean;
   selectedCounty?: string;
   scanSessionId?: string | null;
   grade?: string;
+  analysisData?: AnalysisData | null;
   onRevealComplete?: () => void;
   onInvalidDocument?: () => void;
   onNeedsBetterUpload?: () => void;
