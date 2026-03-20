@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface RubricStatRow {
@@ -10,17 +10,21 @@ export interface RubricStatRow {
   grade_d: number;
   grade_f: number;
   avg_confidence: number | null;
+  min_confidence: number | null;
+  max_confidence: number | null;
+  avg_grade_score: number | null;
   invalid_count: number;
 }
 
-export function useRubricStats() {
+export function useRubricStats(days: number | null = null) {
   const [rows, setRows] = useState<RubricStatRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refetch = async () => {
+  const refetch = useCallback(async () => {
     setLoading(true);
-    const { data, error: rpcErr } = await supabase.rpc("get_rubric_stats");
+    const args = days != null ? { p_days: days } : {};
+    const { data, error: rpcErr } = await supabase.rpc("get_rubric_stats", args as any);
     if (rpcErr) {
       setError(rpcErr.message);
     } else {
@@ -28,9 +32,9 @@ export function useRubricStats() {
       setError(null);
     }
     setLoading(false);
-  };
+  }, [days]);
 
-  useEffect(() => { refetch(); }, []);
+  useEffect(() => { refetch(); }, [refetch]);
 
   return { rows, loading, error, refetch };
 }
