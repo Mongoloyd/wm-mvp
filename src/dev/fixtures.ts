@@ -133,6 +133,12 @@ export const DEV_PREVIEW_CONFIGS: Record<DevPreviewState, DevPreviewConfig> = {
     analysisData: GRADE_C_DATA,
     accessLevel: "preview",
   },
+  grade_d_preview: {
+    label: "Grade D (Preview)",
+    description: "Locked teaser, problem quote",
+    analysisData: GRADE_D_DATA,
+    accessLevel: "preview",
+  },
   grade_d_full: {
     label: "Grade D (Full)",
     description: "Unlocked, problem quote",
