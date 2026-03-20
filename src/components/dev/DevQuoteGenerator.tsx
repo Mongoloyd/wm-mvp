@@ -78,10 +78,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       });
       if (ssError) { result.error = `scan_sessions: ${ssError.message}`; return result; }
 
-      // 4. Notify parent if this is the first/only scan
-      if (!runningAll) {
-        onScanStart?.(`dev-${fixture.key}`, scanSessionId);
-      }
+      // 4. Skip page transition for single runs so results table stays visible
 
       // 5. Invoke scan-quote with bypass
       const { error: fnError } = await supabase.functions.invoke("scan-quote", {
