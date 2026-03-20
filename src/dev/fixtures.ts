@@ -177,6 +177,18 @@ export const DEV_PREVIEW_CONFIGS: Record<DevPreviewState, DevPreviewConfig> = {
     analysisData: GRADE_D_DATA,
     accessLevel: "full",
   },
+  grade_f_full: {
+    label: "Grade F (Full)",
+    description: "Unlocked, worst-case quote",
+    analysisData: GRADE_F_DATA,
+    accessLevel: "full",
+  },
+  grade_f_preview: {
+    label: "Grade F (Preview)",
+    description: "Locked teaser, worst-case quote",
+    analysisData: GRADE_F_DATA,
+    accessLevel: "preview",
+  },
   otp_gate: {
     label: "OTP Gate",
     description: "Preview mode — phone verification visible",
