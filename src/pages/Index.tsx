@@ -198,7 +198,7 @@ const Index = () => {
       )}
 
       {fileUploaded && !gradeRevealed && !isDevPreview && (
-        <ScanTheatrics isActive={true} selectedCounty={selectedCounty} scanSessionId={scanSessionId} grade={analysisData?.grade}
+        <ScanTheatrics isActive={true} selectedCounty={selectedCounty} scanSessionId={scanSessionId} grade={analysisData?.grade} analysisData={analysisData}
           onRevealComplete={() => { setGradeRevealed(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           onInvalidDocument={() => { setFileUploaded(false); setScanSessionId(null); }}
           onNeedsBetterUpload={() => { setFileUploaded(false); setScanSessionId(null); }}
