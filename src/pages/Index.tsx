@@ -241,7 +241,7 @@ const Index = () => {
                 county={selectedCounty}
                 confidenceScore={activeData.confidenceScore}
                 documentType={activeData.documentType}
-                accessLevel={activeAccess}
+                
                 qualityBand={activeData.qualityBand}
                 hasWarranty={activeData.hasWarranty}
                 hasPermits={activeData.hasPermits}

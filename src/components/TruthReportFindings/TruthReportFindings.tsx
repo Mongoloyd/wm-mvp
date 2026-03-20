@@ -123,7 +123,7 @@ const fadeUp = (delay: number) => ({
 
 /* ── Component ────────────────────────────────────────────────── */
 
-export function TruthReportV2({ analysis }: V2Props) {
+export function TruthReportFindings({ analysis }: V2Props) {
   const {
     grade,
     flags,

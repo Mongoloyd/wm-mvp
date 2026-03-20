@@ -123,7 +123,7 @@ export function ScanFunnelProvider({ children }: { children: React.ReactNode }) 
   );
 }
 
-/* ── Hook ──────────────────────────────────────────────── */
+/* ── Hooks ─────────────────────────────────────────────── */
 
 export function useScanFunnel(): ScanFunnelContextValue {
   const ctx = useContext(ScanFunnelContext);
@@ -131,4 +131,9 @@ export function useScanFunnel(): ScanFunnelContextValue {
     throw new Error("useScanFunnel must be used within a <ScanFunnelProvider>");
   }
   return ctx;
+}
+
+/** Safe version — returns null if outside provider (for shared hooks like useReportAccess) */
+export function useScanFunnelSafe(): ScanFunnelContextValue | null {
+  return useContext(ScanFunnelContext);
 }
