@@ -30,6 +30,13 @@ const GRADE_A_DATA: AnalysisData = {
   contractorName: "Hurricane Shield Windows",
   confidenceScore: 94,
   documentType: "quote",
+  pageCount: 4,
+  openingCount: 8,
+  lineItemCount: 12,
+  qualityBand: "good",
+  hasWarranty: true,
+  hasPermits: true,
+  analysisStatus: "complete",
   flags: [
     { id: 1, severity: "green", label: "NOA Codes Present", detail: "All product approval numbers are listed and verifiable.", tip: null, pillar: "safety_code" },
     { id: 2, severity: "green", label: "DP Rating Specified", detail: "Design pressure ratings match Broward County requirements.", tip: null, pillar: "safety_code" },
