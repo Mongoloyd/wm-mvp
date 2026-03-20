@@ -535,6 +535,15 @@ Deno.serve(async (req: Request) => {
     if (!processingUpdate.success) return processingUpdate.response;
 
     try {
+      // ── DEV BYPASS: skip file download + Gemini when override provided ──
+      const _devBypassSecret = Deno.env.get("DEV_BYPASS_SECRET");
+      const _useBypass = dev_extraction_override && dev_secret && _devBypassSecret && dev_secret === _devBypassSecret;
+      let parsed: unknown;
+
+      if (_useBypass) {
+        console.log(`[DEV BYPASS] Using extraction override for session ${scan_session_id}`);
+        parsed = dev_extraction_override;
+      } else {
       // 3. Load quote file
       const { data: qf, error: qfErr } = await supabase
         .from("quote_files")
