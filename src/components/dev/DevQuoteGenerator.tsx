@@ -31,8 +31,6 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
   const [running, setRunning] = useState<string | null>(null);
   const [runningAll, setRunningAll] = useState(false);
 
-  if (!import.meta.env.DEV) return null;
-
   const runScenario = useCallback(async (fixture: ScenarioFixture): Promise<RunResult> => {
     const result: RunResult = {
       scenarioKey: fixture.key,
