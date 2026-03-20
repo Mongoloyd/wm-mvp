@@ -67,6 +67,11 @@ const TruthReport = ({
   confidenceScore,
   documentType,
   accessLevel,
+  qualityBand,
+  hasWarranty,
+  hasPermits,
+  pageCount,
+  lineItemCount,
   onContractorMatchClick,
   onSecondScan
 }: TruthReportProps) => {
