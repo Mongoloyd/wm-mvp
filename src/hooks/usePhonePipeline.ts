@@ -231,7 +231,7 @@ export function usePhonePipeline(
 
     try {
       const { data, error } = await supabase.functions.invoke("send-otp", {
-        body: { phone_e164: e164 },
+        body: { phone_e164: activePhone },
       });
       if (error || !data?.success) {
         setErrorMsg(data?.error || "Failed to resend code.");
