@@ -1,4 +1,4 @@
-/* ScanFunnelContext — shared funnel state */
+/**
  * ScanFunnelContext — Funnel-scoped state for the quote-upload flow.
  *
  * Tracks phone, OTP, lead, session, and scan state so that
