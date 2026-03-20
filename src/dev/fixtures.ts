@@ -59,6 +59,13 @@ const GRADE_C_DATA: AnalysisData = {
   contractorName: "AllStar Impact Solutions",
   confidenceScore: 78,
   documentType: "estimate",
+  pageCount: 2,
+  openingCount: 6,
+  lineItemCount: 6,
+  qualityBand: "fair",
+  hasWarranty: null,
+  hasPermits: null,
+  analysisStatus: "preview_ready",
   flags: [
     { id: 1, severity: "red", label: "Missing NOA Codes", detail: "No product approval numbers listed. Cannot verify code compliance.", tip: "Ask the contractor to provide NOA numbers for every product listed.", pillar: "safety_code" },
     { id: 2, severity: "red", label: "Permit Fees Listed as TBD", detail: "Permit costs are not included. Open-ended cost exposure.", tip: "Request a fixed permit fee or a not-to-exceed clause before signing.", pillar: "fine_print" },
