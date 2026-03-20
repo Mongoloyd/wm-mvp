@@ -7,6 +7,7 @@ interface ScanTheatricsProps {
   isActive: boolean;
   selectedCounty?: string;
   scanSessionId?: string | null;
+  grade?: string;
   onRevealComplete?: () => void;
   onInvalidDocument?: () => void;
   onNeedsBetterUpload?: () => void;
@@ -31,7 +32,7 @@ const pillars = [
 
 type Phase = "scanning" | "cliffhanger" | "otp" | "pillars" | "reveal";
 
-const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null, onRevealComplete, onInvalidDocument, onNeedsBetterUpload }: ScanTheatricsProps) => {
+const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null, grade: gradeProp = "C", onRevealComplete, onInvalidDocument, onNeedsBetterUpload }: ScanTheatricsProps) => {
   const [phase, setPhase] = useState<Phase>("scanning");
   const [activeLogIndex, setActiveLogIndex] = useState(0);
   const [progressWidth, setProgressWidth] = useState(0);
@@ -427,7 +428,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                   }}
                 >
                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 64, fontWeight: 900, color: "#F97316" }}>
-                    C
+                    {gradeProp}
                   </span>
                 </div>
 

@@ -335,6 +335,7 @@ function detectFlags(data: ExtractionResult): Flag[] {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 5: ORCHESTRATION (HTTP handler)
+type ScanSessionStatus = "idle" | "uploading" | "processing" | "preview_ready" | "complete" | "invalid_document" | "needs_better_upload" | "error";
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // CRASH RECOVERY:
@@ -495,7 +496,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { scan_session_id } = await req.json();
+    const { scan_session_id, dev_extraction_override, dev_secret } = await req.json();
     if (!scan_session_id) {
       return jsonResponse({ error: "scan_session_id required" }, 400);
     }
@@ -503,8 +504,10 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const geminiKey = Deno.env.get("GEMINI_API_KEY");
+    const _devBypassSecretEarly = Deno.env.get("DEV_BYPASS_SECRET");
+    const _isDevBypass = dev_extraction_override && dev_secret && _devBypassSecretEarly && dev_secret === _devBypassSecretEarly;
 
-    if (!geminiKey) {
+    if (!geminiKey && !_isDevBypass) {
       console.error("GEMINI_API_KEY not configured");
       return jsonResponse({ error: "AI service not configured" }, 500);
     }
@@ -535,6 +538,15 @@ Deno.serve(async (req: Request) => {
     if (!processingUpdate.success) return processingUpdate.response;
 
     try {
+      // ── DEV BYPASS: skip file download + Gemini when override provided ──
+      const _devBypassSecret = Deno.env.get("DEV_BYPASS_SECRET");
+      const _useBypass = dev_extraction_override && dev_secret && _devBypassSecret && dev_secret === _devBypassSecret;
+      let parsed: unknown;
+
+      if (_useBypass) {
+        console.log(`[DEV BYPASS] Using extraction override for session ${scan_session_id}`);
+        parsed = dev_extraction_override;
+      } else {
       // 3. Load quote file
       const { data: qf, error: qfErr } = await supabase
         .from("quote_files")
@@ -680,7 +692,7 @@ Deno.serve(async (req: Request) => {
         cleanJson = cleanJson.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
       }
 
-      let parsed: unknown;
+      // parsed is declared above (hoisted for bypass support)
       try {
         parsed = JSON.parse(cleanJson);
       } catch (parseErr) {
@@ -706,6 +718,7 @@ Deno.serve(async (req: Request) => {
           scan_session_status: "needs_better_upload",
         }, 200);
       }
+      } // end else (non-bypass OCR path)
 
       // 8. CLASSIFICATION GATE — check document type BEFORE full extraction validation
       //    This catches invalid documents even when Gemini returns partial/malformed data.
@@ -859,7 +872,6 @@ Deno.serve(async (req: Request) => {
       }
 
       const extraction = validation.data;
-
 
       // 11. Score all pillars
       const gradeResult = computeGrade(extraction);

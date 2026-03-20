@@ -1,84 +1,72 @@
 // /components/dev/DevQuoteGenerator.tsx
-// This component NEVER renders in production.
+// Dev-only: OCR bypass mode + inline result inspector.
+// NEVER renders in production.
 
-import { createMockQuote } from "@/test/createMockQuote";
-import { useState } from "react";
+import { SCENARIO_FIXTURES, type ScenarioFixture } from "@/test/createMockQuote";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const SCENARIOS: Record<string, Record<string, unknown>> = {
-  lowSafety: { missing_specs: ["HVHZ", "DP rating"], price_per_window: 299 },
-  vagueScope: { missing_specs: ["flashing", "sealing", "disposal"] },
-  missingWarranty: { warranty_length: null },
-  overpaymentTrap: { price_per_window: 1200, warranty_length: "Lifetime" },
-  cornerCutting: { price_per_window: 199, missing_specs: ["glass thickness", "lamination"] },
-  insuranceSensitive: { missing_specs: ["stucco sealant"], user_context: { timeline: "ASAP" } },
-  finePrintTrap: { missing_specs: ["change orders", "permit fees"] },
-};
+interface RunResult {
+  scenarioKey: string;
+  expectedGrade: string | null;
+  expectedTerminal?: string;
+  actualGrade: string | null;
+  actualStatus: string | null;
+  flagCount: number;
+  pillarScores: Record<string, string> | null;
+  match: boolean;
+  error?: string;
+}
 
 interface DevQuoteGeneratorProps {
   sessionId?: string | null;
   onScanStart?: (fileName: string, scanSessionId: string) => void;
 }
 
+const DEV_SECRET = import.meta.env.VITE_DEV_BYPASS_SECRET as string | undefined;
+
 export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorProps) {
-  const [status, setStatus] = useState("");
-  const [uploading, setUploading] = useState(false);
+  const [results, setResults] = useState<RunResult[]>([]);
+  const [running, setRunning] = useState<string | null>(null);
+  const [runningAll, setRunningAll] = useState(false);
 
-  if (!import.meta.env.DEV) return null;
-
-  const handleGenerate = async (scenarioKey: string) => {
-    if (uploading) return;
-
-    const overrides = SCENARIOS[scenarioKey];
-    const mock = createMockQuote(overrides);
-    console.log("🧪 Mock quote generated:", mock);
-
-    // If no sessionId, just log — don't upload
-    if (!sessionId) {
-      setStatus(`Generated mock (no session): ${scenarioKey} (${mock.id.slice(0, 8)})`);
-      return;
-    }
-
-    setUploading(true);
-    setStatus(`Fetching sample quote image...`);
+  const runScenario = useCallback(async (fixture: ScenarioFixture): Promise<RunResult> => {
+    const result: RunResult = {
+      scenarioKey: fixture.key,
+      expectedGrade: fixture.expectedGrade,
+      expectedTerminal: fixture.expectedTerminal,
+      actualGrade: null,
+      actualStatus: null,
+      flagCount: 0,
+      pillarScores: null,
+      match: false,
+    };
 
     try {
-      // 1. Get the real sample quote image and upload
-      const realFile = await mock.getFile();
-      const filePath = `${sessionId}/${Date.now()}_${realFile.name}`;
-      setStatus(`Uploading ${scenarioKey}...`);
-      const { error: uploadError } = await supabase.storage.from("quotes").upload(filePath, realFile);
-      if (uploadError) {
-        console.error("🧪 Storage upload failed:", uploadError);
-        toast.error("Dev upload failed: " + uploadError.message);
-        setStatus(`❌ Upload failed: ${uploadError.message}`);
-        setUploading(false);
-        return;
+      if (!DEV_SECRET) {
+        result.error = "VITE_DEV_BYPASS_SECRET not set in .env";
+        return result;
       }
 
-      // 2. Get lead_id
+      // 1. Get lead_id if session exists
       let leadId: string | null = null;
-      const { data: leads } = await supabase.rpc("get_lead_by_session", { p_session_id: sessionId });
-      leadId = leads?.[0]?.id || null;
+      if (sessionId) {
+        const { data: leads } = await supabase.rpc("get_lead_by_session", { p_session_id: sessionId });
+        leadId = leads?.[0]?.id || null;
+      }
 
-      // 3. Insert quote_files
+      // 2. Create placeholder quote_files record
       const quoteFileId = crypto.randomUUID();
       const { error: qfError } = await supabase.from("quote_files").insert({
         id: quoteFileId,
         lead_id: leadId,
-        storage_path: filePath,
+        storage_path: `dev-bypass/${fixture.key}/${quoteFileId}.json`,
         status: "pending",
       });
-      if (qfError) {
-        console.error("🧪 quote_files insert failed:", qfError);
-        toast.error("Dev: quote_files insert failed");
-        setStatus(`❌ quote_files failed`);
-        setUploading(false);
-        return;
-      }
+      if (qfError) { result.error = `quote_files: ${qfError.message}`; return result; }
 
-      // 4. Insert scan_sessions
+      // 3. Create scan_sessions record
       const scanSessionId = crypto.randomUUID();
       const { error: ssError } = await supabase.from("scan_sessions").insert({
         id: scanSessionId,
@@ -86,68 +74,213 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
         lead_id: leadId,
         quote_file_id: quoteFileId,
       });
-      if (ssError) {
-        console.error("🧪 scan_sessions insert failed:", ssError);
-        toast.error("Dev: scan_sessions insert failed");
-        setStatus(`❌ scan_sessions failed`);
-        setUploading(false);
-        return;
+      if (ssError) { result.error = `scan_sessions: ${ssError.message}`; return result; }
+
+      // 4. Notify parent if this is the first/only scan
+      if (!runningAll) {
+        onScanStart?.(`dev-${fixture.key}`, scanSessionId);
       }
 
-      // 5. Notify parent
-      onScanStart?.(realFile.name, scanSessionId);
-
-      // 6. Invoke scan-quote edge function
-      setStatus(`⏳ Scanning ${scenarioKey}... (session: ${scanSessionId.slice(0, 8)})`);
+      // 5. Invoke scan-quote with bypass
       const { error: fnError } = await supabase.functions.invoke("scan-quote", {
-        body: { scan_session_id: scanSessionId },
+        body: {
+          scan_session_id: scanSessionId,
+          dev_extraction_override: fixture.extraction,
+          dev_secret: DEV_SECRET,
+        },
       });
+
       if (fnError) {
-        console.error("🧪 scan-quote invoke failed:", fnError);
-        toast.error("Dev: scan invoke failed — check edge function logs");
-        setStatus(`⚠️ Scan invoked but errored: ${scanSessionId.slice(0, 8)}`);
-      } else {
-        setStatus(`✅ ${scenarioKey} → scan session ${scanSessionId.slice(0, 8)} started`);
-        toast.success(`Dev scan started: ${scenarioKey}`);
+        result.error = `invoke: ${fnError.message}`;
+        return result;
       }
+
+      // 6. Fetch result via get_analysis_preview
+      const { data: rows, error: rpcErr } = await supabase.rpc("get_analysis_preview", {
+        p_scan_session_id: scanSessionId,
+      });
+
+      if (rpcErr || !rows || (Array.isArray(rows) && rows.length === 0)) {
+        // Check scan status for terminal states
+        const { data: statusRows } = await supabase.rpc("get_scan_status", {
+          p_scan_session_id: scanSessionId,
+        });
+        const scanStatus = statusRows?.[0]?.status || "unknown";
+        result.actualStatus = scanStatus;
+
+        if (fixture.expectedTerminal && scanStatus === fixture.expectedTerminal) {
+          result.match = true;
+        }
+        return result;
+      }
+
+      const row = Array.isArray(rows) ? rows[0] : rows;
+      result.actualGrade = row.grade;
+      result.actualStatus = "complete";
+      result.flagCount = Array.isArray(row.flags) ? row.flags.length : 0;
+
+      // Extract pillar scores from preview_json
+      const preview = row.preview_json as Record<string, unknown> | null;
+      if (preview?.pillar_scores && typeof preview.pillar_scores === "object") {
+        const ps = preview.pillar_scores as Record<string, { status?: string }>;
+        result.pillarScores = {};
+        for (const [key, val] of Object.entries(ps)) {
+          result.pillarScores[key] = val?.status || "?";
+        }
+      }
+
+      // Check match
+      if (fixture.expectedGrade) {
+        result.match = row.grade === fixture.expectedGrade;
+      }
+
+      return result;
     } catch (err) {
-      console.error("🧪 Dev scan error:", err);
-      toast.error("Dev: unexpected error");
-      setStatus(`❌ Error: ${String(err)}`);
-    } finally {
-      setUploading(false);
+      result.error = String(err);
+      return result;
     }
+  }, [sessionId, runningAll, onScanStart]);
+
+  const handleRunSingle = async (fixture: ScenarioFixture) => {
+    setRunning(fixture.key);
+    const result = await runScenario(fixture);
+    setResults(prev => {
+      const filtered = prev.filter(r => r.scenarioKey !== fixture.key);
+      return [...filtered, result];
+    });
+    setRunning(null);
+
+    if (result.error) toast.error(`${fixture.key}: ${result.error}`);
+    else if (result.match) toast.success(`${fixture.key}: ✅ ${result.actualGrade || result.actualStatus}`);
+    else toast.warning(`${fixture.key}: expected ${fixture.expectedGrade || fixture.expectedTerminal}, got ${result.actualGrade || result.actualStatus}`);
   };
 
+  const handleRunAll = async () => {
+    setRunningAll(true);
+    setResults([]);
+    const allResults: RunResult[] = [];
+
+    for (const fixture of SCENARIO_FIXTURES) {
+      setRunning(fixture.key);
+      const result = await runScenario(fixture);
+      allResults.push(result);
+      setResults([...allResults]);
+    }
+
+    setRunning(null);
+    setRunningAll(false);
+
+    const matches = allResults.filter(r => r.match).length;
+    toast.info(`Run All complete: ${matches}/${allResults.length} matched`);
+  };
+
+  const getResultForKey = (key: string) => results.find(r => r.scenarioKey === key);
+
+  if (!import.meta.env.DEV) return null;
+
   return (
-    <div style={{ padding: 16, border: "1px dashed #555", marginTop: 24, background: "#0a0a0a" }}>
-      <h3 style={{ color: "#e5e5e5", marginBottom: 8 }}>🧪 Dev Quote Generator</h3>
-      <p style={{ color: "#999", fontSize: 13, marginBottom: 12 }}>
-        {sessionId
-          ? `Session: ${sessionId.slice(0, 8)}… — clicks will upload & trigger real scan`
-          : "No session ID — complete the Truth Gate first to enable real uploads"}
-      </p>
-      {Object.keys(SCENARIOS).map((key) => (
+    <div style={{ padding: 16, border: "1px dashed #555", marginTop: 24, background: "#0a0a0a", maxWidth: 800 }}>
+      <div className="flex items-center justify-between mb-3">
+        <h3 style={{ color: "#e5e5e5", margin: 0 }}>🧪 Dev Quote Generator (OCR Bypass)</h3>
         <button
-          key={key}
-          onClick={() => handleGenerate(key)}
-          disabled={uploading}
+          onClick={handleRunAll}
+          disabled={!!running || runningAll}
           style={{
-            marginRight: 8,
-            marginBottom: 8,
-            padding: "6px 12px",
-            background: uploading ? "#333" : "#1a1a1a",
-            color: "#e5e5e5",
-            border: "1px solid #333",
+            padding: "6px 16px",
+            background: runningAll ? "#333" : "#2563EB",
+            color: "#fff",
+            border: "none",
             borderRadius: 4,
-            cursor: uploading ? "not-allowed" : "pointer",
+            cursor: runningAll ? "not-allowed" : "pointer",
             fontSize: 13,
+            fontWeight: 600,
           }}
         >
-          {key}
+          {runningAll ? "Running..." : "▶ Run All Scenarios"}
         </button>
-      ))}
-      <p style={{ marginTop: 12, fontStyle: "italic", color: "#999", fontSize: 13 }}>{status}</p>
+      </div>
+
+      <p style={{ color: "#999", fontSize: 12, marginBottom: 12 }}>
+        {DEV_SECRET
+          ? `Bypass secret: ✓ configured | Session: ${sessionId ? sessionId.slice(0, 8) + "…" : "none (will create records without lead)"}`
+          : "⚠️ VITE_DEV_BYPASS_SECRET not set — add it to .env"}
+      </p>
+
+      {/* Scenario buttons */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+        {SCENARIO_FIXTURES.map((fixture) => {
+          const result = getResultForKey(fixture.key);
+          const isRunning = running === fixture.key;
+          const bgColor = isRunning ? "#333" : result ? (result.match ? "#14532d" : "#7f1d1d") : "#1a1a1a";
+
+          return (
+            <button
+              key={fixture.key}
+              onClick={() => handleRunSingle(fixture)}
+              disabled={!!running}
+              title={fixture.description}
+              style={{
+                padding: "5px 10px",
+                background: bgColor,
+                color: "#e5e5e5",
+                border: `1px solid ${result?.match ? "#22c55e" : result ? "#ef4444" : "#333"}`,
+                borderRadius: 4,
+                cursor: running ? "not-allowed" : "pointer",
+                fontSize: 12,
+                fontFamily: "'DM Mono', monospace",
+              }}
+            >
+              {isRunning ? "⏳" : result ? (result.match ? "✅" : "❌") : "○"}{" "}
+              {fixture.label}
+              {fixture.expectedGrade ? ` → ${fixture.expectedGrade}` : ` → ${fixture.expectedTerminal}`}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Results table */}
+      {results.length > 0 && (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: "'DM Mono', monospace" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #333", color: "#999" }}>
+                <th style={{ textAlign: "left", padding: "4px 8px" }}>Scenario</th>
+                <th style={{ textAlign: "center", padding: "4px 8px" }}>Expected</th>
+                <th style={{ textAlign: "center", padding: "4px 8px" }}>Actual</th>
+                <th style={{ textAlign: "center", padding: "4px 8px" }}>Match</th>
+                <th style={{ textAlign: "center", padding: "4px 8px" }}>Flags</th>
+                <th style={{ textAlign: "left", padding: "4px 8px" }}>Pillars</th>
+                <th style={{ textAlign: "left", padding: "4px 8px" }}>Error</th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((r) => (
+                <tr key={r.scenarioKey} style={{ borderBottom: "1px solid #222", color: "#e5e5e5" }}>
+                  <td style={{ padding: "4px 8px" }}>{r.scenarioKey}</td>
+                  <td style={{ textAlign: "center", padding: "4px 8px" }}>{r.expectedGrade || r.expectedTerminal}</td>
+                  <td style={{ textAlign: "center", padding: "4px 8px", color: r.match ? "#22c55e" : "#ef4444" }}>
+                    {r.actualGrade || r.actualStatus || "—"}
+                  </td>
+                  <td style={{ textAlign: "center", padding: "4px 8px" }}>{r.match ? "✅" : "❌"}</td>
+                  <td style={{ textAlign: "center", padding: "4px 8px" }}>{r.flagCount}</td>
+                  <td style={{ padding: "4px 8px", fontSize: 11 }}>
+                    {r.pillarScores
+                      ? Object.entries(r.pillarScores).map(([k, v]) => (
+                          <span key={k} style={{ marginRight: 6, color: v === "pass" ? "#22c55e" : v === "warn" ? "#eab308" : v === "fail" ? "#ef4444" : "#666" }}>
+                            {k.replace(/_/g, "").slice(0, 3)}:{v}
+                          </span>
+                        ))
+                      : "—"}
+                  </td>
+                  <td style={{ padding: "4px 8px", color: "#ef4444", fontSize: 11, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {r.error || ""}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
