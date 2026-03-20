@@ -1,111 +1,191 @@
+# Post‑Analysis Credibility Layer: ScanTheatrics + TruthReport (Phase 0.7)
 
+## Summary
 
-# Answers to the Two Blind Spots + Implementation Plan
+This plan adds a **credibility and validation layer** that begins during scanning (ScanTheatrics) and persists into the pre‑OTP preview report (TruthReport).  
+It uses **only** `preview_json`, `proof_of_read`, and `analysis_status` — **never** `full_json`.
 
-## Blind Spot A: `proof_of_read` — Answered
+The goal is to build trust in the *process* before revealing *analysis*.
 
-From `scan-quote/index.ts` lines 873-879, `proof_of_read` is a **structured object**, not a boolean. It's computed deterministically from the extraction:
+Two distinct moments are supported:
 
-```text
-proof_of_read = {
-  page_count:      extraction.page_count || null
-  opening_count:   extraction.opening_count || extraction.line_items.length
-  contractor_name: extraction.contractor_name || null
-  document_type:   extraction.document_type
-  line_item_count: extraction.line_items.length
-}
+1. **During scan (no OCR data yet)**    
+Optimistic, generic process validation that confirms the system is actively reading the document — without claiming extracted values.
+2. **After scan (preview_json + proof_of_read available)**    
+Real, affirmative trust signals that prove the document was read — without revealing grading, numeric metrics, or deficiencies.
+
+## Phase 1: Extend useAnalysisData (Data Availability Only)
+
+**File:** `src/hooks/useAnalysisData.ts`
+
+Extend the `AnalysisData` interface to expose the following fields for downstream use:
+
+- `pageCount: number | null`
+- `openingCount: number | null`
+- `lineItemCount: number | null`
+- `qualityBand: "good" | "fair" | "poor" | null`
+- `hasWarranty: boolean | null`
+- `hasPermits: boolean | null`
+- `analysisStatus: "preview_ready" | "complete" | "invalid_document" | "needs_better_upload" | "error"`
+
+Extract these from existing `proof_of_read`, `preview_json`, and scan status in the fetch handler (lines 217–227).  
+No new RPC calls are required — all fields are already returned by `get_analysis_preview`.
+
+> **Important:**    
+> These fields are made available for later use, but **numeric counts must not be rendered in ScanTheatrics or pre‑OTP preview UI**.
+
+## Phase 2: OCR Validation Summary in ScanTheatrics
+
+**File:** `src/components/ScanTheatrics.tsx`
+
+Add an **OCR Validation Summary** component that appears as part of the scan theater and transitions based on scan state.
+
+### A. While scanning (no OCR data yet)
+
+After the animated log steps complete and during the cliffhanger phase, replace the static “Data extracted successfully” text with **generic, optimistic process validation copy**:
+
+text
+
+```
+✓ Document structure detected
+✓ Text readability confirmed
+✓ Quote layout identified
+
 ```
 
-- It's derived from extracted fields, not scored
-- It's exposed via `get_analysis_preview` RPC (safe for UI)
-- It's informational — it proves the system read the document
-- It's stable enough to design against
+Rules:
 
-## Blind Spot B: `preview_json` vs `full_json` — Answered
+- These statements are **process‑level only**
+- They must not claim specific extracted values
+- They must not imply success or failure
+- They animate in sequence as the scan progresses
 
-They are **separately shaped objects**, not a subset relationship.
+### B. When preview data becomes available
 
-**`preview_json`** (lines 882-891) — teaser-safe:
-```text
-{
-  grade, flag_count, opening_count_bucket,
-  quality_band ("good"|"fair"|"poor"),
-  hard_cap_applied, has_warranty, has_permits,
-  pillar_scores: { safety_code: {status}, install_scope: {status}, ... }
-}
+When `analysisData` is present and `analysisStatus` is `preview_ready` or `complete`, transition the OCR Validation Summary to show **affirmative trust signals**:
+
+#### 1. Proof‑of‑Read Trust Signals (Presence‑Based Only)
+
+Render descriptive confirmations **only when confidently present**:
+
+- “Multi‑page document analyzed” (if `pageCount` exists)
+- “Detailed line items detected” (if `lineItemCount > 0`)
+- “Contractor information identified” (if contractor name exists)
+
+> **Do not display numeric counts** (e.g., “6 openings”, “8 line items”) in ScanTheatrics.
+
+#### 2. OCR Read Quality Badge
+
+Display a single badge summarizing how confidently the document was read:
+
+- **Excellent**
+- **Great**
+- **Good**
+- **Fair**
+
+Derived from:
+
+- OCR confidence score
+- Presence of key anchors (document type, contractor name, totals, line items)
+
+Rules:
+
+- Never show negative labels
+- Never show “Poor” or “Incomplete”
+- Only show negative messaging when backend gating applies
+
+#### 3. Gated States (Backend‑Driven Only)
+
+If `analysisStatus` is:
+
+- `needs_better_upload`    
+→ Show: “We need a clearer photo or PDF to continue.”
+- `invalid_document`    
+→ Show:  
+“This document does not appear to be a window or door installation quote.  
+It appears to relate to another type of contract.  
+I’m trained specifically on window and door quotes — please upload a window or door contract to continue.”
+
+No analysis or grading is performed for non‑window documents.
+
+### New Props Added to ScanTheatrics
+
+- `analysisData?: AnalysisData | null`
+
+**File:** `src/pages/Index.tsx`    
+Pass `analysisData` from `useAnalysisData` into `ScanTheatrics`.
+
+## Phase 3: TruthReport Preview Enhancements (Pre‑OTP Only)
+
+**File:** `src/components/TruthReport.tsx`
+
+### New Props
+
+- `qualityBand`
+- `hasWarranty`
+- `hasPermits`
+- `analysisStatus`
+
+> Numeric fields (`pageCount`, `openingCount`, `lineItemCount`) remain available but **must not be rendered in preview mode**.
+
+### Preview‑Mode Changes (`accessLevel === "preview"`)
+
+#### 1. Proof‑of‑Read Trust Strip
+
+Insert a subtle trust strip between the grade verdict and the 5‑pillar section:
+
+- Uses **descriptive presence‑based language only**
+- Reuses the OCR Read Quality badge from ScanTheatrics
+- No numeric counts
+- No grading language
+
+#### 2. Summary Chips (Affirmative Only)
+
+Render summary chips in the grade verdict bar:
+
+- `qualityBand` → “Good Quote Structure” / “Fair Quote Structure”
+- `hasWarranty === true` → “Warranty: Found”
+- `hasPermits === true` → “Permits: Found”
+
+Rules:
+
+- **Only render when truthy**
+- Do not render “Missing”, “Not found”, or negative states in preview
+- Absence results in no chip
+
+#### 3. Flag Severity Counts
+
+Keep existing severity counts above the `LockedOverlay`:
+
+Code
+
 ```
-Pillar scores are coarse bands: `"pass"` / `"warn"` / `"fail"`.
+{critical} critical · {caution} caution · {confirmed} confirmed
 
-**`full_json`** (lines 894-902) — OTP-gated:
-```text
-{
-  grade, weighted_average, hard_cap_applied,
-  pillar_scores: { safety: number, install: number, ... },
-  flags: Flag[],
-  extraction: ExtractionResult,
-  rubric_version
-}
 ```
 
-Key differences: `full_json` has numeric pillar scores, the complete flag array with details, and the raw extraction. `preview_json` has coarse bands and counts only.
+No changes required — current behavior is correct.
 
-Both are stable. The UI should be designed against `preview_json` for pre-OTP and `full_json` for post-OTP.
+#### 4. Post‑OTP Rendering
 
----
+No changes.  
+Full report continues to use `full_json` with numeric scores, flags, and metrics.
 
-## Implementation Plan: OCR Bypass + Fixtures + Result Inspector
+## Files Changed
 
-### Phase 1: Edge Function Bypass (~15 lines)
 
-**File**: `supabase/functions/scan-quote/index.ts`
+| File                               | Change                                                   |
+| ---------------------------------- | -------------------------------------------------------- |
+| `src/hooks/useAnalysisData.ts`     | Extend AnalysisData interface + extract preview fields   |
+| `src/components/ScanTheatrics.tsx` | Add OCR Validation Summary (process‑level → trust‑level) |
+| `src/components/TruthReport.tsx`   | Add preview trust strip + affirmative summary chips      |
+| `src/pages/Index.tsx`              | Pass analysisData to ScanTheatrics and TruthReport       |
 
-After parsing `scan_session_id` (line 498), also parse `dev_extraction_override` and `dev_secret`. If `dev_secret === Deno.env.get("DEV_BYPASS_SECRET")` and `dev_extraction_override` is present:
-- Skip steps 3-7 (file lookup, download, base64, Gemini call, JSON parse)
-- Set `parsed = dev_extraction_override`
-- Fall through to step 8 (classification gate) and all subsequent scoring logic unchanged
 
-Add `DEV_BYPASS_SECRET` to Supabase edge function secrets.
+## What Does NOT Change
 
-### Phase 2: Fixture Matrix
-
-**File**: `src/test/createMockQuote.ts`
-
-Add 14 structured `ExtractionResult` fixtures, each with an `expectedGrade`. Move scenario definitions from `DevQuoteGenerator.tsx` into this file. Each fixture is a complete `ExtractionResult` matching the interface at lines 26-53 of the edge function.
-
-Scenarios: `gradeA`, `gradeB`, `gradeC`, `gradeD`, `gradeF`, `mixedPillars`, `cornerCutting`, `overpaymentTrap`, `vagueScope`, `missingWarranty`, `finePrintTrap`, `insuranceSensitive`, `invalidDocument`, `lowConfidence`.
-
-### Phase 3: DevQuoteGenerator Rewrite
-
-**File**: `src/components/dev/DevQuoteGenerator.tsx`
-
-- Send `{ scan_session_id, dev_extraction_override, dev_secret }` instead of uploading files
-- Still create `quote_files` (placeholder path) and `scan_sessions` records
-- Skip storage upload entirely (OCR is bypassed)
-- After scan completes, call `get_analysis_preview` and display inline:
-  - Actual grade vs expected (checkmark or X)
-  - Pillar statuses from `preview_json.pillar_scores`
-  - Flag count and analysis_status
-- "Run All" button to queue all scenarios sequentially with summary table
-
-`VITE_DEV_BYPASS_SECRET` added to `.env` for client-side use in dev only.
-
-### Phase 4: Fix Hardcoded Grade
-
-**File**: `src/components/ScanTheatrics.tsx`
-
-Line 429-430 hardcodes "C". Add a `grade` prop (default "C"), pass `analysisData?.grade` from `Index.tsx`.
-
-**File**: `src/pages/Index.tsx` — pass grade prop to ScanTheatrics.
-
-### Files changed
-
-| File | Action |
-|---|---|
-| `supabase/functions/scan-quote/index.ts` | Add ~15-line bypass after line 498 |
-| `src/test/createMockQuote.ts` | Add 14 ExtractionResult fixtures |
-| `src/components/dev/DevQuoteGenerator.tsx` | Rewrite: bypass mode + inspector |
-| `src/components/ScanTheatrics.tsx` | Add `grade` prop |
-| `src/pages/Index.tsx` | Pass grade to ScanTheatrics |
-| Supabase secrets | Add `DEV_BYPASS_SECRET` |
-| `.env` | Add `VITE_DEV_BYPASS_SECRET` |
-
+- LockedOverlay OTP gate
+- Full (post‑OTP) report rendering
+- Edge function logic
+- DevQuoteGenerator and fixtures
+- Scoring, grading, or rubric behavior
