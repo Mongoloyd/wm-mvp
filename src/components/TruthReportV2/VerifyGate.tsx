@@ -2,11 +2,10 @@
  * VerifyGate — Inline phone/OTP form placed between findings and evidence.
  * Includes Zeigarnik progress bar ("STEP 2 OF 2").
  *
- * This is a self-contained verification form (not a modal) for users
- * who scroll past the banner without clicking.
+ * Phase 2: resend cooldown, error-clearing on input, ARIA labels.
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Loader2 } from "lucide-react";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
@@ -21,6 +20,8 @@ interface VerifyGateProps {
 
 type Step = "phone" | "sending" | "otp" | "verifying";
 
+const RESEND_COOLDOWN = 30;
+
 const fadeUp = {
   initial: { opacity: 0, y: 16, filter: "blur(4px)" },
   animate: { opacity: 1, y: 0, filter: "blur(0px)" },
@@ -32,11 +33,37 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
   const [otpValue, setOtpValue] = useState("");
   const [step, setStep] = useState<Step>("phone");
   const [errorMsg, setErrorMsg] = useState("");
+  const [cooldown, setCooldown] = useState(0);
 
   const isPhoneStep = step === "phone" || step === "sending";
   const isOtpStep = step === "otp" || step === "verifying";
   const digitCount = rawDigits.length;
   const progressPercent = isPhoneStep ? 50 + (digitCount / 10) * 40 : 95;
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  // Clear error when phone input changes
+  const handlePhoneChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (errorMsg) setErrorMsg("");
+      handleChange(e);
+    },
+    [handleChange, errorMsg]
+  );
+
+  // Clear error when OTP input changes
+  const handleOtpChange = useCallback(
+    (val: string) => {
+      if (errorMsg) setErrorMsg("");
+      setOtpValue(val);
+    },
+    [errorMsg]
+  );
 
   const handleSendCode = async () => {
     if (!isValid || !e164) return;
@@ -52,9 +79,28 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
         return;
       }
       setStep("otp");
+      setCooldown(RESEND_COOLDOWN);
     } catch {
       setErrorMsg("Network error. Try again.");
       setStep("phone");
+    }
+  };
+
+  const handleResend = async () => {
+    if (cooldown > 0 || !e164) return;
+    setErrorMsg("");
+    setCooldown(RESEND_COOLDOWN);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-otp", {
+        body: { phone_e164: e164 },
+      });
+      if (error || !data?.success) {
+        setErrorMsg(data?.error || "Failed to resend code.");
+        setCooldown(0);
+      }
+    } catch {
+      setErrorMsg("Network error. Try again.");
+      setCooldown(0);
     }
   };
 
@@ -82,6 +128,8 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
     <motion.div
       {...fadeUp}
       className="mb-12 border border-gold/30 bg-gold/[0.03] px-5 sm:px-8 py-7"
+      role="region"
+      aria-label="Phone verification to unlock report"
     >
       {/* Progress bar */}
       <div className="mb-5">
@@ -93,7 +141,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
             {isPhoneStep ? "ALMOST UNLOCKED" : "VERIFYING"}
           </span>
         </div>
-        <div className="h-1 bg-surface-border overflow-hidden">
+        <div className="h-1 bg-surface-border overflow-hidden" role="progressbar" aria-valuenow={Math.round(progressPercent)} aria-valuemin={0} aria-valuemax={100}>
           <motion.div
             animate={{ width: `${progressPercent}%` }}
             transition={{ duration: 0.4, ease: "easeOut" }}
@@ -104,7 +152,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
 
       {/* Headline */}
       <div className="flex items-center gap-2 mb-1">
-        <Lock size={14} className="text-gold" />
+        <Lock size={14} className="text-gold" aria-hidden="true" />
         <span className="font-mono text-[10px] tracking-[0.1em] text-gold font-bold">
           VERIFICATION REQUIRED
         </span>
@@ -122,6 +170,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-xs text-vivid-orange mb-3 font-medium"
+          role="alert"
         >
           {errorMsg}
         </motion.p>
@@ -137,14 +186,16 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
             className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-[480px]"
           >
             <div className="relative flex-1">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground font-semibold pointer-events-none">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground font-semibold pointer-events-none" aria-hidden="true">
                 +1
               </span>
               <input
                 type="tel"
                 value={displayValue}
-                onChange={handleChange}
+                onChange={handlePhoneChange}
                 placeholder="(555) 555-5555"
+                aria-label="US phone number"
+                autoComplete="tel-national"
                 className="w-full h-[50px] bg-surface text-foreground text-center text-lg font-semibold tracking-wide pl-10 pr-4 outline-none border-2 transition-all duration-200 caret-gold"
                 style={{
                   borderColor: isValid ? "hsl(var(--gold))" : "hsl(var(--surface-border))",
@@ -155,6 +206,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
             <button
               onClick={handleSendCode}
               disabled={!isValid || step === "sending"}
+              aria-label={`Send verification code to unlock ${issueCount} issues`}
               className="h-[50px] px-6 font-bold text-sm flex items-center justify-center gap-2 shrink-0 transition-all active:scale-[0.97]"
               style={{
                 background: isValid ? "linear-gradient(135deg, hsl(var(--gold)), #E2B04A)" : "hsl(var(--gold) / 0.2)",
@@ -164,7 +216,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
               }}
             >
               {step === "sending" ? (
-                <><Loader2 size={16} className="animate-spin" /> Sending…</>
+                <><Loader2 size={16} className="animate-spin" aria-hidden="true" /> Sending…</>
               ) : (
                 <>🔓 Reveal {issueCount} Issue{issueCount !== 1 ? "s" : ""}</>
               )}
@@ -180,10 +232,10 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
             exit={{ opacity: 0, y: -8 }}
             className="flex flex-col items-start gap-3"
           >
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground" id="otp-instructions">
               Enter the 6-digit code sent to your phone
             </p>
-            <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
+            <InputOTP maxLength={6} value={otpValue} onChange={handleOtpChange} aria-describedby="otp-instructions">
               <InputOTPGroup>
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <InputOTPSlot
@@ -194,10 +246,11 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
                 ))}
               </InputOTPGroup>
             </InputOTP>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <button
                 onClick={handleVerify}
                 disabled={otpValue.length < 6 || step === "verifying"}
+                aria-label="Verify code and unlock report"
                 className="h-[50px] px-6 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.97]"
                 style={{
                   background: otpValue.length === 6 ? "linear-gradient(135deg, hsl(var(--gold)), #E2B04A)" : "hsl(var(--gold) / 0.2)",
@@ -206,13 +259,21 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
                 }}
               >
                 {step === "verifying" ? (
-                  <><Loader2 size={16} className="animate-spin" /> Verifying…</>
+                  <><Loader2 size={16} className="animate-spin" aria-hidden="true" /> Verifying…</>
                 ) : (
                   "Verify & Unlock Report"
                 )}
               </button>
               <button
-                onClick={() => { setStep("phone"); setOtpValue(""); setErrorMsg(""); }}
+                onClick={handleResend}
+                disabled={cooldown > 0}
+                className="text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40 disabled:no-underline disabled:cursor-default transition-opacity"
+                aria-label={cooldown > 0 ? `Resend code available in ${cooldown} seconds` : "Resend verification code"}
+              >
+                {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+              </button>
+              <button
+                onClick={() => { setStep("phone"); setOtpValue(""); setErrorMsg(""); setCooldown(0); }}
                 className="text-xs text-muted-foreground underline underline-offset-2"
               >
                 Use a different number
