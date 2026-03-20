@@ -355,15 +355,18 @@ export type Database = {
         }[]
       }
       get_rubric_stats: {
-        Args: never
+        Args: { p_days?: number }
         Returns: {
           avg_confidence: number
+          avg_grade_score: number
           grade_a: number
           grade_b: number
           grade_c: number
           grade_d: number
           grade_f: number
           invalid_count: number
+          max_confidence: number
+          min_confidence: number
           rubric_version: string
           total_count: number
         }[]
