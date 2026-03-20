@@ -196,7 +196,7 @@ export function usePhonePipeline(
       try {
         const { data, error } = await supabase.functions.invoke("verify-otp", {
           body: {
-            phone_e164: e164,
+            phone_e164: activePhone,
             code,
             scan_session_id: options?.scanSessionId || undefined,
           },
