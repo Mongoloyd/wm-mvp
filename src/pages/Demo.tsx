@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import LinearHeader from "@/components/LinearHeader";
-import TruthReport from "@/components/TruthReport";
+import { TruthReportV2 } from "@/components/TruthReportV2/TruthReportV2";
 import type { AnalysisData } from "@/hooks/useAnalysisData";
 
 /**
@@ -65,25 +65,27 @@ const Demo = () => {
         </p>
       </div>
 
-      <TruthReport
-        grade={DEMO_DATA.grade}
-        flags={DEMO_DATA.flags}
-        pillarScores={DEMO_DATA.pillarScores}
-        contractorName={DEMO_DATA.contractorName}
-        county="Broward"
-        confidenceScore={DEMO_DATA.confidenceScore}
-        documentType={DEMO_DATA.documentType}
-        accessLevel="preview"
-        qualityBand={DEMO_DATA.qualityBand}
-        hasWarranty={DEMO_DATA.hasWarranty}
-        hasPermits={DEMO_DATA.hasPermits}
-        pageCount={DEMO_DATA.pageCount}
-        lineItemCount={DEMO_DATA.lineItemCount}
-        onContractorMatchClick={() => {
-          window.location.href = "/#truth-gate";
-        }}
-        onSecondScan={() => {
-          window.location.href = "/";
+      <TruthReportV2
+        analysis={{
+          grade: DEMO_DATA.grade,
+          flags: DEMO_DATA.flags,
+          pillarScores: DEMO_DATA.pillarScores,
+          contractorName: DEMO_DATA.contractorName,
+          county: "Broward",
+          confidenceScore: DEMO_DATA.confidenceScore,
+          documentType: DEMO_DATA.documentType,
+          accessLevel: "preview",
+          qualityBand: DEMO_DATA.qualityBand,
+          hasWarranty: DEMO_DATA.hasWarranty,
+          hasPermits: DEMO_DATA.hasPermits,
+          pageCount: DEMO_DATA.pageCount,
+          lineItemCount: DEMO_DATA.lineItemCount,
+          onContractorMatchClick: () => {
+            window.location.href = "/#truth-gate";
+          },
+          onSecondScan: () => {
+            window.location.href = "/";
+          },
         }}
       />
     </div>
