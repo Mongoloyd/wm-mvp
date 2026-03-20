@@ -127,7 +127,7 @@ export function usePhonePipeline(
 
     // 1. Screen
     const screen = screenPhone(rawDigits);
-    if (!screen.ok) {
+    if (screen.ok === false) {
       setPhoneStatus("invalid");
       setErrorMsg(screen.reason);
       return { status: "blocked", error: screen.reason };
