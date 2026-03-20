@@ -496,15 +496,15 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                     width: 120,
                     height: 120,
                     borderRadius: 0,
-                    background: "rgba(249,115,22,0.08)",
-                    border: "3px solid #F97316",
+                    background: `${GRADE_COLORS[gradeProp] || GRADE_COLORS.C}14`,
+                    border: `3px solid ${GRADE_COLORS[gradeProp] || GRADE_COLORS.C}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow: "0 0 40px rgba(249,115,22,0.3)",
+                    boxShadow: `0 0 40px ${GRADE_COLORS[gradeProp] || GRADE_COLORS.C}4D`,
                   }}
                 >
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 64, fontWeight: 900, color: "#F97316" }}>
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 64, fontWeight: 900, color: GRADE_COLORS[gradeProp] || GRADE_COLORS.C }}>
                     {gradeProp}
                   </span>
                 </div>
@@ -512,7 +512,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                 {skippedOtp ? (
                   <>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#E5E5E5", marginTop: 20 }}>
-                      Your quote scored a C.
+                      {GRADE_MESSAGES[gradeProp] || `Your quote scored a ${gradeProp}.`}
                     </p>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 8, maxWidth: 360, lineHeight: 1.6 }}>
                       This is a basic score. Verify your phone to unlock your full report with line-by-line pricing breakdown, red flags, and negotiation tips.
