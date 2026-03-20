@@ -828,4 +828,4 @@ function humanizeDocType(dt: string): string {
   return map[dt.toLowerCase()] || dt;
 }
 
-export default TruthReport;
+export default TruthReportClassic;

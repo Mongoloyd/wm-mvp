@@ -2,7 +2,7 @@
  * ScanFunnelContext — Funnel-scoped state for the quote-upload flow.
  *
  * Tracks phone, OTP, lead, session, and scan state so that
- * downstream components (ScanTheatrics, VerifyGate, TruthReportV2)
+ * downstream components (ScanTheatrics, VerifyGate, TruthReportFindings)
  * can branch correctly without prop-threading.
  *
  * Wrap the quote-upload funnel subtree with <ScanFunnelProvider>.
