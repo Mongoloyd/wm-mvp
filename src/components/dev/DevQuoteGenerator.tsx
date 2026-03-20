@@ -277,6 +277,9 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
                         ))
                       : "—"}
                   </td>
+                  <td style={{ padding: "4px 8px", fontSize: 11, color: r.hardCap ? "#f97316" : "#555", whiteSpace: "nowrap" }}>
+                    {r.hardCap || "—"}
+                  </td>
                   <td style={{ textAlign: "center", padding: "4px 8px", fontSize: 11, color: "#C8952A" }}>
                     {r.rubricVersion || "—"}
                   </td>
