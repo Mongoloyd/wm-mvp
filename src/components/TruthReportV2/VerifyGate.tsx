@@ -265,9 +265,10 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
                 )}
               </button>
               <button
+                type="button"
                 onClick={handleResend}
                 disabled={cooldown > 0}
-                className="text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40 disabled:no-underline disabled:cursor-default transition-opacity"
+                className="text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-50 disabled:no-underline disabled:cursor-default transition-opacity"
                 aria-label={cooldown > 0 ? `Resend code available in ${cooldown} seconds` : "Resend verification code"}
               >
                 {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
