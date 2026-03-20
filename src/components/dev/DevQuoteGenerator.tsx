@@ -176,6 +176,8 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
 
   const getResultForKey = (key: string) => results.find(r => r.scenarioKey === key);
 
+  if (!import.meta.env.DEV) return null;
+
   return (
     <div style={{ padding: 16, border: "1px dashed #555", marginTop: 24, background: "#0a0a0a", maxWidth: 800 }}>
       <div className="flex items-center justify-between mb-3">
