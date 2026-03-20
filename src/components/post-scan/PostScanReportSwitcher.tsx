@@ -60,6 +60,7 @@ export function PostScanReportSwitcher(props: Props) {
   // Phone pipeline — used for send_code and enter_phone modes
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: props.scanSessionId,
+    externalPhoneE164: funnel?.phoneE164 ?? null,
     onVerified: () => {
       funnel?.setPhoneStatus("verified");
     },
