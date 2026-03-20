@@ -4,6 +4,22 @@ import { useScanPolling, ScanStatus } from "@/hooks/useScanPolling";
 import { toast } from "sonner";
 import type { AnalysisData } from "@/hooks/useAnalysisData";
 
+const GRADE_COLORS: Record<string, string> = {
+  A: "#059669",
+  B: "#84CC16",
+  C: "#F97316",
+  D: "#DC2626",
+  F: "#991B1B",
+};
+
+const GRADE_MESSAGES: Record<string, string> = {
+  A: "Your quote scored an A.",
+  B: "Your quote scored a B.",
+  C: "Your quote scored a C.",
+  D: "Your quote scored a D.",
+  F: "Your quote scored an F.",
+};
+
 interface ScanTheatricsProps {
   isActive: boolean;
   selectedCounty?: string;
