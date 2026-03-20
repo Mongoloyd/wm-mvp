@@ -1,79 +1,86 @@
 
-Goal: fix the bridge between `ScanFunnelContext` and `usePhonePipeline` before any more gate work, without changing the Classic overlay visually.
+Yes, I see the problem you are describing very clearly.
 
-What I verified
-- Your diagnosis is correct.
-- `PostScanReportSwitcher` derives the right gate mode from funnel state, but it does not pass the known funnel phone into `usePhonePipeline`.
-- `usePhonePipeline` currently drives `submitPhone()`, `submitOtp()`, and `resend()` from its own internal `usePhoneInput()` state.
-- That means:
-  1. `enter_code` can render while `submitOtp()` still has no active phone
-  2. `send_code` can render while `submitPhone()` still screens an empty local input
-  3. `resend()` has the same disconnect
-- `TruthReportClassic` is already visually decoupled enough for this step; the blocker is the pipeline bridge.
+But after inspecting the current code, I do not think that exact bridge bug is still present in the latest implementation.
 
-Chosen approach
-- Use Option A: make `usePhonePipeline` support an external active phone from funnel state.
-- Reason: this is the cleanest architecture, keeps the overlay presentation-only, and avoids seeding local input state just to make OTP actions work.
+What the problem is, in plain English
+- The risk was: the funnel knew the user’s phone, but the OTP hook was still acting like it only knew whatever was typed into its own local phone input.
+- That would create a fake-ready state:
+  - the overlay shows “enter your code”
+  - the user types the code
+  - but verify/send/resend may fail because the hook does not know which phone number to use
 
-Implementation plan
-1. Update `usePhonePipeline` to accept an external phone option
-- Add something like `externalPhoneE164?: string | null`
-- Internally derive one active phone source:
-  - external funnel phone when present
-  - otherwise local phone input state
-- Keep local input behavior only for the rare `enter_phone` path
+What it would affect
+- `enter_code` mode:
+  - user sees a 6-digit field
+  - `submitOtp()` could fail if no active phone is bound
+- `send_code` mode:
+  - user clicks “Get Your Code”
+  - `submitPhone()` could try to validate empty local input instead of using the already-known funnel phone
+- `resend`:
+  - could also fire against no phone or the wrong source
+- CRO impact:
+  - this is the worst kind of failure because the page looks persuasive and ready, but breaks exactly at the conversion moment
 
-2. Make pipeline actions use the active phone source
-- `submitOtp(code)` should verify against the active phone, not only the local `e164`
-- `resend()` should resend to the active phone
-- `submitPhone()` should behave in two ways:
-  - if external phone exists: skip local screening and send OTP to that known phone
-  - if no external phone exists: use the current local input screening flow
+What I found in the current code
+1. `PostScanReportSwitcher` is now passing the funnel phone into the pipeline:
+- `externalPhoneE164: funnel?.phoneE164 ?? null`
 
-3. Wire `PostScanReportSwitcher` to the shared phone source
-- Pass `funnel?.phoneE164` into `usePhonePipeline`
-- Keep `gateMode` derivation as-is
-- Keep `TruthReportClassic` visually unchanged
-- Keep overlay props presentation-only
+2. `usePhonePipeline` now derives:
+- `activePhone = options?.externalPhoneE164 || e164`
 
-4. Preserve the current CRO hierarchy
-- Best path: known phone + OTP already sent upstream -> `enter_code`
-- Fallback: known phone but OTP not sent -> `send_code`
-- Rare: no phone -> `enter_phone`
-- Do not add report-load auto-send in this step
+3. The pipeline actions now use that shared source:
+- `submitOtp()` verifies against `activePhone`
+- `resend()` sends to `activePhone`
+- `submitPhone()` uses `externalPhoneE164` when present, and only falls back to local screening when no upstream phone exists
 
-5. Focused verification after the bridge fix
-- `enter_code`: verify succeeds using upstream `funnel.phoneE164`
-- `send_code`: “Get Your Code” sends to upstream `funnel.phoneE164`
-- `enter_phone`: local entry still screens, normalizes, sends, then writes back to funnel
-- `resend`: uses the same correct phone source in both known-phone and local-phone paths
+So the exact mismatch you described was a real architectural bug earlier, but from what is currently in the code, that bridge appears to have already been fixed.
 
-Files I expect to change
-- `src/hooks/usePhonePipeline.ts`
-- `src/components/post-scan/PostScanReportSwitcher.tsx`
-- Possibly no visual changes needed in:
-  - `src/components/TruthReportClassic.tsx`
-  - `src/components/LockedOverlay.tsx`
+What still matters now
+- The main remaining question is no longer “does the hook know the phone?”
+- It is now “does the funnel status get set at the right times so users land in the best gate mode?”
+- In other words:
+  - bridge problem: appears fixed
+  - journey problem: still needs verification and then upstream OTP timing wiring
 
-Why I’m choosing this
-- It fixes the real bug at the source instead of patching individual handlers
-- It preserves the strongest CRO asset you already have: the centered Classic lock overlay
-- It keeps business logic shared and gate presentation per-report
-- It sets up the right future funnel behavior: users who already gave a phone should land directly in code-entry mode, not phone-entry mode
+Two options forward
 
-What this means for CRO
-- Right now the most important thing is trust + immediacy:
-  - they arrive
-  - they already see the grade/flags
-  - the code field is ready
-  - verification works on the first try against the correct number
-- If the known-phone bridge is wrong, the page can look persuasive while failing at the exact conversion moment
-- Fixing this first protects conversion before you invest in upstream send timing or a stronger Findings gate
+Option 1 — stabilize and verify the bridge before any new flow work
+- Do a focused review/test plan for the three gate modes:
+  - `enter_code` uses upstream phone for verify
+  - `send_code` uses upstream phone for send
+  - `enter_phone` uses local input, then writes back to funnel
+- Confirm `verified` flips access from preview to full
+- Confirm no visual regression in Classic overlay
 
-What remains after this step
-1. Verify all 3 gate modes visually and functionally
-2. Wire upstream OTP send so most users naturally land in `enter_code`
-3. Build the stronger Findings-specific lock treatment on top of the same shared mechanics
+Why this option is strong
+- It protects conversion first
+- It prevents building upstream OTP timing on top of a partially tested bridge
+- It is the safest sequencing choice
 
-Decision point for you
-- I recommend proceeding exactly with the external-phone pipeline approach above, keeping Classic visually untouched and fixing the bridge first.
+Option 2 — move directly to upstream OTP send wiring
+- Treat the bridge as done
+- Next wire the earlier phone-capture step so most users arrive with:
+  - `phoneE164` known
+  - `phoneStatus = otp_sent`
+- That makes the report open directly in `enter_code` mode
+
+Why this option is riskier
+- If there is any hidden edge case in the bridge, you will compound it across the whole funnel
+- You may end up debugging timing and state issues at the same time
+
+My recommendation
+- Choose Option 1.
+- Reason: the specific phone-source bridge looks fixed in code, but this is too important to assume. I would verify the shared mechanics first, then wire upstream OTP send second, then build the Findings-specific gate third.
+
+Recommended order from here
+1. Verify the pipeline/context bridge in all 3 gate modes
+2. Confirm Classic overlay still behaves correctly with shared state
+3. Wire upstream OTP send so most users land in `enter_code`
+4. Build the Findings lock treatment on the same shared mechanics
+
+Concise bottom line
+- Yes, the problem you described is real in principle and would be a major CRO failure.
+- But in the current code, the actual bridge appears to be fixed already.
+- So I would not re-fix that layer blindly.
+- I would verify it first, then move to upstream OTP send, because that is now the bigger lever for maximizing lead capture plus number verification.
