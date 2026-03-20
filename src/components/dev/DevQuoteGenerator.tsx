@@ -119,6 +119,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       const row = Array.isArray(rows) ? rows[0] : rows;
       result.actualGrade = row.grade;
       result.actualStatus = "complete";
+      result.rubricVersion = row.rubric_version || null;
       result.flagCount = Array.isArray(row.flags) ? row.flags.length : 0;
 
       // Extract pillar scores from preview_json
