@@ -689,7 +689,7 @@ Deno.serve(async (req: Request) => {
         cleanJson = cleanJson.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
       }
 
-      let parsed: unknown;
+      // parsed is declared above (hoisted for bypass support)
       try {
         parsed = JSON.parse(cleanJson);
       } catch (parseErr) {
