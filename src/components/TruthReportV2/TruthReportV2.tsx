@@ -373,10 +373,10 @@ export function TruthReportV2({ analysis }: V2Props) {
       {/* ── Footer stamp ───────────────────────────────────── */}
       <motion.div {...fadeUp(0.65)} className="mt-16 pt-6 border-t border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <p className="font-mono text-[11px] font-bold text-foreground/70 tracking-wide">
+         <p className="font-mono text-[14px] font-bold text-foreground/70 tracking-wide">
             WindowMan Truth Report™
           </p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[12px] text-muted-foreground">
             {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
             {county && county !== "your county" ? ` · ${county}` : ""}
             {` · Grade ${grade}`}
