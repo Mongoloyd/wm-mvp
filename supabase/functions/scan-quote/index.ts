@@ -715,6 +715,7 @@ Deno.serve(async (req: Request) => {
           scan_session_status: "needs_better_upload",
         }, 200);
       }
+      } // end else (non-bypass OCR path)
 
       // 8. CLASSIFICATION GATE — check document type BEFORE full extraction validation
       //    This catches invalid documents even when Gemini returns partial/malformed data.
