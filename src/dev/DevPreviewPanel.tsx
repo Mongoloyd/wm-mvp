@@ -83,28 +83,63 @@ export default function DevPreviewPanel({ currentState, onChange }: DevPreviewPa
         )}
       </AnimatePresence>
 
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          background: currentState !== "none" ? "#C8952A" : "#0F1F35",
-          color: "white",
-          border: "1px solid rgba(255,255,255,0.15)",
-          borderRadius: 10,
-          padding: "8px 14px",
-          fontSize: 12,
-          fontWeight: 600,
-          cursor: "pointer",
-          boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
-          transition: "all 0.15s",
-        }}
-      >
-        <Bug size={14} />
-        {currentState !== "none" ? DEV_PREVIEW_CONFIGS[currentState].label : "DEV"}
-        {isOpen ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
-      </button>
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          onClick={() => setShowRubricStats(!showRubricStats)}
+          style={{
+            display: "flex", alignItems: "center", gap: 4,
+            background: showRubricStats ? "#C8952A" : "#0F1F35",
+            color: "white",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: 10,
+            padding: "8px 10px",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+          }}
+          title="Rubric Stats"
+        >
+          <BarChart3 size={14} />
+        </button>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: currentState !== "none" ? "#C8952A" : "#0F1F35",
+            color: "white",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: 10,
+            padding: "8px 14px",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+            transition: "all 0.15s",
+          }}
+        >
+          <Bug size={14} />
+          {currentState !== "none" ? DEV_PREVIEW_CONFIGS[currentState].label : "DEV"}
+          {isOpen ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
+        </button>
+      </div>
+
+      {/* Rubric Stats Panel */}
+      <AnimatePresence>
+        {showRubricStats && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            style={{ position: "fixed", bottom: 60, left: 4, zIndex: 9998 }}
+          >
+            <RubricComparison />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
