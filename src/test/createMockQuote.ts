@@ -97,7 +97,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
   {
     key: "gradeB",
     label: "Grade B",
-    description: "Good quote, 1 item missing NOA, no cancellation policy",
+    description: "Good quote, missing NOA numbers, no cancellation policy, no disposal",
     expectedGrade: "B",
     extraction: {
       document_type: "impact_window_quote",
@@ -109,12 +109,12 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
       total_quoted_price: 12600,
       hvhz_zone: true,
       line_items: [
-        { description: "PGT WinGuard Impact Single Hung Window", quantity: 2, unit_price: 1700, total_price: 3400, brand: "PGT", series: "WinGuard", dp_rating: "DP50", noa_number: "NOA 17-0501.06", dimensions: "36x60" },
+        { description: "PGT WinGuard Impact Single Hung Window", quantity: 2, unit_price: 1700, total_price: 3400, brand: "PGT", series: "WinGuard", dp_rating: "DP50", dimensions: "36x60" },
         { description: "Impact Sliding Glass Door - hurricane rated", quantity: 1, unit_price: 4200, total_price: 4200, brand: "CGI", series: "Sentinel", dp_rating: "DP50", dimensions: "72x80" },
       ],
-      warranty: { labor_years: 2, manufacturer_years: 20, transferable: true, details: "Standard manufacturer warranty." },
+      warranty: { labor_years: 2, manufacturer_years: 20, transferable: true },
       permits: { included: true, responsible_party: "contractor" },
-      installation: { scope_detail: "Remove and replace all specified openings. Caulk and seal.", disposal_included: true, accessories_mentioned: false },
+      installation: { scope_detail: "Remove and replace all specified openings. Caulk and seal." },
     },
   },
   {
