@@ -216,7 +216,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
   {
     key: "overpaymentTrap",
     label: "Overpayment Trap",
-    description: "$2200/unit with full specs — high price but complete quote",
+    description: "Premium pricing, missing NOA on one item, no cancellation policy",
     expectedGrade: "B",
     extraction: {
       document_type: "impact_window_quote",
@@ -224,16 +224,16 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
       confidence: 0.92,
       page_count: 2,
       contractor_name: "Premium Impact Solutions",
-      opening_count: 4,
+      opening_count: 5,
       total_quoted_price: 22000,
       hvhz_zone: true,
-      cancellation_policy: "Cancel within 72 hours for full refund.",
       line_items: [
         { description: "PGT WinGuard Impact Single Hung - Hurricane rated", quantity: 4, unit_price: 2200, total_price: 8800, brand: "PGT", series: "WinGuard", dp_rating: "DP50", noa_number: "NOA 17-0501.06", dimensions: "36x60" },
+        { description: "PGT WinGuard Impact Sliding Door - Hurricane rated", quantity: 1, unit_price: 5200, total_price: 5200, brand: "PGT", series: "WinGuard", dp_rating: "DP50", dimensions: "72x80" },
       ],
-      warranty: { labor_years: 10, manufacturer_years: 25, transferable: true, details: "Full lifetime manufacturer warranty. 10-year labor." },
+      warranty: { labor_years: 10, manufacturer_years: 25, details: "Full lifetime manufacturer warranty. 10-year labor." },
       permits: { included: true, responsible_party: "contractor", details: "Permits and inspection included." },
-      installation: { scope_detail: "Full removal, install, caulk, foam, stucco patch, trim, cleanup.", disposal_included: true, accessories_mentioned: true },
+      installation: { scope_detail: "Full removal, install, caulk, foam, stucco patch, trim, cleanup.", disposal_included: true },
     },
   },
   {
