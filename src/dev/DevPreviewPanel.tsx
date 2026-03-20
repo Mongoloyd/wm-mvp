@@ -84,6 +84,8 @@ export default function DevPreviewPanel({ currentState, onChange }: DevPreviewPa
         )}
       </AnimatePresence>
 
+      <AnalysisViewModeToggle className="mb-2" compact />
+
       <div style={{ display: "flex", gap: 6 }}>
         <button
           onClick={() => setShowRubricStats(!showRubricStats)}

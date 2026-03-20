@@ -38,8 +38,8 @@ export function AnalysisViewModeProvider({ children }: { children: React.ReactNo
   }, []);
 
   const toggleMode = useCallback(() => {
-    setMode((prev) => (prev === "v1" ? "v2" : "v1"));
-  }, [setMode]);
+    setModeState((prev) => (prev === "v1" ? "v2" : "v1"));
+  }, []);
 
   const value = useMemo(
     () => ({ mode, setMode, toggleMode, isReady }),
