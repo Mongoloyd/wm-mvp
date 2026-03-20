@@ -219,7 +219,7 @@ export function usePhonePipeline(
         return { status: "error", error: msg };
       }
     },
-    [e164, options]
+    [activePhone, options]
   );
 
   /* ── resend ──────────────────────────────────────────── */
