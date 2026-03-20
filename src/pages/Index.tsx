@@ -10,7 +10,7 @@ import SocialProofStrip from "@/components/SocialProofStrip";
 import TruthGateFlow from "@/components/TruthGateFlow";
 import UploadZone from "@/components/UploadZone";
 import ScanTheatrics from "@/components/ScanTheatrics";
-import TruthReport from "@/components/TruthReport";
+import { PostScanReportSwitcher } from "@/components/post-scan/PostScanReportSwitcher";
 import ContractorMatch from "@/components/ContractorMatch";
 import IndustryTruth from "@/components/IndustryTruth";
 import ProcessSteps from "@/components/ProcessSteps";
@@ -233,7 +233,7 @@ const Index = () => {
             </div>
           ) : activeData ? (
             <>
-              <TruthReport
+              <PostScanReportSwitcher
                 grade={reportGrade}
                 flags={reportFlags}
                 pillarScores={activeData.pillarScores}
