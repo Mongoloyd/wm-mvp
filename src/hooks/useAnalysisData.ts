@@ -24,6 +24,13 @@ export interface AnalysisData {
   confidenceScore: number | null;
   pillarScores: PillarScore[];
   documentType: string | null;
+  pageCount: number | null;
+  openingCount: number | null;
+  lineItemCount: number | null;
+  qualityBand: "good" | "fair" | "poor" | null;
+  hasWarranty: boolean | null;
+  hasPermits: boolean | null;
+  analysisStatus: string | null;
 }
 
 const PILLAR_DEFS: { key: string; label: string }[] = [
