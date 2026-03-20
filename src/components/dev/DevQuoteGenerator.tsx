@@ -253,6 +253,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
                 <th style={{ textAlign: "center", padding: "4px 8px" }}>Match</th>
                 <th style={{ textAlign: "center", padding: "4px 8px" }}>Flags</th>
                 <th style={{ textAlign: "left", padding: "4px 8px" }}>Pillars</th>
+                <th style={{ textAlign: "center", padding: "4px 8px" }}>Rubric</th>
                 <th style={{ textAlign: "left", padding: "4px 8px" }}>Error</th>
               </tr>
             </thead>
