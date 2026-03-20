@@ -5,8 +5,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bug, ChevronUp, ChevronDown } from "lucide-react";
+import { Bug, ChevronUp, ChevronDown, BarChart3 } from "lucide-react";
 import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "./fixtures";
+import { RubricComparison } from "@/components/dev/RubricComparison";
 
 interface DevPreviewPanelProps {
   currentState: DevPreviewState;
