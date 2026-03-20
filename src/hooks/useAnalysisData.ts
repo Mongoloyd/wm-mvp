@@ -196,30 +196,47 @@ export function useAnalysisData(
   useEffect(() => {
     if (!enabled || !scanSessionId || fetchedRef.current === scanSessionId) return;
 
-    fetchedRef.current = scanSessionId;
     setIsLoading(true);
     setError(null);
 
-    (async () => {
+    let retryTimer: number | undefined;
+    let cancelled = false;
+
+    const doFetch = async (attempt: number) => {
       try {
         const { data: rows, error: rpcErr } = await supabase.rpc(
           "get_analysis_preview",
           { p_scan_session_id: scanSessionId }
         );
 
+        if (cancelled) return;
+
         if (rpcErr) {
-          setError("Failed to load analysis.");
           console.error("get_analysis_preview error:", rpcErr);
+          // Retry up to 8 times (~20s total) in case analysis isn't ready yet
+          if (attempt < 8) {
+            retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500);
+            return;
+          }
+          setError("Failed to load analysis.");
           setIsLoading(false);
           return;
         }
 
         const row = Array.isArray(rows) ? rows[0] : rows;
         if (!row || !row.grade) {
+          // Analysis not ready yet — retry
+          if (attempt < 8) {
+            retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500);
+            return;
+          }
           setError("Analysis not found.");
           setIsLoading(false);
           return;
         }
+
+        // Success — mark as fetched so we don't re-fetch
+        fetchedRef.current = scanSessionId;
 
         const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
         const previewJson = row.preview_json as Record<string, unknown> | null;
@@ -244,12 +261,24 @@ export function useAnalysisData(
           analysisStatus: typeof (row as any).analysis_status === "string" ? (row as any).analysis_status : null,
         });
       } catch (err) {
+        if (cancelled) return;
         console.error("useAnalysisData exception:", err);
+        if (attempt < 8) {
+          retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500);
+          return;
+        }
         setError("Unexpected error loading analysis.");
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
-    })();
+    };
+
+    doFetch(0);
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
   }, [scanSessionId, enabled]);
 
   return { data, isLoading, error };
