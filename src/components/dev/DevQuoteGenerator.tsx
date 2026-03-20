@@ -16,6 +16,7 @@ interface RunResult {
   rubricVersion: string | null;
   flagCount: number;
   pillarScores: Record<string, string> | null;
+  hardCap: string | null;
   match: boolean;
   error?: string;
 }
