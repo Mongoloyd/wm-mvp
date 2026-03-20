@@ -93,7 +93,7 @@ function validateExtraction(raw: unknown): { success: true; data: ExtractionResu
 // SECTION 2: RUBRIC (weights, thresholds, hard caps)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const RUBRIC_VERSION = "1.0.0";
+const RUBRIC_VERSION = "1.1.0";
 
 const PILLAR_WEIGHTS = {
   safety: 0.25,
@@ -103,7 +103,7 @@ const PILLAR_WEIGHTS = {
   warranty: 0.15,
 };
 
-const GRADE_THRESHOLDS: Record<string, number> = { A: 85, B: 70, C: 55, D: 40 };
+const GRADE_THRESHOLDS: Record<string, number> = { A: 88, B: 70, C: 52, D: 37 };
 
 const CONFIDENCE_THRESHOLD = 0.4;
 
@@ -132,8 +132,8 @@ function scoreSafety(data: ExtractionResult): number {
   const itemsWithoutDp = items.filter(i => !i.dp_rating);
   const itemsWithoutNoa = items.filter(i => !i.noa_number);
 
-  if (itemsWithoutDp.length > 0) score -= Math.min(40, itemsWithoutDp.length * 20);
-  if (itemsWithoutNoa.length > 0) score -= Math.min(30, itemsWithoutNoa.length * 15);
+  if (itemsWithoutDp.length > 0) score -= Math.min(50, itemsWithoutDp.length * 25);
+  if (itemsWithoutNoa.length > 0) score -= Math.min(40, itemsWithoutNoa.length * 20);
   if (data.hvhz_zone === undefined || data.hvhz_zone === null) score -= 10;
 
   // Check if any items clearly mention "impact" in description
@@ -244,14 +244,32 @@ function computeGrade(data: ExtractionResult): GradeResult {
   let grade = letterGrade(weightedAvg);
   let hardCapApplied: string | null = null;
 
-  // Hard cap: no impact product mentions
-  const hasImpact = data.line_items.some(i => /impact|hurricane|storm/i.test(i.description || ""));
-  if (!hasImpact && data.line_items.length > 0) {
-    if (GRADE_RANK[grade] <= GRADE_RANK["D"]) { /* already at or below D */ }
-    else { grade = "D"; hardCapApplied = "no_impact_products"; }
+  // Hard cap: no warranty section at all → max C
+  if (!data.warranty && data.line_items.length > 0) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = "no_warranty_section";
+    }
   }
 
-  // Hard cap: zero line items
+  // Hard cap: safety pillar critically low → max C
+  if (pillarScores.safety < 25 && data.line_items.length > 0) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = hardCapApplied ? hardCapApplied + "+critical_safety" : "critical_safety";
+    }
+  }
+
+  // Hard cap: no impact product mentions → max D
+  const hasImpact = data.line_items.some(i => /impact|hurricane|storm/i.test(i.description || ""));
+  if (!hasImpact && data.line_items.length > 0) {
+    if (GRADE_RANK[grade] > GRADE_RANK["D"]) {
+      grade = "D";
+      hardCapApplied = hardCapApplied ? hardCapApplied + "+no_impact_products" : "no_impact_products";
+    }
+  }
+
+  // Hard cap: zero line items → F
   if (data.line_items.length === 0) {
     grade = "F";
     hardCapApplied = "zero_line_items";

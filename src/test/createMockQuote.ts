@@ -97,7 +97,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
   {
     key: "gradeB",
     label: "Grade B",
-    description: "Good quote, 1 item missing NOA, no cancellation policy",
+    description: "Good quote, missing NOA numbers, no cancellation policy, no disposal",
     expectedGrade: "B",
     extraction: {
       document_type: "impact_window_quote",
@@ -109,12 +109,12 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
       total_quoted_price: 12600,
       hvhz_zone: true,
       line_items: [
-        { description: "PGT WinGuard Impact Single Hung Window", quantity: 2, unit_price: 1700, total_price: 3400, brand: "PGT", series: "WinGuard", dp_rating: "DP50", noa_number: "NOA 17-0501.06", dimensions: "36x60" },
+        { description: "PGT WinGuard Impact Single Hung Window", quantity: 2, unit_price: 1700, total_price: 3400, brand: "PGT", series: "WinGuard", dp_rating: "DP50", dimensions: "36x60" },
         { description: "Impact Sliding Glass Door - hurricane rated", quantity: 1, unit_price: 4200, total_price: 4200, brand: "CGI", series: "Sentinel", dp_rating: "DP50", dimensions: "72x80" },
       ],
-      warranty: { labor_years: 2, manufacturer_years: 20, transferable: true, details: "Standard manufacturer warranty." },
+      warranty: { labor_years: 2, manufacturer_years: 20, transferable: true },
       permits: { included: true, responsible_party: "contractor" },
-      installation: { scope_detail: "Remove and replace all specified openings. Caulk and seal.", disposal_included: true, accessories_mentioned: false },
+      installation: { scope_detail: "Remove and replace all specified openings. Caulk and seal." },
     },
   },
   {
@@ -175,7 +175,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
   {
     key: "mixedPillars",
     label: "Mixed Pillars",
-    description: "A-grade safety (all DP/NOA) but F warranty (none) and C install",
+    description: "A-grade safety (all DP/NOA) but weak warranty and sparse install",
     expectedGrade: "B",
     extraction: {
       document_type: "impact_window_quote",
@@ -191,6 +191,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
         { description: "PGT WinGuard Impact Single Hung", quantity: 2, unit_price: 1800, total_price: 3600, brand: "PGT", series: "WinGuard", dp_rating: "DP50", noa_number: "NOA 17-0501.06", dimensions: "36x60" },
         { description: "CGI Sentinel Impact Slider - hurricane", quantity: 1, unit_price: 4500, total_price: 4500, brand: "CGI", series: "Sentinel", dp_rating: "DP50", noa_number: "NOA 18-0312.02", dimensions: "72x80" },
       ],
+      warranty: { details: "Contact manufacturer for warranty terms." },
       installation: { scope_detail: "Replace openings" },
     },
   },
@@ -215,7 +216,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
   {
     key: "overpaymentTrap",
     label: "Overpayment Trap",
-    description: "$2200/unit with full specs — high price but complete quote",
+    description: "Premium pricing, missing NOA on one item, no cancellation policy",
     expectedGrade: "B",
     extraction: {
       document_type: "impact_window_quote",
@@ -223,16 +224,16 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
       confidence: 0.92,
       page_count: 2,
       contractor_name: "Premium Impact Solutions",
-      opening_count: 4,
+      opening_count: 5,
       total_quoted_price: 22000,
       hvhz_zone: true,
-      cancellation_policy: "Cancel within 72 hours for full refund.",
       line_items: [
         { description: "PGT WinGuard Impact Single Hung - Hurricane rated", quantity: 4, unit_price: 2200, total_price: 8800, brand: "PGT", series: "WinGuard", dp_rating: "DP50", noa_number: "NOA 17-0501.06", dimensions: "36x60" },
+        { description: "PGT WinGuard Impact Sliding Door - Hurricane rated", quantity: 1, unit_price: 5200, total_price: 5200, brand: "PGT", series: "WinGuard", dp_rating: "DP50", dimensions: "72x80" },
       ],
-      warranty: { labor_years: 10, manufacturer_years: 25, transferable: true, details: "Full lifetime manufacturer warranty. 10-year labor." },
+      warranty: { labor_years: 10, manufacturer_years: 25, details: "Full lifetime manufacturer warranty. 10-year labor." },
       permits: { included: true, responsible_party: "contractor", details: "Permits and inspection included." },
-      installation: { scope_detail: "Full removal, install, caulk, foam, stucco patch, trim, cleanup.", disposal_included: true, accessories_mentioned: true },
+      installation: { scope_detail: "Full removal, install, caulk, foam, stucco patch, trim, cleanup.", disposal_included: true },
     },
   },
   {
