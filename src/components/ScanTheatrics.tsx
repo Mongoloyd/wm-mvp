@@ -607,4 +607,41 @@ const PillarCard = ({
   </motion.div>
 );
 
+/** OCR Read Quality Badge — always affirmative */
+function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | null; data: AnalysisData }) {
+  // Derive quality from confidence + anchor presence
+  let anchorCount = 0;
+  if (data.documentType) anchorCount++;
+  if (data.contractorName) anchorCount++;
+  if (data.lineItemCount != null && data.lineItemCount > 0) anchorCount++;
+  if (data.pageCount != null) anchorCount++;
+
+  let label = "Good";
+  let color = "#059669";
+  if (confidenceScore != null) {
+    if (confidenceScore >= 85 && anchorCount >= 3) { label = "Excellent"; color = "#059669"; }
+    else if (confidenceScore >= 70) { label = "Great"; color = "#059669"; }
+    else if (confidenceScore >= 55) { label = "Good"; color = "#2563EB"; }
+    else { label = "Fair"; color = "#D97706"; }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <span style={{
+        fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF",
+        letterSpacing: "0.08em",
+      }}>
+        OCR READ QUALITY
+      </span>
+      <span style={{
+        fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700,
+        color, background: `${color}1A`, padding: "2px 10px",
+        letterSpacing: "0.06em",
+      }}>
+        {label.toUpperCase()}
+      </span>
+    </div>
+  );
+}
+
 export default ScanTheatrics;

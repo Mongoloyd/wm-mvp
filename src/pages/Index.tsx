@@ -242,6 +242,11 @@ const Index = () => {
                 confidenceScore={activeData.confidenceScore}
                 documentType={activeData.documentType}
                 accessLevel={activeAccess}
+                qualityBand={activeData.qualityBand}
+                hasWarranty={activeData.hasWarranty}
+                hasPermits={activeData.hasPermits}
+                pageCount={activeData.pageCount}
+                lineItemCount={activeData.lineItemCount}
                 onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
                 onSecondScan={() => triggerTruthGate('second_opinion_scan')}
               />

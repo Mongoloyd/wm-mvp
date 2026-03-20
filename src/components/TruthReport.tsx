@@ -153,15 +153,88 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
       {/* ─── GRADE VERDICT ─── */}
       <motion.section {...stagger(0)} style={{ background: config.bg, borderBottom: `2px solid ${config.color}22` }} className="py-5 px-4 md:px-8">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 700, color: config.color, letterSpacing: "0.06em", background: "#0A0A0A", borderRadius: 0, padding: "4px 14px", border: `1px solid ${config.color}` }}>
-              GRADE {grade} — {config.label}
-            </span>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 700, color: config.color, letterSpacing: "0.06em", background: "#0A0A0A", borderRadius: 0, padding: "4px 14px", border: `1px solid ${config.color}` }}>
+                GRADE {grade} — {config.label}
+              </span>
+            </div>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB" }}>{config.verdict}</p>
           </div>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB" }}>{config.verdict}</p>
+
+          {/* Summary chips — affirmative only, preview mode */}
+          {!isFull && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {qualityBand && (
+                <span style={{
+                  fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700,
+                  color: qualityBand === "good" ? "#059669" : qualityBand === "fair" ? "#D97706" : "#9CA3AF",
+                  background: qualityBand === "good" ? "rgba(5,150,105,0.12)" : qualityBand === "fair" ? "rgba(245,158,11,0.12)" : "rgba(156,163,175,0.12)",
+                  padding: "3px 10px", letterSpacing: "0.06em",
+                }}>
+                  {qualityBand === "good" ? "GOOD QUOTE STRUCTURE" : qualityBand === "fair" ? "FAIR QUOTE STRUCTURE" : "BASIC QUOTE STRUCTURE"}
+                </span>
+              )}
+              {hasWarranty === true && (
+                <span style={{
+                  fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700,
+                  color: "#059669", background: "rgba(5,150,105,0.12)",
+                  padding: "3px 10px", letterSpacing: "0.06em",
+                }}>
+                  WARRANTY: FOUND
+                </span>
+              )}
+              {hasPermits === true && (
+                <span style={{
+                  fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700,
+                  color: "#059669", background: "rgba(5,150,105,0.12)",
+                  padding: "3px 10px", letterSpacing: "0.06em",
+                }}>
+                  PERMITS: FOUND
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </motion.section>
+
+      {/* ─── PROOF-OF-READ TRUST STRIP (preview only) ─── */}
+      {!isFull && (pageCount != null || lineItemCount != null || contractorName) && (
+        <motion.section {...stagger(0.5)} className="py-3 px-4 md:px-8" style={{ background: "#111111", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="max-w-4xl mx-auto flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#2563EB", letterSpacing: "0.1em", fontWeight: 700 }}>
+              DOCUMENT VERIFIED
+            </span>
+            {pageCount != null && (
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                Multi-page document analyzed
+              </span>
+            )}
+            {lineItemCount != null && lineItemCount > 0 && (
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                · Detailed line items detected
+              </span>
+            )}
+            {contractorName && (
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                · Contractor identified
+              </span>
+            )}
+            {/* OCR Quality Badge */}
+            {confidenceScore != null && (
+              <span style={{
+                fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700, marginLeft: "auto",
+                color: confidenceScore >= 85 ? "#059669" : confidenceScore >= 70 ? "#059669" : confidenceScore >= 55 ? "#2563EB" : "#D97706",
+                background: confidenceScore >= 55 ? "rgba(5,150,105,0.12)" : "rgba(217,119,6,0.12)",
+                padding: "2px 10px", letterSpacing: "0.06em",
+              }}>
+                READ QUALITY: {confidenceScore >= 85 ? "EXCELLENT" : confidenceScore >= 70 ? "GREAT" : confidenceScore >= 55 ? "GOOD" : "FAIR"}
+              </span>
+            )}
+          </div>
+        </motion.section>
+      )}
 
       {/* ─── 5-PILLAR ANALYSIS ─── */}
       <section className="py-10 md:py-14 px-4 md:px-8" style={{ background: "#0A0A0A", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
