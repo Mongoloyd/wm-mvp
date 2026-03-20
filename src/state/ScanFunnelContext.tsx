@@ -133,7 +133,7 @@ export function useScanFunnel(): ScanFunnelContextValue {
   return ctx;
 }
 
-/** Safe version — returns null if outside provider (for shared hooks like useReportAccess) */
+/** Safe version — returns null when outside provider (for shared hooks like useReportAccess) */
 export function useScanFunnelSafe(): ScanFunnelContextValue | null {
   return useContext(ScanFunnelContext);
 }
