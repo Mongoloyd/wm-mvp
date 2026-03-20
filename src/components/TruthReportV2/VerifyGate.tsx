@@ -132,6 +132,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
       aria-label="Phone verification to unlock report"
     >
       {/* Progress bar */}
+      <p className="text-gold text-sm font-bold mb-2">v2-rebuild-check</p>
       <div className="mb-5">
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono text-[10px] tracking-[0.1em] text-gold font-bold">
