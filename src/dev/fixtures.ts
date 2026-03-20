@@ -114,6 +114,36 @@ const GRADE_D_DATA: AnalysisData = {
   ],
 };
 
+const GRADE_F_DATA: AnalysisData = {
+  grade: "F",
+  contractorName: "QuickFix Windows LLC",
+  confidenceScore: 52,
+  documentType: "proposal",
+  pageCount: 1,
+  openingCount: 12,
+  lineItemCount: 1,
+  qualityBand: "poor",
+  hasWarranty: null,
+  hasPermits: null,
+  analysisStatus: "complete",
+  flags: [
+    { id: 1, severity: "red", label: "No NOA Codes Anywhere", detail: "Zero product approval numbers in the entire document.", tip: "Do not proceed without verifiable NOA numbers for every product.", pillar: "safety_code" },
+    { id: 2, severity: "red", label: "No DP Ratings Listed", detail: "Design pressure ratings are completely absent.", tip: "Require DP ratings that meet your county's wind zone requirements.", pillar: "safety_code" },
+    { id: 3, severity: "red", label: "Price 52% Above Market", detail: "Total quoted is $18,400 above Broward County Q1 2025 benchmark.", tip: "Get at least three competing quotes immediately.", pillar: "price_fairness" },
+    { id: 4, severity: "red", label: "No Permit Mention", detail: "Document makes zero reference to building permits.", tip: "Florida law requires permits for impact window installation.", pillar: "fine_print" },
+    { id: 5, severity: "red", label: "No Warranty Documentation", detail: "No manufacturer or labor warranty terms anywhere in the quote.", tip: "Never sign a contract without written warranty terms.", pillar: "warranty" },
+    { id: 6, severity: "red", label: "Single Lump-Sum Price", detail: "All 12 openings quoted as one line item with no breakdown.", tip: "Demand per-unit pricing to compare against market rates.", pillar: "price_fairness" },
+    { id: 7, severity: "amber", label: "Vague Installation Scope", detail: "'Professional installation included' with no detail.", tip: "Get a detailed scope of work in writing.", pillar: "install_scope" },
+  ],
+  pillarScores: [
+    { key: "safety_code", label: "Safety & Code Match", score: 8, status: "fail" },
+    { key: "install_scope", label: "Install & Scope Clarity", score: 15, status: "fail" },
+    { key: "price_fairness", label: "Price Fairness", score: 10, status: "fail" },
+    { key: "fine_print", label: "Fine Print & Transparency", score: 12, status: "fail" },
+    { key: "warranty", label: "Warranty Value", score: 0, status: "fail" },
+  ],
+};
+
 export const DEV_PREVIEW_CONFIGS: Record<DevPreviewState, DevPreviewConfig> = {
   none: {
     label: "Off",
