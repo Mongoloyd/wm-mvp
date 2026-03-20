@@ -62,10 +62,10 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    await supabase.from("phone_verifications").upsert(
-      { phone_e164, status: "pending" },
-      { onConflict: "phone_e164" }
-    );
+    await supabase.from("phone_verifications").insert({
+      phone_e164,
+      status: "pending",
+    });
 
     return new Response(
       JSON.stringify({ success: true }),
