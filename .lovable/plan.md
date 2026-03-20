@@ -1,72 +1,82 @@
 
 
-# Plan: Rubric Version Comparison Dashboard
+# Plan: Rubric Intelligence Dashboard Improvements
 
-## What We're Building
-A dev-facing dashboard that queries `analyses` and shows grade distribution broken down by `rubric_version`, so you can see at a glance whether v1.1 is grading harder/softer than v1.0.
+## Current State
+The base dashboard is fully built: `get_rubric_stats` RPC, `useRubricStats` hook, `RubricComparison` component with grade bars and deltas, wired into DevPreviewPanel, and `rubricVersion` column in DevQuoteGenerator. All working.
 
-## Step 1: Create a `get_rubric_stats` RPC function
-A new Postgres function that returns aggregate data:
+## What's Missing for "Intelligence System"
+
+The current dashboard shows static snapshots. To make it a true governance and iteration tool, here are the improvements:
+
+### 1. Weighted Grade Score (single number per version)
+Right now you compare 5 grade percentages across versions -- too much cognitive load. Add a single "Rubric Quality Score" per version:
+```
+Score = (A*4 + B*3 + C*2 + D*1 + F*0) / total_graded
+```
+Range 0-4. Higher = more lenient. This makes version comparison instant: "v1.0 scored 2.8, v1.1 scored 2.1 -- v1.1 is stricter."
+
+**Change**: Update `get_rubric_stats` RPC to return `avg_grade_score numeric`. Display as a prominent metric in `RubricComparison`.
+
+### 2. Confidence Distribution Indicator
+`avg_confidence` alone hides variance. A version could average 0.7 but have half its scores at 0.4 (unreliable). Add `min_confidence` and `max_confidence` to the RPC so you can see the spread.
+
+**Change**: Add two columns to the RPC return type. Show as "0.4 - 0.9 (avg 0.7)" in the table.
+
+### 3. Sample Size Warning
+If v1.1 has 3 scans vs v1.0's 50, the delta is statistically meaningless. Add a visual warning when a version has fewer than 10 graded scans, so you don't make rubric decisions on insufficient data.
+
+**Change**: Frontend-only. Render a caution icon next to versions with `total_count < 10`.
+
+### 4. Time-Windowed Stats
+Current RPC shows all-time aggregates. A rubric might perform differently on recent quotes vs old ones. Add an optional time window parameter.
+
+**Change**: Create `get_rubric_stats_windowed(p_days integer DEFAULT NULL)` variant, or add a `WHERE created_at > now() - interval '...'` filter. Add a "Last 7d / 30d / All" toggle in the UI.
+
+### 5. "Winner" Indicator
+When 2+ versions exist with sufficient sample size, auto-highlight which version has the best quality score (or let the user pick their target distribution). Removes guesswork.
+
+**Change**: Frontend logic in `RubricComparison` -- compare `avg_grade_score` across rows, highlight the row with the score closest to a target (e.g., 2.0 = balanced).
+
+---
+
+## Implementation
+
+### Database Migration
+Alter `get_rubric_stats` to return three additional columns:
 
 ```sql
+DROP FUNCTION IF EXISTS public.get_rubric_stats();
 CREATE FUNCTION public.get_rubric_stats()
 RETURNS TABLE(
   rubric_version text,
   total_count bigint,
-  grade_a bigint,
-  grade_b bigint,
-  grade_c bigint,
-  grade_d bigint,
-  grade_f bigint,
+  grade_a bigint, grade_b bigint, grade_c bigint, grade_d bigint, grade_f bigint,
   avg_confidence numeric,
+  min_confidence numeric,
+  max_confidence numeric,
+  avg_grade_score numeric,
   invalid_count bigint
-)
-LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-  SELECT
-    a.rubric_version,
-    COUNT(*)                                          AS total_count,
-    COUNT(*) FILTER (WHERE a.grade = 'A')             AS grade_a,
-    COUNT(*) FILTER (WHERE a.grade = 'B')             AS grade_b,
-    COUNT(*) FILTER (WHERE a.grade = 'C')             AS grade_c,
-    COUNT(*) FILTER (WHERE a.grade = 'D')             AS grade_d,
-    COUNT(*) FILTER (WHERE a.grade = 'F')             AS grade_f,
-    ROUND(AVG(a.confidence_score), 1)                 AS avg_confidence,
-    COUNT(*) FILTER (WHERE a.analysis_status = 'invalid_document') AS invalid_count
-  FROM public.analyses a
-  WHERE a.analysis_status IN ('complete', 'invalid_document')
-  GROUP BY a.rubric_version
-  ORDER BY a.rubric_version;
-$$;
+) ...
+-- avg_grade_score = ROUND((A*4 + B*3 + C*2 + D*1) / NULLIF(graded,0), 2)
 ```
 
-No RLS needed — `SECURITY DEFINER` function callable by anon, returns only aggregate stats (no PII).
+### Hook Update (`useRubricStats.ts`)
+- Add `min_confidence`, `max_confidence`, `avg_grade_score` to `RubricStatRow`
+- Add optional `days` parameter to support time-windowed queries (future)
 
-## Step 2: Create `src/hooks/useRubricStats.ts`
-A simple hook that calls `supabase.rpc('get_rubric_stats')` and returns the rows. Fetches once on mount.
+### Component Update (`RubricComparison.tsx`)
+- Add "Quality Score" column showing `avg_grade_score` with color coding (green near 2.0, yellow at extremes)
+- Add confidence range display
+- Add caution badge for `total_count < 10`
+- Highlight the "winner" row when 2+ versions with 10+ scans exist
+- Add time window toggle (7d / 30d / All) using simple button group
 
-## Step 3: Create `src/components/dev/RubricComparison.tsx`
-A dev-only component (same pattern as `DevQuoteGenerator`):
-
-- **Summary table** — one row per rubric_version showing: total scans, grade distribution (count + percentage), avg confidence, invalid doc count
-- **Visual bar** per version — stacked horizontal bar showing A/B/C/D/F proportions with color coding (green → red)
-- **Delta row** — if 2+ versions exist, show the shift: "+12% more D grades in v1.1 vs v1.0"
-- Uses existing `Table` UI components
-
-## Step 4: Wire into DevPreviewPanel
-Add a "Rubric Stats" tab or section in `src/dev/DevPreviewPanel.tsx` that renders `RubricComparison`. Only visible in dev mode.
-
-## Step 5: Show `rubric_version` in DevQuoteGenerator results
-Add a `rubricVersion` field to `RunResult` and display it as a column in the results table, so each scenario run shows which rubric version scored it.
-
-## Files Changed
-| File | Action |
+### Files Changed
+| File | Change |
 |------|--------|
-| `supabase/migrations/...` | New migration: `get_rubric_stats` RPC |
-| `src/hooks/useRubricStats.ts` | New hook |
-| `src/components/dev/RubricComparison.tsx` | New component |
-| `src/dev/DevPreviewPanel.tsx` | Add Rubric Stats section |
-| `src/components/dev/DevQuoteGenerator.tsx` | Add rubric_version column |
-| `src/integrations/supabase/types.ts` | Auto-updated by migration |
+| `supabase/migrations/...` | Replace `get_rubric_stats` with enhanced version |
+| `src/hooks/useRubricStats.ts` | Expand interface, add optional time filter |
+| `src/components/dev/RubricComparison.tsx` | Quality score, confidence range, warnings, winner highlight, time toggle |
+| `src/integrations/supabase/types.ts` | Auto-updated |
 
