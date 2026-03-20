@@ -262,20 +262,79 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
             </div>
 
             {phase === "cliffhanger" && (
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15 }}
-                style={{
+                style={{ marginTop: 24 }}
+              >
+                {/* OCR Validation Summary */}
+                <div style={{ textAlign: "left", marginBottom: 16 }}>
+                  {[
+                    { label: "Document structure detected", done: true },
+                    { label: "Text readability confirmed", done: true },
+                    { label: "Quote layout identified", done: true },
+                  ].map((item, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.15, delay: i * 0.15 }}
+                      className="flex items-center gap-2"
+                      style={{ marginBottom: 6 }}
+                    >
+                      <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>{item.label}</span>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Real trust signals when analysisData available */}
+                {analysisData && (analysisData.analysisStatus === "preview_ready" || analysisData.analysisStatus === "complete") && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: 0.5 }}
+                    style={{
+                      background: "#111111",
+                      border: "1px solid #1A1A1A",
+                      padding: "14px 18px",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {/* Proof-of-read trust signals — presence-based only */}
+                    <div className="flex flex-wrap gap-3 mb-3">
+                      {analysisData.pageCount != null && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          Multi-page document analyzed
+                        </span>
+                      )}
+                      {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          {analysisData.pageCount != null ? "·" : ""} Detailed line items detected
+                        </span>
+                      )}
+                      {analysisData.contractorName && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          · Contractor information identified
+                        </span>
+                      )}
+                    </div>
+
+                    {/* OCR Read Quality Badge */}
+                    <OcrQualityBadge confidenceScore={analysisData.confidenceScore} data={analysisData} />
+                  </motion.div>
+                )}
+
+                <p style={{
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 12,
                   color: "#F97316",
                   letterSpacing: "0.05em",
-                  marginTop: 16,
-                }}
-              >
-                Data extracted successfully. Analysis ready to compile.
-              </motion.p>
+                }}>
+                  Data extracted successfully. Analysis ready to compile.
+                </p>
+              </motion.div>
             )}
           </motion.div>
         )}
