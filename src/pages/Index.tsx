@@ -91,7 +91,7 @@ const Index = () => {
 
   // Resolve active data: dev fixtures override real backend data
   const activeData = showReportFromDev ? devConfig!.analysisData : analysisData;
-  const activeAccess = isDevPreview && devConfig ? devConfig.accessLevel : reportAccess;
+  
   const reportGrade = activeData?.grade || "C";
   const reportFlags = activeData?.flags || [];
   const shouldShowReport = showReportFromDev || gradeRevealed;
