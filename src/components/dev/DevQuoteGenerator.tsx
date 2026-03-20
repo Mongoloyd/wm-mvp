@@ -39,6 +39,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       expectedTerminal: fixture.expectedTerminal,
       actualGrade: null,
       actualStatus: null,
+      rubricVersion: null,
       flagCount: 0,
       pillarScores: null,
       match: false,
