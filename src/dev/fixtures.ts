@@ -13,6 +13,8 @@ export type DevPreviewState =
   | "grade_c_preview"
   | "grade_d_full"
   | "grade_d_preview"
+  | "grade_f_full"
+  | "grade_f_preview"
   | "otp_gate"
   | "invalid_document"
   | "needs_better_upload";
