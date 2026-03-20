@@ -7,6 +7,7 @@ interface ScanTheatricsProps {
   isActive: boolean;
   selectedCounty?: string;
   scanSessionId?: string | null;
+  grade?: string;
   onRevealComplete?: () => void;
   onInvalidDocument?: () => void;
   onNeedsBetterUpload?: () => void;
