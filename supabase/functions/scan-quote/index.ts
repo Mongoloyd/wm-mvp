@@ -93,7 +93,7 @@ function validateExtraction(raw: unknown): { success: true; data: ExtractionResu
 // SECTION 2: RUBRIC (weights, thresholds, hard caps)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const RUBRIC_VERSION = "1.0.0";
+const RUBRIC_VERSION = "1.1.0";
 
 const PILLAR_WEIGHTS = {
   safety: 0.25,
@@ -103,7 +103,7 @@ const PILLAR_WEIGHTS = {
   warranty: 0.15,
 };
 
-const GRADE_THRESHOLDS: Record<string, number> = { A: 85, B: 70, C: 55, D: 40 };
+const GRADE_THRESHOLDS: Record<string, number> = { A: 88, B: 70, C: 52, D: 37 };
 
 const CONFIDENCE_THRESHOLD = 0.4;
 
