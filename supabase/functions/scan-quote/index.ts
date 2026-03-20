@@ -868,7 +868,7 @@ Deno.serve(async (req: Request) => {
       }
 
       const extraction = validation.data;
-
+      } // end else (non-bypass OCR path)
 
       // 11. Score all pillars
       const gradeResult = computeGrade(extraction);

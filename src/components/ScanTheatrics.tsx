@@ -428,7 +428,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                   }}
                 >
                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 64, fontWeight: 900, color: "#F97316" }}>
-                    C
+                    {gradeProp}
                   </span>
                 </div>
 
