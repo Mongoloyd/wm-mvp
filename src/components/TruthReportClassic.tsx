@@ -58,7 +58,7 @@ const stagger = (i: number) => ({
   transition: { delay: i * 0.04, duration: 0.15, ease: 'easeInOut' as const }
 }) as const;
 
-const TruthReport = ({
+const TruthReportClassic = ({
   grade,
   flags,
   pillarScores,
