@@ -132,8 +132,8 @@ function scoreSafety(data: ExtractionResult): number {
   const itemsWithoutDp = items.filter(i => !i.dp_rating);
   const itemsWithoutNoa = items.filter(i => !i.noa_number);
 
-  if (itemsWithoutDp.length > 0) score -= Math.min(40, itemsWithoutDp.length * 20);
-  if (itemsWithoutNoa.length > 0) score -= Math.min(30, itemsWithoutNoa.length * 15);
+  if (itemsWithoutDp.length > 0) score -= Math.min(50, itemsWithoutDp.length * 25);
+  if (itemsWithoutNoa.length > 0) score -= Math.min(40, itemsWithoutNoa.length * 20);
   if (data.hvhz_zone === undefined || data.hvhz_zone === null) score -= 10;
 
   // Check if any items clearly mention "impact" in description
