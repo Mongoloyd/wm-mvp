@@ -126,7 +126,7 @@ export function usePhonePipeline(
     setErrorMsg("");
 
     // 1. Screen
-    const screen: ScreenResult = screenPhone(rawDigits);
+    const screen = screenPhone(rawDigits);
     if (!screen.ok) {
       setPhoneStatus("invalid");
       setErrorMsg(screen.reason);
