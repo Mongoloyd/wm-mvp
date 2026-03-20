@@ -198,7 +198,7 @@ const Index = () => {
       )}
 
       {fileUploaded && !gradeRevealed && !isDevPreview && (
-        <ScanTheatrics isActive={true} selectedCounty={selectedCounty} scanSessionId={scanSessionId} grade={analysisData?.grade}
+        <ScanTheatrics isActive={true} selectedCounty={selectedCounty} scanSessionId={scanSessionId} grade={analysisData?.grade} analysisData={analysisData}
           onRevealComplete={() => { setGradeRevealed(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           onInvalidDocument={() => { setFileUploaded(false); setScanSessionId(null); }}
           onNeedsBetterUpload={() => { setFileUploaded(false); setScanSessionId(null); }}
@@ -242,6 +242,11 @@ const Index = () => {
                 confidenceScore={activeData.confidenceScore}
                 documentType={activeData.documentType}
                 accessLevel={activeAccess}
+                qualityBand={activeData.qualityBand}
+                hasWarranty={activeData.hasWarranty}
+                hasPermits={activeData.hasPermits}
+                pageCount={activeData.pageCount}
+                lineItemCount={activeData.lineItemCount}
                 onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
                 onSecondScan={() => triggerTruthGate('second_opinion_scan')}
               />

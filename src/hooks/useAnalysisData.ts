@@ -24,6 +24,13 @@ export interface AnalysisData {
   confidenceScore: number | null;
   pillarScores: PillarScore[];
   documentType: string | null;
+  pageCount: number | null;
+  openingCount: number | null;
+  lineItemCount: number | null;
+  qualityBand: "good" | "fair" | "poor" | null;
+  hasWarranty: boolean | null;
+  hasPermits: boolean | null;
+  analysisStatus: string | null;
 }
 
 const PILLAR_DEFS: { key: string; label: string }[] = [
@@ -215,7 +222,11 @@ export function useAnalysisData(
         }
 
         const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
+        const previewJson = row.preview_json as Record<string, unknown> | null;
         const flags = mapFlags(row.flags);
+
+        const qualityBandRaw = previewJson?.quality_band as string | undefined;
+        const validBands = new Set(["good", "fair", "poor"]);
 
         setData({
           grade: row.grade,
@@ -224,6 +235,13 @@ export function useAnalysisData(
           confidenceScore: row.confidence_score ?? null,
           pillarScores: extractPillarScores(row.preview_json, flags),
           documentType: row.document_type || null,
+          pageCount: typeof proofOfRead?.page_count === "number" ? proofOfRead.page_count : null,
+          openingCount: typeof proofOfRead?.opening_count === "number" ? proofOfRead.opening_count : null,
+          lineItemCount: typeof proofOfRead?.line_item_count === "number" ? proofOfRead.line_item_count : null,
+          qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
+          hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
+          hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
+          analysisStatus: typeof (row as any).analysis_status === "string" ? (row as any).analysis_status : null,
         });
       } catch (err) {
         console.error("useAnalysisData exception:", err);

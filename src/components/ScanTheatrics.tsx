@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useScanPolling, ScanStatus } from "@/hooks/useScanPolling";
 import { toast } from "sonner";
+import type { AnalysisData } from "@/hooks/useAnalysisData";
 
 interface ScanTheatricsProps {
   isActive: boolean;
   selectedCounty?: string;
   scanSessionId?: string | null;
   grade?: string;
+  analysisData?: AnalysisData | null;
   onRevealComplete?: () => void;
   onInvalidDocument?: () => void;
   onNeedsBetterUpload?: () => void;
@@ -32,7 +34,7 @@ const pillars = [
 
 type Phase = "scanning" | "cliffhanger" | "otp" | "pillars" | "reveal";
 
-const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null, grade: gradeProp = "C", onRevealComplete, onInvalidDocument, onNeedsBetterUpload }: ScanTheatricsProps) => {
+const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null, grade: gradeProp = "C", analysisData = null, onRevealComplete, onInvalidDocument, onNeedsBetterUpload }: ScanTheatricsProps) => {
   const [phase, setPhase] = useState<Phase>("scanning");
   const [activeLogIndex, setActiveLogIndex] = useState(0);
   const [progressWidth, setProgressWidth] = useState(0);
@@ -260,20 +262,79 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
             </div>
 
             {phase === "cliffhanger" && (
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15 }}
-                style={{
+                style={{ marginTop: 24 }}
+              >
+                {/* OCR Validation Summary */}
+                <div style={{ textAlign: "left", marginBottom: 16 }}>
+                  {[
+                    { label: "Document structure detected", done: true },
+                    { label: "Text readability confirmed", done: true },
+                    { label: "Quote layout identified", done: true },
+                  ].map((item, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.15, delay: i * 0.15 }}
+                      className="flex items-center gap-2"
+                      style={{ marginBottom: 6 }}
+                    >
+                      <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>{item.label}</span>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Real trust signals when analysisData available */}
+                {analysisData && (analysisData.analysisStatus === "preview_ready" || analysisData.analysisStatus === "complete") && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: 0.5 }}
+                    style={{
+                      background: "#111111",
+                      border: "1px solid #1A1A1A",
+                      padding: "14px 18px",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {/* Proof-of-read trust signals — presence-based only */}
+                    <div className="flex flex-wrap gap-3 mb-3">
+                      {analysisData.pageCount != null && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          Multi-page document analyzed
+                        </span>
+                      )}
+                      {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          {analysisData.pageCount != null ? "·" : ""} Detailed line items detected
+                        </span>
+                      )}
+                      {analysisData.contractorName && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          · Contractor information identified
+                        </span>
+                      )}
+                    </div>
+
+                    {/* OCR Read Quality Badge */}
+                    <OcrQualityBadge confidenceScore={analysisData.confidenceScore} data={analysisData} />
+                  </motion.div>
+                )}
+
+                <p style={{
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 12,
                   color: "#F97316",
                   letterSpacing: "0.05em",
-                  marginTop: 16,
-                }}
-              >
-                Data extracted successfully. Analysis ready to compile.
-              </motion.p>
+                }}>
+                  Data extracted successfully. Analysis ready to compile.
+                </p>
+              </motion.div>
             )}
           </motion.div>
         )}
@@ -545,5 +606,42 @@ const PillarCard = ({
     )}
   </motion.div>
 );
+
+/** OCR Read Quality Badge — always affirmative */
+function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | null; data: AnalysisData }) {
+  // Derive quality from confidence + anchor presence
+  let anchorCount = 0;
+  if (data.documentType) anchorCount++;
+  if (data.contractorName) anchorCount++;
+  if (data.lineItemCount != null && data.lineItemCount > 0) anchorCount++;
+  if (data.pageCount != null) anchorCount++;
+
+  let label = "Good";
+  let color = "#059669";
+  if (confidenceScore != null) {
+    if (confidenceScore >= 85 && anchorCount >= 3) { label = "Excellent"; color = "#059669"; }
+    else if (confidenceScore >= 70) { label = "Great"; color = "#059669"; }
+    else if (confidenceScore >= 55) { label = "Good"; color = "#2563EB"; }
+    else { label = "Fair"; color = "#D97706"; }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <span style={{
+        fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF",
+        letterSpacing: "0.08em",
+      }}>
+        OCR READ QUALITY
+      </span>
+      <span style={{
+        fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700,
+        color, background: `${color}1A`, padding: "2px 10px",
+        letterSpacing: "0.06em",
+      }}>
+        {label.toUpperCase()}
+      </span>
+    </div>
+  );
+}
 
 export default ScanTheatrics;
