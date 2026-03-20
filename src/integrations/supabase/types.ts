@@ -345,6 +345,7 @@ export type Database = {
           grade: string
           preview_json: Json
           proof_of_read: Json
+          rubric_version: string
         }[]
       }
       get_lead_by_session: {
