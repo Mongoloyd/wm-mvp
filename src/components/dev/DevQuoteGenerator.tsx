@@ -121,7 +121,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       result.rubricVersion = row.rubric_version || null;
       result.flagCount = Array.isArray(row.flags) ? row.flags.length : 0;
 
-      // Extract pillar scores from preview_json
+      // Extract pillar scores and hard cap from preview_json
       const preview = row.preview_json as Record<string, unknown> | null;
       if (preview?.pillar_scores && typeof preview.pillar_scores === "object") {
         const ps = preview.pillar_scores as Record<string, { status?: string }>;
@@ -130,6 +130,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
           result.pillarScores[key] = val?.status || "?";
         }
       }
+      result.hardCap = (preview?.hard_cap_applied as string) || null;
 
       // Check match
       if (fixture.expectedGrade) {
