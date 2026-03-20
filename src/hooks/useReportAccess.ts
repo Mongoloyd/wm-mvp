@@ -12,7 +12,7 @@
  * This is a cosmetic toggle — not a security boundary.
  */
 
-import { useScanFunnelSafe } from "../state/useScanFunnelSafe";
+import { useScanFunnelSafe } from "../state/scanFunnel";
 
 export type ReportAccessLevel = "preview" | "full";
 
