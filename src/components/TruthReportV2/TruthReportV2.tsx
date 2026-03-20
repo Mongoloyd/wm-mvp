@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 import { VerifyBanner } from "./VerifyBanner";
-import { VerifyGate } from "./VerifyGateV2";
+import { VerifyGate } from "./VerifyGate";
 import { PhoneVerifyModal } from "./PhoneVerifyModal";
 
 /* ── Data contract ────────────────────────────────────────────── */
