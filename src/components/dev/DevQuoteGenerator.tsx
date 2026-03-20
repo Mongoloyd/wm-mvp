@@ -16,6 +16,7 @@ interface RunResult {
   rubricVersion: string | null;
   flagCount: number;
   pillarScores: Record<string, string> | null;
+  hardCap: string | null;
   match: boolean;
   error?: string;
 }
@@ -42,6 +43,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       rubricVersion: null,
       flagCount: 0,
       pillarScores: null,
+      hardCap: null,
       match: false,
     };
 
@@ -119,7 +121,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       result.rubricVersion = row.rubric_version || null;
       result.flagCount = Array.isArray(row.flags) ? row.flags.length : 0;
 
-      // Extract pillar scores from preview_json
+      // Extract pillar scores and hard cap from preview_json
       const preview = row.preview_json as Record<string, unknown> | null;
       if (preview?.pillar_scores && typeof preview.pillar_scores === "object") {
         const ps = preview.pillar_scores as Record<string, { status?: string }>;
@@ -128,6 +130,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
           result.pillarScores[key] = val?.status || "?";
         }
       }
+      result.hardCap = (preview?.hard_cap_applied as string) || null;
 
       // Check match
       if (fixture.expectedGrade) {
@@ -250,6 +253,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
                 <th style={{ textAlign: "center", padding: "4px 8px" }}>Match</th>
                 <th style={{ textAlign: "center", padding: "4px 8px" }}>Flags</th>
                 <th style={{ textAlign: "left", padding: "4px 8px" }}>Pillars</th>
+                <th style={{ textAlign: "left", padding: "4px 8px" }}>Hard Cap</th>
                 <th style={{ textAlign: "center", padding: "4px 8px" }}>Rubric</th>
                 <th style={{ textAlign: "left", padding: "4px 8px" }}>Error</th>
               </tr>
@@ -272,6 +276,9 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
                           </span>
                         ))
                       : "—"}
+                  </td>
+                  <td style={{ padding: "4px 8px", fontSize: 11, color: r.hardCap ? "#f97316" : "#555", whiteSpace: "nowrap" }}>
+                    {r.hardCap || "—"}
                   </td>
                   <td style={{ textAlign: "center", padding: "4px 8px", fontSize: 11, color: "#C8952A" }}>
                     {r.rubricVersion || "—"}
