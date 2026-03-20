@@ -246,7 +246,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
                 ))}
               </InputOTPGroup>
             </InputOTP>
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex flex-col items-start gap-3 w-full">
               <button
                 onClick={handleVerify}
                 disabled={otpValue.length < 6 || step === "verifying"}
@@ -264,21 +264,25 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
                   "Verify & Unlock Report"
                 )}
               </button>
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={cooldown > 0}
-                className="text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-50 disabled:no-underline disabled:cursor-default transition-opacity"
-                aria-label={cooldown > 0 ? `Resend code available in ${cooldown} seconds` : "Resend verification code"}
-              >
-                {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
-              </button>
-              <button
-                onClick={() => { setStep("phone"); setOtpValue(""); setErrorMsg(""); setCooldown(0); }}
-                className="text-xs text-muted-foreground underline underline-offset-2"
-              >
-                Use a different number
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={cooldown > 0}
+                  className="text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-50 disabled:no-underline disabled:cursor-default transition-opacity"
+                  aria-label={cooldown > 0 ? `Resend code available in ${cooldown} seconds` : "Resend verification code"}
+                >
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+                </button>
+                <span className="text-muted-foreground/30">·</span>
+                <button
+                  type="button"
+                  onClick={() => { setStep("phone"); setOtpValue(""); setErrorMsg(""); setCooldown(0); }}
+                  className="text-xs text-muted-foreground underline underline-offset-2"
+                >
+                  Use a different number
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
