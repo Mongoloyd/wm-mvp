@@ -12,7 +12,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
-import { screenPhone, type ScreenResult } from "@/utils/screenPhone";
+import { screenPhone } from "@/utils/screenPhone";
 import { supabase } from "@/integrations/supabase/client";
 
 /* ── Types ─────────────────────────────────────────────── */
