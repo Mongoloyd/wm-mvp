@@ -331,100 +331,169 @@ export function TruthReportFindings({ analysis }: V2Props) {
         )}
 
         {/* ── Evidence ─────────────────────────────────────────── */}
-        <motion.div {...fadeUp(0.4)} className="mb-12">
-          <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase mb-4">
-            EVIDENCE
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-surface-border">
-            {[
-              { label: "Warranty", present: hasWarranty },
-              { label: "Permits", present: hasPermits },
-              { label: "Product Specs", present: lineItemCount != null && lineItemCount > 0 },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="bg-surface px-4 py-5 flex flex-col items-center justify-center gap-2 text-center"
-              >
-                {item.present === true ? (
-                  <Eye size={18} className="text-emerald" />
-                ) : item.present === false ? (
-                  <FileWarning size={18} className="text-vivid-orange" />
-                ) : (
-                  <Eye size={18} className="text-muted-foreground/40" />
-                )}
-                <span className="text-[11px] font-mono text-muted-foreground tracking-wide">
-                  {item.label}
-                </span>
-                <span className="text-[10px] text-foreground/50">
-                  {item.present === true
-                    ? "Found in document"
-                    : item.present === false
-                    ? "Not found"
-                    : "Not assessed"}
-                </span>
+        {isPreview ? (
+          <motion.div {...fadeUp(0.4)} className="mb-12 relative">
+            <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase mb-4">
+              EVIDENCE
+            </p>
+            <div className="relative overflow-hidden">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-surface-border opacity-30 blur-[2px] select-none pointer-events-none" aria-hidden="true">
+                {["Warranty", "Permits", "Product Specs"].map((label) => (
+                  <div key={label} className="bg-surface px-4 py-5 flex flex-col items-center justify-center gap-2 text-center">
+                    <Eye size={18} className="text-muted-foreground/40" />
+                    <span className="text-[11px] font-mono text-muted-foreground tracking-wide">{label}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </motion.div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="flex items-center gap-2 bg-surface/90 border border-surface-border px-4 py-2.5 text-xs font-mono text-gold hover:bg-surface transition-colors"
+                >
+                  <Lock size={12} />
+                  Verify to view evidence
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div {...fadeUp(0.4)} className="mb-12">
+            <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase mb-4">
+              EVIDENCE
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-surface-border">
+              {[
+                { label: "Warranty", present: hasWarranty },
+                { label: "Permits", present: hasPermits },
+                { label: "Product Specs", present: lineItemCount != null && lineItemCount > 0 },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="bg-surface px-4 py-5 flex flex-col items-center justify-center gap-2 text-center"
+                >
+                  {item.present === true ? (
+                    <Eye size={18} className="text-emerald" />
+                  ) : item.present === false ? (
+                    <FileWarning size={18} className="text-vivid-orange" />
+                  ) : (
+                    <Eye size={18} className="text-muted-foreground/40" />
+                  )}
+                  <span className="text-[11px] font-mono text-muted-foreground tracking-wide">
+                    {item.label}
+                  </span>
+                  <span className="text-[10px] text-foreground/50">
+                    {item.present === true
+                      ? "Found in document"
+                      : item.present === false
+                      ? "Not found"
+                      : "Not assessed"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* ── Coverage map ─────────────────────────────────────── */}
-        <motion.div {...fadeUp(0.5)} className="mb-12">
-          <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase mb-4">
-            COVERAGE MAP
-          </p>
-          <p className="text-xs text-foreground/50 mb-4">
-            Areas of your quote that our scan reviewed. This is not a judgment — it shows what was assessed.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {coverage.map((area) => {
-              const stateStyles: Record<CoverageState, string> = {
-                reviewed: "border-emerald/30 bg-emerald/5 text-emerald",
-                flagged: "border-vivid-orange/30 bg-vivid-orange/5 text-vivid-orange",
-                "not-assessed": "border-surface-border bg-surface text-muted-foreground",
-              };
-              const stateLabel: Record<CoverageState, string> = {
-                reviewed: "Reviewed",
-                flagged: "Flagged",
-                "not-assessed": "Not assessed",
-              };
-              return (
-                <div
-                  key={area.key}
-                  className={`border px-3 py-2 flex items-center gap-2 ${stateStyles[area.state]}`}
+        {isPreview ? (
+          <motion.div {...fadeUp(0.5)} className="mb-12 relative">
+            <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase mb-4">
+              COVERAGE MAP
+            </p>
+            <div className="relative overflow-hidden">
+              <div className="flex flex-wrap gap-2 opacity-25 blur-[2px] select-none pointer-events-none" aria-hidden="true">
+                {COVERAGE_AREAS.map((area) => (
+                  <div key={area.key} className="border border-surface-border bg-surface text-muted-foreground px-3 py-2 flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
+                    <span className="text-xs font-medium">{area.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="flex items-center gap-2 bg-surface/90 border border-surface-border px-4 py-2.5 text-xs font-mono text-gold hover:bg-surface transition-colors"
                 >
+                  <Lock size={12} />
+                  Verify to view coverage
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div {...fadeUp(0.5)} className="mb-12">
+            <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase mb-4">
+              COVERAGE MAP
+            </p>
+            <p className="text-xs text-foreground/50 mb-4">
+              Areas of your quote that our scan reviewed. This is not a judgment — it shows what was assessed.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {coverage.map((area) => {
+                const stateStyles: Record<CoverageState, string> = {
+                  reviewed: "border-emerald/30 bg-emerald/5 text-emerald",
+                  flagged: "border-vivid-orange/30 bg-vivid-orange/5 text-vivid-orange",
+                  "not-assessed": "border-surface-border bg-surface text-muted-foreground",
+                };
+                const stateLabel: Record<CoverageState, string> = {
+                  reviewed: "Reviewed",
+                  flagged: "Flagged",
+                  "not-assessed": "Not assessed",
+                };
+                return (
                   <div
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      area.state === "reviewed"
-                        ? "bg-emerald"
-                        : area.state === "flagged"
-                        ? "bg-vivid-orange"
-                        : "bg-muted-foreground/30"
-                    }`}
-                  />
-                  <span className="text-xs font-medium">{area.label}</span>
-                  <span className="text-[10px] opacity-60">{stateLabel[area.state]}</span>
-                </div>
-              );
-            })}
-          </div>
-        </motion.div>
+                    key={area.key}
+                    className={`border px-3 py-2 flex items-center gap-2 ${stateStyles[area.state]}`}
+                  >
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        area.state === "reviewed"
+                          ? "bg-emerald"
+                          : area.state === "flagged"
+                          ? "bg-vivid-orange"
+                          : "bg-muted-foreground/30"
+                      }`}
+                    />
+                    <span className="text-xs font-medium">{area.label}</span>
+                    <span className="text-[10px] opacity-60">{stateLabel[area.state]}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
 
         {/* ── Actions ──────────────────────────────────────────── */}
-        <motion.div {...fadeUp(0.6)} className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={onContractorMatchClick}
-            className="flex items-center justify-center gap-2 bg-cobalt text-primary-foreground px-6 py-3.5 text-sm font-semibold transition-[box-shadow] hover:shadow-[0_6px_24px_hsl(217_91%_53%/0.3)] active:scale-[0.97]"
-          >
-            Get a Counter-Quote
-            <ArrowRight size={16} />
-          </button>
-          <button
-            onClick={onSecondScan}
-            className="flex items-center justify-center gap-2 border border-surface-border text-foreground/80 px-6 py-3.5 text-sm font-semibold hover:bg-surface transition-colors active:scale-[0.97]"
-          >
-            Scan Another Quote
-          </button>
-        </motion.div>
+        {isPreview ? (
+          <motion.div {...fadeUp(0.6)} className="flex flex-col items-center gap-3 py-4">
+            <p className="text-xs text-muted-foreground font-mono text-center">
+              Counter-quote tools and next steps available after verification.
+            </p>
+            <button
+              onClick={() => setModalOpen(true)}
+              className="flex items-center justify-center gap-2 border border-gold/30 bg-gold/5 text-gold px-6 py-3.5 text-sm font-semibold hover:bg-gold/10 transition-colors active:scale-[0.97]"
+            >
+              <Lock size={14} />
+              Unlock Full Report
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div {...fadeUp(0.6)} className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={onContractorMatchClick}
+              className="flex items-center justify-center gap-2 bg-cobalt text-primary-foreground px-6 py-3.5 text-sm font-semibold transition-[box-shadow] hover:shadow-[0_6px_24px_hsl(217_91%_53%/0.3)] active:scale-[0.97]"
+            >
+              Get a Counter-Quote
+              <ArrowRight size={16} />
+            </button>
+            <button
+              onClick={onSecondScan}
+              className="flex items-center justify-center gap-2 border border-surface-border text-foreground/80 px-6 py-3.5 text-sm font-semibold hover:bg-surface transition-colors active:scale-[0.97]"
+            >
+              Scan Another Quote
+            </button>
+          </motion.div>
+        )}
 
         {/* ── Footer stamp ─────────────────────────────────────── */}
         <motion.div {...fadeUp(0.65)} className="mt-16 pt-6 border-t border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
