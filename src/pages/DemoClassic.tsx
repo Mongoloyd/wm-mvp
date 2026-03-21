@@ -266,9 +266,9 @@ const DemoClassic = () => {
         {accessLevel === "full"
           ? "✅ REPORT UNLOCKED — overlay removed, full findings visible"
           : gateMode === "enter_code"
-            ? `Enter code "000000" to unlock · any other code → error`
+            ? 'Enter code "000000" to unlock · any other code → error'
             : gateMode === "send_code"
-              ? "Click "Get Your Code" to transition → enter_code"
+              ? 'Click "Get Your Code" to transition → enter_code'
               : "Enter 10 digits → Send Code → transitions to enter_code"
         }
       </div>
