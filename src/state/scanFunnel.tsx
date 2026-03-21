@@ -5,8 +5,10 @@
  * downstream components (ScanTheatrics, VerifyGate, TruthReportFindings)
  * can branch correctly without prop-threading.
  *
+ * Persists phoneE164, phoneStatus, and sessionId to localStorage
+ * so they survive page refresh. Expires after 24 hours.
+ *
  * Wrap the quote-upload funnel subtree with <ScanFunnelProvider>.
- * This is NOT a global store — it resets on unmount.
  */
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
@@ -14,45 +16,86 @@ import React, { createContext, useContext, useState, useCallback, useMemo } from
 /* ── Types ─────────────────────────────────────────────── */
 
 export type PhoneFunnelStatus =
-  | "none"          // no phone entered yet
-  | "validated"     // passed screenPhone, mode was validate_only
-  | "otp_sent"      // OTP dispatched, waiting for code
-  | "otp_failed"    // OTP send failed, needs retry
-  | "verified";     // OTP verified successfully
+  | "none"
+  | "validated"
+  | "otp_sent"
+  | "otp_failed"
+  | "verified";
 
 export interface ScanFunnelState {
-  /** Normalized E.164 phone, null until validated */
   phoneE164: string | null;
-  /** Current phone verification status in the funnel */
   phoneStatus: PhoneFunnelStatus;
-  /** Lead ID from leads table */
   leadId: string | null;
-  /** Browser session ID (localStorage-based) */
   sessionId: string | null;
-  /** scan_sessions.id for the current upload */
   scanSessionId: string | null;
-  /** quote_files.id for the current upload */
   quoteFileId: string | null;
 }
 
 export interface ScanFunnelActions {
-  /** Set phone after validation/screening */
   setPhone: (e164: string, status: PhoneFunnelStatus) => void;
-  /** Update just the phone status (e.g. otp_sent → verified) */
   setPhoneStatus: (status: PhoneFunnelStatus) => void;
-  /** Set lead ID */
   setLeadId: (id: string) => void;
-  /** Set session ID */
   setSessionId: (id: string) => void;
-  /** Set scan session ID */
   setScanSessionId: (id: string) => void;
-  /** Set quote file ID */
   setQuoteFileId: (id: string) => void;
-  /** Reset all funnel state */
   resetFunnel: () => void;
+  /** Clear persisted state (on report unlock or stale cleanup) */
+  clearFunnel: () => void;
 }
 
 type ScanFunnelContextValue = ScanFunnelState & ScanFunnelActions;
+
+/* ── localStorage keys & helpers ───────────────────────── */
+
+const LS_PREFIX = "wm_funnel_";
+const LS_KEYS = {
+  phoneE164: `${LS_PREFIX}phoneE164`,
+  phoneStatus: `${LS_PREFIX}phoneStatus`,
+  sessionId: `${LS_PREFIX}sessionId`,
+  timestamp: `${LS_PREFIX}ts`,
+} as const;
+
+const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function readPersistedState(): Partial<ScanFunnelState> {
+  try {
+    const ts = localStorage.getItem(LS_KEYS.timestamp);
+    if (ts && Date.now() - Number(ts) > EXPIRY_MS) {
+      Object.values(LS_KEYS).forEach((k) => localStorage.removeItem(k));
+      return {};
+    }
+    const phoneE164 = localStorage.getItem(LS_KEYS.phoneE164) || null;
+    const phoneStatus = (localStorage.getItem(LS_KEYS.phoneStatus) as PhoneFunnelStatus) || "none";
+    const sessionId = localStorage.getItem(LS_KEYS.sessionId) || null;
+    if (!phoneE164 && phoneStatus === "none" && !sessionId) return {};
+    return { phoneE164, phoneStatus, sessionId };
+  } catch {
+    return {};
+  }
+}
+
+function persistFields(fields: { phoneE164?: string | null; phoneStatus?: PhoneFunnelStatus; sessionId?: string | null }) {
+  try {
+    if (fields.phoneE164 !== undefined) {
+      if (fields.phoneE164) localStorage.setItem(LS_KEYS.phoneE164, fields.phoneE164);
+      else localStorage.removeItem(LS_KEYS.phoneE164);
+    }
+    if (fields.phoneStatus !== undefined) {
+      localStorage.setItem(LS_KEYS.phoneStatus, fields.phoneStatus);
+    }
+    if (fields.sessionId !== undefined) {
+      if (fields.sessionId) localStorage.setItem(LS_KEYS.sessionId, fields.sessionId);
+      else localStorage.removeItem(LS_KEYS.sessionId);
+    }
+    localStorage.setItem(LS_KEYS.timestamp, String(Date.now()));
+  } catch { /* localStorage unavailable */ }
+}
+
+function clearPersistedFunnel() {
+  try {
+    Object.values(LS_KEYS).forEach((k) => localStorage.removeItem(k));
+  } catch {}
+}
 
 /* ── Defaults ──────────────────────────────────────────── */
 
@@ -72,14 +115,19 @@ export const ScanFunnelContext = createContext<ScanFunnelContextValue | null>(nu
 /* ── Provider ──────────────────────────────────────────── */
 
 export function ScanFunnelProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<ScanFunnelState>(DEFAULT_STATE);
+  const [state, setState] = useState<ScanFunnelState>(() => {
+    const persisted = readPersistedState();
+    return { ...DEFAULT_STATE, ...persisted };
+  });
 
   const setPhone = useCallback((e164: string, status: PhoneFunnelStatus) => {
     setState((s) => ({ ...s, phoneE164: e164, phoneStatus: status }));
+    persistFields({ phoneE164: e164, phoneStatus: status });
   }, []);
 
   const setPhoneStatus = useCallback((status: PhoneFunnelStatus) => {
     setState((s) => ({ ...s, phoneStatus: status }));
+    persistFields({ phoneStatus: status });
   }, []);
 
   const setLeadId = useCallback((id: string) => {
@@ -88,6 +136,7 @@ export function ScanFunnelProvider({ children }: { children: React.ReactNode }) 
 
   const setSessionId = useCallback((id: string) => {
     setState((s) => ({ ...s, sessionId: id }));
+    persistFields({ sessionId: id });
   }, []);
 
   const setScanSessionId = useCallback((id: string) => {
@@ -100,6 +149,12 @@ export function ScanFunnelProvider({ children }: { children: React.ReactNode }) 
 
   const resetFunnel = useCallback(() => {
     setState(DEFAULT_STATE);
+    clearPersistedFunnel();
+  }, []);
+
+  const clearFunnel = useCallback(() => {
+    setState(DEFAULT_STATE);
+    clearPersistedFunnel();
   }, []);
 
   const value = useMemo<ScanFunnelContextValue>(
@@ -112,8 +167,9 @@ export function ScanFunnelProvider({ children }: { children: React.ReactNode }) 
       setScanSessionId,
       setQuoteFileId,
       resetFunnel,
+      clearFunnel,
     }),
-    [state, setPhone, setPhoneStatus, setLeadId, setSessionId, setScanSessionId, setQuoteFileId, resetFunnel]
+    [state, setPhone, setPhoneStatus, setLeadId, setSessionId, setScanSessionId, setQuoteFileId, resetFunnel, clearFunnel]
   );
 
   return (

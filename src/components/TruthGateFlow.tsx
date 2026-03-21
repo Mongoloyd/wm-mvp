@@ -227,7 +227,6 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
       const otpResult = await phonePipeline.submitPhone();
 
       if (otpResult.status === "blocked") {
-        // screenPhone rejected the number
         setFieldStatus(prev => ({ ...prev, phone: "invalid" }));
         setSubmitState("idle");
         return;
@@ -251,23 +250,51 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
       if (error) throw error;
 
-      // 3. Write to ScanFunnelContext
+      // 3. Write to ScanFunnelContext (also persists to localStorage)
       if (funnel && normalizedE164) {
         if (otpResult.status === "otp_sent") {
           funnel.setPhone(normalizedE164, "otp_sent");
         } else if (otpResult.status === "error") {
           funnel.setPhone(normalizedE164, "otp_failed");
         } else {
-          // valid (validate_only shouldn't happen here, but fallback)
           funnel.setPhone(normalizedE164, "validated");
         }
         funnel.setSessionId(sessionId);
       }
 
+      // 4. Analytics: track OTP send outcome
+      const isOtpSuccess = otpResult.status === "otp_sent";
+      supabase.from("event_logs").insert({
+        event_name: isOtpSuccess ? "otp_sent_upstream" : "otp_failed_upstream",
+        session_id: sessionId,
+        metadata: {
+          phone_e164: normalizedE164,
+          pipeline_status: otpResult.status,
+          ...(!isOtpSuccess && otpResult.error ? { error_message: otpResult.error } : {}),
+          timestamp: new Date().toISOString(),
+        },
+      }).then(({ error: evtErr }) => {
+        if (evtErr) console.warn("event_log insert failed:", evtErr);
+      });
+
       setSubmitState("success");
       onLeadCaptured?.(sessionId);
     } catch (err) {
       console.error('Lead capture error:', err);
+
+      // Analytics: track upstream failure
+      supabase.from("event_logs").insert({
+        event_name: "otp_failed_upstream",
+        session_id: funnel?.sessionId || null,
+        metadata: {
+          error_message: err instanceof Error ? err.message : String(err),
+          stage: "lead_capture",
+          timestamp: new Date().toISOString(),
+        },
+      }).then(({ error: evtErr }) => {
+        if (evtErr) console.warn("event_log insert failed:", evtErr);
+      });
+
       setSubmitState("error");
     }
   };
