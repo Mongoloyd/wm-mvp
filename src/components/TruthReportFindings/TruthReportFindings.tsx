@@ -197,10 +197,7 @@ export function TruthReportFindings({ analysis }: V2Props) {
           </div>
         </motion.div>
 
-        {/* ── ① Verify Banner (preview only) ──────────────────── */}
-        {isPreview && (
-          <VerifyBanner onVerifyClick={() => setModalOpen(true)} />
-        )}
+        {/* VerifyBanner removed — VerifyGate is the single dominant CTA */}
 
         {/* ── Quick tally ────────────────────────────────────── */}
         {(redCount > 0 || amberCount > 0) && (
