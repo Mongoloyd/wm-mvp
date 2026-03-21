@@ -2,12 +2,13 @@
  * TruthReportFindings — Findings-first post-scan report.
  *
  * Preview mode: findings are fully locked (severity color + pillar only).
- * Three verification touchpoints: VerifyBanner, clickable lock rows, VerifyGate (v2).
+ * Single dominant CTA: inline VerifyGate. All other lock indicators are
+ * passive labels that reinforce the gate without competing.
  *
  * Full mode: all findings, details, tips, and negotiation tools revealed.
  */
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -19,7 +20,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
-import { VerifyBanner } from "./VerifyBanner";
 import { VerifyGate } from "./VerifyGate";
 import { PhoneVerifyModal } from "./PhoneVerifyModal";
 
