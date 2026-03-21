@@ -210,7 +210,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
     const nameValid = isValidName(answers.firstName);
     const emailValid = isValidEmail(answers.email);
-    const phoneValid = phoneInput.isValid;
+    const phoneValid = phonePipeline.inputComplete;
 
     setFieldStatus({
       firstName: nameValid ? "valid" : "invalid",
@@ -223,12 +223,25 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     setSubmitState("submitting");
 
     try {
+      // 1. Screen + send OTP via the shared pipeline
+      const otpResult = await phonePipeline.submitPhone();
+
+      if (otpResult.status === "blocked") {
+        // screenPhone rejected the number
+        setFieldStatus(prev => ({ ...prev, phone: "invalid" }));
+        setSubmitState("idle");
+        return;
+      }
+
+      const normalizedE164 = otpResult.e164 || phonePipeline.e164;
+
+      // 2. Insert lead row
       const sessionId = crypto.randomUUID();
       const { error } = await supabase.from('leads').insert({
         session_id: sessionId,
         first_name: answers.firstName,
         email: answers.email,
-        phone_e164: phoneInput.e164,
+        phone_e164: normalizedE164,
         county: answers.county,
         project_type: answers.projectType,
         window_count: parseWindowCount(answers.windowCount),
@@ -237,6 +250,19 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
       });
 
       if (error) throw error;
+
+      // 3. Write to ScanFunnelContext
+      if (funnel && normalizedE164) {
+        if (otpResult.status === "otp_sent") {
+          funnel.setPhone(normalizedE164, "otp_sent");
+        } else if (otpResult.status === "error") {
+          funnel.setPhone(normalizedE164, "otp_failed");
+        } else {
+          // valid (validate_only shouldn't happen here, but fallback)
+          funnel.setPhone(normalizedE164, "validated");
+        }
+        funnel.setSessionId(sessionId);
+      }
 
       setSubmitState("success");
       onLeadCaptured?.(sessionId);
