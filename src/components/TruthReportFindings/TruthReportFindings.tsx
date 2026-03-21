@@ -411,13 +411,10 @@ export function TruthReportFindings({ analysis }: V2Props) {
                 ))}
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <button
-                  onClick={() => setModalOpen(true)}
-                  className="flex items-center gap-2 bg-surface/90 border border-surface-border px-4 py-2.5 text-xs font-mono text-gold hover:bg-surface transition-colors"
-                >
-                  <Lock size={12} />
-                  Verify to view coverage
-                </button>
+                <span className="flex items-center gap-2 bg-surface/90 border border-surface-border px-4 py-2.5 text-[11px] font-mono text-muted-foreground/60">
+                  <Lock size={11} />
+                  Available after verification
+                </span>
               </div>
             </div>
           </motion.div>
