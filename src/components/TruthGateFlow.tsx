@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { usePhoneInput } from "@/hooks/usePhoneInput";
+import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
 import { Check } from "lucide-react";
 import { useTickerStats } from "@/hooks/useTickerStats";
 import { supabase } from "@/integrations/supabase/client";
+import { useScanFunnelSafe } from "@/state/scanFunnel";
 
 const stepConfig = [
   {
@@ -152,7 +153,8 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     phone: "untouched",
   });
   const [tcpaConsent, setTcpaConsent] = useState(false);
-  const phoneInput = usePhoneInput();
+  const funnel = useScanFunnelSafe();
+  const phonePipeline = usePhonePipeline("validate_and_send_otp");
 
   const selectedCounty = answers.county || "your county";
   const selectedRange = answers.quoteRange || "your";
@@ -192,10 +194,10 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     switch (field) {
       case "firstName": return isValidName(value) ? "valid" : "invalid";
       case "email": return isValidEmail(value) ? "valid" : "invalid";
-      case "phone": return phoneInput.isValid ? "valid" : "invalid";
+      case "phone": return phonePipeline.inputComplete ? "valid" : "invalid";
       default: return "untouched";
     }
-  }, [phoneInput.isValid]);
+  }, [phonePipeline.inputComplete]);
 
   const handleFieldBlur = useCallback((field: string, value: string) => {
     if (value.trim().length > 0) {
@@ -208,7 +210,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
     const nameValid = isValidName(answers.firstName);
     const emailValid = isValidEmail(answers.email);
-    const phoneValid = phoneInput.isValid;
+    const phoneValid = phonePipeline.inputComplete;
 
     setFieldStatus({
       firstName: nameValid ? "valid" : "invalid",
@@ -221,12 +223,25 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     setSubmitState("submitting");
 
     try {
+      // 1. Screen + send OTP via the shared pipeline
+      const otpResult = await phonePipeline.submitPhone();
+
+      if (otpResult.status === "blocked") {
+        // screenPhone rejected the number
+        setFieldStatus(prev => ({ ...prev, phone: "invalid" }));
+        setSubmitState("idle");
+        return;
+      }
+
+      const normalizedE164 = otpResult.e164 || phonePipeline.e164;
+
+      // 2. Insert lead row
       const sessionId = crypto.randomUUID();
       const { error } = await supabase.from('leads').insert({
         session_id: sessionId,
         first_name: answers.firstName,
         email: answers.email,
-        phone_e164: phoneInput.e164,
+        phone_e164: normalizedE164,
         county: answers.county,
         project_type: answers.projectType,
         window_count: parseWindowCount(answers.windowCount),
@@ -235,6 +250,19 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
       });
 
       if (error) throw error;
+
+      // 3. Write to ScanFunnelContext
+      if (funnel && normalizedE164) {
+        if (otpResult.status === "otp_sent") {
+          funnel.setPhone(normalizedE164, "otp_sent");
+        } else if (otpResult.status === "error") {
+          funnel.setPhone(normalizedE164, "otp_failed");
+        } else {
+          // valid (validate_only shouldn't happen here, but fallback)
+          funnel.setPhone(normalizedE164, "validated");
+        }
+        funnel.setSessionId(sessionId);
+      }
 
       setSubmitState("success");
       onLeadCaptured?.(sessionId);
@@ -440,9 +468,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
                 inputMode="numeric"
                 autoComplete="tel"
                 placeholder="(555) 000-0000"
-                value={phoneInput.displayValue}
+                value={phonePipeline.displayValue}
                 onChange={(e) => {
-                  phoneInput.handleChange(e);
+                  phonePipeline.handlePhoneChange(e);
                   setAnswers((p) => ({ ...p, phone: e.target.value }));
                 }}
                 style={{
@@ -451,13 +479,13 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
                   paddingRight: fieldStatus.phone !== "untouched" ? 40 : 16,
                 }}
                 onFocus={handleInputFocus}
-                onBlur={(e) => { handleInputBlur(e); handleFieldBlur("phone", phoneInput.rawDigits); }}
+                onBlur={(e) => { handleInputBlur(e); handleFieldBlur("phone", phonePipeline.rawDigits); }}
               />
               {fieldStatus.phone === "valid" && <ValidationIcon valid />}
               {fieldStatus.phone === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.phone === "invalid" && (
-              <p style={errorTextStyle}>Please enter a valid 10-digit US phone number</p>
+              <p style={errorTextStyle}>{phonePipeline.errorMsg || "Please enter a valid 10-digit US phone number"}</p>
             )}
           </div>
 

@@ -23,6 +23,7 @@ import ExitIntentModal from "@/components/ExitIntentModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
+import { ScanFunnelProvider } from "@/state/scanFunnel";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
@@ -97,6 +98,7 @@ const Index = () => {
   const shouldShowReport = showReportFromDev || gradeRevealed;
 
   return (
+    <ScanFunnelProvider>
     <div className="min-h-screen bg-background pb-[240px] sm:pb-[180px] lg:pb-32">
       <LinearHeader />
 
@@ -297,6 +299,7 @@ const Index = () => {
         />
       )}
     </div>
+    </ScanFunnelProvider>
   );
 };
 
