@@ -2,12 +2,13 @@
  * TruthReportFindings — Findings-first post-scan report.
  *
  * Preview mode: findings are fully locked (severity color + pillar only).
- * Three verification touchpoints: VerifyBanner, clickable lock rows, VerifyGate (v2).
+ * Single dominant CTA: inline VerifyGate. All other lock indicators are
+ * passive labels that reinforce the gate without competing.
  *
  * Full mode: all findings, details, tips, and negotiation tools revealed.
  */
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -19,7 +20,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
-import { VerifyBanner } from "./VerifyBanner";
 import { VerifyGate } from "./VerifyGate";
 import { PhoneVerifyModal } from "./PhoneVerifyModal";
 
@@ -143,6 +143,7 @@ export function TruthReportFindings({ analysis }: V2Props) {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [verified, setVerified] = useState(false);
+  const gateRef = useRef<HTMLDivElement>(null);
 
   const isPreview = accessLevel === "preview" && !verified;
   const verdict = VERDICT[grade] || VERDICT.C;
@@ -159,6 +160,10 @@ export function TruthReportFindings({ analysis }: V2Props) {
   const redCount = flags.filter((f) => f.severity === "red").length;
   const amberCount = flags.filter((f) => f.severity === "amber").length;
   const issueCount = redCount + amberCount;
+
+  const scrollToGate = () => {
+    gateRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   const handleVerified = () => {
     setVerified(true);
@@ -192,10 +197,7 @@ export function TruthReportFindings({ analysis }: V2Props) {
           </div>
         </motion.div>
 
-        {/* ── ① Verify Banner (preview only) ──────────────────── */}
-        {isPreview && (
-          <VerifyBanner onVerifyClick={() => setModalOpen(true)} />
-        )}
+        {/* VerifyBanner removed — VerifyGate is the single dominant CTA */}
 
         {/* ── Quick tally ────────────────────────────────────── */}
         {(redCount > 0 || amberCount > 0) && (
@@ -250,7 +252,7 @@ export function TruthReportFindings({ analysis }: V2Props) {
                     <motion.button
                       key={group.pillar}
                       {...fadeUp(0.18 + i * 0.06)}
-                      onClick={() => setModalOpen(true)}
+                      onClick={scrollToGate}
                       className={`relative bg-surface border-l-[3px] ${sev.border} px-5 py-4 text-left w-full transition-colors hover:bg-surface-border/30 group cursor-pointer`}
                     >
                       <div className="flex items-center gap-3">
@@ -263,9 +265,9 @@ export function TruthReportFindings({ analysis }: V2Props) {
                             {group.count} findings
                           </span>
                         )}
-                        <span className="ml-auto flex items-center gap-1.5 text-xs text-gold font-mono opacity-70 group-hover:opacity-100 transition-opacity">
-                          <Lock size={11} />
-                          Verify to read →
+                        <span className="ml-auto flex items-center gap-1.5 text-[10px] text-muted-foreground/50 font-mono">
+                          <Lock size={10} />
+                          Locked
                         </span>
                       </div>
                     </motion.button>
@@ -321,13 +323,15 @@ export function TruthReportFindings({ analysis }: V2Props) {
           )}
         </motion.div>
 
-        {/* ── ③ Inline Verify Gate (preview only, above evidence) ── */}
+        {/* ── ③ Inline Verify Gate (preview only — PRIMARY CTA) ── */}
         {isPreview && (
-          <VerifyGate
-            issueCount={issueCount}
-            onVerified={handleVerified}
-            scanSessionId={scanSessionId}
-          />
+          <div ref={gateRef}>
+            <VerifyGate
+              issueCount={issueCount}
+              onVerified={handleVerified}
+              scanSessionId={scanSessionId}
+            />
+          </div>
         )}
 
         {/* ── Evidence ─────────────────────────────────────────── */}
@@ -346,13 +350,10 @@ export function TruthReportFindings({ analysis }: V2Props) {
                 ))}
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <button
-                  onClick={() => setModalOpen(true)}
-                  className="flex items-center gap-2 bg-surface/90 border border-surface-border px-4 py-2.5 text-xs font-mono text-gold hover:bg-surface transition-colors"
-                >
-                  <Lock size={12} />
-                  Verify to view evidence
-                </button>
+                <span className="flex items-center gap-2 bg-surface/90 border border-surface-border px-4 py-2.5 text-[11px] font-mono text-muted-foreground/60">
+                  <Lock size={11} />
+                  Available after verification
+                </span>
               </div>
             </div>
           </motion.div>
@@ -410,13 +411,10 @@ export function TruthReportFindings({ analysis }: V2Props) {
                 ))}
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <button
-                  onClick={() => setModalOpen(true)}
-                  className="flex items-center gap-2 bg-surface/90 border border-surface-border px-4 py-2.5 text-xs font-mono text-gold hover:bg-surface transition-colors"
-                >
-                  <Lock size={12} />
-                  Verify to view coverage
-                </button>
+                <span className="flex items-center gap-2 bg-surface/90 border border-surface-border px-4 py-2.5 text-[11px] font-mono text-muted-foreground/60">
+                  <Lock size={11} />
+                  Available after verification
+                </span>
               </div>
             </div>
           </motion.div>
@@ -465,17 +463,11 @@ export function TruthReportFindings({ analysis }: V2Props) {
 
         {/* ── Actions ──────────────────────────────────────────── */}
         {isPreview ? (
-          <motion.div {...fadeUp(0.6)} className="flex flex-col items-center gap-3 py-4">
-            <p className="text-xs text-muted-foreground font-mono text-center">
+          <motion.div {...fadeUp(0.6)} className="flex items-center justify-center gap-2 py-4">
+            <Lock size={12} className="text-muted-foreground/40" />
+            <p className="text-xs text-muted-foreground/50 font-mono">
               Counter-quote tools and next steps available after verification.
             </p>
-            <button
-              onClick={() => setModalOpen(true)}
-              className="flex items-center justify-center gap-2 border border-gold/30 bg-gold/5 text-gold px-6 py-3.5 text-sm font-semibold hover:bg-gold/10 transition-colors active:scale-[0.97]"
-            >
-              <Lock size={14} />
-              Unlock Full Report
-            </button>
           </motion.div>
         ) : (
           <motion.div {...fadeUp(0.6)} className="flex flex-col sm:flex-row gap-3">
