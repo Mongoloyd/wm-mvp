@@ -323,13 +323,15 @@ export function TruthReportFindings({ analysis }: V2Props) {
           )}
         </motion.div>
 
-        {/* ── ③ Inline Verify Gate (preview only, above evidence) ── */}
+        {/* ── ③ Inline Verify Gate (preview only — PRIMARY CTA) ── */}
         {isPreview && (
-          <VerifyGate
-            issueCount={issueCount}
-            onVerified={handleVerified}
-            scanSessionId={scanSessionId}
-          />
+          <div ref={gateRef}>
+            <VerifyGate
+              issueCount={issueCount}
+              onVerified={handleVerified}
+              scanSessionId={scanSessionId}
+            />
+          </div>
         )}
 
         {/* ── Evidence ─────────────────────────────────────────── */}
