@@ -252,7 +252,7 @@ export function TruthReportFindings({ analysis }: V2Props) {
                     <motion.button
                       key={group.pillar}
                       {...fadeUp(0.18 + i * 0.06)}
-                      onClick={() => setModalOpen(true)}
+                      onClick={scrollToGate}
                       className={`relative bg-surface border-l-[3px] ${sev.border} px-5 py-4 text-left w-full transition-colors hover:bg-surface-border/30 group cursor-pointer`}
                     >
                       <div className="flex items-center gap-3">
@@ -265,9 +265,9 @@ export function TruthReportFindings({ analysis }: V2Props) {
                             {group.count} findings
                           </span>
                         )}
-                        <span className="ml-auto flex items-center gap-1.5 text-xs text-gold font-mono opacity-70 group-hover:opacity-100 transition-opacity">
-                          <Lock size={11} />
-                          Verify to read →
+                        <span className="ml-auto flex items-center gap-1.5 text-[10px] text-muted-foreground/50 font-mono">
+                          <Lock size={10} />
+                          Locked
                         </span>
                       </div>
                     </motion.button>
