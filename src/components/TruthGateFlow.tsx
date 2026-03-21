@@ -194,10 +194,10 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     switch (field) {
       case "firstName": return isValidName(value) ? "valid" : "invalid";
       case "email": return isValidEmail(value) ? "valid" : "invalid";
-      case "phone": return phoneInput.isValid ? "valid" : "invalid";
+      case "phone": return phonePipeline.inputComplete ? "valid" : "invalid";
       default: return "untouched";
     }
-  }, [phoneInput.isValid]);
+  }, [phonePipeline.inputComplete]);
 
   const handleFieldBlur = useCallback((field: string, value: string) => {
     if (value.trim().length > 0) {
