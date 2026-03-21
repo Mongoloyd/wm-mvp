@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { usePhoneInput } from "@/hooks/usePhoneInput";
+import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
 import { Check } from "lucide-react";
 import { useTickerStats } from "@/hooks/useTickerStats";
 import { supabase } from "@/integrations/supabase/client";
+import { useScanFunnelSafe } from "@/state/scanFunnel";
 
 const stepConfig = [
   {
