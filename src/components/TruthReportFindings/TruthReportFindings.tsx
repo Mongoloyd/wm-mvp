@@ -161,6 +161,10 @@ export function TruthReportFindings({ analysis }: V2Props) {
   const amberCount = flags.filter((f) => f.severity === "amber").length;
   const issueCount = redCount + amberCount;
 
+  const scrollToGate = () => {
+    gateRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   const handleVerified = () => {
     setVerified(true);
     setModalOpen(false);
