@@ -153,7 +153,8 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     phone: "untouched",
   });
   const [tcpaConsent, setTcpaConsent] = useState(false);
-  const phoneInput = usePhoneInput();
+  const funnel = useScanFunnelSafe();
+  const phonePipeline = usePhonePipeline("validate_and_send_otp");
 
   const selectedCounty = answers.county || "your county";
   const selectedRange = answers.quoteRange || "your";
