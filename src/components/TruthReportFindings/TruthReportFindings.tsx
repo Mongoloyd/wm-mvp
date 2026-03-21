@@ -143,6 +143,7 @@ export function TruthReportFindings({ analysis }: V2Props) {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [verified, setVerified] = useState(false);
+  const gateRef = useRef<HTMLDivElement>(null);
 
   const isPreview = accessLevel === "preview" && !verified;
   const verdict = VERDICT[grade] || VERDICT.C;
