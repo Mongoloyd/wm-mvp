@@ -468,9 +468,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
                 inputMode="numeric"
                 autoComplete="tel"
                 placeholder="(555) 000-0000"
-                value={phoneInput.displayValue}
+                value={phonePipeline.displayValue}
                 onChange={(e) => {
-                  phoneInput.handleChange(e);
+                  phonePipeline.handlePhoneChange(e);
                   setAnswers((p) => ({ ...p, phone: e.target.value }));
                 }}
                 style={{
@@ -479,7 +479,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
                   paddingRight: fieldStatus.phone !== "untouched" ? 40 : 16,
                 }}
                 onFocus={handleInputFocus}
-                onBlur={(e) => { handleInputBlur(e); handleFieldBlur("phone", phoneInput.rawDigits); }}
+                onBlur={(e) => { handleInputBlur(e); handleFieldBlur("phone", phonePipeline.rawDigits); }}
               />
               {fieldStatus.phone === "valid" && <ValidationIcon valid />}
               {fieldStatus.phone === "invalid" && <ValidationIcon valid={false} />}
