@@ -463,17 +463,11 @@ export function TruthReportFindings({ analysis }: V2Props) {
 
         {/* ── Actions ──────────────────────────────────────────── */}
         {isPreview ? (
-          <motion.div {...fadeUp(0.6)} className="flex flex-col items-center gap-3 py-4">
-            <p className="text-xs text-muted-foreground font-mono text-center">
+          <motion.div {...fadeUp(0.6)} className="flex items-center justify-center gap-2 py-4">
+            <Lock size={12} className="text-muted-foreground/40" />
+            <p className="text-xs text-muted-foreground/50 font-mono">
               Counter-quote tools and next steps available after verification.
             </p>
-            <button
-              onClick={() => setModalOpen(true)}
-              className="flex items-center justify-center gap-2 border border-gold/30 bg-gold/5 text-gold px-6 py-3.5 text-sm font-semibold hover:bg-gold/10 transition-colors active:scale-[0.97]"
-            >
-              <Lock size={14} />
-              Unlock Full Report
-            </button>
           </motion.div>
         ) : (
           <motion.div {...fadeUp(0.6)} className="flex flex-col sm:flex-row gap-3">
