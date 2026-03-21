@@ -485,7 +485,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               {fieldStatus.phone === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.phone === "invalid" && (
-              <p style={errorTextStyle}>Please enter a valid 10-digit US phone number</p>
+              <p style={errorTextStyle}>{phonePipeline.errorMsg || "Please enter a valid 10-digit US phone number"}</p>
             )}
           </div>
 
