@@ -1,16 +1,27 @@
 import { useState, useCallback } from "react";
-import type { ReportEnvelope, ReportMode, GateState } from "@/types/report-v2";
+import type { ReportEnvelope, ReportMode, GateState, OtpVerifyOutcome } from "@/types/report-v2";
 import { ReportRevealContainer } from "./ReportRevealContainer";
 import { OtpUnlockModal } from "./OtpUnlockModal";
 import { ReportShellV2 } from "../report-v2/ReportShellV2";
+
+// ── Outcome → GateState mapping ──────────────────────────────────────────────
+// The shell translates rich outcomes from the page layer into its own GateState.
+// This keeps the shell's state machine self-contained while allowing the page
+// to return semantically meaningful results from the Twilio verification.
+const OUTCOME_TO_GATE: Record<OtpVerifyOutcome, GateState> = {
+  verified: "unlocked",
+  invalid: "otp_invalid",
+  expired: "otp_expired",
+  error: "otp_invalid", // treat network/unknown errors as retryable
+};
 
 interface FindingsPageShellProps {
   report: ReportEnvelope;
   phoneMasked?: string;
   isDemoMode?: boolean;
   initialGateState?: GateState;
-  // Wire these to your Twilio edge functions
-  onSubmitOtp?: (code: string) => Promise<boolean>;
+  // Wire these to your Twilio edge functions via usePhonePipeline in Report.tsx
+  onSubmitOtp?: (code: string) => Promise<OtpVerifyOutcome>;
   onResendOtp?: () => Promise<void>;
   onEditPhone?: () => void;
 }
@@ -35,28 +46,32 @@ export function FindingsPageShell({
   // ── OTP handlers ───────────────────────────────────────────────────────
 
   const handleSubmitCode = useCallback(
-    async (code: string) => {
+    async (code: string): Promise<OtpVerifyOutcome> => {
       setGateState("otp_submitting");
 
       if (onSubmitOtp) {
-        // Real Twilio flow
+        // Real Twilio flow — page layer returns a rich outcome
         try {
-          const success = await onSubmitOtp(code);
-          if (success) {
-            setGateState("unlocked");
+          const outcome = await onSubmitOtp(code);
+          const nextGate = OUTCOME_TO_GATE[outcome];
+          setGateState(nextGate);
+
+          if (outcome === "verified") {
             setReportMode("full");
             // Analytics: track('wm_report_unlocked', { sessionId: report.meta.analysisId })
-          } else {
-            setGateState("otp_invalid");
           }
+
+          return outcome;
         } catch {
           setGateState("otp_invalid");
+          return "error";
         }
       } else {
         // Dev/demo fallback: simulate verification
         await new Promise((r) => setTimeout(r, 1200));
         setGateState("unlocked");
         setReportMode("full");
+        return "verified";
       }
     },
     [onSubmitOtp, report.meta.analysisId]

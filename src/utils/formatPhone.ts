@@ -34,6 +34,13 @@ export const isValidUSPhone = (value: string): boolean => {
   return digits.length === 10 || (digits.length === 11 && digits.startsWith("1"));
 };
 
+/** Mask an E.164 phone for display: +15551234567 → (•••) •••-4567 */
+export const maskPhone = (e164: string): string => {
+  const digits = stripNonDigits(e164);
+  const last4 = digits.slice(-4);
+  return `(•••) •••-${last4}`;
+};
+
 /** Basic email validation */
 export const isValidEmail = (email: string): boolean => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());

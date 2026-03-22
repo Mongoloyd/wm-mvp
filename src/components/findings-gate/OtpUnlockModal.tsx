@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ShieldCheck, ArrowRight, AlertCircle, RotateCcw, Pencil } from "lucide-react";
-import type { GateState } from "@/types/report-v2";
+import type { GateState, OtpVerifyOutcome } from "@/types/report-v2";
 
 interface OtpUnlockModalProps {
   open: boolean;
   phoneMasked: string;
   status: GateState;
   secondsRemaining?: number;
-  onSubmitCode: (code: string) => void;
+  /** Rich outcome callback — page layer returns the Twilio result, not a boolean. */
+  onSubmitCode: (code: string) => Promise<OtpVerifyOutcome>;
   onResend: () => void;
   onEditPhone?: () => void;
   onClose?: () => void;

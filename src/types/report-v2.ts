@@ -19,6 +19,10 @@ export type GateState =
   | "otp_expired"
   | "unlocked";
 
+// Rich outcome from the OTP verification callback.
+// Returned by the page layer (which owns Twilio), consumed by the shell.
+export type OtpVerifyOutcome = "verified" | "invalid" | "expired" | "error";
+
 export interface ReportEnvelope {
   version: "findings_v2";
   mode: ReportMode;

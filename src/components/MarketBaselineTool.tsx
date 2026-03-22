@@ -1,327 +1,529 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { usePhoneInput } from "@/hooks/usePhoneInput";
-import { isValidEmail, isValidName } from "@/utils/formatPhone";
-import { Check } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import "@fontsource/dm-mono/500.css";
+/**
+ * MarketBaselineTool.tsx — Flow B Interactive Baseline Builder
+ *
+ * THE ENDOWMENT EFFECT IN CODE:
+ * The homeowner BUILDS their ideal price by selecting:
+ *   - Their county
+ *   - Window brand (PGT vs CGI vs generic)
+ *   - Window count
+ *   - Installation method (fin vs full-frame)
+ *   - Project type
+ *
+ * By configuring the tool themselves, they now feel like they OWN the
+ * resulting number. When a contractor arrives and quotes higher, it's
+ * not "the market says X" — it's "MY baseline says X."
+ *
+ * The baseline is saved to localStorage so it persists for their contractor visit.
+ * A print/share button lets them send it to the contractor BEFORE the appointment.
+ * This is how WindowMan owns the first-impression anchor.
+ */
 
-const priceData: Record<string, Record<string, [number, number]>> = {
-  "Miami-Dade": { "1–5 windows": [5800, 7200], "6–10 windows": [10400, 12800], "11–20 windows": [18600, 22400], "20+ windows": [28000, 34000] },
-  Broward: { "1–5 windows": [5400, 6800], "6–10 windows": [9800, 12200], "11–20 windows": [17200, 21000], "20+ windows": [26000, 31500] },
-  "Palm Beach": { "1–5 windows": [6200, 7600], "6–10 windows": [11200, 13600], "11–20 windows": [19800, 24000], "20+ windows": [30000, 36000] },
-  Other: { "1–5 windows": [5600, 7000], "6–10 windows": [10000, 12400], "11–20 windows": [18000, 21800], "20+ windows": [27000, 32500] },
-};
+import { useState, useEffect } from 'react';
+import { useFunnelStore } from '../store/useFunnelStore';
+import { FLORIDA_COUNTIES, IMPACT_WINDOW_BRANDS, type CountyMarketData, type BrandData } from '../store/countyData';
 
-const getRange = (county: string, windows: string): [number, number] => {
-  const key = county === "Other Florida County" ? "Other" : county;
-  return priceData[key]?.[windows] ?? [12400, 14800];
-};
+// ── TYPES ─────────────────────────────────────────────────────────────────────
 
-const parseWindowCount = (val: string): number | null => {
-  if (val.includes("1–5")) return 5;
-  if (val.includes("6–10")) return 10;
-  if (val.includes("11–20")) return 20;
-  if (val.includes("20+")) return 25;
-  return null;
-};
-
-const stepLabels = ["Location", "Project Scope", "Window Type"];
-const steps = [
-  { question: "Which Florida county is your project in?", sub: "We have benchmark pricing data for all major Florida counties.", key: "county", options: ["Miami-Dade", "Broward", "Palm Beach", "Other Florida County"] },
-  { question: "How many windows are you looking to replace?", sub: "Larger projects change the per-window benchmark significantly.", key: "windowCount", options: ["1–5 windows", "6–10 windows", "11–20 windows", "20+ windows"] },
-  { question: "What type of windows are you replacing?", sub: "Impact vs. standard windows have very different market price ranges.", key: "windowType", options: ["🛡 Impact Windows (Hurricane)", "Standard Windows", "Impact + Doors", "Not sure yet"] },
-];
-
-type Step = 1 | 2 | 3 | "calc" | "gate" | "reveal";
-const slideVariants = { enter: { x: 40, opacity: 0 }, center: { x: 0, opacity: 1 }, exit: { x: -40, opacity: 0 } };
-
-const OptionButton = ({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) => (
-  <button onClick={onClick} style={{ background: selected ? "hsl(160 84% 39% / 0.12)" : "hsl(0 0% 7%)", border: `1px solid ${selected ? "hsl(160 84% 39%)" : "hsl(0 0% 15%)"}`, borderRadius: 0, padding: "18px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: selected ? "hsl(160 84% 39%)" : "hsl(0 0% 91%)", textAlign: "center", cursor: "pointer", transition: "all 0.15s ease", boxShadow: selected ? "0 0 0 3px hsla(160 84% 39% / 0.15)" : "none" }}
-    onMouseEnter={(e) => { if (!selected) { e.currentTarget.style.borderColor = "hsl(160 84% 39%)"; e.currentTarget.style.background = "hsl(160 84% 39% / 0.12)"; e.currentTarget.style.color = "hsl(160 84% 39%)"; } }}
-    onMouseLeave={(e) => { if (!selected) { e.currentTarget.style.borderColor = "hsl(0 0% 15%)"; e.currentTarget.style.background = "hsl(0 0% 7%)"; e.currentTarget.style.color = "hsl(0 0% 91%)"; } }}>
-    {label}
-  </button>
-);
-
-const useCounter = (target: number, duration: number, active: boolean) => {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    if (!active) { setValue(0); return; }
-    const start = performance.now();
-    const step = (now: number) => { const t = Math.min((now - start) / duration, 1); setValue(Math.floor(t * target)); if (t < 1) requestAnimationFrame(step); };
-    requestAnimationFrame(step);
-  }, [target, duration, active]);
-  return value;
-};
-
-interface MarketBaselineToolProps {
-  onLeadCaptured?: (answers: { county: string; windowCount: string; windowType: string }) => void;
-  onBaselineRevealed?: () => void;
-  onStepComplete?: (step: number, answer: string) => void;
-  onChecklistClick?: () => void;
-  onReminderClick?: () => void;
+interface BaselineConfig {
+  county:        string;
+  brand:         string;
+  windowCount:   number;
+  installMethod: 'fin' | 'full-frame';
+  projectType:   string;
 }
 
-const MarketBaselineTool = ({ onLeadCaptured, onBaselineRevealed, onStepComplete, onChecklistClick, onReminderClick }: MarketBaselineToolProps) => {
-  const [step, setStep] = useState<Step>(1);
-  const [answers, setAnswers] = useState({ county: "", windowCount: "", windowType: "" });
-  const [selected, setSelected] = useState("");
-  const [form, setForm] = useState({ firstName: "", email: "", phone: "" });
-  const [blurAmount, setBlurAmount] = useState(7);
-  const [showOverlay, setShowOverlay] = useState(true);
-  const [submitState, setSubmitState] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [fieldStatus, setFieldStatus] = useState<Record<string, "untouched" | "valid" | "invalid">>({ firstName: "untouched", email: "untouched", phone: "untouched" });
-  const [tcpaConsent, setTcpaConsent] = useState(false);
-  const phoneInput = usePhoneInput();
-  const calcCounterActive = step === "calc";
-  const calcCount = useCounter(427, 800, calcCounterActive);
+interface BaselineResult {
+  fairFloor:     number;   // p25 per window × count
+  fairCeiling:   number;   // p75 per window × count
+  fairMid:       number;   // avg per window × count
+  perWindow:     number;   // fair per window
+  brandPremium:  number;   // premium over generic
+  installAdder:  number;   // full-frame vs fin adder
+  warningFlag:   string | null;
+  countyData:    CountyMarketData | null;
+  brandData:     BrandData | null;
+  savedAt:       string;
+}
 
-  const progressPercent = typeof step === "number" ? ((step - 1) / 3) * 100 + "%" : "100%";
-  const priceRange = getRange(answers.county, answers.windowCount);
-  const countyShort = answers.county === "Other Florida County" ? "FL" : answers.county;
-  const avgOverage = Math.round((priceRange[1] - priceRange[0]) * 1.6);
+// ── PRICING LOGIC ──────────────────────────────────────────────────────────────
 
-  const handleOptionClick = useCallback((key: string, value: string) => {
-    setSelected(value);
-    const newAnswers = { ...answers, [key]: value };
-    setAnswers(newAnswers);
-    const stepNum = step as number;
-    onStepComplete?.(stepNum, value);
-    if (stepNum < 3) { setTimeout(() => { setSelected(""); setStep((stepNum + 1) as Step); }, 300); }
-    else { setTimeout(() => { setStep("calc"); setTimeout(() => setStep("gate"), 800); }, 400); }
-  }, [step, answers, onStepComplete]);
+const INSTALL_METHOD_MULTIPLIER = { fin: 1.0, 'full-frame': 1.12 };
 
-  const validateField = useCallback((field: string, value: string) => {
-    switch (field) { case "firstName": return isValidName(value) ? "valid" : "invalid"; case "email": return isValidEmail(value) ? "valid" : "invalid"; case "phone": return phoneInput.isValid ? "valid" : "invalid"; default: return "untouched" as const; }
-  }, [phoneInput.isValid]);
+function calculateBaseline(config: BaselineConfig): BaselineResult {
+  const countyData = FLORIDA_COUNTIES.find(c => c.county === config.county) ?? null;
+  const brandData  = IMPACT_WINDOW_BRANDS.find(b => b.name === config.brand) ?? null;
 
-  const handleFieldBlur = useCallback((field: string, value: string) => {
-    if (value.trim().length > 0) setFieldStatus(prev => ({ ...prev, [field]: validateField(field, value) }));
-  }, [validateField]);
+  const basePerWindow = countyData?.avgPerWindow ?? 1100;
+  const brandAdj      = brandData ? (brandData.avgPerWindow / 1100) : 1;
+  const installMult   = INSTALL_METHOD_MULTIPLIER[config.installMethod];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const nameValid = isValidName(form.firstName);
-    const emailValid = isValidEmail(form.email);
-    const phoneValid = phoneInput.isValid;
-    setFieldStatus({ firstName: nameValid ? "valid" : "invalid", email: emailValid ? "valid" : "invalid", phone: phoneValid ? "valid" : "invalid" });
-    if (!nameValid || !emailValid || !phoneValid || !tcpaConsent) return;
+  const adjustedPerWindow = Math.round(basePerWindow * brandAdj * installMult);
+  const p25PerWindow      = Math.round((countyData?.p25 ?? 860)  * brandAdj * installMult);
+  const p75PerWindow      = Math.round((countyData?.p75 ?? 1440) * brandAdj * installMult);
 
-    setSubmitState("submitting");
-    try {
-      const sessionId = crypto.randomUUID();
-      const { error } = await supabase.from('leads').insert({
-        session_id: sessionId,
-        first_name: form.firstName,
-        email: form.email,
-        phone_e164: phoneInput.e164,
-        county: answers.county,
-        project_type: answers.windowType,
-        window_count: parseWindowCount(answers.windowCount),
-        source: 'market-baseline',
-      });
-      if (error) throw error;
+  const n = config.windowCount;
 
-      setSubmitState("success");
-      onLeadCaptured?.(answers);
-      setShowOverlay(false);
-      setTimeout(() => {
-        const animStart = performance.now();
-        const animBlur = (now: number) => {
-          const t = Math.min((now - animStart) / 800, 1);
-          setBlurAmount(7 * (1 - t));
-          if (t < 1) requestAnimationFrame(animBlur);
-          else { setStep("reveal"); onBaselineRevealed?.(); }
-        };
-        requestAnimationFrame(animBlur);
-      }, 400);
-    } catch (err) {
-      console.error('Lead capture error:', err);
-      setSubmitState("error");
-    }
+  return {
+    fairFloor:    p25PerWindow * n,
+    fairCeiling:  p75PerWindow * n,
+    fairMid:      adjustedPerWindow * n,
+    perWindow:    adjustedPerWindow,
+    brandPremium: brandData ? Math.round((brandData.avgPerWindow - 640) * n) : 0,
+    installAdder: config.installMethod === 'full-frame'
+      ? Math.round(basePerWindow * 0.12 * n) : 0,
+    warningFlag: brandData?.tier === 'economy'
+      ? 'Generic brand selected — contractor can substitute any quality level after signing. Ask for a specific brand name.'
+      : !brandData
+      ? 'No brand selected yet — specify a brand before signing any contract.'
+      : null,
+    countyData,
+    brandData,
+    savedAt: new Date().toISOString(),
+  };
+}
+
+// ── SAVED BASELINE ALERT ────────────────────────────────────────────────────
+
+function SavedBaselineAlert({ savedAt }: { savedAt: string }) {
+  const monoFont = "'JetBrains Mono',monospace";
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8,
+      padding: '8px 12px',
+      background: 'rgba(16,185,129,0.07)',
+      border: '1px solid rgba(16,185,129,0.22)',
+      borderLeft: '2px solid #10B981',
+      marginBottom: 12,
+    }}>
+      <span style={{ fontFamily: monoFont, fontSize: 10, color: '#34D399', letterSpacing: '0.1em' }}>
+        ✓ BASELINE SAVED — Returns when you visit again
+      </span>
+      <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginLeft: 'auto' }}>
+        {new Date(savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+      </span>
+    </div>
+  );
+}
+
+// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
+
+export default function MarketBaselineTool() {
+  const { county: storeCounty, windowCount: storeWindowCount } = useFunnelStore();
+
+  const savedBaseline = (() => {
+    try { return JSON.parse(localStorage.getItem('wm_baseline_config') || 'null'); } catch { return null; }
+  })();
+
+  const [config, setConfig] = useState<BaselineConfig>({
+    county:        savedBaseline?.county       ?? storeCounty ?? 'Broward',
+    brand:         savedBaseline?.brand        ?? 'PGT WinGuard',
+    windowCount:   savedBaseline?.windowCount  ?? (storeWindowCount ? parseInt(storeWindowCount) : 10),
+    installMethod: savedBaseline?.installMethod ?? 'fin',
+    projectType:   savedBaseline?.projectType  ?? 'Full home replacement',
+  });
+
+  const [result, setResult]         = useState<BaselineResult>(() => calculateBaseline(config));
+  const [justSaved, setJustSaved]   = useState(false);
+  const [activeTab, setActiveTab]   = useState<'build' | 'compare' | 'checklist'>('build');
+
+  const monoFont = "'JetBrains Mono',monospace";
+  const bodyFont = "'DM Sans',sans-serif";
+  const dispFont = "'Barlow Condensed',sans-serif";
+
+  // Recalculate on any config change
+  useEffect(() => {
+    const newResult = calculateBaseline(config);
+    setResult(newResult);
+  }, [config]);
+
+  const saveBaseline = () => {
+    localStorage.setItem('wm_baseline_config',  JSON.stringify(config));
+    localStorage.setItem('wm_baseline_result',  JSON.stringify(result));
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 3000);
   };
 
-  return (
-    <section id="market-baseline" style={{ backgroundColor: "hsl(0 0% 4%)" }}>
-      <div className="mx-auto max-w-2xl px-4 py-16 md:px-8 md:py-24">
-        <p className="text-center mb-3" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "hsl(192 100% 37%)", letterSpacing: "0.1em" }}>FAIR-MARKET BASELINE GENERATOR</p>
-        <h2 className="text-center" style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(30px, 4vw, 38px)", fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(0 0% 100%)", marginBottom: 10 }}>Don't Walk Into a Sales Pitch Unarmed.</h2>
-        <p className="text-center" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "hsl(0 0% 91%)", lineHeight: 1.7, marginBottom: 8 }}>Generate your county-specific pricing baseline so you know the fair price before they even open their briefcase.</p>
+  const printBaseline = () => {
+    const text = [
+      `WINDOWMAN MARKET BASELINE — ${config.county.toUpperCase()} COUNTY`,
+      `Generated: ${new Date().toLocaleDateString()}`,
+      ``,
+      `YOUR CONFIGURATION:`,
+      `  County:         ${config.county}`,
+      `  Window Brand:   ${config.brand}`,
+      `  Window Count:   ${config.windowCount}`,
+      `  Install Method: ${config.installMethod === 'full-frame' ? 'Full Frame Replacement' : 'Fin Installation'}`,
+      `  Project Type:   ${config.projectType}`,
+      ``,
+      `YOUR FAIR-MARKET RANGE:`,
+      `  Floor (P25):  $${result.fairFloor.toLocaleString()}`,
+      `  Midpoint:     $${result.fairMid.toLocaleString()}`,
+      `  Ceiling (P75): $${result.fairCeiling.toLocaleString()}`,
+      `  Per Window:   $${result.perWindow.toLocaleString()}`,
+      ``,
+      `QUESTIONS TO ASK YOUR CONTRACTOR:`,
+      `  1. What specific brand and NOA number are you installing?`,
+      `  2. Is the permit listed as a separate line item with a dollar amount?`,
+      `  3. What is the labor warranty period?`,
+      `  4. What installation method are you using (fin or full frame)?`,
+      ``,
+      `Powered by WindowMan.pro — AI-Powered Impact Window Quote Intelligence`,
+    ].join('\n');
 
-        {step !== "reveal" && (
-          <>
-            <p className="text-center" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "hsl(220 9% 46%)", marginBottom: 32 }}>
-              {typeof step === "number" ? `Step ${step} of 3 — ${stepLabels[step - 1]}` : step === "calc" ? "Calculating baseline…" : "Step 3 of 3 — Complete"}
-            </p>
-            <div style={{ height: 4, background: "hsl(0 0% 12%)", borderRadius: 2, marginBottom: 32, overflow: "hidden" }}>
-              <motion.div style={{ height: "100%", background: "hsl(36 77% 47%)", borderRadius: 2 }} animate={{ width: progressPercent }} transition={{ type: "spring", stiffness: 300, damping: 30 }} />
+    const blob    = new Blob([text], { type: 'text/plain' });
+    const url     = URL.createObjectURL(blob);
+    const a       = document.createElement('a');
+    a.href        = url;
+    a.download    = `windowman_baseline_${config.county.replace(' ','-').toLowerCase()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const update = (key: keyof BaselineConfig, value: string | number) =>
+    setConfig(prev => ({ ...prev, [key]: value }));
+
+  return (
+    <div style={{
+      background: '#0A0A0A', minHeight: '100vh',
+      padding: '40px 20px', fontFamily: bodyFont,
+      color: '#FFFFFF',
+    }}>
+      {/* Header */}
+      <div style={{ maxWidth: 720, margin: '0 auto' }}>
+        <div style={{ fontFamily: monoFont, fontSize: 9, color: '#00D9FF', letterSpacing: '0.16em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 18, height: 1, background: '#00D9FF' }} />
+          MARKET BASELINE TOOL — FLOW B
+        </div>
+        <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 'clamp(26px,5vw,42px)', textTransform: 'uppercase', lineHeight: 1, marginBottom: 8 }}>
+          BUILD YOUR FAIR-MARKET BASELINE
+        </div>
+        <div style={{ fontSize: 14, color: '#A0B8D8', lineHeight: 1.65, marginBottom: 24, maxWidth: 540 }}>
+          Configure your project below. The moment your contractor opens their briefcase, you'll already know the number they're hoping you don't.
+        </div>
+
+        {justSaved && <SavedBaselineAlert savedAt={result.savedAt} />}
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderBottom: '1px solid #2E3A50' }}>
+          {(['build','compare','checklist'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                fontFamily: monoFont, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+                padding: '10px 18px', border: 'none', background: 'transparent', cursor: 'pointer',
+                color: activeTab === tab ? '#00D9FF' : '#7D9DBB',
+                borderBottom: activeTab === tab ? '2px solid #00D9FF' : '2px solid transparent',
+                transition: 'all 0.12s ease',
+              }}
+            >
+              {tab === 'build' ? 'BUILD' : tab === 'compare' ? 'BRAND COMPARE' : 'CONTRACTOR CHECKLIST'}
+            </button>
+          ))}
+        </div>
+
+        {/* ── BUILD TAB ─────────────────────────────────────────────────── */}
+        {activeTab === 'build' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+
+            {/* LEFT: Configuration */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              {/* County */}
+              <div>
+                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 6 }}>COUNTY</div>
+                <select
+                  value={config.county}
+                  onChange={e => update('county', e.target.value)}
+                  style={{
+                    fontFamily: bodyFont, fontSize: 13, color: '#FFFFFF',
+                    background: '#161C28', border: '1px solid #2E3A50',
+                    padding: '10px 12px', width: '100%', borderRadius: 0, outline: 'none',
+                  }}
+                >
+                  {FLORIDA_COUNTIES
+                    .filter(c => c.avgScansMonth > 10) // only show counties with data
+                    .sort((a, b) => b.avgScansMonth - a.avgScansMonth)
+                    .map(c => <option key={c.slug} value={c.county}>{c.county}</option>)
+                  }
+                </select>
+              </div>
+
+              {/* Brand */}
+              <div>
+                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 6 }}>WINDOW BRAND</div>
+                {IMPACT_WINDOW_BRANDS.map(brand => (
+                  <button
+                    key={brand.name}
+                    onClick={() => update('brand', brand.name)}
+                    style={{
+                      width: '100%', textAlign: 'left', padding: '10px 12px',
+                      background: config.brand === brand.name ? 'rgba(0,217,255,0.07)' : '#161C28',
+                      border: `1px solid ${config.brand === brand.name ? '#00D9FF' : '#2E3A50'}`,
+                      color: config.brand === brand.name ? '#00D9FF' : '#C8DEFF',
+                      fontFamily: bodyFont, fontSize: 13, cursor: 'pointer',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      marginBottom: 4, borderRadius: 0, transition: 'all 0.12s ease',
+                    }}
+                  >
+                    <span style={{ fontWeight: config.brand === brand.name ? 600 : 400 }}>
+                      {brand.name}
+                    </span>
+                    <span style={{
+                      fontFamily: monoFont, fontSize: 9,
+                      color: brand.tier === 'premium' ? '#10B981' :
+                             brand.tier === 'mid'     ? '#F59E0B' : '#F97316',
+                      letterSpacing: '0.08em',
+                    }}>
+                      ${brand.avgPerWindow}/win · {brand.tier.toUpperCase()}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Window count slider */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em' }}>WINDOW COUNT</div>
+                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 20, color: '#FFFFFF' }}>{config.windowCount}</div>
+                </div>
+                <input
+                  type="range" min={1} max={40} step={1}
+                  value={config.windowCount}
+                  onChange={e => update('windowCount', parseInt(e.target.value))}
+                  style={{ width: '100%', accentColor: '#1D4ED8' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 2 }}>
+                  <span>1</span><span>20</span><span>40</span>
+                </div>
+              </div>
+
+              {/* Install method */}
+              <div>
+                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 6 }}>INSTALLATION METHOD</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                  {(['fin', 'full-frame'] as const).map(method => (
+                    <button
+                      key={method}
+                      onClick={() => update('installMethod', method)}
+                      style={{
+                        padding: '10px', fontFamily: bodyFont, fontSize: 12, cursor: 'pointer', borderRadius: 0,
+                        background: config.installMethod === method ? 'rgba(29,78,216,0.15)' : '#161C28',
+                        border: `1px solid ${config.installMethod === method ? '#1D4ED8' : '#2E3A50'}`,
+                        color: config.installMethod === method ? '#60A5FA' : '#C8DEFF',
+                        fontWeight: config.installMethod === method ? 600 : 400,
+                        transition: 'all 0.12s ease',
+                      }}
+                    >
+                      <div>{method === 'fin' ? 'Fin Installation' : 'Full Frame'}</div>
+                      <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 3 }}>
+                        {method === 'fin' ? 'Standard · Lower cost' : '+12% · More thorough'}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-          </>
+
+            {/* RIGHT: Live result */}
+            <div>
+              <div style={{
+                background: '#111418', border: '1px solid #2E3A50',
+                borderTop: '2px solid #1D4ED8', padding: 20, marginBottom: 12,
+              }}>
+                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 16 }}>
+                  YOUR FAIR-MARKET RANGE
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB', marginBottom: 4 }}>FAIR FLOOR (25th pct)</div>
+                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: '#10B981' }}>
+                    ${result.fairFloor.toLocaleString()}
+                  </div>
+                </div>
+                <div style={{ height: 1, background: '#2E3A50', margin: '12px 0' }} />
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontFamily: monoFont, fontSize: 10, color: '#00D9FF', marginBottom: 4 }}>YOUR FAIR MIDPOINT</div>
+                  <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 40, color: '#FFFFFF' }}>
+                    ${result.fairMid.toLocaleString()}
+                  </div>
+                  <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 2 }}>
+                    ${result.perWindow.toLocaleString()}/window · {config.windowCount} windows
+                  </div>
+                </div>
+                <div style={{ height: 1, background: '#2E3A50', margin: '12px 0' }} />
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB', marginBottom: 4 }}>FAIR CEILING (75th pct)</div>
+                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: '#F59E0B' }}>
+                    ${result.fairCeiling.toLocaleString()}
+                  </div>
+                </div>
+
+                {result.installAdder > 0 && (
+                  <div style={{ fontSize: 12, color: '#A0B8D8', marginBottom: 6 }}>
+                    Full-frame install adds ~<span style={{ color: '#F59E0B' }}>${result.installAdder.toLocaleString()}</span>
+                  </div>
+                )}
+
+                {result.warningFlag && (
+                  <div style={{
+                    background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.25)',
+                    borderLeft: '2px solid #F97316', padding: '10px 12px', marginTop: 12,
+                  }}>
+                    <div style={{ fontFamily: monoFont, fontSize: 9, color: '#F97316', letterSpacing: '0.1em', marginBottom: 4 }}>▲ FLAG</div>
+                    <div style={{ fontSize: 12, color: '#A0B8D8' }}>{result.warningFlag}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={saveBaseline}
+                  style={{
+                    flex: 1, fontFamily: bodyFont, fontWeight: 700, fontSize: 13, color: '#FFFFFF',
+                    background: justSaved ? '#065F46' : '#0B60C5', border: 'none',
+                    padding: '11px', borderRadius: 2, cursor: 'pointer', transition: 'background 0.2s',
+                  }}
+                >
+                  {justSaved ? '✓ SAVED' : 'SAVE BASELINE'}
+                </button>
+                <button
+                  onClick={printBaseline}
+                  style={{
+                    fontFamily: bodyFont, fontWeight: 600, fontSize: 12, color: '#A0B8D8',
+                    background: 'transparent', border: '1px solid #2E3A50',
+                    padding: '11px 14px', borderRadius: 2, cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ⬇ DOWNLOAD
+                </button>
+              </div>
+              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 8, textAlign: 'center', letterSpacing: '0.06em' }}>
+                Share this baseline with your contractor before they quote
+              </div>
+            </div>
+          </div>
         )}
 
-        <div style={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 10%)", borderRadius: 0, padding: "clamp(24px, 4vw, 40px)", boxShadow: "0 0 30px rgba(56, 182, 255, 0.1), 0 0 60px rgba(56, 182, 255, 0.05)", minHeight: 260, overflow: "hidden" }}>
-          <AnimatePresence mode="wait">
-            {typeof step === "number" && (
-              <motion.div key={`step-${step}`} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }}>
-                <h3 style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(26px, 3.5vw, 32px)", fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(0 0% 100%)", marginBottom: 8 }}>{steps[step - 1].question}</h3>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "hsl(220 9% 46%)", marginBottom: 28 }}>{steps[step - 1].sub}</p>
-                <div className="grid grid-cols-2 gap-3">
-                  {steps[step - 1].options.map((opt) => (<OptionButton key={opt} label={opt} selected={selected === opt} onClick={() => handleOptionClick(steps[step - 1].key, opt)} />))}
-                </div>
-              </motion.div>
-            )}
-
-            {step === "calc" && (
-              <motion.div key="calc" variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="flex flex-col items-center justify-center py-8" style={{ background: "hsl(192 100% 37% / 0.08)", borderRadius: 0, margin: -8, padding: 40 }}>
-                <div className="mb-4" style={{ width: 48, height: 48, borderRadius: "50%", background: "hsl(192 100% 37%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.6, repeat: Infinity }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M16.36 16.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M16.36 7.64l1.42-1.42" /></svg>
-                  </motion.div>
-                </div>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "hsl(192 100% 37%)", letterSpacing: "0.05em" }}>Searching {countyShort || "Florida"} County database…</p>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, fontWeight: 700, color: "hsl(192 100% 37%)", marginTop: 8 }}>{calcCount}</p>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "hsl(192 100% 37%)", marginTop: 4 }}>comparable projects found.</p>
-              </motion.div>
-            )}
-
-            {step === "gate" && (
-              <motion.div key="gate" variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }}>
-                <div className="inline-flex items-center gap-2 mb-5" style={{ background: "hsl(192 100% 37% / 0.08)", border: "1px solid hsl(192 100% 37%)", borderRadius: 0, padding: "5px 14px" }}>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "hsl(192 100% 37%)" }}>✓ BASELINE CALCULATED · {countyShort.toUpperCase()} COUNTY · 427 PROJECTS</span>
-                </div>
-                <h3 style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", color: "hsl(0 0% 100%)", marginBottom: 4 }}>Your Baseline is Ready.</h3>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "hsl(220 9% 46%)", marginBottom: 24 }}>"Get the data you need to negotiate like a pro. Unlock your price range and the Forensic Checklist now." — free.</p>
-
-                <div className="relative overflow-hidden mb-6" style={{ background: "hsl(0 0% 7%)", borderRadius: 0, padding: "16px 20px" }}>
-                  <div style={{ filter: `blur(${blurAmount}px)`, pointerEvents: "none" }}>
-                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "hsl(220 9% 46%)", letterSpacing: "0.1em", marginBottom: 4 }}>FAIR MARKET RANGE · {countyShort.toUpperCase()} CO.</p>
-                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 26, fontWeight: 900, color: "hsl(192 100% 37%)" }}>${priceRange[0].toLocaleString()} – ${priceRange[1].toLocaleString()}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(220 9% 46%)", marginTop: 4 }}>For {answers.windowCount} · {countyShort} County · Q1 2025</p>
+        {/* ── BRAND COMPARE TAB ─────────────────────────────────────────── */}
+        {activeTab === 'compare' && (
+          <div>
+            <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 16 }}>
+              BRAND COMPARISON FOR {config.windowCount} WINDOWS · {config.county.toUpperCase()}
+            </div>
+            {IMPACT_WINDOW_BRANDS.map(brand => {
+              const brandResult = calculateBaseline({ ...config, brand: brand.name });
+              const isSelected  = config.brand === brand.name;
+              return (
+                <div
+                  key={brand.name}
+                  onClick={() => update('brand', brand.name)}
+                  style={{
+                    display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px 60px',
+                    gap: 0, background: isSelected ? 'rgba(0,217,255,0.05)' : '#111418',
+                    border: `1px solid ${isSelected ? '#00D9FF' : '#2E3A50'}`,
+                    padding: '12px 14px', marginBottom: 4, cursor: 'pointer',
+                    alignItems: 'center', transition: 'all 0.12s ease',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontFamily: bodyFont, fontSize: 13, fontWeight: 600, color: isSelected ? '#00D9FF' : '#FFFFFF' }}>
+                      {brand.name}
+                    </div>
+                    <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 2 }}>
+                      {brand.warranty}yr warranty · NOA: {brand.noaStatus}
+                    </div>
                   </div>
-                  {showOverlay && (
-                    <motion.div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: "hsla(0 0% 4% / 0.8)" }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-                      <span style={{ fontSize: 20 }}>🔒</span>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: "hsl(0 0% 100%)", marginTop: 8 }}>Enter your details below to unlock</p>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(220 9% 46%)" }}>Free · No contractor contact</p>
-                    </motion.div>
+                  <div style={{ textAlign: 'right', fontFamily: dispFont, fontWeight: 800, fontSize: 16,
+                    color: brand.tier === 'premium' ? '#10B981' : brand.tier === 'mid' ? '#F59E0B' : '#F97316' }}>
+                    ${brandResult.perWindow.toLocaleString()}
+                  </div>
+                  <div style={{ textAlign: 'right', fontFamily: dispFont, fontWeight: 700, fontSize: 14, color: '#C8DEFF' }}>
+                    ${brandResult.fairMid.toLocaleString()}
+                  </div>
+                  <div style={{ textAlign: 'right', fontFamily: monoFont, fontSize: 9, color: '#7D9DBB' }}>
+                    {brand.tier.toUpperCase()}
+                  </div>
+                  {isSelected && (
+                    <div style={{ fontFamily: monoFont, fontSize: 9, color: '#00D9FF', textAlign: 'right' }}>
+                      ◈ SELECTED
+                    </div>
                   )}
                 </div>
+              );
+            })}
+          </div>
+        )}
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                  <div>
-                    <label style={formLabelStyle}>FIRST NAME</label>
-                    <div style={{ position: "relative" }}>
-                      <input type="text" autoComplete="given-name" value={form.firstName} onChange={(v) => setForm({ ...form, firstName: v.target.value })} placeholder="Your first name" required
-                        style={{ ...formInputStyle, borderColor: fieldStatus.firstName === "invalid" ? "#EF4444" : fieldStatus.firstName === "valid" ? "#059669" : "hsl(220 13% 91%)", paddingRight: fieldStatus.firstName !== "untouched" ? 40 : 16 }}
-                        onFocus={(e) => { e.currentTarget.style.boxShadow = "0 0 0 3px hsla(160 84% 39% / 0.12)"; }}
-                        onBlur={(e) => { e.currentTarget.style.boxShadow = "none"; handleFieldBlur("firstName", form.firstName); }} />
-                      {fieldStatus.firstName === "valid" && <MBValidationIcon valid />}
-                      {fieldStatus.firstName === "invalid" && <MBValidationIcon valid={false} />}
-                    </div>
-                    {fieldStatus.firstName === "invalid" && <p style={formErrorStyle}>Please enter your first name (2+ characters)</p>}
-                  </div>
-                  <div>
-                    <label style={formLabelStyle}>EMAIL <span style={{ color: "hsl(220 9% 64%)", fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "normal" }}>(your baseline + checklist sent here)</span></label>
-                    <div style={{ position: "relative" }}>
-                      <input type="email" autoComplete="email" value={form.email} onChange={(v) => setForm({ ...form, email: v.target.value })} placeholder="your@email.com" required
-                        style={{ ...formInputStyle, borderColor: fieldStatus.email === "invalid" ? "#EF4444" : fieldStatus.email === "valid" ? "#059669" : "hsl(220 13% 91%)", paddingRight: fieldStatus.email !== "untouched" ? 40 : 16 }}
-                        onFocus={(e) => { e.currentTarget.style.boxShadow = "0 0 0 3px hsla(160 84% 39% / 0.12)"; }}
-                        onBlur={(e) => { e.currentTarget.style.boxShadow = "none"; handleFieldBlur("email", form.email); }} />
-                      {fieldStatus.email === "valid" && <MBValidationIcon valid />}
-                      {fieldStatus.email === "invalid" && <MBValidationIcon valid={false} />}
-                    </div>
-                    {fieldStatus.email === "invalid" && <p style={formErrorStyle}>Please enter a valid email address</p>}
-                  </div>
-                  <div>
-                    <label style={formLabelStyle}>MOBILE NUMBER <span style={{ color: "hsl(220 9% 64%)", fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "normal" }}>(for quote reminder when you're ready)</span></label>
-                    <div style={{ position: "relative" }}>
-                      <input type="tel" inputMode="numeric" autoComplete="tel" value={phoneInput.displayValue}
-                        onChange={(e) => { phoneInput.handleChange(e); setForm({ ...form, phone: e.target.value }); }} placeholder="(555) 000-0000" required
-                        style={{ ...formInputStyle, borderColor: fieldStatus.phone === "invalid" ? "#EF4444" : fieldStatus.phone === "valid" ? "#059669" : "hsl(220 13% 91%)", paddingRight: fieldStatus.phone !== "untouched" ? 40 : 16 }}
-                        onFocus={(e) => { e.currentTarget.style.boxShadow = "0 0 0 3px hsla(160 84% 39% / 0.12)"; }}
-                        onBlur={(e) => { e.currentTarget.style.boxShadow = "none"; handleFieldBlur("phone", phoneInput.rawDigits); }} />
-                      {fieldStatus.phone === "valid" && <MBValidationIcon valid />}
-                      {fieldStatus.phone === "invalid" && <MBValidationIcon valid={false} />}
-                    </div>
-                    {fieldStatus.phone === "invalid" && <p style={formErrorStyle}>Please enter a valid 10-digit US phone number</p>}
-                  </div>
-                  <label className="flex items-start gap-2.5 cursor-pointer" style={{ marginTop: 4 }}>
-                    <input type="checkbox" checked={tcpaConsent} onChange={(e) => setTcpaConsent(e.target.checked)} style={{ width: 16, height: 16, marginTop: 2, accentColor: "#059669", flexShrink: 0 }} />
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(220 9% 46%)", lineHeight: 1.5 }}>By providing your number, you consent to receive one call regarding your quote analysis.</span>
-                  </label>
-                  <motion.button type="submit" disabled={submitState === "submitting" || submitState === "success"}
-                    whileHover={submitState === "idle" || submitState === "error" ? { scale: 1.01 } : {}} whileTap={submitState === "idle" || submitState === "error" ? { scale: 0.98 } : {}}
-                    style={{ width: "100%", height: 54, background: submitState === "success" ? "#047857" : submitState === "error" ? "#DC2626" : "hsl(160 84% 39%)", color: "hsl(0 0% 100%)", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, borderRadius: 0, border: "none", boxShadow: "0 4px 16px hsla(160 84% 39% / 0.35)", cursor: submitState === "submitting" ? "not-allowed" : "pointer", marginTop: 8, opacity: submitState === "submitting" ? 0.85 : 1, transition: "background 0.2s, opacity 0.2s" }}>
-                    {submitState === "idle" && "Unlock My Baseline + Checklist →"}
-                    {submitState === "submitting" && "Analyzing..."}
-                    {submitState === "success" && (<span className="inline-flex items-center gap-2"><Check size={18} /> Unlocked!</span>)}
-                    {submitState === "error" && "Something went wrong — Try Again"}
-                  </motion.button>
-                </form>
-                <p className="text-center mt-3.5" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(220 9% 64%)", lineHeight: 1.8 }}>
-                  You'll Receive Your Fair-Market Baseline and the Forensic Question Checklist Instantly.<br />When You Have a Quote, Return Here to Scan It.
-                </p>
-              </motion.div>
-            )}
-
-            {step === "reveal" && (
-              <motion.div key="reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                <RevealedBaseline county={countyShort} windowCount={answers.windowCount} priceRange={priceRange} avgOverage={avgOverage} onChecklistClick={onChecklistClick} onReminderClick={onReminderClick} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const formLabelStyle: React.CSSProperties = { fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF", letterSpacing: "0.08em", display: "block", marginBottom: 5 };
-const formInputStyle: React.CSSProperties = { width: "100%", height: 48, border: "1.5px solid #1A1A1A", borderRadius: 0, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#FFFFFF", background: "#0A0A0A", outline: "none", transition: "border-color 0.15s, box-shadow 0.15s", boxSizing: "border-box" };
-const formErrorStyle: React.CSSProperties = { fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#EF4444", marginTop: 4 };
-
-const MBValidationIcon = ({ valid }: { valid: boolean }) => (
-  <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 16, lineHeight: 1, color: valid ? "#059669" : "#EF4444" }}>{valid ? "✓" : "✗"}</span>
-);
-
-const RevealedBaseline = ({ county, windowCount, priceRange, avgOverage, onChecklistClick, onReminderClick }: { county: string; windowCount: string; priceRange: [number, number]; avgOverage: number; onChecklistClick?: () => void; onReminderClick?: () => void }) => {
-  const [displayLow, setDisplayLow] = useState(0);
-  const [displayHigh, setDisplayHigh] = useState(0);
-
-  useEffect(() => {
-    const start = performance.now();
-    const dur = 1000;
-    const step = (now: number) => { const t = Math.min((now - start) / dur, 1); const ease = 1 - Math.pow(1 - t, 3); setDisplayLow(Math.floor(ease * priceRange[0])); setDisplayHigh(Math.floor(ease * priceRange[1])); if (t < 1) requestAnimationFrame(step); };
-    requestAnimationFrame(step);
-  }, [priceRange]);
-
-  return (
-    <div>
-      <div style={{ background: "hsl(192 100% 37% / 0.08)", border: "1px solid hsl(192 100% 37%)", borderRadius: 0, padding: "24px 20px" }}>
-        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "hsl(192 100% 37%)", letterSpacing: "0.1em", marginBottom: 8 }}>YOUR FAIR-MARKET BASELINE</p>
-        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 32, fontWeight: 900, color: "hsl(192 100% 37%)" }}>${displayLow.toLocaleString()} – ${displayHigh.toLocaleString()}</p>
-        <div className="flex flex-col gap-1 mt-3" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(0 0% 91%)" }}>
-          <p>For {windowCount} in {county} County</p>
-          <p>Based on 427 comparable projects · Q1 2025 data</p>
-          <p style={{ fontStyle: "italic", color: "hsl(220 9% 46%)" }}>Any quote significantly above ${priceRange[1].toLocaleString()} should trigger a full audit.</p>
-        </div>
-        <div style={{ marginTop: 16, padding: "12px 16px", background: "hsl(0 0% 7%)", borderRadius: 0 }}>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: "hsl(0 72% 51%)" }}>⚠ The average quote in {county} County comes in ${avgOverage.toLocaleString()} above this range.</p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(220 9% 46%)", marginTop: 4 }}>Now you'll know if yours does too.</p>
-        </div>
-      </div>
-      <div className="flex flex-col md:flex-row gap-3 mt-6">
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { onChecklistClick?.(); }}
-          style={{ background: "hsl(36 77% 47%)", color: "hsl(0 0% 100%)", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "14px 24px", borderRadius: 0, border: "none", cursor: "pointer" }}>
-          View My Forensic Checklist →
-        </motion.button>
-        <button onClick={onReminderClick} style={{ background: "hsl(0 0% 7%)", border: "1px solid hsl(0 0% 10%)", color: "hsl(0 0% 91%)", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 20px", borderRadius: 0, cursor: "pointer" }}>
-          Set My Quote Reminder →
-        </button>
+        {/* ── CONTRACTOR CHECKLIST TAB ───────────────────────────────────── */}
+        {activeTab === 'checklist' && (
+          <div>
+            <div style={{ fontSize: 14, color: '#A0B8D8', lineHeight: 1.7, marginBottom: 20 }}>
+              Print or save this. When the contractor arrives, ask these five questions before accepting any quote.
+            </div>
+            {[
+              {
+                badge: '▲ CRITICAL',   badgeColor: '#F87171',
+                q: 'What specific brand AND model number are you installing?',
+                why: 'Without a named brand, your contractor can install any quality after signing. The brand is the product you\'re actually buying.',
+                script: '"Please add the brand, model, and NOA number to the contract before I sign."',
+              },
+              {
+                badge: '▲ CRITICAL',   badgeColor: '#F87171',
+                q: 'Is the permit listed as a separate line item with a dollar amount?',
+                why: '"Permit included" is one of the most expensive phrases in a window contract. Without a dollar amount, they control whether a permit is pulled.',
+                script: '"Can you show me the permit as a separate line item? I\'d like to confirm it\'s being pulled before work begins."',
+              },
+              {
+                badge: '⚡ IMPORTANT', badgeColor: '#F59E0B',
+                q: 'What is the labor warranty period?',
+                why: 'Florida state minimum is 3 years for full replacement. Many contractors quote 1 year. That gap is not an accident.',
+                script: '"What is the labor warranty and does it remain valid if I file a manufacturer warranty claim?"',
+              },
+              {
+                badge: '⚡ IMPORTANT', badgeColor: '#F59E0B',
+                q: 'Is this a fin installation, full frame replacement, or something else?',
+                why: 'Installation method affects energy efficiency, water intrusion risk, and cost. If not specified, they choose the cheapest method after signing.',
+                script: '"Please add the installation method to the contract language."',
+              },
+              {
+                badge: '◎ TECHNICAL', badgeColor: '#60A5FA',
+                q: 'Is the installation crew licensed and insured in Florida?',
+                why: 'Unlicensed subcontractors void your homeowner\'s insurance in Florida if damage occurs during installation.',
+                script: '"Can you provide the license number and COI for the crew installing the windows?"',
+              },
+            ].map((item, i) => (
+              <div key={i} style={{
+                background: '#111418', border: '1px solid #2E3A50', borderLeft: '2px solid #2E3A50',
+                padding: '16px', marginBottom: 8,
+              }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                  <span style={{
+                    fontFamily: monoFont, fontSize: 9, color: item.badgeColor,
+                    background: `${item.badgeColor}20`, border: `1px solid ${item.badgeColor}40`,
+                    padding: '2px 7px', borderRadius: 2, letterSpacing: '0.1em',
+                  }}>
+                    {item.badge}
+                  </span>
+                </div>
+                <div style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF', marginBottom: 8 }}>
+                  {item.q}
+                </div>
+                <div style={{ fontFamily: bodyFont, fontSize: 13, color: '#7D9DBB', lineHeight: 1.65, marginBottom: 10 }}>
+                  {item.why}
+                </div>
+                <div style={{
+                  fontFamily: bodyFont, fontSize: 12, fontStyle: 'italic', color: '#A0B8D8',
+                  background: '#0D1B35', padding: '8px 12px', borderLeft: '2px solid #1D4ED8',
+                }}>
+                  "{item.script}"
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default MarketBaselineTool;
+}
