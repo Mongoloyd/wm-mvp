@@ -3,6 +3,7 @@ import type { ReportEnvelope, ReportMode, GateState, OtpVerifyOutcome } from "@/
 import { ReportRevealContainer } from "./ReportRevealContainer";
 import { OtpUnlockModal } from "./OtpUnlockModal";
 import { ReportShellV2 } from "../report-v2/ReportShellV2";
+import { metaConversions } from "@/lib/metaPixel";
 
 // ── Outcome → GateState mapping ──────────────────────────────────────────────
 // The shell translates rich outcomes from the page layer into its own GateState.
@@ -58,7 +59,15 @@ export function FindingsPageShell({
 
           if (outcome === "verified") {
             setReportMode("full");
-            // Analytics: track('wm_report_unlocked', { sessionId: report.meta.analysisId })
+            // Fire Facebook conversion events
+            metaConversions.otpVerified({
+              county: report.meta.county || undefined,
+              flow: "A",
+            });
+            metaConversions.reportUnlocked({
+              county: report.meta.county || undefined,
+              grade: report.verdict.grade,
+            });
           }
 
           return outcome;
@@ -71,6 +80,9 @@ export function FindingsPageShell({
         await new Promise((r) => setTimeout(r, 1200));
         setGateState("unlocked");
         setReportMode("full");
+        // Fire conversion events even in demo mode (for testing)
+        metaConversions.otpVerified({ county: report.meta.county || undefined, flow: "demo" });
+        metaConversions.reportUnlocked({ county: report.meta.county || undefined, grade: report.verdict.grade });
         return "verified";
       }
     },

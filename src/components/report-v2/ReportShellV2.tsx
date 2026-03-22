@@ -8,6 +8,9 @@ import { EvidenceExplorer } from "./EvidenceExplorer";
 import { BenchmarksPanel } from "./BenchmarksPanel";
 import { LockedSectionTeaser } from "../findings-gate/LockedSectionTeaser";
 import { UnlockCTA } from "./UnlockCTA";
+import { FacebookShareButton } from "@/components/FacebookShareButton";
+import { MobileStickyUnlock } from "@/components/MobileStickyUnlock";
+import { metaConversions } from "@/lib/metaPixel";
 
 interface ReportShellV2Props {
   report: ReportEnvelope;
@@ -80,6 +83,17 @@ export function ReportShellV2({
         {gateState === "unlocked" && onUnlock && (
           <UnlockCTA verdict={report.verdict} onUnlock={onUnlock} />
         )}
+
+        {/* Mobile sticky unlock bar — only on mobile, only when locked */}
+        <MobileStickyUnlock
+          isLocked={true}
+          findingCount={report.topFindings.length}
+          grade={report.verdict.grade}
+          onUnlock={() => {
+            onUnlock?.();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        />
       </div>
     );
   }
@@ -125,6 +139,12 @@ export function ReportShellV2({
 
       {/* 7. Appendix */}
       {report.appendix && <AppendixPanel appendix={report.appendix} />}
+
+      {/* 8. Share — viral loop for organic reach */}
+      <FacebookShareButton
+        grade={report.verdict.grade}
+        county={report.meta.county || undefined}
+      />
     </div>
   );
 }
