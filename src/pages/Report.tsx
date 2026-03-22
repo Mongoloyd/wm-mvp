@@ -7,6 +7,8 @@ import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { maskPhone } from "@/utils/formatPhone";
 import type { ReportEnvelope, ReportMode, GateState, OtpVerifyOutcome } from "@/types/report-v2";
 import { ReportVersionToggle } from "@/components/ReportVersionToggle";
+// import { supabase } from "@/integrations/supabase/client";
+// import { transformToV2 } from "@/lib/findings-transform";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // REPORT PAGE — Smart Container
