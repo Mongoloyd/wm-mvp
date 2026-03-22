@@ -6,6 +6,7 @@ import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { maskPhone } from "@/utils/formatPhone";
 import type { ReportEnvelope, ReportMode, GateState, OtpVerifyOutcome } from "@/types/report-v2";
+import { ReportVersionToggle } from "@/components/ReportVersionToggle";
 // import { supabase } from "@/integrations/supabase/client";
 // import { transformToV2 } from "@/lib/findings-transform";
 
@@ -254,6 +255,9 @@ export default function Report() {
           onEditPhone={handleEditPhone}
         />
       </main>
+
+      {/* Version toggle */}
+      <ReportVersionToggle sessionId={sessionId} />
 
       {/* Dev controls */}
       {showDev && (

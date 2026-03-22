@@ -8,6 +8,7 @@ import Demo from "./pages/Demo.tsx";
 import DemoClassic from "./pages/DemoClassic.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Report from "./pages/Report.tsx";
+import ReportClassic from "./pages/ReportClassic.tsx";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/demo" element={<Demo />} />
           <Route path="/demo-classic" element={<DemoClassic />} />
           <Route path="/report/:sessionId" element={<Report />} />
+          <Route path="/report/classic/:sessionId" element={<ReportClassic />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
