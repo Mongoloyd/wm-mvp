@@ -19,28 +19,18 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
 
   return (
     <section style={{ backgroundColor: "#0A0A0A" }}>
-      {/* WindowMan mascot — centered at natural size above hero content */}
+      {/* WindowMan mascot — responsive, centered above hero content */}
       <div className="flex justify-center pt-8 pb-0">
         <img
           src="https://d2xsxph8kpxj0f.cloudfront.net/87108037/YjBTWCdi7jZwa5GFcxbLnp/windowmanwithtruthreportonthephone_be309c26.avif"
           alt="WindowMan holding a Truth Report"
           fetchPriority="high"
           decoding="async"
-          style={{ display: "block", maxWidth: "100%", height: "auto" }}
+          className="w-48 sm:w-56 md:w-72 lg:w-80 h-auto object-contain"
         />
       </div>
       <div className="mx-auto max-w-6xl px-4 md:px-8 pt-12 pb-16 md:pt-20 md:pb-24">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
-          {/* Mobile wordmark */}
-          <div className="md:hidden order-0 flex flex-col items-center text-center gap-3">
-            <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "0.02em", color: "#E5E5E5", lineHeight: 1.1 }}>
-              WINDOW<span style={{ color: "#C8952A" }}>MAN</span>
-            </h2>
-            <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", color: "#2563EB" }}>
-              FORENSIC QUOTE ANALYSIS
-            </p>
-          </div>
-
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
