@@ -19,6 +19,10 @@ interface TruthReportProps {
   hasPermits?: boolean | null;
   pageCount?: number | null;
   lineItemCount?: number | null;
+  /** Aggregate counts from preview RPC — used when flags[] is empty */
+  flagCount?: number;
+  flagRedCount?: number;
+  flagAmberCount?: number;
   onContractorMatchClick: () => void;
   onSecondScan: () => void;
   /** Gate props — passed through to LockedOverlay when accessLevel is "preview" */
@@ -74,6 +78,9 @@ const TruthReportClassic = ({
   hasPermits,
   pageCount,
   lineItemCount,
+  flagCount: flagCountProp,
+  flagRedCount: flagRedCountProp,
+  flagAmberCount: flagAmberCountProp,
   onContractorMatchClick,
   onSecondScan,
   gateProps
@@ -83,9 +90,15 @@ const TruthReportClassic = ({
   const [copied, setCopied] = useState(false);
   const [expandedFlags, setExpandedFlags] = useState<Set<number>>(new Set());
 
-  const redCount = flags.filter((f) => f.severity === "red").length;
-  const amberCount = flags.filter((f) => f.severity === "amber").length;
-  const greenCount = flags.filter((f) => f.severity === "green").length;
+  // In full mode, derive from actual flags array.
+  // In preview mode, flags is [] — use aggregate props from backend.
+  const flagsDerivedRed = flags.filter((f) => f.severity === "red").length;
+  const flagsDerivedAmber = flags.filter((f) => f.severity === "amber").length;
+  const flagsDerivedGreen = flags.filter((f) => f.severity === "green").length;
+
+  const redCount = isFull ? flagsDerivedRed : (flagRedCountProp ?? flagsDerivedRed);
+  const amberCount = isFull ? flagsDerivedAmber : (flagAmberCountProp ?? flagsDerivedAmber);
+  const greenCount = isFull ? flagsDerivedGreen : Math.max(0, (flagCountProp ?? 0) - (flagRedCountProp ?? 0) - (flagAmberCountProp ?? 0));
   const issueCount = redCount + amberCount;
 
   const displayName = contractorName || "Your Contractor";
@@ -427,7 +440,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "white" }}>
               {redCount} critical, {amberCount} caution, {greenCount} confirmed across 5 pillars.
             </p>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#f7f7f7" }}>Grade {grade} · {flags.length} items reviewed</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#f7f7f7" }}>Grade {grade} · {isFull ? flags.length : (flagCountProp ?? flags.length)} items reviewed</p>
           </div>
         </div>
       </section>

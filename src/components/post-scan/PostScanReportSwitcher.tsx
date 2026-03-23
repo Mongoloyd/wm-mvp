@@ -28,6 +28,8 @@ type Props = {
   pageCount?: number | null;
   lineItemCount?: number | null;
   flagCount?: number;
+  flagRedCount?: number;
+  flagAmberCount?: number;
   onContractorMatchClick: () => void;
   onSecondScan: () => void;
   scanSessionId?: string | null;

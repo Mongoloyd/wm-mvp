@@ -271,6 +271,9 @@ export default function ReportClassic() {
       hasPermits={analysisData.hasPermits}
       pageCount={analysisData.pageCount}
       lineItemCount={analysisData.lineItemCount}
+      flagCount={analysisData.flagCount}
+      flagRedCount={analysisData.flagRedCount}
+      flagAmberCount={analysisData.flagAmberCount}
       onContractorMatchClick={handleContractorMatchClick}
       onSecondScan={handleSecondScan}
       gateProps={accessLevel === "preview" ? gateProps : undefined}

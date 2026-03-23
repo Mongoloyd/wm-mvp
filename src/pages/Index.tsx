@@ -253,6 +253,8 @@ const Index = () => {
                 onSecondScan={() => triggerTruthGate('second_opinion_scan')}
                 scanSessionId={scanSessionId}
                 flagCount={activeData?.flagCount}
+                flagRedCount={activeData?.flagRedCount}
+                flagAmberCount={activeData?.flagAmberCount}
                 isFullLoaded={isFullLoaded}
                 onVerified={(phoneE164: string) => { fetchFull(phoneE164); }}
               />

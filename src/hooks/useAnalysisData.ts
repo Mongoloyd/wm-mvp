@@ -254,16 +254,22 @@ export function useAnalysisData(
 
   // ── Phase 2: Full gated fetch ──────────────────────────────────────────
   const fetchFull = useCallback(async (phoneE164: string) => {
-    if (!scanSessionId || isFullLoaded) return;
+    console.log("[fetchFull] called", { scanSessionId, phoneE164, isFullLoaded });
+    if (!scanSessionId || isFullLoaded) {
+      console.warn("[fetchFull] skipped — missing scanSessionId or already loaded", { scanSessionId, isFullLoaded });
+      return;
+    }
     setIsLoadingFull(true);
     try {
-      const { data: rows, error: rpcErr } = await supabase.rpc(
+      console.log("[fetchFull] calling get_analysis_full RPC...");
+      const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
         "get_analysis_full",
         { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
       );
-      if (rpcErr) { console.error("get_analysis_full error:", rpcErr); return; }
+      console.log("[fetchFull] RPC response", { rows, rpcErr });
+      if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); return; }
       const row = Array.isArray(rows) ? rows[0] : rows;
-      if (!row || !row.grade) { console.error("get_analysis_full returned empty"); return; }
+      if (!row || !row.grade) { console.error("[fetchFull] get_analysis_full returned empty", { row }); return; }
 
       const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
       const previewJson = row.preview_json as Record<string, unknown> | null;
@@ -290,8 +296,9 @@ export function useAnalysisData(
         analysisStatus: "complete",
       });
       setIsFullLoaded(true);
+      console.log("[fetchFull] SUCCESS — isFullLoaded set to true, modal should dismiss");
     } catch (err) {
-      console.error("fetchFull exception:", err);
+      console.error("[fetchFull] exception:", err);
     } finally {
       setIsLoadingFull(false);
     }
