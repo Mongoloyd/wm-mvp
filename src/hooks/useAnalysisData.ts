@@ -195,8 +195,30 @@ export function useAnalysisData(
     let retryTimer: number | undefined;
     let cancelled = false;
 
+    const TERMINAL_STATUSES = new Set(["invalid_document", "failed", "error", "unreadable"]);
+
     const doFetch = async (attempt: number) => {
       try {
+        // Pre-check: short-circuit if scan session reached a terminal status
+        if (attempt > 0) {
+          const { data: statusRows } = await supabase.rpc("get_scan_status", {
+            p_scan_session_id: scanSessionId,
+          });
+          const sessionStatus = Array.isArray(statusRows) ? statusRows[0]?.status : (statusRows as any)?.status;
+          if (sessionStatus && TERMINAL_STATUSES.has(sessionStatus)) {
+            console.warn("[useAnalysisData] terminal session status:", sessionStatus);
+            setData({
+              grade: "N/A", flags: [], flagCount: 0, flagRedCount: 0, flagAmberCount: 0,
+              contractorName: null, confidenceScore: null, pillarScores: PILLAR_DEFS.map(d => ({ ...d, score: null, status: "pending" as const })),
+              documentType: null, pageCount: null, openingCount: null, lineItemCount: null,
+              qualityBand: null, hasWarranty: null, hasPermits: null, analysisStatus: sessionStatus,
+            });
+            setIsLoading(false);
+            previewFetchedRef.current = scanSessionId;
+            return;
+          }
+        }
+
         const { data: rows, error: rpcErr } = await supabase.rpc(
           "get_analysis_preview",
           { p_scan_session_id: scanSessionId }
