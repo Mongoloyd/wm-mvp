@@ -22,6 +22,7 @@ import InteractiveDemoScan from "@/components/InteractiveDemoScan";
 import ExitIntentModal from "@/components/ExitIntentModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
+import Footer from "@/components/Footer";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { ScanFunnelProvider } from "@/state/scanFunnel";
 
@@ -297,6 +298,7 @@ const Index = () => {
           }}
         />
       )}
+      <Footer />
     </div>
     </ScanFunnelProvider>
   );

@@ -14,6 +14,14 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 // Dev/internal only — not linked from any production CTA
 const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
 
+// ── Static content pages ─────────────────────────────────────────────────────
+const About = lazy(() => import("./pages/About.tsx"));
+const Contact = lazy(() => import("./pages/Contact.tsx"));
+const FAQ = lazy(() => import("./pages/FAQ.tsx"));
+const Privacy = lazy(() => import("./pages/Privacy.tsx"));
+const Terms = lazy(() => import("./pages/Terms.tsx"));
+const Disclaimer = lazy(() => import("./pages/Disclaimer.tsx"));
+
 // Redirect helper: /report/:sessionId → /report/classic/:sessionId
 function ReportRedirect() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -48,6 +56,13 @@ const App = () => (
           <Route path="/report/:sessionId" element={<ReportRedirect />} />
           {/* Internal/dev only — zero production CTAs point here */}
           <Route path="/demo-classic" element={<DemoClassic />} />
+          {/* ── Static content pages ── */}
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/disclaimer" element={<Disclaimer />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
