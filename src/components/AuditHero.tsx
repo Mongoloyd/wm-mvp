@@ -19,6 +19,18 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
 
   return (
     <section style={{ backgroundColor: "#0A0A0A" }}>
+      {/* WindowMan mascot — above all hero content */}
+      <div className="w-full flex justify-center pt-8 pb-0">
+        <img
+          src="https://d2xsxph8kpxj0f.cloudfront.net/87108037/YjBTWCdi7jZwa5GFcxbLnp/windowmanwithtruthreportonthephone_be309c26.avif"
+          alt="WindowMan holding a Truth Report"
+          width={280}
+          height={330}
+          fetchPriority="high"
+          decoding="async"
+          style={{ width: "clamp(200px, 30vw, 300px)", height: "auto", objectFit: "contain", display: "block" }}
+        />
+      </div>
       <div className="mx-auto max-w-6xl px-4 md:px-8 pt-12 pb-16 md:pt-20 md:pb-24">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
           {/* Mobile wordmark */}
