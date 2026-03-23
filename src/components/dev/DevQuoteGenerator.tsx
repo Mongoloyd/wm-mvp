@@ -53,11 +53,24 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
         return result;
       }
 
-      // 1. Get lead_id if session exists
+      // 1. Get or create lead_id — scan_sessions MUST have a non-null lead_id
       let leadId: string | null = null;
       if (sessionId) {
         const { data: leads } = await supabase.rpc("get_lead_by_session", { p_session_id: sessionId });
         leadId = leads?.[0]?.id || null;
+      }
+      if (!leadId) {
+        const fallbackSessionId = sessionId || crypto.randomUUID();
+        const { data: newLead, error: leadErr } = await supabase
+          .from("leads")
+          .insert({ session_id: fallbackSessionId, source: "dev_bypass" })
+          .select("id")
+          .single();
+        if (leadErr || !newLead?.id) {
+          result.error = `lead creation: ${leadErr?.message || "unknown"}`;
+          return result;
+        }
+        leadId = newLead.id;
       }
 
       // 2. Create placeholder quote_files record
