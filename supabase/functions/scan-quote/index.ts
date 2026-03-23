@@ -5,7 +5,7 @@
 // Uses: Direct Gemini API via GEMINI_API_KEY
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 1: SCHEMA (Zod-like runtime validation — manual for Deno compat)
@@ -375,7 +375,7 @@ function jsonResponse(body: Record<string, unknown>, status: number): Response {
 }
 
 export async function updateScanSessionStatus(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   scanSessionId: string,
   status: ScanSessionStatus,
   logMessage: string,
@@ -420,7 +420,7 @@ export async function updateScanSessionStatus(
 }
 
 export async function upsertAnalysisRecord(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   payload: Record<string, unknown>,
   logMessage: string,
   failureBody: Record<string, unknown>,
