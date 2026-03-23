@@ -90,6 +90,7 @@ const GRADE_C_DATA: AnalysisData = {
 
 const GRADE_D_DATA: AnalysisData = {
   grade: "D",
+  flagCount: 7, flagRedCount: 4, flagAmberCount: 2,
   contractorName: "WindowWorld Express",
   confidenceScore: 65,
   documentType: "proposal",
