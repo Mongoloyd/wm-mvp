@@ -56,11 +56,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Insert pending row into phone_verifications
+    // ── DB: expire older pending rows, then insert fresh one ────────────
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Mark any existing pending rows for this phone as expired
+    // so verify-otp always finds exactly one pending row.
+    await supabase
+      .from("phone_verifications")
+      .update({ status: "expired" })
+      .eq("phone_e164", phone_e164)
+      .eq("status", "pending");
 
     await supabase.from("phone_verifications").insert({
       phone_e164,

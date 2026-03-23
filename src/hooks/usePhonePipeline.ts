@@ -92,6 +92,7 @@ export function usePhonePipeline(
   const [errorMsg, setErrorMsg] = useState("");
   const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isSendingRef = useRef(false);
 
   /**
    * The single source of truth for the phone number used by all actions.
@@ -132,6 +133,11 @@ export function usePhonePipeline(
   /* ── submitPhone ─────────────────────────────────────── */
 
   const submitPhone = useCallback(async (): Promise<PipelineStartResult> => {
+    // Guard against double-send race: if a send is already in-flight, bail out
+    if (isSendingRef.current) {
+      console.warn("[usePhonePipeline] submitPhone blocked — send already in-flight");
+      return { status: "error", error: "Already sending. Please wait." };
+    }
     setErrorMsg("");
 
     // If we have an external phone, skip local screening entirely
@@ -158,6 +164,7 @@ export function usePhonePipeline(
     }
 
     // validate_and_send_otp — call send-otp
+    isSendingRef.current = true;
     setPhoneStatus("sending_otp");
     console.log("[usePhonePipeline] submitPhone → calling send-otp", { phone: normalizedE164 });
     try {
@@ -201,6 +208,8 @@ export function usePhonePipeline(
       setPhoneStatus("otp_failed");
       setErrorMsg(msg);
       return { status: "error", error: msg };
+    } finally {
+      isSendingRef.current = false;
     }
   }, [rawDigits, mode, options?.externalPhoneE164]);
 

@@ -52,6 +52,7 @@ export function PostScanReportSwitcher(props: Props) {
   const accessLevel = useReportAccess({ isFullLoaded: props.isFullLoaded });
   const funnel = useScanFunnelSafe();
   const [otpValue, setOtpValue] = useState("");
+  const [isSendInFlight, setIsSendInFlight] = useState(false);
 
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: props.scanSessionId,
@@ -71,15 +72,26 @@ export function PostScanReportSwitcher(props: Props) {
   }, [otpValue, pipeline]);
 
   const handleSendCode = useCallback(async () => {
-    if (!funnel?.phoneE164) return;
-    const result = await pipeline.submitPhone();
-    if (result.status === "otp_sent") funnel.setPhoneStatus("otp_sent");
-  }, [funnel, pipeline]);
+    if (!funnel?.phoneE164 || isSendInFlight) return;
+    setIsSendInFlight(true);
+    try {
+      const result = await pipeline.submitPhone();
+      if (result.status === "otp_sent") funnel.setPhoneStatus("otp_sent");
+    } finally {
+      setIsSendInFlight(false);
+    }
+  }, [funnel, pipeline, isSendInFlight]);
 
   const handlePhoneSubmit = useCallback(async () => {
-    const result = await pipeline.submitPhone();
-    if (result.status === "otp_sent" && result.e164) funnel?.setPhone(result.e164, "otp_sent");
-  }, [pipeline, funnel]);
+    if (isSendInFlight) return;
+    setIsSendInFlight(true);
+    try {
+      const result = await pipeline.submitPhone();
+      if (result.status === "otp_sent" && result.e164) funnel?.setPhone(result.e164, "otp_sent");
+    } finally {
+      setIsSendInFlight(false);
+    }
+  }, [pipeline, funnel, isSendInFlight]);
 
   const handleResend = useCallback(async () => { await pipeline.resend(); }, [pipeline]);
 
@@ -95,6 +107,7 @@ export function PostScanReportSwitcher(props: Props) {
     onPhoneChange: pipeline.handlePhoneChange,
     onPhoneSubmit: handlePhoneSubmit,
     isLoading:
+      isSendInFlight ||
       pipeline.phoneStatus === "sending_otp" ||
       pipeline.phoneStatus === "verifying",
     errorMsg: pipeline.errorMsg,
