@@ -60,19 +60,20 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
         // No prior lead exists (e.g. direct upload without TruthGateFlow).
         // Create a minimal lead so the scan_session → lead → phone_verifications
         // authorization chain can work after OTP verification.
+        // Generate UUID client-side to avoid needing SELECT-back (leads RLS
+        // requires x-session-id header for SELECT which the anon client lacks).
+        const fallbackLeadId = crypto.randomUUID();
         const fallbackSessionId = sessionId || crypto.randomUUID();
-        const { data: newLead, error: leadErr } = await supabase
+        const { error: leadErr } = await supabase
           .from("leads")
-          .insert({ session_id: fallbackSessionId, source: "direct_upload" })
-          .select("id")
-          .single();
-        if (leadErr || !newLead?.id) {
+          .insert({ id: fallbackLeadId, session_id: fallbackSessionId, source: "direct_upload" });
+        if (leadErr) {
           console.error("Failed to create fallback lead:", leadErr);
           toast.error("Failed to initialize session. Please try again.");
           setUploading(false);
           return;
         }
-        leadId = newLead.id;
+        leadId = fallbackLeadId;
         console.log("[UploadZone] Created fallback lead:", leadId);
       }
 

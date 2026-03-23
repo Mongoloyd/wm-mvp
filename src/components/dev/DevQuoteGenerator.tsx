@@ -60,17 +60,16 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
         leadId = leads?.[0]?.id || null;
       }
       if (!leadId) {
+        const fallbackLeadId = crypto.randomUUID();
         const fallbackSessionId = sessionId || crypto.randomUUID();
-        const { data: newLead, error: leadErr } = await supabase
+        const { error: leadErr } = await supabase
           .from("leads")
-          .insert({ session_id: fallbackSessionId, source: "dev_bypass" })
-          .select("id")
-          .single();
-        if (leadErr || !newLead?.id) {
-          result.error = `lead creation: ${leadErr?.message || "unknown"}`;
+          .insert({ id: fallbackLeadId, session_id: fallbackSessionId, source: "dev_bypass" });
+        if (leadErr) {
+          result.error = `lead creation: ${leadErr.message}`;
           return result;
         }
-        leadId = newLead.id;
+        leadId = fallbackLeadId;
       }
 
       // 2. Create placeholder quote_files record
