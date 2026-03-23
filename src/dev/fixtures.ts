@@ -60,6 +60,7 @@ const GRADE_A_DATA: AnalysisData = {
 
 const GRADE_C_DATA: AnalysisData = {
   grade: "C",
+  flagCount: 6, flagRedCount: 2, flagAmberCount: 3,
   contractorName: "AllStar Impact Solutions",
   confidenceScore: 78,
   documentType: "estimate",
