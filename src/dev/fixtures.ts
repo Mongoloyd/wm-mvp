@@ -30,6 +30,7 @@ export interface DevPreviewConfig {
 
 const GRADE_A_DATA: AnalysisData = {
   grade: "A",
+  flagCount: 6, flagRedCount: 0, flagAmberCount: 1,
   contractorName: "Hurricane Shield Windows",
   confidenceScore: 94,
   documentType: "quote",
