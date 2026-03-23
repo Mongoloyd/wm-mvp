@@ -14,6 +14,11 @@ Deno.serve(async (req) => {
   try {
     const { phone_e164, code, scan_session_id } = await req.json();
 
+    console.log("[verify-otp] invoked", {
+      phone_e164,
+      scan_session_id: scan_session_id || "(not provided)",
+    });
+
     if (!phone_e164 || !code) {
       return new Response(
         JSON.stringify({ error: "Phone and code are required." }),
@@ -21,11 +26,11 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── 1. Twilio VerificationCheck ──────────────────────────────────────────
     const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID")!;
     const authToken = Deno.env.get("TWILIO_AUTH_TOKEN")!;
     const verifySid = Deno.env.get("TWILIO_VERIFY_SERVICE_SID")!;
 
-    // Check verification via Twilio Verify
     const twilioRes = await fetch(
       `https://verify.twilio.com/v2/Services/${verifySid}/VerificationCheck`,
       {
@@ -40,15 +45,21 @@ Deno.serve(async (req) => {
 
     const twilioData = await twilioRes.json();
 
+    console.log("[verify-otp] Twilio response", {
+      httpStatus: twilioRes.status,
+      verificationStatus: twilioData.status,
+      errorCode: twilioData.code || null,
+      errorMessage: twilioData.message || null,
+    });
+
     if (!twilioRes.ok || twilioData.status !== "approved") {
-      console.error("Twilio VerificationCheck:", twilioData);
       return new Response(
         JSON.stringify({ error: "Invalid or expired code.", verified: false }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Update phone_verifications & lead
+    // ── 2. Init Supabase admin client ────────────────────────────────────────
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -56,7 +67,7 @@ Deno.serve(async (req) => {
 
     const now = new Date().toISOString();
 
-    // ── 4. Resolve lead_id from scan_sessions (if provided) ──
+    // ── 3. Resolve lead_id from scan_sessions (if provided) ─────────────────
     let resolvedLeadId: string | null = null;
     if (scan_session_id) {
       const { data: session } = await supabase
@@ -65,10 +76,42 @@ Deno.serve(async (req) => {
         .eq("id", scan_session_id)
         .maybeSingle();
       resolvedLeadId = session?.lead_id || null;
-      console.log("verify-otp: resolved lead_id", { scan_session_id, resolvedLeadId });
     }
 
-    // ── 5. Mark phone_verifications row as verified + bind lead_id ──
+    console.log("[verify-otp] lead resolution", {
+      scan_session_id: scan_session_id || "(not provided)",
+      resolvedLeadId: resolvedLeadId || "(none)",
+    });
+
+    // ── 4. Select the latest pending phone_verifications row ────────────────
+    const { data: pendingRow } = await supabase
+      .from("phone_verifications")
+      .select("id")
+      .eq("phone_e164", phone_e164)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!pendingRow) {
+      console.warn("[verify-otp] no pending phone_verifications row found", {
+        phone_e164,
+      });
+      // Twilio approved but no pending DB row — still return success
+      // (the verification itself is valid, the DB row may have been
+      //  already updated by a prior attempt or race condition)
+      return new Response(
+        JSON.stringify({ success: true, verified: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[verify-otp] selected pending row", {
+      phoneVerificationId: pendingRow.id,
+      phone_e164,
+    });
+
+    // ── 5. Update ONLY that single row — mark verified + bind lead_id ───────
     const updatePayload: Record<string, unknown> = {
       status: "verified",
       verified_at: now,
@@ -77,26 +120,51 @@ Deno.serve(async (req) => {
       updatePayload.lead_id = resolvedLeadId;
     }
 
-    await supabase
+    const { error: updateErr } = await supabase
       .from("phone_verifications")
       .update(updatePayload)
-      .eq("phone_e164", phone_e164)
-      .eq("status", "pending");
+      .eq("id", pendingRow.id);
 
-    // ── 6. If lead found, also mark lead.phone_verified + update phone ──
+    if (updateErr) {
+      console.error("[verify-otp] failed to update phone_verifications row", {
+        phoneVerificationId: pendingRow.id,
+        error: updateErr,
+      });
+    } else {
+      console.log("[verify-otp] phone_verifications row updated", {
+        phoneVerificationId: pendingRow.id,
+        lead_id: resolvedLeadId || "(not set)",
+      });
+    }
+
+    // ── 6. If lead found, mark lead.phone_verified + update phone ───────────
     if (resolvedLeadId) {
-      await supabase
+      const { error: leadErr } = await supabase
         .from("leads")
         .update({ phone_verified: true, phone_e164 })
         .eq("id", resolvedLeadId);
+
+      if (leadErr) {
+        console.error("[verify-otp] failed to update lead", {
+          lead_id: resolvedLeadId,
+          error: leadErr,
+        });
+      } else {
+        console.log("[verify-otp] lead updated", {
+          lead_id: resolvedLeadId,
+          phone_verified: true,
+        });
+      }
     }
+
+    console.log("[verify-otp] complete — returning success", { phone_e164 });
 
     return new Response(
       JSON.stringify({ success: true, verified: true }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("verify-otp error:", err);
+    console.error("[verify-otp] unhandled exception:", err);
     return new Response(
       JSON.stringify({ error: "Internal server error." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
