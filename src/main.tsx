@@ -26,7 +26,11 @@ getLeadId();
 captureUtmFromUrl();
 
 createRoot(document.getElementById("root")!).render(
-  <AnalysisViewModeProvider>
+  import.meta.env.DEV ? (
+    <AnalysisViewModeProvider>
+      <App />
+    </AnalysisViewModeProvider>
+  ) : (
     <App />
-  </AnalysisViewModeProvider>
+  )
 );

@@ -32,8 +32,8 @@ import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "@/dev/fixtures";
 import { AlertTriangle, RotateCcw, FileX } from "lucide-react";
 
 const Index = () => {
-  // ═══ DEV MODE: Set to true to force full unlocked report UI ═══
-  const IS_DEV_MODE = true;
+  // ═══ DEV MODE: Uses Vite's built-in dev/prod flag ═══
+  const IS_DEV_MODE = import.meta.env.DEV;
 
   const [devState, setDevState] = useState<DevPreviewState>("none");
 

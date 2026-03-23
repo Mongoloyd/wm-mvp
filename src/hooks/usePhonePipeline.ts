@@ -159,22 +159,44 @@ export function usePhonePipeline(
 
     // validate_and_send_otp — call send-otp
     setPhoneStatus("sending_otp");
+    console.log("[usePhonePipeline] submitPhone → calling send-otp", { phone: normalizedE164 });
     try {
       const { data, error } = await supabase.functions.invoke("send-otp", {
         body: { phone_e164: normalizedE164 },
       });
 
-      if (error || !data?.success) {
+      // supabase.functions.invoke puts the body in `error` for non-2xx responses
+      if (error) {
+        let parsedMsg = "Failed to send verification code.";
+        try {
+          // error.context is a Response for non-2xx; parse its JSON body
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            console.error("[usePhonePipeline] send-otp non-2xx response body:", body);
+            parsedMsg = body?.error || parsedMsg;
+          } else {
+            console.error("[usePhonePipeline] send-otp error (no context):", error);
+          }
+        } catch { console.error("[usePhonePipeline] send-otp error (unparseable):", error); }
+        setPhoneStatus("otp_failed");
+        setErrorMsg(parsedMsg);
+        return { status: "error", error: parsedMsg };
+      }
+
+      if (!data?.success) {
         const msg = data?.error || "Failed to send verification code.";
+        console.error("[usePhonePipeline] send-otp returned success=false:", data);
         setPhoneStatus("otp_failed");
         setErrorMsg(msg);
         return { status: "error", error: msg };
       }
 
+      console.log("[usePhonePipeline] send-otp SUCCESS");
       setPhoneStatus("otp_sent");
       setCooldown(RESEND_COOLDOWN_SECONDS);
       return { status: "otp_sent", e164: normalizedE164 };
-    } catch {
+    } catch (err) {
+      console.error("[usePhonePipeline] send-otp network exception:", err);
       const msg = "Network error. Please try again.";
       setPhoneStatus("otp_failed");
       setErrorMsg(msg);
@@ -193,6 +215,9 @@ export function usePhonePipeline(
       setPhoneStatus("verifying");
       setErrorMsg("");
 
+      console.log("[usePhonePipeline] submitOtp → calling verify-otp", {
+        phone: activePhone, code, scanSessionId: options?.scanSessionId,
+      });
       try {
         const { data, error } = await supabase.functions.invoke("verify-otp", {
           body: {
@@ -202,17 +227,37 @@ export function usePhonePipeline(
           },
         });
 
-        if (error || !data?.verified) {
+        // supabase.functions.invoke puts the body in `error` for non-2xx responses
+        if (error) {
+          let parsedMsg = "Invalid or expired code.";
+          try {
+            if (error.context && typeof error.context.json === "function") {
+              const body = await error.context.json();
+              console.error("[usePhonePipeline] verify-otp non-2xx response body:", body);
+              parsedMsg = body?.error || parsedMsg;
+            } else {
+              console.error("[usePhonePipeline] verify-otp error (no context):", error);
+            }
+          } catch { console.error("[usePhonePipeline] verify-otp error (unparseable):", error); }
+          setPhoneStatus("otp_sent"); // allow retry
+          setErrorMsg(parsedMsg);
+          return { status: "invalid_code", error: parsedMsg };
+        }
+
+        if (!data?.verified) {
           const msg = data?.error || "Invalid or expired code.";
+          console.error("[usePhonePipeline] verify-otp returned verified=false:", data);
           setPhoneStatus("otp_sent"); // allow retry
           setErrorMsg(msg);
           return { status: "invalid_code", error: msg };
         }
 
+        console.log("[usePhonePipeline] verify-otp SUCCESS — calling onVerified");
         setPhoneStatus("verified");
         options?.onVerified?.();
         return { status: "verified" };
-      } catch {
+      } catch (err) {
+        console.error("[usePhonePipeline] verify-otp network exception:", err);
         const msg = "Network error. Please try again.";
         setPhoneStatus("otp_sent");
         setErrorMsg(msg);
