@@ -49,8 +49,33 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       const filePath = `${sessionId || crypto.randomUUID()}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage.from("quotes").upload(filePath, file);
       if (uploadError) { console.error("Storage upload failed:", uploadError); toast.error("Upload failed. Please try again."); setUploading(false); return; }
+
+      // ── Resolve or create lead — scan_sessions MUST have a non-null lead_id ──
       let leadId: string | null = null;
-      if (sessionId) { const { data: leads } = await supabase.rpc("get_lead_by_session", { p_session_id: sessionId }); leadId = leads?.[0]?.id || null; }
+      if (sessionId) {
+        const { data: leads } = await supabase.rpc("get_lead_by_session", { p_session_id: sessionId });
+        leadId = leads?.[0]?.id || null;
+      }
+      if (!leadId) {
+        // No prior lead exists (e.g. direct upload without TruthGateFlow).
+        // Create a minimal lead so the scan_session → lead → phone_verifications
+        // authorization chain can work after OTP verification.
+        const fallbackSessionId = sessionId || crypto.randomUUID();
+        const { data: newLead, error: leadErr } = await supabase
+          .from("leads")
+          .insert({ session_id: fallbackSessionId, source: "direct_upload" })
+          .select("id")
+          .single();
+        if (leadErr || !newLead?.id) {
+          console.error("Failed to create fallback lead:", leadErr);
+          toast.error("Failed to initialize session. Please try again.");
+          setUploading(false);
+          return;
+        }
+        leadId = newLead.id;
+        console.log("[UploadZone] Created fallback lead:", leadId);
+      }
+
       const quoteFileId = crypto.randomUUID();
       const { error: qfError } = await supabase.from("quote_files").insert({ id: quoteFileId, lead_id: leadId, storage_path: filePath, status: "pending" });
       if (qfError) { console.error("quote_files insert failed:", qfError); toast.error("Failed to register your file. Please try again."); setUploading(false); return; }
