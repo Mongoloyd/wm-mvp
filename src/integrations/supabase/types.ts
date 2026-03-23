@@ -17,7 +17,11 @@ export type Database = {
       analyses: {
         Row: {
           analysis_status: string
+          anonymized_lead_id: string | null
           confidence_score: number | null
+          contractor_brief: string | null
+          contractor_brief_generated_at: string | null
+          contractor_brief_json: Json | null
           created_at: string
           document_is_window_door_related: boolean | null
           document_type: string | null
@@ -36,7 +40,11 @@ export type Database = {
         }
         Insert: {
           analysis_status?: string
+          anonymized_lead_id?: string | null
           confidence_score?: number | null
+          contractor_brief?: string | null
+          contractor_brief_generated_at?: string | null
+          contractor_brief_json?: Json | null
           created_at?: string
           document_is_window_door_related?: boolean | null
           document_type?: string | null
@@ -55,7 +63,11 @@ export type Database = {
         }
         Update: {
           analysis_status?: string
+          anonymized_lead_id?: string | null
           confidence_score?: number | null
+          contractor_brief?: string | null
+          contractor_brief_generated_at?: string | null
+          contractor_brief_json?: Json | null
           created_at?: string
           document_is_window_door_related?: boolean | null
           document_type?: string | null
@@ -85,6 +97,50 @@ export type Database = {
             columns: ["scan_session_id"]
             isOneToOne: false
             referencedRelation: "scan_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversion_events: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          event_name: string
+          fbc: string | null
+          fbp: string | null
+          id: number
+          lead_id: string | null
+          sent_to_facebook: boolean
+          user_data: Json | null
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          event_name: string
+          fbc?: string | null
+          fbp?: string | null
+          id?: number
+          lead_id?: string | null
+          sent_to_facebook?: boolean
+          user_data?: Json | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          event_name?: string
+          fbc?: string | null
+          fbp?: string | null
+          id?: number
+          lead_id?: string | null
+          sent_to_facebook?: boolean
+          user_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversion_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]
@@ -138,42 +194,66 @@ export type Database = {
           county: string | null
           created_at: string
           email: string | null
+          fbclid: string | null
           first_name: string | null
           id: string
+          initial_referrer: string | null
           phone_e164: string | null
+          phone_verified: boolean
           project_type: string | null
           quote_range: string | null
           session_id: string
           source: string | null
           status: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
           window_count: number | null
         }
         Insert: {
           county?: string | null
           created_at?: string
           email?: string | null
+          fbclid?: string | null
           first_name?: string | null
           id?: string
+          initial_referrer?: string | null
           phone_e164?: string | null
+          phone_verified?: boolean
           project_type?: string | null
           quote_range?: string | null
           session_id: string
           source?: string | null
           status?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           window_count?: number | null
         }
         Update: {
           county?: string | null
           created_at?: string
           email?: string | null
+          fbclid?: string | null
           first_name?: string | null
           id?: string
+          initial_referrer?: string | null
           phone_e164?: string | null
+          phone_verified?: boolean
           project_type?: string | null
           quote_range?: string | null
           session_id?: string
           source?: string | null
           status?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           window_count?: number | null
         }
         Relationships: []
