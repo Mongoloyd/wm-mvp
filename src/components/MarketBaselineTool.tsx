@@ -183,7 +183,7 @@ export default function MarketBaselineTool() {
     setConfig(prev => ({ ...prev, [key]: value }));
 
   return (
-    <div style={{
+    <div id="market-baseline" style={{
       background: '#0A0A0A', minHeight: '100vh',
       padding: '40px 20px', fontFamily: bodyFont,
       color: '#FFFFFF',
