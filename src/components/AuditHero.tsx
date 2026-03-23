@@ -5,6 +5,9 @@ import SampleGradeCard from "./SampleGradeCard";
 
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
 
+const MASCOT_URL =
+  "https://d2xsxph8kpxj0f.cloudfront.net/87108037/YjBTWCdi7jZwa5GFcxbLnp/windowmanwithtruthreportonthephone_be309c26.avif";
+
 interface AuditHeroProps {
   onFlowBClick?: () => void;
   onUploadQuote?: () => void;
@@ -18,24 +21,36 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
   };
 
   return (
-    <section style={{ backgroundColor: "#0A0A0A" }}>
-      {/* WindowMan mascot — responsive, centered above hero content */}
-      <div className="flex justify-center pt-8 pb-0">
+    <section className="relative" style={{ backgroundColor: "#0A0A0A" }}>
+
+      {/* ── MASCOT: Overlapping Trio anchor ──────────────────────────────
+          Negative bottom margin pulls the grid up underneath him.
+          z-20 keeps his phone arm on top of the GradeCard.
+          pointer-events-none lets clicks pass through to buttons below.
+      ─────────────────────────────────────────────────────────────────── */}
+      <div
+        className="relative z-20 flex justify-center pt-8 pointer-events-none
+                   -mb-16 sm:-mb-20 lg:-mb-32"
+      >
         <img
-          src="https://d2xsxph8kpxj0f.cloudfront.net/87108037/YjBTWCdi7jZwa5GFcxbLnp/windowmanwithtruthreportonthephone_be309c26.avif"
+          src={MASCOT_URL}
           alt="WindowMan holding a Truth Report"
           fetchPriority="high"
           decoding="async"
-          className="w-48 sm:w-56 md:w-72 lg:w-80 h-auto object-contain"
+          className="w-32 sm:w-48 md:w-64 lg:w-96 h-auto object-contain"
         />
       </div>
-      <div className="mx-auto max-w-6xl px-4 md:px-8 pt-12 pb-16 md:pt-20 md:pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
+
+      {/* ── HERO GRID: widened to max-w-7xl, 12-col with center void ──── */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pb-16 md:pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+          {/* LEFT — Typography (5 cols) */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.15 }}
-            className="order-1"
+            className="lg:col-span-5 pt-8 lg:pt-20"
           >
             <div
               className="inline-flex items-center gap-2 mb-5"
@@ -143,8 +158,17 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             <TrustBullets />
           </motion.div>
 
-          <div className="order-2 flex flex-col items-center">
-            <div className="hidden md:block">
+          {/* CENTER — "The Void": mascot throne (2 cols, desktop only) */}
+          <div className="hidden lg:block lg:col-span-2" aria-hidden="true" />
+
+          {/* RIGHT — Floating GradeCard (5 cols) */}
+          <div className="lg:col-span-5 relative flex flex-col items-center pt-4 lg:pt-16">
+            <div className="hidden md:block relative z-10">
+              {/* Subtle glow behind card — emphasises the "Truth" reveal */}
+              <div
+                className="absolute -inset-6 rounded-full -z-10"
+                style={{ background: "rgba(37,99,235,0.08)", filter: "blur(40px)" }}
+              />
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -154,6 +178,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
               </motion.div>
             </div>
           </div>
+
         </div>
       </div>
     </section>
