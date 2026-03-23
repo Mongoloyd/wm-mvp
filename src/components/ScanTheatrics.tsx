@@ -48,18 +48,15 @@ const pillars = [
   { label: "PERMIT & FEE SCAN", text: "Verifying permit inclusion and installation fee structure...", color: "#F97316", delay: 2.8 },
 ];
 
-type Phase = "scanning" | "cliffhanger" | "otp" | "pillars" | "reveal";
+type Phase = "scanning" | "cliffhanger" | "pillars" | "reveal";
 
 const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null, grade: gradeProp = "C", analysisData = null, onRevealComplete, onInvalidDocument, onNeedsBetterUpload }: ScanTheatricsProps) => {
   const [phase, setPhase] = useState<Phase>("scanning");
   const [activeLogIndex, setActiveLogIndex] = useState(0);
   const [progressWidth, setProgressWidth] = useState(0);
-  const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [pillarsDone, setPillarsDone] = useState<boolean[]>([false, false, false, false]);
   const [showGrade, setShowGrade] = useState(false);
-  const [skippedOtp, setSkippedOtp] = useState(false);
   const [scanningMinDone, setScanningMinDone] = useState(false);
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const timersRef = useRef<number[]>([]);
 
   const { status: scanStatus, error: pollError } = useScanPolling({
@@ -81,10 +78,8 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
       setPhase("scanning");
       setActiveLogIndex(0);
       setProgressWidth(0);
-      setOtpValues(["", "", "", "", "", ""]);
       setPillarsDone([false, false, false, false]);
       setShowGrade(false);
-      setSkippedOtp(false);
       setScanningMinDone(false);
       return;
     }
@@ -116,7 +111,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
       setActiveLogIndex(6);
       setProgressWidth(100);
       setPhase("cliffhanger");
-      addTimer(() => setPhase("otp"), 2000);
+      addTimer(() => startPillars(), 2000);
     }
   }, [scanStatus, scanningMinDone, phase, isActive]);
 
@@ -145,32 +140,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     addTimer(() => setScanningMinDone(true), 8000);
   };
 
-  const handleOtpChange = (index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return;
-    const newVals = [...otpValues];
-    newVals[index] = value;
-    setOtpValues(newVals);
-    if (value && index < 5) otpRefs.current[index + 1]?.focus();
-    if (value && index === 5) addTimer(() => handleOtpSubmit(), 300);
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otpValues[index] && index > 0) otpRefs.current[index - 1]?.focus();
-  };
-
-  const handleOtpSubmit = () => {
-    console.log({ event: "wm_phone_verified" });
-    setSkippedOtp(false);
-    startPillars(false);
-  };
-
-  const handleOtpSkip = () => {
-    console.log({ event: "wm_otp_skipped" });
-    setSkippedOtp(true);
-    startPillars(true);
-  };
-
-  const startPillars = (skipped: boolean) => {
+  const startPillars = () => {
     setPhase("pillars");
     setPillarsDone([false, false, false, false]);
     setShowGrade(false);
@@ -180,9 +150,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
       }, (p.delay + 1.2) * 1000);
     });
     addTimer(() => setShowGrade(true), 5000);
-    if (!skipped) {
-      addTimer(() => { console.log({ event: "wm_grade_revealed" }); onRevealComplete?.(); }, 7000);
-    }
+    addTimer(() => { console.log({ event: "wm_grade_revealed" }); onRevealComplete?.(); }, 7000);
   };
 
   const county = selectedCounty;
@@ -355,112 +323,6 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
           </motion.div>
         )}
 
-        {phase === "otp" && (
-          <motion.div
-            key="otp"
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.15 }}
-            style={{
-              background: "#111111",
-              borderRadius: 0,
-              border: "1px solid #1A1A1A",
-              padding: "32px 28px",
-              maxWidth: 400,
-              width: "100%",
-              boxShadow: "0 16px 48px rgba(0,0,0,0.6)",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: 32, marginBottom: 16 }}>📱</div>
-            <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 700, color: "#E5E5E5", textTransform: "uppercase", letterSpacing: "0.02em" }}>
-              Enter the code we sent to your mobile.
-            </h3>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginBottom: 24 }}>
-              We use this to secure your report.
-            </p>
-
-            <div className="flex justify-center gap-2 mb-6">
-              {otpValues.map((val, i) => (
-                <input
-                  key={i}
-                  ref={(el) => { otpRefs.current[i] = el; }}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={val}
-                  onChange={(e) => handleOtpChange(i, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                  style={{
-                    width: 48,
-                    height: 56,
-                    border: "1.5px solid #1A1A1A",
-                    borderRadius: 0,
-                    background: "#0A0A0A",
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 24,
-                    fontWeight: 700,
-                    color: "#E5E5E5",
-                    textAlign: "center",
-                    outline: "none",
-                    transition: "border-color 0.15s, box-shadow 0.15s",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#2563EB";
-                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.15)";
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#1A1A1A";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                />
-              ))}
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleOtpSubmit}
-              style={{
-                width: "100%",
-                height: 50,
-                background: "#2563EB",
-                color: "#FFFFFF",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 16,
-                fontWeight: 700,
-                borderRadius: 0,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Unlock My Grade Report →
-            </motion.button>
-
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", marginTop: 12, lineHeight: 1.7 }}>
-              Enter the code to unlock your full analysis — or{" "}
-              <button
-                onClick={handleOtpSkip}
-                style={{ fontFamily: "inherit", fontSize: "inherit", color: "#E5E7EB", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}
-              >
-                skip for now
-              </button>{" "}
-              and access a partial summary.
-            </p>
-
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", marginTop: 8 }}>
-              Didn't receive it?{" "}
-              <button
-                onClick={() => console.log({ event: "wm_otp_resend" })}
-                style={{ fontFamily: "inherit", fontSize: "inherit", color: "#2563EB", background: "none", border: "none", textDecoration: "none", cursor: "pointer" }}
-              >
-                Resend code
-              </button>
-            </p>
-          </motion.div>
-        )}
-
         {(phase === "pillars" || phase === "reveal") && (
           <motion.div
             key="pillars"
@@ -509,62 +371,9 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                   </span>
                 </div>
 
-                {skippedOtp ? (
-                  <>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#E5E5E5", marginTop: 20 }}>
-                      {GRADE_MESSAGES[gradeProp] || `Your quote scored a ${gradeProp}.`}
-                    </p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 8, maxWidth: 360, lineHeight: 1.6 }}>
-                      This is a basic score. Verify your phone to unlock your full report with line-by-line pricing breakdown, red flags, and negotiation tips.
-                    </p>
-                    <div className="flex flex-col gap-3 mt-6 w-full" style={{ maxWidth: 320 }}>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setSkippedOtp(false);
-                          setShowGrade(false);
-                          setPhase("otp");
-                        }}
-                        style={{
-                          width: "100%",
-                          height: 48,
-                          background: "#2563EB",
-                          color: "#FFFFFF",
-                          fontFamily: "'DM Sans', sans-serif",
-                          fontSize: 15,
-                          fontWeight: 700,
-                          borderRadius: 0,
-                          border: "none",
-                          cursor: "pointer",
-                        }}
-                      >
-                        🔓 Unlock Full Report
-                      </motion.button>
-                      <button
-                        onClick={() => {
-                          console.log({ event: "wm_grade_revealed", skipped: true });
-                          onRevealComplete?.();
-                        }}
-                        style={{
-                          fontFamily: "'DM Sans', sans-serif",
-                          fontSize: 13,
-                          color: "#E5E7EB",
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          textDecoration: "underline",
-                        }}
-                      >
-                        Continue with basic score →
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E5E5", marginTop: 20 }}>
-                    Your grade is ready.
-                  </p>
-                )}
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E5E5", marginTop: 20 }}>
+                  Your grade is ready.
+                </p>
               </motion.div>
             )}
           </motion.div>

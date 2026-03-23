@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import TruthReportClassic from "@/components/TruthReportClassic";
 import type { GateMode, LockedOverlayProps } from "@/components/LockedOverlay";
 import type { OtpVerifyOutcome } from "@/types/report-v2";
-import { ReportVersionToggle } from "@/components/ReportVersionToggle";
+
 
 // ── PipelineVerifyResult → OtpVerifyOutcome mapping ──────────────────────────
 const PIPELINE_TO_OUTCOME: Record<string, OtpVerifyOutcome> = {
@@ -100,7 +100,7 @@ export default function ReportClassic() {
   const funnel = useScanFunnelSafe();
 
   // ── Data loading ───────────────────────────────────────────────────────
-  const { data: analysisData, isLoading, error } = useAnalysisData(
+  const { data: analysisData, isLoading, error, fetchFull, isLoadingFull, isFullLoaded } = useAnalysisData(
     sessionId ?? null,
     !!sessionId
   );
@@ -109,7 +109,7 @@ export default function ReportClassic() {
   const county = useCountyForSession(sessionId);
 
   // ── Access level (preview vs full) ─────────────────────────────────────
-  const accessLevel = useReportAccess();
+  const accessLevel = useReportAccess({ isFullLoaded });
 
   // ── Phone pipeline — the ONLY Twilio touchpoint ────────────────────────
   const pipeline = usePhonePipeline("validate_and_send_otp", {
@@ -117,8 +117,17 @@ export default function ReportClassic() {
     externalPhoneE164: funnel?.phoneE164 ?? null,
     onVerified: () => {
       funnel?.setPhoneStatus("verified");
+      const phone = funnel?.phoneE164 || pipeline.e164;
+      if (phone) fetchFull(phone);
     },
   });
+
+  // If user already verified (returning visit), auto-fetch full data
+  useEffect(() => {
+    if (funnel?.phoneStatus === "verified" && !isFullLoaded && !isLoadingFull && funnel?.phoneE164) {
+      fetchFull(funnel.phoneE164);
+    }
+  }, [funnel?.phoneStatus, funnel?.phoneE164, isFullLoaded, isLoadingFull, fetchFull]);
 
   // ── OTP value state (lives here in the smart container) ────────────────
   const [otpValue, setOtpValue] = useState("");
@@ -237,7 +246,8 @@ export default function ReportClassic() {
     onPhoneSubmit: handlePhoneSubmit,
     isLoading:
       pipeline.phoneStatus === "sending_otp" ||
-      pipeline.phoneStatus === "verifying",
+      pipeline.phoneStatus === "verifying" ||
+      isLoadingFull,
     errorMsg: pipeline.errorMsg,
     resendCooldown: pipeline.resendCooldown,
     onResend: handleResend,
@@ -265,7 +275,6 @@ export default function ReportClassic() {
       onSecondScan={handleSecondScan}
       gateProps={accessLevel === "preview" ? gateProps : undefined}
     />
-    <ReportVersionToggle sessionId={sessionId} />
     </>
   );
 }

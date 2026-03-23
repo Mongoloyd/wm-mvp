@@ -1,5 +1,22 @@
-import { useState, useEffect, useRef } from "react";
+/**
+ * useAnalysisData — Two-phase analysis data hook.
+ *
+ * Phase 1 (preview): Called on mount. Returns grade, flag counts, pillar bands,
+ *   metadata. Flags array is EMPTY — not fetched from backend.
+ *
+ * Phase 2 (full): Called after OTP verification via fetchFull(phoneE164).
+ *   Backend checks phone_verifications.status = 'verified' before returning
+ *   the complete flags array and full_json.
+ *
+ * SECURITY: The backend is the gate. This hook enforces a two-fetch model
+ *   so the frontend never has actionable findings data until the backend
+ *   has confirmed verification.
+ */
+
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+
+// ── Public types ─────────────────────────────────────────────────────────────
 
 export interface AnalysisFlag {
   id: number;
@@ -20,6 +37,10 @@ export interface PillarScore {
 export interface AnalysisData {
   grade: string;
   flags: AnalysisFlag[];
+  /** Aggregate counts — available from preview even when flags[] is empty */
+  flagCount: number;
+  flagRedCount: number;
+  flagAmberCount: number;
   contractorName: string | null;
   confidenceScore: number | null;
   pillarScores: PillarScore[];
@@ -33,6 +54,8 @@ export interface AnalysisData {
   analysisStatus: string | null;
 }
 
+// ── Constants ────────────────────────────────────────────────────────────────
+
 const PILLAR_DEFS: { key: string; label: string }[] = [
   { key: "safety_code", label: "Safety & Code Match" },
   { key: "install_scope", label: "Install & Scope Clarity" },
@@ -40,6 +63,8 @@ const PILLAR_DEFS: { key: string; label: string }[] = [
   { key: "fine_print", label: "Fine Print & Transparency" },
   { key: "warranty", label: "Warranty Value" },
 ];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function mapSeverity(raw: string | undefined | null): "red" | "amber" | "green" {
   const s = (raw || "").toLowerCase();
@@ -56,25 +81,17 @@ function pillarStatus(score: number | null): "pass" | "warn" | "fail" | "pending
 }
 
 function humanize(snake: string): string {
-  return snake
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return snake.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function normalizePillarKey(raw: string | undefined | null): string | null {
   switch (raw) {
-    case "safety":
-      return "safety_code";
-    case "install":
-      return "install_scope";
-    case "price":
-      return "price_fairness";
-    case "finePrint":
-      return "fine_print";
-    case "warranty":
-      return "warranty";
-    default:
-      return raw || null;
+    case "safety": return "safety_code";
+    case "install": return "install_scope";
+    case "price": return "price_fairness";
+    case "finePrint": return "fine_print";
+    case "warranty": return "warranty";
+    default: return raw || null;
   }
 }
 
@@ -84,47 +101,6 @@ interface RawFlag {
   pillar?: string;
   detail?: string;
   tip?: string;
-}
-
-interface PreviewPillarEntry {
-  score?: number | null;
-  status?: "pass" | "warn" | "fail" | "pending" | null;
-}
-
-const ALLOWED_PILLAR_STATUSES = new Set<NonNullable<PreviewPillarEntry["status"]>>([
-  "pass",
-  "warn",
-  "fail",
-  "pending",
-]);
-
-function normalizePreviewPillarEntry(entry: unknown): PreviewPillarEntry | undefined {
-  // Allow bare numeric scores, but only if they are finite.
-  if (typeof entry === "number") {
-    return Number.isFinite(entry) ? { score: entry } : undefined;
-  }
-
-  if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
-    return undefined;
-  }
-
-  const candidate = entry as { score?: unknown; status?: unknown };
-  const result: PreviewPillarEntry = {};
-
-  if (typeof candidate.score === "number" && Number.isFinite(candidate.score)) {
-    result.score = candidate.score;
-  }
-
-  if (typeof candidate.status === "string" && ALLOWED_PILLAR_STATUSES.has(candidate.status as NonNullable<PreviewPillarEntry["status"]>)) {
-    result.status = candidate.status as NonNullable<PreviewPillarEntry["status"]>;
-  }
-
-  // If neither field is valid, treat as absent so we fall back to inference.
-  if (!("score" in result) && !("status" in result)) {
-    return undefined;
-  }
-
-  return result;
 }
 
 function mapFlags(raw: unknown): AnalysisFlag[] {
@@ -139,50 +115,65 @@ function mapFlags(raw: unknown): AnalysisFlag[] {
   }));
 }
 
-function extractPillarScores(previewJson: unknown, flags: AnalysisFlag[]): PillarScore[] {
+interface PreviewPillarEntry {
+  score?: number | null;
+  status?: "pass" | "warn" | "fail" | "pending" | null;
+}
+
+const ALLOWED_PILLAR_STATUSES = new Set(["pass", "warn", "fail", "pending"]);
+
+function normalizePreviewPillarEntry(entry: unknown): PreviewPillarEntry | undefined {
+  if (typeof entry === "number") return Number.isFinite(entry) ? { score: entry } : undefined;
+  if (entry === null || typeof entry !== "object" || Array.isArray(entry)) return undefined;
+  const candidate = entry as { score?: unknown; status?: unknown };
+  const result: PreviewPillarEntry = {};
+  if (typeof candidate.score === "number" && Number.isFinite(candidate.score)) result.score = candidate.score;
+  if (typeof candidate.status === "string" && ALLOWED_PILLAR_STATUSES.has(candidate.status))
+    result.status = candidate.status as "pass" | "warn" | "fail" | "pending";
+  if (!("score" in result) && !("status" in result)) return undefined;
+  return result;
+}
+
+function extractPillarScores(previewJson: unknown): PillarScore[] {
   const pillarScoresRaw = (previewJson as { pillar_scores?: unknown })?.pillar_scores;
-  const raw =
-    pillarScoresRaw && typeof pillarScoresRaw === "object" && !Array.isArray(pillarScoresRaw)
-      ? (pillarScoresRaw as Record<string, unknown>)
-      : undefined;
+  const raw = pillarScoresRaw && typeof pillarScoresRaw === "object" && !Array.isArray(pillarScoresRaw)
+    ? (pillarScoresRaw as Record<string, unknown>) : undefined;
 
   return PILLAR_DEFS.map((def) => {
     const entry = raw?.[def.key];
-    const normalizedEntry = normalizePreviewPillarEntry(entry);
-    const score = normalizedEntry?.score ?? null;
-    const explicitStatus = normalizedEntry?.status ?? null;
-
-    // New preview payloads intentionally expose only teaser-safe status bands.
-    if (score == null && explicitStatus) {
-      return { ...def, score: null, status: explicitStatus };
-    }
-
-    // If no explicit score, infer status from flags associated with this pillar
-    if (score == null) {
-      const pillarFlags = flags.filter(f => f.pillar === def.key);
-      const hasRed = pillarFlags.some(f => f.severity === "red");
-      const hasAmber = pillarFlags.some(f => f.severity === "amber");
-      const hasGreen = pillarFlags.some(f => f.severity === "green");
-
-      if (pillarFlags.length === 0) {
-        return { ...def, score: null, status: "pending" as const };
-      }
-
-      // Infer a rough score from flag severity
-      if (hasRed) return { ...def, score: null, status: "fail" as const };
-      if (hasAmber) return { ...def, score: null, status: "warn" as const };
-      if (hasGreen) return { ...def, score: null, status: "pass" as const };
-    }
-
+    const norm = normalizePreviewPillarEntry(entry);
+    const score = norm?.score ?? null;
+    const explicitStatus = norm?.status ?? null;
+    if (score == null && explicitStatus) return { ...def, score: null, status: explicitStatus };
     return { ...def, score, status: pillarStatus(score) };
   });
 }
 
-interface UseAnalysisDataResult {
+function extractPillarScoresWithFlags(previewJson: unknown, flags: AnalysisFlag[]): PillarScore[] {
+  const base = extractPillarScores(previewJson);
+  return base.map((def) => {
+    if (def.status !== "pending") return def;
+    const pillarFlags = flags.filter(f => f.pillar === def.key);
+    if (pillarFlags.length === 0) return def;
+    if (pillarFlags.some(f => f.severity === "red")) return { ...def, status: "fail" as const };
+    if (pillarFlags.some(f => f.severity === "amber")) return { ...def, status: "warn" as const };
+    return { ...def, status: "pass" as const };
+  });
+}
+
+// ── Hook return ──────────────────────────────────────────────────────────────
+
+export interface UseAnalysisDataResult {
   data: AnalysisData | null;
   isLoading: boolean;
   error: string | null;
+  /** Call after OTP success. Pass the verified E.164 phone. */
+  fetchFull: (phoneE164: string) => Promise<void>;
+  isLoadingFull: boolean;
+  isFullLoaded: boolean;
 }
+
+// ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useAnalysisData(
   scanSessionId: string | null,
@@ -191,14 +182,16 @@ export function useAnalysisData(
   const [data, setData] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fetchedRef = useRef<string | null>(null);
+  const [isLoadingFull, setIsLoadingFull] = useState(false);
+  const [isFullLoaded, setIsFullLoaded] = useState(false);
+  const previewFetchedRef = useRef<string | null>(null);
 
+  // ── Phase 1: Preview fetch ─────────────────────────────────────────────
   useEffect(() => {
-    if (!enabled || !scanSessionId || fetchedRef.current === scanSessionId) return;
+    if (!enabled || !scanSessionId || previewFetchedRef.current === scanSessionId) return;
 
     setIsLoading(true);
     setError(null);
-
     let retryTimer: number | undefined;
     let cancelled = false;
 
@@ -208,49 +201,34 @@ export function useAnalysisData(
           "get_analysis_preview",
           { p_scan_session_id: scanSessionId }
         );
-
         if (cancelled) return;
-
         if (rpcErr) {
           console.error("get_analysis_preview error:", rpcErr);
-          // Retry up to 8 times (~20s total) in case analysis isn't ready yet
-          if (attempt < 8) {
-            retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500);
-            return;
-          }
-          setError("Failed to load analysis.");
-          setIsLoading(false);
-          return;
+          if (attempt < 8) { retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500); return; }
+          setError("Failed to load analysis."); setIsLoading(false); return;
         }
-
         const row = Array.isArray(rows) ? rows[0] : rows;
         if (!row || !row.grade) {
-          // Analysis not ready yet — retry
-          if (attempt < 8) {
-            retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500);
-            return;
-          }
-          setError("Analysis not found.");
-          setIsLoading(false);
-          return;
+          if (attempt < 8) { retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500); return; }
+          setError("Analysis not found."); setIsLoading(false); return;
         }
 
-        // Success — mark as fetched so we don't re-fetch
-        fetchedRef.current = scanSessionId;
+        previewFetchedRef.current = scanSessionId;
 
         const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
         const previewJson = row.preview_json as Record<string, unknown> | null;
-        const flags = mapFlags(row.flags);
-
         const qualityBandRaw = previewJson?.quality_band as string | undefined;
         const validBands = new Set(["good", "fair", "poor"]);
 
         setData({
           grade: row.grade,
-          flags,
+          flags: [],                           // ← EMPTY in preview
+          flagCount: row.flag_count ?? 0,
+          flagRedCount: row.flag_red_count ?? 0,
+          flagAmberCount: row.flag_amber_count ?? 0,
           contractorName: (proofOfRead?.contractor_name as string) || null,
           confidenceScore: row.confidence_score ?? null,
-          pillarScores: extractPillarScores(row.preview_json, flags),
+          pillarScores: extractPillarScores(row.preview_json),
           documentType: row.document_type || null,
           pageCount: typeof proofOfRead?.page_count === "number" ? proofOfRead.page_count : null,
           openingCount: typeof proofOfRead?.opening_count === "number" ? proofOfRead.opening_count : null,
@@ -258,15 +236,12 @@ export function useAnalysisData(
           qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
           hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
           hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
-          analysisStatus: typeof (row as any).analysis_status === "string" ? (row as any).analysis_status : null,
+          analysisStatus: "complete",
         });
       } catch (err) {
         if (cancelled) return;
         console.error("useAnalysisData exception:", err);
-        if (attempt < 8) {
-          retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500);
-          return;
-        }
+        if (attempt < 8) { retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500); return; }
         setError("Unexpected error loading analysis.");
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -274,12 +249,53 @@ export function useAnalysisData(
     };
 
     doFetch(0);
-
-    return () => {
-      cancelled = true;
-      if (retryTimer) clearTimeout(retryTimer);
-    };
+    return () => { cancelled = true; if (retryTimer) clearTimeout(retryTimer); };
   }, [scanSessionId, enabled]);
 
-  return { data, isLoading, error };
+  // ── Phase 2: Full gated fetch ──────────────────────────────────────────
+  const fetchFull = useCallback(async (phoneE164: string) => {
+    if (!scanSessionId || isFullLoaded) return;
+    setIsLoadingFull(true);
+    try {
+      const { data: rows, error: rpcErr } = await supabase.rpc(
+        "get_analysis_full",
+        { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
+      );
+      if (rpcErr) { console.error("get_analysis_full error:", rpcErr); return; }
+      const row = Array.isArray(rows) ? rows[0] : rows;
+      if (!row || !row.grade) { console.error("get_analysis_full returned empty"); return; }
+
+      const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
+      const previewJson = row.preview_json as Record<string, unknown> | null;
+      const flags = mapFlags(row.flags);
+      const qualityBandRaw = previewJson?.quality_band as string | undefined;
+      const validBands = new Set(["good", "fair", "poor"]);
+
+      setData({
+        grade: row.grade,
+        flags,
+        flagCount: flags.length,
+        flagRedCount: flags.filter(f => f.severity === "red").length,
+        flagAmberCount: flags.filter(f => f.severity === "amber").length,
+        contractorName: (proofOfRead?.contractor_name as string) || null,
+        confidenceScore: row.confidence_score ?? null,
+        pillarScores: extractPillarScoresWithFlags(row.preview_json, flags),
+        documentType: row.document_type || null,
+        pageCount: typeof proofOfRead?.page_count === "number" ? proofOfRead.page_count : null,
+        openingCount: typeof proofOfRead?.opening_count === "number" ? proofOfRead.opening_count : null,
+        lineItemCount: typeof proofOfRead?.line_item_count === "number" ? proofOfRead.line_item_count : null,
+        qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
+        hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
+        hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
+        analysisStatus: "complete",
+      });
+      setIsFullLoaded(true);
+    } catch (err) {
+      console.error("fetchFull exception:", err);
+    } finally {
+      setIsLoadingFull(false);
+    }
+  }, [scanSessionId, isFullLoaded]);
+
+  return { data, isLoading, error, fetchFull, isLoadingFull, isFullLoaded };
 }

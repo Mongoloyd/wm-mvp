@@ -60,7 +60,7 @@ const Index = () => {
   const isDevPreview = IS_DEV_MODE && devState !== "none";
   const devConfig = isDevPreview ? DEV_PREVIEW_CONFIGS[devState] : null;
   const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
-  const { data: analysisData, isLoading: analysisLoading, error: analysisError } = useAnalysisData(scanSessionId, fileUploaded);
+  const { data: analysisData, isLoading: analysisLoading, error: analysisError, fetchFull, isFullLoaded } = useAnalysisData(scanSessionId, fileUploaded);
   
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
@@ -252,6 +252,9 @@ const Index = () => {
                 onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
                 onSecondScan={() => triggerTruthGate('second_opinion_scan')}
                 scanSessionId={scanSessionId}
+                flagCount={activeData?.flagCount}
+                isFullLoaded={isFullLoaded}
+                onVerified={(phoneE164: string) => { fetchFull(phoneE164); }}
               />
               <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} />
             </>

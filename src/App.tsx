@@ -1,22 +1,25 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FacebookConversionProvider } from "@/components/FacebookConversionProvider";
 
-// ── Lazy-loaded routes for code splitting ────────────────────────────────────
-// Facebook traffic is 85%+ mobile. Only load the page the user lands on.
-// Report pages are heavy (findings, evidence, benchmarks) — split them out.
+// ── Lazy-loaded routes ───────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index.tsx"));
-const Demo = lazy(() => import("./pages/Demo.tsx"));
-const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
-const Report = lazy(() => import("./pages/Report.tsx"));
 const ReportClassic = lazy(() => import("./pages/ReportClassic.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
-// Minimal loading fallback — matches dark theme, no layout shift
+// Dev/internal only — not linked from any production CTA
+const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
+
+// Redirect helper: /report/:sessionId → /report/classic/:sessionId
+function ReportRedirect() {
+  const { sessionId } = useParams<{ sessionId: string }>();
+  return <Navigate to={`/report/classic/${sessionId}`} replace />;
+}
+
 function PageLoader() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
@@ -40,10 +43,11 @@ const App = () => (
         <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/demo" element={<Demo />} />
-          <Route path="/demo-classic" element={<DemoClassic />} />
-          <Route path="/report/:sessionId" element={<Report />} />
           <Route path="/report/classic/:sessionId" element={<ReportClassic />} />
+          {/* Legacy V2 route → permanent redirect to Classic */}
+          <Route path="/report/:sessionId" element={<ReportRedirect />} />
+          {/* Internal/dev only — zero production CTAs point here */}
+          <Route path="/demo-classic" element={<DemoClassic />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

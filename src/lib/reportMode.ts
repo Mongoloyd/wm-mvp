@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Toggle this to switch between pillar-based report and findings-first V2
-export const USE_FINDINGS_V2 = true;
+export const USE_FINDINGS_V2 = false;
 
 // Set to true to use Framer Motion for the unlock reveal animation.
 // Set to false to use CSS-only transitions (no dependency required).
