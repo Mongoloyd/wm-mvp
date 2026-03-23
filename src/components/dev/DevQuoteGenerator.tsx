@@ -119,7 +119,7 @@ export function DevQuoteGenerator({ sessionId, onScanStart }: DevQuoteGeneratorP
       result.actualGrade = row.grade;
       result.actualStatus = "complete";
       result.rubricVersion = row.rubric_version || null;
-      result.flagCount = Array.isArray(row.flags) ? row.flags.length : 0;
+      result.flagCount = row.flag_count ?? 0;
 
       // Extract pillar scores and hard cap from preview_json
       const preview = row.preview_json as Record<string, unknown> | null;

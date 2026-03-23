@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bug, ChevronUp, ChevronDown, BarChart3 } from "lucide-react";
 import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "./fixtures";
 import { RubricComparison } from "@/components/dev/RubricComparison";
-import { AnalysisViewModeToggle } from "@/components/dev/AnalysisViewModeToggle";
 
 interface DevPreviewPanelProps {
   currentState: DevPreviewState;
@@ -83,8 +82,6 @@ export default function DevPreviewPanel({ currentState, onChange }: DevPreviewPa
           </motion.div>
         )}
       </AnimatePresence>
-
-      <AnalysisViewModeToggle className="mb-2" compact />
 
       <div style={{ display: "flex", gap: 6 }}>
         <button

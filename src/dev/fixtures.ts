@@ -30,6 +30,7 @@ export interface DevPreviewConfig {
 
 const GRADE_A_DATA: AnalysisData = {
   grade: "A",
+  flagCount: 6, flagRedCount: 0, flagAmberCount: 1,
   contractorName: "Hurricane Shield Windows",
   confidenceScore: 94,
   documentType: "quote",
@@ -59,6 +60,7 @@ const GRADE_A_DATA: AnalysisData = {
 
 const GRADE_C_DATA: AnalysisData = {
   grade: "C",
+  flagCount: 6, flagRedCount: 2, flagAmberCount: 3,
   contractorName: "AllStar Impact Solutions",
   confidenceScore: 78,
   documentType: "estimate",
@@ -88,6 +90,7 @@ const GRADE_C_DATA: AnalysisData = {
 
 const GRADE_D_DATA: AnalysisData = {
   grade: "D",
+  flagCount: 7, flagRedCount: 4, flagAmberCount: 2,
   contractorName: "WindowWorld Express",
   confidenceScore: 65,
   documentType: "proposal",
@@ -118,6 +121,7 @@ const GRADE_D_DATA: AnalysisData = {
 
 const GRADE_F_DATA: AnalysisData = {
   grade: "F",
+  flagCount: 7, flagRedCount: 6, flagAmberCount: 1,
   contractorName: "QuickFix Windows LLC",
   confidenceScore: 52,
   documentType: "proposal",
