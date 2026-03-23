@@ -165,13 +165,7 @@ const Index = () => {
               <motion.div key="flow-b-entry" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                 <FlowBEntry onContinueToTool={() => { document.getElementById("market-baseline")?.scrollIntoView({ behavior: "smooth" }); }} onSwitchToFlowA={() => switchToFlowA('hero_switch')} />
                 <ScamConcernImage />
-                <MarketBaselineTool
-                  onStepComplete={(step, answer) => setStepsCompleted(step)}
-                  onLeadCaptured={(answers) => { setFlowBLeadCaptured(true); setFlowBAnswers(prev => ({ ...prev, ...answers })); }}
-                  onBaselineRevealed={() => setBaselineRevealed(true)}
-                  onChecklistClick={() => document.getElementById("forensic-checklist")?.scrollIntoView({ behavior: "smooth" })}
-                  onReminderClick={() => document.getElementById("quote-watcher")?.scrollIntoView({ behavior: "smooth" })}
-                />
+                <MarketBaselineTool />
                 {flowBLeadCaptured && (
                   <>
                     <ForensicChecklist onUploadQuote={() => switchToFlowA('checklist_cta')} onSetReminder={() => document.getElementById("quote-watcher")?.scrollIntoView({ behavior: "smooth" })} />

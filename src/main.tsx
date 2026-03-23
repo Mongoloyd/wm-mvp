@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { AnalysisViewModeProvider } from "./state/analysisViewMode";
 
 // Forensic Noir fonts
 import "@fontsource/barlow-condensed/700.css";
@@ -25,12 +24,4 @@ getLeadId();
 // Capture UTM params from URL immediately (before SPA strips them)
 captureUtmFromUrl();
 
-createRoot(document.getElementById("root")!).render(
-  import.meta.env.DEV ? (
-    <AnalysisViewModeProvider>
-      <App />
-    </AnalysisViewModeProvider>
-  ) : (
-    <App />
-  )
-);
+createRoot(document.getElementById("root")!).render(<App />);

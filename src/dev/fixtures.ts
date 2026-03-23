@@ -121,6 +121,7 @@ const GRADE_D_DATA: AnalysisData = {
 
 const GRADE_F_DATA: AnalysisData = {
   grade: "F",
+  flagCount: 7, flagRedCount: 6, flagAmberCount: 1,
   contractorName: "QuickFix Windows LLC",
   confidenceScore: 52,
   documentType: "proposal",
