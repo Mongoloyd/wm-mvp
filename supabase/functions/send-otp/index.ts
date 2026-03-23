@@ -64,16 +64,26 @@ Deno.serve(async (req) => {
 
     // Mark any existing pending rows for this phone as expired
     // so verify-otp always finds exactly one pending row.
-    await supabase
+    const { error: expireErr } = await supabase
       .from("phone_verifications")
       .update({ status: "expired" })
       .eq("phone_e164", phone_e164)
       .eq("status", "pending");
+    if (expireErr) {
+      console.error("[send-otp] failed to expire old pending rows:", expireErr);
+    }
 
-    await supabase.from("phone_verifications").insert({
+    const { error: insertErr } = await supabase.from("phone_verifications").insert({
       phone_e164,
       status: "pending",
     });
+    if (insertErr) {
+      console.error("[send-otp] failed to insert pending row:", insertErr);
+      return new Response(
+        JSON.stringify({ error: "Failed to create verification record.", success: false }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true }),

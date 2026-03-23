@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
 import { Check } from "lucide-react";
 import { useTickerStats } from "@/hooks/useTickerStats";
@@ -49,7 +48,6 @@ type Answers = {
   quoteRange: string;
   firstName: string;
   email: string;
-  phone: string;
 };
 
 type TransitionState = "idle" | "loading" | "estimate" | "done";
@@ -142,7 +140,6 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     quoteRange: "",
     firstName: "",
     email: "",
-    phone: "",
   });
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [transitionState, setTransitionState] = useState<TransitionState>("idle");
@@ -150,11 +147,8 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   const [fieldStatus, setFieldStatus] = useState<Record<string, FieldStatus>>({
     firstName: "untouched",
     email: "untouched",
-    phone: "untouched",
   });
-  const [tcpaConsent, setTcpaConsent] = useState(false);
   const funnel = useScanFunnelSafe();
-  const phonePipeline = usePhonePipeline("validate_and_send_otp");
 
   const selectedCounty = answers.county || "your county";
   const selectedRange = answers.quoteRange || "your";
@@ -194,10 +188,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     switch (field) {
       case "firstName": return isValidName(value) ? "valid" : "invalid";
       case "email": return isValidEmail(value) ? "valid" : "invalid";
-      case "phone": return phonePipeline.inputComplete ? "valid" : "invalid";
       default: return "untouched";
     }
-  }, [phonePipeline.inputComplete]);
+  }, []);
 
   const handleFieldBlur = useCallback((field: string, value: string) => {
     if (value.trim().length > 0) {
@@ -210,37 +203,24 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
     const nameValid = isValidName(answers.firstName);
     const emailValid = isValidEmail(answers.email);
-    const phoneValid = phonePipeline.inputComplete;
 
     setFieldStatus({
       firstName: nameValid ? "valid" : "invalid",
       email: emailValid ? "valid" : "invalid",
-      phone: phoneValid ? "valid" : "invalid",
     });
 
-    if (!nameValid || !emailValid || !phoneValid || !tcpaConsent) return;
+    if (!nameValid || !emailValid) return;
 
     setSubmitState("submitting");
 
     try {
-      // 1. Screen + send OTP via the shared pipeline
-      const otpResult = await phonePipeline.submitPhone();
-
-      if (otpResult.status === "blocked") {
-        setFieldStatus(prev => ({ ...prev, phone: "invalid" }));
-        setSubmitState("idle");
-        return;
-      }
-
-      const normalizedE164 = otpResult.e164 || phonePipeline.e164;
-
-      // 2. Insert lead row
+      // Insert lead row — phone is captured later at LockedOverlay (Just-in-Time OTP)
       const sessionId = crypto.randomUUID();
       const { error } = await supabase.from('leads').insert({
         session_id: sessionId,
         first_name: answers.firstName,
         email: answers.email,
-        phone_e164: normalizedE164,
+        // phone_e164 intentionally omitted — captured at LockedOverlay after scan
         county: answers.county,
         project_type: answers.projectType,
         window_count: parseWindowCount(answers.windowCount),
@@ -250,27 +230,18 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
       if (error) throw error;
 
-      // 3. Write to ScanFunnelContext (also persists to localStorage)
-      if (funnel && normalizedE164) {
-        if (otpResult.status === "otp_sent") {
-          funnel.setPhone(normalizedE164, "otp_sent");
-        } else if (otpResult.status === "error") {
-          funnel.setPhone(normalizedE164, "otp_failed");
-        } else {
-          funnel.setPhone(normalizedE164, "validated");
-        }
+      // Write to ScanFunnelContext (persist sessionId)
+      if (funnel) {
         funnel.setSessionId(sessionId);
       }
 
-      // 4. Analytics: track OTP send outcome
-      const isOtpSuccess = otpResult.status === "otp_sent";
+      // Analytics: track lead capture (no OTP at this stage)
       supabase.from("event_logs").insert({
-        event_name: isOtpSuccess ? "otp_sent_upstream" : "otp_failed_upstream",
+        event_name: "lead_captured_no_phone",
         session_id: sessionId,
         metadata: {
-          phone_e164: normalizedE164,
-          pipeline_status: otpResult.status,
-          ...(!isOtpSuccess && otpResult.error ? { error_message: otpResult.error } : {}),
+          first_name: answers.firstName,
+          county: answers.county,
           timestamp: new Date().toISOString(),
         },
       }).then(({ error: evtErr }) => {
@@ -284,7 +255,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
       // Analytics: track upstream failure
       supabase.from("event_logs").insert({
-        event_name: "otp_failed_upstream",
+        event_name: "lead_capture_failed",
         session_id: funnel?.sessionId || null,
         metadata: {
           error_message: err instanceof Error ? err.message : String(err),
@@ -390,7 +361,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
       );
     }
 
-    // Step 5 — Lead Gate
+    // Step 5 — Lead Gate (name + email only, phone captured later at LockedOverlay)
     return (
       <motion.div
         key="lead-gate"
@@ -485,50 +456,6 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
             )}
           </div>
 
-          <div>
-            <label style={labelStyle}>
-              MOBILE NUMBER <span style={{ color: "#6B7280", fontWeight: 400 }}>(one-time code to unlock your report)</span>
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel"
-                placeholder="(555) 000-0000"
-                value={phonePipeline.displayValue}
-                onChange={(e) => {
-                  phonePipeline.handlePhoneChange(e);
-                  setAnswers((p) => ({ ...p, phone: e.target.value }));
-                }}
-                style={{
-                  ...inputStyle,
-                  borderColor: fieldStatus.phone === "invalid" ? "#F97316" : fieldStatus.phone === "valid" ? "#2563EB" : "#1A1A1A",
-                  paddingRight: fieldStatus.phone !== "untouched" ? 40 : 16,
-                }}
-                onFocus={handleInputFocus}
-                onBlur={(e) => { handleInputBlur(e); handleFieldBlur("phone", phonePipeline.rawDigits); }}
-              />
-              {fieldStatus.phone === "valid" && <ValidationIcon valid />}
-              {fieldStatus.phone === "invalid" && <ValidationIcon valid={false} />}
-            </div>
-            {fieldStatus.phone === "invalid" && (
-              <p style={errorTextStyle}>{phonePipeline.errorMsg || "Please enter a valid 10-digit US phone number"}</p>
-            )}
-          </div>
-
-          <label className="flex items-start gap-2.5 cursor-pointer" style={{ marginTop: 4 }}>
-            <input
-              type="checkbox"
-              checked={tcpaConsent}
-              onChange={(e) => setTcpaConsent(e.target.checked)}
-              style={{ width: 16, height: 16, marginTop: 2, accentColor: "#2563EB", flexShrink: 0 }}
-            />
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
-              By providing your number, you consent to receive one call regarding your quote analysis.
-              No spam, no contractor contact without permission.
-            </span>
-          </label>
-
           <motion.button
             type="submit"
             disabled={submitState === "submitting" || submitState === "success"}
@@ -551,15 +478,15 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               transition: "background 0.15s, opacity 0.15s",
             }}
           >
-            {submitState === "idle" && "Show Me My Grade →"}
+            {submitState === "idle" && "Upload My Quote →"}
             {submitState === "submitting" && (
               <span className="inline-flex items-center gap-2">
-                <Spinner /> Analyzing...
+                <Spinner /> Saving...
               </span>
             )}
             {submitState === "success" && (
               <span className="inline-flex items-center gap-2">
-                <Check size={18} /> Report Sent!
+                <Check size={18} /> Ready — Upload Below
               </span>
             )}
             {submitState === "error" && "Something went wrong — Try Again"}

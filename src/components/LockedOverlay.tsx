@@ -1,12 +1,11 @@
 /**
- * LockedOverlay — Stateless verification gate for TruthReportClassic.
+ * LockedOverlay — Two-step verification gate for TruthReportClassic.
  *
- * Three visual states driven by `gateMode`:
- *   enter_code  — OTP input (best path, vast majority)
- *   send_code   — phone known, OTP not yet sent (fallback)
- *   enter_phone — no phone captured upstream (rare)
+ * Two visual states driven by `gateMode`:
+ *   enter_phone — phone capture + TCPA consent (primary path, Just-in-Time)
+ *   enter_code  — OTP input (after send succeeds)
  *
- * All business logic lives in the parent orchestrator.
+ * All business logic lives in the parent orchestrator (PostScanReportSwitcher).
  */
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,21 +21,33 @@ export interface LockedOverlayProps {
   grade: string;
   /** Number of flags/issues found */
   flagCount: number;
+  /** Number of red (critical) flags */
+  flagRedCount?: number;
 
   /* ── OTP entry (enter_code mode) ── */
   otpValue: string;
   onOtpChange: (value: string) => void;
   onOtpSubmit: () => void;
 
-  /* ── Send code (send_code fallback) ── */
+  /* ── Send code (send_code fallback — kept for backward compat) ── */
   onSendCode: () => void;
 
-  /* ── Phone entry (rare path) ── */
+  /* ── Phone entry (primary path) ── */
   phoneDisplayValue?: string;
   phoneIsValid?: boolean;
   phoneDigitCount?: number;
   onPhoneChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPhoneSubmit?: () => void;
+
+  /* ── TCPA consent ── */
+  tcpaConsent?: boolean;
+  onTcpaChange?: (checked: boolean) => void;
+
+  /* ── Masked phone for OTP step display ── */
+  maskedPhone?: string;
+
+  /* ── Wrong number — go back to phone entry ── */
+  onChangePhone?: () => void;
 
   /* ── Shared pipeline state ── */
   isLoading: boolean;
@@ -49,6 +60,7 @@ export function LockedOverlay({
   gateMode,
   grade,
   flagCount,
+  flagRedCount,
   otpValue,
   onOtpChange,
   onOtpSubmit,
@@ -58,21 +70,33 @@ export function LockedOverlay({
   phoneDigitCount = 0,
   onPhoneChange,
   onPhoneSubmit,
+  tcpaConsent = false,
+  onTcpaChange,
+  maskedPhone,
+  onChangePhone,
   isLoading,
   errorMsg,
   resendCooldown,
   onResend,
 }: LockedOverlayProps) {
   const issueCount = flagCount;
+  const redCount = flagRedCount ?? flagCount;
 
   // Header text per mode
-  const header = `Your ${grade} has ${issueCount} red flag${issueCount !== 1 ? "s" : ""}.`;
+  const header =
+    gateMode === "enter_phone"
+      ? "Unlock Your Full Report"
+      : "Enter Your Secure Code";
+
   const subtext =
-    gateMode === "enter_code"
-      ? ["Enter the code we texted you", "to unlock your full report."]
-      : gateMode === "send_code"
-        ? ["We need to verify your number", "to show you what we found."]
-        : ["Enter your number to verify", "and unlock your full report."];
+    gateMode === "enter_phone"
+      ? [
+          `We found ${issueCount} issue${issueCount !== 1 ? "s" : ""}, including ${redCount} critical flag${redCount !== 1 ? "s" : ""}.`,
+          "Enter your mobile number and we'll send your secure unlock code.",
+        ]
+      : maskedPhone
+        ? [`We sent a 6-digit code to ${maskedPhone}.`, "Enter it below to unlock your full report."]
+        : ["Enter the code we texted you", "to unlock your full report."];
 
   const progressPercent =
     gateMode === "enter_phone"
@@ -82,9 +106,11 @@ export function LockedOverlay({
         : 95;
 
   const stepLabel =
-    gateMode === "enter_code" ? "FINAL STEP" : "STEP 2 OF 2";
+    gateMode === "enter_code" ? "STEP 2 OF 2" : "STEP 1 OF 2";
   const stepHint =
-    gateMode === "enter_code" ? "VERIFYING" : "ALMOST UNLOCKED";
+    gateMode === "enter_code" ? "FINAL STEP" : "ALMOST THERE";
+
+  const canSubmitPhone = phoneIsValid && tcpaConsent && !isLoading;
 
   return (
     <div className="relative">
@@ -278,7 +304,7 @@ export function LockedOverlay({
           )}
 
           <AnimatePresence mode="wait">
-            {/* ═══ ENTER CODE ═══ */}
+            {/* ═══ ENTER CODE (Step 2) ═══ */}
             {gateMode === "enter_code" && (
               <motion.div
                 key="otp-step"
@@ -353,33 +379,52 @@ export function LockedOverlay({
                       Verifying…
                     </>
                   ) : (
-                    "Verify & Unlock Report"
+                    "Unlock Full Report"
                   )}
                 </motion.button>
 
-                {/* Resend */}
-                <button
-                  onClick={onResend}
-                  disabled={resendCooldown > 0}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: resendCooldown > 0 ? "default" : "pointer",
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 12,
-                    color: "#94A3B8",
-                    textDecoration: resendCooldown > 0 ? "none" : "underline",
-                    textUnderlineOffset: 2,
-                  }}
-                >
-                  {resendCooldown > 0
-                    ? `Didn't get it? Resend (0:${String(resendCooldown).padStart(2, "0")})`
-                    : "Didn't get it? Resend code"}
-                </button>
+                {/* Resend + Wrong number */}
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    onClick={onResend}
+                    disabled={resendCooldown > 0}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: resendCooldown > 0 ? "default" : "pointer",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                      color: "#94A3B8",
+                      textDecoration: resendCooldown > 0 ? "none" : "underline",
+                      textUnderlineOffset: 2,
+                    }}
+                  >
+                    {resendCooldown > 0
+                      ? `Didn't get it? Resend (0:${String(resendCooldown).padStart(2, "0")})`
+                      : "Didn't get it? Resend code"}
+                  </button>
+                  {onChangePhone && (
+                    <button
+                      onClick={onChangePhone}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 12,
+                        color: "#64748B",
+                        textDecoration: "underline",
+                        textUnderlineOffset: 2,
+                      }}
+                    >
+                      Wrong number?
+                    </button>
+                  )}
+                </div>
               </motion.div>
             )}
 
-            {/* ═══ SEND CODE ═══ */}
+            {/* ═══ SEND CODE (legacy fallback — phone already known) ═══ */}
             {gateMode === "send_code" && (
               <motion.div
                 key="send-step"
@@ -430,7 +475,7 @@ export function LockedOverlay({
               </motion.div>
             )}
 
-            {/* ═══ ENTER PHONE ═══ */}
+            {/* ═══ ENTER PHONE (Step 1 — primary path) ═══ */}
             {gateMode === "enter_phone" && (
               <motion.div
                 key="phone-step"
@@ -527,30 +572,63 @@ export function LockedOverlay({
                   )}
                 </div>
 
+                {/* TCPA Consent Checkbox */}
+                <label
+                  className="flex items-start gap-2 cursor-pointer"
+                  style={{
+                    width: "100%",
+                    maxWidth: 320,
+                    textAlign: "left",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={tcpaConsent}
+                    onChange={(e) => onTcpaChange?.(e.target.checked)}
+                    style={{
+                      marginTop: 3,
+                      accentColor: "#C8952A",
+                      width: 16,
+                      height: 16,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 11,
+                      color: "#64748B",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    I agree to receive a one-time verification code via SMS.
+                    Msg & data rates may apply. No marketing texts.
+                  </span>
+                </label>
+
                 <motion.button
-                  whileHover={phoneIsValid ? { scale: 1.02, y: -1 } : {}}
-                  whileTap={phoneIsValid ? { scale: 0.97 } : {}}
+                  whileHover={canSubmitPhone ? { scale: 1.02, y: -1 } : {}}
+                  whileTap={canSubmitPhone ? { scale: 0.97 } : {}}
                   onClick={onPhoneSubmit}
-                  disabled={!phoneIsValid || isLoading}
+                  disabled={!canSubmitPhone}
                   style={{
                     width: "100%",
                     maxWidth: 320,
                     height: 54,
-                    background: phoneIsValid
+                    background: canSubmitPhone
                       ? "linear-gradient(135deg, #C8952A 0%, #E2B04A 50%, #C8952A 100%)"
                       : "rgba(200,149,42,0.2)",
                     backgroundSize: "200% 100%",
-                    color: phoneIsValid ? "white" : "rgba(255,255,255,0.4)",
+                    color: canSubmitPhone ? "white" : "rgba(255,255,255,0.4)",
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: 17,
                     fontWeight: 800,
                     borderRadius: 0,
-                    border: phoneIsValid
+                    border: canSubmitPhone
                       ? "1px solid rgba(226,176,74,0.3)"
                       : "1px solid transparent",
-                    cursor:
-                      phoneIsValid && !isLoading ? "pointer" : "not-allowed",
-                    boxShadow: phoneIsValid
+                    cursor: canSubmitPhone ? "pointer" : "not-allowed",
+                    boxShadow: canSubmitPhone
                       ? "0 6px 24px rgba(200,149,42,0.4), 0 2px 8px rgba(200,149,42,0.2)"
                       : "none",
                     transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -567,7 +645,7 @@ export function LockedOverlay({
                       Sending Code…
                     </>
                   ) : (
-                    <>🔓 Send Code</>
+                    "Send Unlock Code"
                   )}
                 </motion.button>
               </motion.div>
