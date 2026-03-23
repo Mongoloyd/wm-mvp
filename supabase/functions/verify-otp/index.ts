@@ -56,26 +56,39 @@ Deno.serve(async (req) => {
 
     const now = new Date().toISOString();
 
-    // Update phone_verifications
-    await supabase
-      .from("phone_verifications")
-      .update({ status: "verified", verified_at: now })
-      .eq("phone_e164", phone_e164);
-
-    // Update lead with verified phone if scan_session provided
+    // ── 4. Resolve lead_id from scan_sessions (if provided) ──
+    let resolvedLeadId: string | null = null;
     if (scan_session_id) {
       const { data: session } = await supabase
         .from("scan_sessions")
         .select("lead_id")
         .eq("id", scan_session_id)
         .maybeSingle();
+      resolvedLeadId = session?.lead_id || null;
+      console.log("verify-otp: resolved lead_id", { scan_session_id, resolvedLeadId });
+    }
 
-      if (session?.lead_id) {
-        await supabase
-          .from("leads")
-          .update({ phone_e164 })
-          .eq("id", session.lead_id);
-      }
+    // ── 5. Mark phone_verifications row as verified + bind lead_id ──
+    const updatePayload: Record<string, unknown> = {
+      status: "verified",
+      verified_at: now,
+    };
+    if (resolvedLeadId) {
+      updatePayload.lead_id = resolvedLeadId;
+    }
+
+    await supabase
+      .from("phone_verifications")
+      .update(updatePayload)
+      .eq("phone_e164", phone_e164)
+      .eq("status", "pending");
+
+    // ── 6. If lead found, also mark lead.phone_verified + update phone ──
+    if (resolvedLeadId) {
+      await supabase
+        .from("leads")
+        .update({ phone_verified: true, phone_e164 })
+        .eq("id", resolvedLeadId);
     }
 
     return new Response(
