@@ -709,8 +709,18 @@ export type Database = {
           first_name: string | null
           id: string
           initial_referrer: string | null
+          otp_failure_count: number
+          otp_locked_until: string | null
+          otp_state: string | null
+          phone_carrier_name: string | null
           phone_e164: string | null
+          phone_line_type: string | null
+          phone_lookup_checked_at: string | null
+          phone_lookup_valid: boolean | null
+          phone_risk_tier: string | null
+          phone_verification_channel: string | null
           phone_verified: boolean
+          phone_verified_at: string | null
           project_type: string | null
           quote_range: string | null
           session_id: string
@@ -731,8 +741,18 @@ export type Database = {
           first_name?: string | null
           id?: string
           initial_referrer?: string | null
+          otp_failure_count?: number
+          otp_locked_until?: string | null
+          otp_state?: string | null
+          phone_carrier_name?: string | null
           phone_e164?: string | null
+          phone_line_type?: string | null
+          phone_lookup_checked_at?: string | null
+          phone_lookup_valid?: boolean | null
+          phone_risk_tier?: string | null
+          phone_verification_channel?: string | null
           phone_verified?: boolean
+          phone_verified_at?: string | null
           project_type?: string | null
           quote_range?: string | null
           session_id: string
@@ -753,8 +773,18 @@ export type Database = {
           first_name?: string | null
           id?: string
           initial_referrer?: string | null
+          otp_failure_count?: number
+          otp_locked_until?: string | null
+          otp_state?: string | null
+          phone_carrier_name?: string | null
           phone_e164?: string | null
+          phone_line_type?: string | null
+          phone_lookup_checked_at?: string | null
+          phone_lookup_valid?: boolean | null
+          phone_risk_tier?: string | null
+          phone_verification_channel?: string | null
           phone_verified?: boolean
+          phone_verified_at?: string | null
           project_type?: string | null
           quote_range?: string | null
           session_id?: string
@@ -766,6 +796,42 @@ export type Database = {
           utm_source?: string | null
           utm_term?: string | null
           window_count?: number | null
+        }
+        Relationships: []
+      }
+      otp_failures: {
+        Row: {
+          failure_count: number
+          first_failure_at: string
+          ip_address: string | null
+          last_failure_at: string
+          last_user_agent_hash: string | null
+          locked_until: string | null
+          phone_e164: string
+          scan_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          failure_count?: number
+          first_failure_at?: string
+          ip_address?: string | null
+          last_failure_at?: string
+          last_user_agent_hash?: string | null
+          locked_until?: string | null
+          phone_e164: string
+          scan_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          failure_count?: number
+          first_failure_at?: string
+          ip_address?: string | null
+          last_failure_at?: string
+          last_user_agent_hash?: string | null
+          locked_until?: string | null
+          phone_e164?: string
+          scan_session_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
