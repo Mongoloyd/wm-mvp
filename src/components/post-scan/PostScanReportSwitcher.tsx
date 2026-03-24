@@ -169,6 +169,7 @@ export function PostScanReportSwitcher(props: Props) {
       pipeline.phoneStatus === "sending_otp" ||
       pipeline.phoneStatus === "verifying",
     errorMsg: pipeline.errorMsg,
+    errorType: pipeline.errorType ?? undefined,
     resendCooldown: pipeline.resendCooldown,
     onResend: handleResend,
   };

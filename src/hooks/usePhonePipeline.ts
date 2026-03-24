@@ -31,6 +31,8 @@ export type PhoneStatus =
   | "verified"
   | "error";
 
+export type ErrorType = "rate_limit" | "expired_session" | "invalid_code" | "network" | "generic";
+
 export interface PipelineStartResult {
   status: "valid" | "otp_sent" | "already_verified" | "blocked" | "error";
   e164?: string;
@@ -55,6 +57,8 @@ export interface UsePhonePipelineReturn {
   phoneStatus: PhoneStatus;
   /** Human-readable error message (empty if none) */
   errorMsg: string;
+  /** Classifies the error for richer UX */
+  errorType: ErrorType | null;
   /** Resend cooldown in seconds (0 = can resend) */
   resendCooldown: number;
   /** onChange handler for phone input */
@@ -90,6 +94,7 @@ export function usePhonePipeline(
 
   const [phoneStatus, setPhoneStatus] = useState<PhoneStatus>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [errorType, setErrorType] = useState<ErrorType | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isSendingRef = useRef(false);
@@ -123,7 +128,7 @@ export function usePhonePipeline(
   // Clear error when user types
   const handlePhoneChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (errorMsg) setErrorMsg("");
+      if (errorMsg) { setErrorMsg(""); setErrorType(null); }
       if (phoneStatus === "invalid") setPhoneStatus("idle");
       handleChange(e);
     },
@@ -138,7 +143,7 @@ export function usePhonePipeline(
       console.warn("[usePhonePipeline] submitPhone blocked — send already in-flight");
       return { status: "error", error: "Already sending. Please wait." };
     }
-    setErrorMsg("");
+    setErrorMsg(""); setErrorType(null);
 
     // If we have an external phone, skip local screening entirely
     const hasExternal = !!options?.externalPhoneE164;
@@ -152,6 +157,7 @@ export function usePhonePipeline(
       if (screen.ok === false) {
         setPhoneStatus("invalid");
         setErrorMsg(screen.reason);
+        setErrorType("generic");
         return { status: "blocked", error: screen.reason };
       }
       normalizedE164 = screen.e164;
@@ -175,18 +181,23 @@ export function usePhonePipeline(
       // supabase.functions.invoke puts the body in `error` for non-2xx responses
       if (error) {
         let parsedMsg = "Failed to send verification code.";
+        let classifiedType: ErrorType = "generic";
         try {
-          // error.context is a Response for non-2xx; parse its JSON body
           if (error.context && typeof error.context.json === "function") {
             const body = await error.context.json();
             console.error("[usePhonePipeline] send-otp non-2xx response body:", body);
             parsedMsg = body?.error || parsedMsg;
+            // Detect rate limiting from 429 status or message content
+            if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
+              classifiedType = "rate_limit";
+            }
           } else {
             console.error("[usePhonePipeline] send-otp error (no context):", error);
           }
         } catch { console.error("[usePhonePipeline] send-otp error (unparseable):", error); }
         setPhoneStatus("otp_failed");
         setErrorMsg(parsedMsg);
+        setErrorType(classifiedType);
         return { status: "error", error: parsedMsg };
       }
 
@@ -195,6 +206,7 @@ export function usePhonePipeline(
         console.error("[usePhonePipeline] send-otp returned success=false:", data);
         setPhoneStatus("otp_failed");
         setErrorMsg(msg);
+        setErrorType("generic");
         return { status: "error", error: msg };
       }
 
@@ -204,9 +216,10 @@ export function usePhonePipeline(
       return { status: "otp_sent", e164: normalizedE164 };
     } catch (err) {
       console.error("[usePhonePipeline] send-otp network exception:", err);
-      const msg = "Network error. Please try again.";
+      const msg = "Network error. Check your connection and try again.";
       setPhoneStatus("otp_failed");
       setErrorMsg(msg);
+      setErrorType("network");
       return { status: "error", error: msg };
     } finally {
       isSendingRef.current = false;
@@ -222,7 +235,7 @@ export function usePhonePipeline(
       }
 
       setPhoneStatus("verifying");
-      setErrorMsg("");
+      setErrorMsg(""); setErrorType(null);
 
       console.log("[usePhonePipeline] submitOtp → calling verify-otp", {
         phone: activePhone, code, scanSessionId: options?.scanSessionId,
@@ -239,17 +252,23 @@ export function usePhonePipeline(
         // supabase.functions.invoke puts the body in `error` for non-2xx responses
         if (error) {
           let parsedMsg = "Invalid or expired code.";
+          let classifiedType: ErrorType = "invalid_code";
           try {
             if (error.context && typeof error.context.json === "function") {
               const body = await error.context.json();
               console.error("[usePhonePipeline] verify-otp non-2xx response body:", body);
               parsedMsg = body?.error || parsedMsg;
+              // Detect expired session (Twilio 20404)
+              if (parsedMsg.toLowerCase().includes("expired") || parsedMsg.toLowerCase().includes("not found")) {
+                classifiedType = "expired_session";
+              }
             } else {
               console.error("[usePhonePipeline] verify-otp error (no context):", error);
             }
           } catch { console.error("[usePhonePipeline] verify-otp error (unparseable):", error); }
           setPhoneStatus("otp_sent"); // allow retry
           setErrorMsg(parsedMsg);
+          setErrorType(classifiedType);
           return { status: "invalid_code", error: parsedMsg };
         }
 
@@ -258,6 +277,7 @@ export function usePhonePipeline(
           console.error("[usePhonePipeline] verify-otp returned verified=false:", data);
           setPhoneStatus("otp_sent"); // allow retry
           setErrorMsg(msg);
+          setErrorType("invalid_code");
           return { status: "invalid_code", error: msg };
         }
 
@@ -267,9 +287,10 @@ export function usePhonePipeline(
         return { status: "verified" };
       } catch (err) {
         console.error("[usePhonePipeline] verify-otp network exception:", err);
-        const msg = "Network error. Please try again.";
+        const msg = "Network error. Check your connection and try again.";
         setPhoneStatus("otp_sent");
         setErrorMsg(msg);
+        setErrorType("network");
         return { status: "error", error: msg };
       }
     },
@@ -280,7 +301,7 @@ export function usePhonePipeline(
 
   const resend = useCallback(async () => {
     if (cooldown > 0 || !activePhone) return;
-    setErrorMsg("");
+    setErrorMsg(""); setErrorType(null);
     setCooldown(RESEND_COOLDOWN_SECONDS);
 
     try {
@@ -303,6 +324,7 @@ export function usePhonePipeline(
     setValue("");
     setPhoneStatus("idle");
     setErrorMsg("");
+    setErrorType(null);
     setCooldown(0);
   }, [setValue]);
 
@@ -313,6 +335,7 @@ export function usePhonePipeline(
     inputComplete: isValid,
     phoneStatus,
     errorMsg,
+    errorType,
     resendCooldown: cooldown,
     handlePhoneChange,
     submitPhone,
