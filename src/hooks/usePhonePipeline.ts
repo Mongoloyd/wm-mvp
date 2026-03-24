@@ -43,6 +43,8 @@ export interface PipelineStartResult {
 export interface PipelineVerifyResult {
   status: "verified" | "invalid_code" | "expired" | "error";
   error?: string;
+  /** Server-canonical phone in E.164 format, returned on successful verify */
+  e164?: string;
 }
 
 export interface UsePhonePipelineReturn {
@@ -286,11 +288,13 @@ export function usePhonePipeline(
           return { status: "invalid_code", error: msg };
         }
 
-        console.log("[usePhonePipeline] verify-otp SUCCESS — calling onVerified");
+        // Use server-returned canonical phone if available, otherwise fall back to local
+        const canonicalPhone = data?.phone_e164 || activePhone;
+        console.log("[usePhonePipeline] verify-otp SUCCESS — canonical phone:", canonicalPhone);
         setPhoneStatus("verified");
-        trackEvent({ event_name: "otp_verified", session_id: options?.scanSessionId, metadata: { phone_last4: activePhone.slice(-4) } });
+        trackEvent({ event_name: "otp_verified", session_id: options?.scanSessionId, metadata: { phone_last4: canonicalPhone.slice(-4) } });
         options?.onVerified?.();
-        return { status: "verified" };
+        return { status: "verified", e164: canonicalPhone };
       } catch (err) {
         console.error("[usePhonePipeline] verify-otp network exception:", err);
         const msg = "Network error. Check your connection and try again.";

@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { normalizePhone } from "../_shared/normalizePhone.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,19 +18,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { phone_e164 } = await req.json();
+    const body = await req.json();
+    const phone_e164 = normalizePhone(body.phone_e164);
 
-    if (!phone_e164 || typeof phone_e164 !== "string") {
+    if (!phone_e164) {
       return new Response(
         JSON.stringify({ error: "phone_e164 is required." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Basic E.164 validation
+    // Strict US E.164 validation after normalization (belt-and-suspenders)
     if (!/^\+1\d{10}$/.test(phone_e164)) {
       return new Response(
-        JSON.stringify({ error: "Invalid US phone number." }),
+        JSON.stringify({ error: "Invalid US phone number. Expected format: +1XXXXXXXXXX" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -51,16 +53,13 @@ Deno.serve(async (req) => {
 
     if (rlErr) {
       console.error("[send-otp] rate-limit query failed:", rlErr);
-      // Don't block the user if the query fails — proceed with caution
     }
 
     if (recentRows && recentRows.length > 0) {
-      // Short cooldown: reject if most recent send was < COOLDOWN_SECONDS ago
       const lastSendAt = new Date(recentRows[0].created_at).getTime();
       const secondsSinceLast = (Date.now() - lastSendAt) / 1000;
       if (secondsSinceLast < COOLDOWN_SECONDS) {
         const waitSec = Math.ceil(COOLDOWN_SECONDS - secondsSinceLast);
-        console.warn("[send-otp] rate-limited (cooldown)", { phone_e164, secondsSinceLast, waitSec });
         return new Response(
           JSON.stringify({
             error: `Too many code requests. Please wait ${waitSec} seconds before trying again.`,
@@ -71,9 +70,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Rolling window: reject if too many sends in the window
       if (recentRows.length >= MAX_SENDS_PER_WINDOW) {
-        console.warn("[send-otp] rate-limited (window)", { phone_e164, count: recentRows.length, windowMinutes: WINDOW_MINUTES });
         return new Response(
           JSON.stringify({
             error: `Too many code requests. Please wait a few minutes before trying again.`,
@@ -105,7 +102,7 @@ Deno.serve(async (req) => {
     const twilioData = await twilioRes.json();
 
     if (!twilioRes.ok) {
-      console.error("Twilio Verification send error:", twilioData);
+      console.error("[send-otp] Twilio error:", twilioData);
       return new Response(
         JSON.stringify({ error: "Failed to send verification code.", success: false }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -139,7 +136,7 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("send-otp error:", err);
+    console.error("[send-otp] error:", err);
     return new Response(
       JSON.stringify({ error: "Internal server error." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
