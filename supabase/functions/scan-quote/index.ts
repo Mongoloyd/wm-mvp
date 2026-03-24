@@ -557,6 +557,13 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Session not found" }, 404);
     }
 
+    // ── Idempotency guard: reject if session is already terminal ──
+    const TERMINAL_STATUSES = ["processing", "preview_ready", "complete", "invalid_document"];
+    if (TERMINAL_STATUSES.includes(session.status) && !_isDevBypass) {
+      console.log(`Idempotency guard: session ${scan_session_id} already in status '${session.status}'`);
+      return jsonResponse({ scan_session_id, status: session.status }, 200);
+    }
+
     // ── Rate-limit check (by lead_id — one lead per visitor session) ──
     if (session.lead_id && !_isDevBypass) {
       const cutoff = new Date(Date.now() - RATE_LIMIT_WINDOW_MINUTES * 60 * 1000).toISOString();
