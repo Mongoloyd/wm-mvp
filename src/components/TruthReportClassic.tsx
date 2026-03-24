@@ -93,8 +93,13 @@ const TruthReportClassic = ({
   flagRedCount: flagRedCountProp,
   flagAmberCount: flagAmberCountProp,
   onContractorMatchClick,
+  onReportHelpCall,
   onSecondScan,
-  gateProps
+  gateProps,
+  introRequested = false,
+  reportCallRequested = false,
+  isCtaLoading = false,
+  suggestedMatch = null,
 }: TruthReportProps) => {
   const config = gradeConfig[grade] || gradeConfig.C;
   const isFull = accessLevel === "full";
