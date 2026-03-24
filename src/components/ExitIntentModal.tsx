@@ -5,8 +5,8 @@ import { useTickerStats } from '@/hooks/useTickerStats';
 
 interface ExitIntentModalProps { stepsCompleted: number; flowMode: 'A' | 'B' | 'C'; leadCaptured: boolean; flowBLeadCaptured: boolean; county: string; answers: { windowCount: string | null; projectType: string | null; county: string | null; quoteStage: string | null; firstName: string | null; email: string | null; phone: string | null }; onClose: () => void; onCTAClick: () => void; onLeadSubmit?: (data: { email: string; phone: string }) => void; onReminderSet?: (data: { date: string; time: string }) => void; }
 
-const COUNTY_STATS: Record<string, { scanned: number; overcharge: number; redFlags: number }> = { 'Miami-Dade': { scanned: 312, overcharge: 5200, redFlags: 2.4 }, 'Broward': { scanned: 287, overcharge: 4800, redFlags: 2.1 }, 'Palm Beach': { scanned: 241, overcharge: 5600, redFlags: 2.3 } };
-const FLORIDA_FALLBACK = { scanned: 2400, overcharge: 4800, redFlags: 2.1 };
+const COUNTY_STATS: Record<string, { scanned: number; savings: number }> = { 'Miami-Dade': { scanned: 312, savings: 4800 }, 'Broward': { scanned: 287, savings: 4200 }, 'Palm Beach': { scanned: 241, savings: 5100 } };
+const FLORIDA_FALLBACK = { scanned: 2400, savings: 4500 };
 
 const ExitIntentModal = ({ stepsCompleted, flowMode, leadCaptured, flowBLeadCaptured, county, answers, onClose, onCTAClick }: ExitIntentModalProps) => {
   const [open, setOpen] = useState(false);
