@@ -292,18 +292,81 @@ export function LockedOverlay({
             </p>
           </div>
 
-          {/* ─── Error message ─── */}
+          {/* ─── Error message with contextual recovery ─── */}
           {errorMsg && (
-            <p
-              style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                color: "#DC2626",
-                marginBottom: 12,
-              }}
-            >
-              {errorMsg}
-            </p>
+            <div style={{
+              background: "rgba(220,38,38,0.08)",
+              border: "1px solid rgba(220,38,38,0.25)",
+              borderRadius: 0,
+              padding: "12px 16px",
+              marginBottom: 12,
+              textAlign: "center",
+            }}>
+              <div className="flex items-center justify-center gap-2" style={{ marginBottom: 4 }}>
+                {errorType === "rate_limit" ? (
+                  <Clock size={14} style={{ color: "#F59E0B", flexShrink: 0 }} />
+                ) : (
+                  <AlertCircle size={14} style={{ color: "#DC2626", flexShrink: 0 }} />
+                )}
+                <p style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: errorType === "rate_limit" ? "#F59E0B" : "#DC2626",
+                  margin: 0,
+                }}>
+                  {errorMsg}
+                </p>
+              </div>
+
+              {/* Recovery action based on error type */}
+              {errorType === "expired_session" && gateMode === "enter_code" && (
+                <button
+                  onClick={onResend}
+                  disabled={resendCooldown > 0}
+                  className="flex items-center gap-1.5 mx-auto"
+                  style={{
+                    marginTop: 8,
+                    background: "rgba(200,149,42,0.15)",
+                    border: "1px solid rgba(200,149,42,0.3)",
+                    borderRadius: 0,
+                    padding: "6px 14px",
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#E2B04A",
+                    cursor: resendCooldown > 0 ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <RefreshCw size={12} />
+                  {resendCooldown > 0 ? `Wait ${resendCooldown}s` : "Request New Code"}
+                </button>
+              )}
+
+              {errorType === "network" && (
+                <p style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 11,
+                  color: "#94A3B8",
+                  marginTop: 6,
+                  margin: 0,
+                }}>
+                  Check your connection and try again.
+                </p>
+              )}
+
+              {errorType === "rate_limit" && (
+                <p style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 11,
+                  color: "#94A3B8",
+                  marginTop: 6,
+                  margin: 0,
+                }}>
+                  This protects your phone from abuse. The limit resets shortly.
+                </p>
+              )}
+            </div>
           )}
 
           <AnimatePresence mode="wait">
