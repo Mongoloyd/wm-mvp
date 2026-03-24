@@ -3,16 +3,7 @@
  *
  * CANONICAL: Always renders TruthReportClassic (findings-first removed).
  * Owns the real Twilio OTP pipeline for the in-page scan flow.
- *
- * Just-in-Time OTP Architecture:
- *   1. Phone is NOT collected in TruthGateFlow (lead has phone_e164 = null).
- *   2. LockedOverlay renders as "enter_phone" (primary path).
- *   3. User enters phone → submitPhone() → send-otp → transitions to "enter_code".
- *   4. User enters OTP → submitOtp() → verify-otp → vault opens.
- *   5. onVerified(phoneE164) fires → parent calls fetchFull().
- *
- * scan_session_id is threaded through usePhonePipeline → verify-otp
- * so the backend can bind phone_verifications.lead_id via scan_sessions.
+ * Owns CTA logic: generate-contractor-brief + voice-followup edge functions.
  */
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
@@ -20,7 +11,10 @@ import { useReportAccess } from "@/hooks/useReportAccess";
 import { trackEvent } from "@/lib/trackEvent";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import TruthReportClassic from "../TruthReportClassic";
+import type { SuggestedMatch } from "../TruthReportClassic";
 import type { GateMode, LockedOverlayProps } from "@/components/LockedOverlay";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 
@@ -40,8 +34,6 @@ type Props = {
   flagCount?: number;
   flagRedCount?: number;
   flagAmberCount?: number;
-  onContractorMatchClick: () => void;
-  onReportHelpCall: () => void;
   onSecondScan: () => void;
   scanSessionId?: string | null;
   /** Called after real OTP verification succeeds. Parent should call fetchFull(). */
@@ -50,27 +42,17 @@ type Props = {
   isFullLoaded?: boolean;
 };
 
-/**
- * Derive gate mode from funnel state.
- * Just-in-Time: primary path is "enter_phone" (no phone captured upstream).
- * Legacy compat: if phone was already captured (e.g. localStorage from old session),
- * skip to "send_code" or "enter_code".
- */
 function deriveGateMode(
   funnelPhoneStatus: string | undefined,
   funnelPhoneE164: string | null | undefined,
   localGateOverride: GateMode | null
 ): GateMode {
-  // If we've explicitly set a local override (e.g. after send succeeds), use it
   if (localGateOverride) return localGateOverride;
-  // Legacy: phone already known from a previous session
   if (funnelPhoneStatus === "otp_sent" || funnelPhoneStatus === "verified") return "enter_code";
   if (funnelPhoneE164) return "send_code";
-  // Primary path: no phone yet
   return "enter_phone";
 }
 
-/** Mask phone for display: (***) ***-1234 */
 function maskPhone(e164: string): string {
   const digits = e164.replace(/\D/g, "");
   const last4 = digits.slice(-4);
@@ -88,6 +70,12 @@ export function PostScanReportSwitcher(props: Props) {
   const [fetchStalled, setFetchStalled] = useState(false);
   const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ── CTA state ──
+  const [introRequested, setIntroRequested] = useState(false);
+  const [reportCallRequested, setReportCallRequested] = useState(false);
+  const [isCtaLoading, setIsCtaLoading] = useState(false);
+  const [suggestedMatch, setSuggestedMatch] = useState<SuggestedMatch | null>(null);
+
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: props.scanSessionId,
     externalPhoneE164: funnel?.phoneE164 ?? null,
@@ -98,7 +86,10 @@ export function PostScanReportSwitcher(props: Props) {
     },
   });
 
-  // ── Stall detection: if verified but full report not loaded after 5s ──
+  // Resolve phone for CTA calls
+  const phoneE164 = capturedPhone || funnel?.phoneE164 || pipeline.e164 || null;
+
+  // ── Stall detection ──
   useEffect(() => {
     if (pipeline.phoneStatus === "verified" && !props.isFullLoaded) {
       stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);
@@ -124,7 +115,6 @@ export function PostScanReportSwitcher(props: Props) {
     await pipeline.submitOtp(otpValue);
   }, [otpValue, pipeline]);
 
-  // Legacy: phone already known, just send code
   const handleSendCode = useCallback(async () => {
     if (!funnel?.phoneE164 || isSendInFlight) return;
     setIsSendInFlight(true);
@@ -140,7 +130,6 @@ export function PostScanReportSwitcher(props: Props) {
     }
   }, [funnel, pipeline, isSendInFlight]);
 
-  // Primary path: phone entered in LockedOverlay → send OTP
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
     setIsSendInFlight(true);
@@ -148,10 +137,8 @@ export function PostScanReportSwitcher(props: Props) {
     try {
       const result = await pipeline.submitPhone();
       if (result.status === "otp_sent" && result.e164) {
-        // Persist phone to funnel context + localStorage
         funnel?.setPhone(result.e164, "otp_sent");
         setCapturedPhone(result.e164);
-        // Transition to OTP entry
         setLocalGateOverride("enter_code");
       }
     } finally {
@@ -159,7 +146,6 @@ export function PostScanReportSwitcher(props: Props) {
     }
   }, [pipeline, funnel, isSendInFlight, props.scanSessionId]);
 
-  // "Wrong number?" — go back to phone entry
   const handleChangePhone = useCallback(() => {
     pipeline.reset();
     setOtpValue("");
@@ -169,6 +155,70 @@ export function PostScanReportSwitcher(props: Props) {
   }, [pipeline, funnel]);
 
   const handleResend = useCallback(async () => { await pipeline.resend(); }, [pipeline]);
+
+  // ── CTA A: Get Counter-Quote ──
+  const handleContractorMatchClick = useCallback(async () => {
+    if (!props.scanSessionId || !phoneE164) {
+      toast.error("Unable to process request. Please verify your phone number first.");
+      return;
+    }
+    setIsCtaLoading(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("generate-contractor-brief", {
+        body: { scan_session_id: props.scanSessionId, phone_e164: phoneE164, cta_source: "intro_request" },
+      });
+      if (fnError || !data?.success) {
+        console.error("[PostScanReportSwitcher] brief generation failed", fnError || data);
+        toast.error("Something went wrong. Please try again.");
+        setIsCtaLoading(false);
+        return;
+      }
+      if (data.suggested_match) {
+        setSuggestedMatch(data.suggested_match);
+      }
+      // Fire voice followup
+      supabase.functions.invoke("voice-followup", {
+        body: {
+          scan_session_id: props.scanSessionId,
+          phone_e164: phoneE164,
+          call_intent: "contractor_intro",
+          cta_source: "intro_request",
+          opportunity_id: data.opportunity_id,
+        },
+      }).catch(err => console.warn("[PostScanReportSwitcher] voice followup failed", err));
+      setIntroRequested(true);
+    } catch (err) {
+      console.error("[PostScanReportSwitcher] unexpected error", err);
+      toast.error("Connection error. Please try again.");
+    } finally {
+      setIsCtaLoading(false);
+    }
+  }, [props.scanSessionId, phoneE164]);
+
+  // ── CTA B: Call WindowMan About My Report ──
+  const handleReportHelpCall = useCallback(async () => {
+    if (!props.scanSessionId || !phoneE164) {
+      toast.error("Unable to process request. Please verify your phone number first.");
+      return;
+    }
+    setIsCtaLoading(true);
+    try {
+      await supabase.functions.invoke("voice-followup", {
+        body: {
+          scan_session_id: props.scanSessionId,
+          phone_e164: phoneE164,
+          call_intent: "report_explainer",
+          cta_source: "report_help",
+        },
+      });
+      setReportCallRequested(true);
+    } catch (err) {
+      console.error("[PostScanReportSwitcher] report help call failed", err);
+      toast.error("Connection error. Please try again.");
+    } finally {
+      setIsCtaLoading(false);
+    }
+  }, [props.scanSessionId, phoneE164]);
 
   const maskedPhone = capturedPhone ? maskPhone(capturedPhone) : funnel?.phoneE164 ? maskPhone(funnel.phoneE164) : undefined;
 
@@ -205,6 +255,12 @@ export function PostScanReportSwitcher(props: Props) {
       {...props}
       accessLevel={accessLevel}
       gateProps={accessLevel === "preview" ? gateProps : undefined}
+      onContractorMatchClick={handleContractorMatchClick}
+      onReportHelpCall={handleReportHelpCall}
+      introRequested={introRequested}
+      reportCallRequested={reportCallRequested}
+      isCtaLoading={isCtaLoading}
+      suggestedMatch={suggestedMatch}
     />
   );
 }
