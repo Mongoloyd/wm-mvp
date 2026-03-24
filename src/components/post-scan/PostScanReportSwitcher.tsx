@@ -17,6 +17,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useReportAccess } from "@/hooks/useReportAccess";
+import { trackEvent } from "@/lib/trackEvent";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import TruthReportClassic from "../TruthReportClassic";
@@ -109,6 +110,7 @@ export function PostScanReportSwitcher(props: Props) {
   const handleRetryFetchFull = useCallback(() => {
     const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
     if (phone) {
+      trackEvent({ event_name: "fetch_stall_retry", session_id: props.scanSessionId, metadata: { phone_last4: phone.slice(-4) } });
       setFetchStalled(false);
       props.onVerified?.(phone);
     }
@@ -141,6 +143,7 @@ export function PostScanReportSwitcher(props: Props) {
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
     setIsSendInFlight(true);
+    trackEvent({ event_name: "phone_submitted", session_id: props.scanSessionId, metadata: {} });
     try {
       const result = await pipeline.submitPhone();
       if (result.status === "otp_sent" && result.e164) {
@@ -153,7 +156,7 @@ export function PostScanReportSwitcher(props: Props) {
     } finally {
       setIsSendInFlight(false);
     }
-  }, [pipeline, funnel, isSendInFlight]);
+  }, [pipeline, funnel, isSendInFlight, props.scanSessionId]);
 
   // "Wrong number?" — go back to phone entry
   const handleChangePhone = useCallback(() => {
