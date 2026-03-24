@@ -1,79 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-@import "tailwindcss";
-@import "tw-animate-css";
+/* Fonts loaded via index.html <link> tag */
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  /* Radius */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 6px);
-
-  /* shadcn semantic mapping */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
-  /* WindowMan light tokens */
-  --color-wm-blue: var(--wm-blue);
-  --color-wm-blue-deep: var(--wm-blue-deep);
-  --color-wm-blue-soft: var(--wm-blue-soft);
-  --color-wm-sky: var(--wm-sky);
-  --color-wm-orange: var(--wm-orange);
-  --color-wm-orange-deep: var(--wm-orange-deep);
-  --color-wm-gold: var(--wm-gold);
-  --color-wm-success: var(--wm-success);
-  --color-wm-danger: var(--wm-danger);
-  --color-wm-ink: var(--wm-ink);
-  --color-wm-ink-soft: var(--wm-ink-soft);
-  --color-wm-surface: var(--wm-surface);
-  --color-wm-surface-2: var(--wm-surface-2);
-  --color-wm-line: var(--wm-line);
-
-  /* Fonts */
-  --font-display: 'Barlow Condensed', sans-serif;
-  --font-body: 'Barlow', sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
-
-  /* Shadows / glows */
-  --shadow-soft: var(--wm-shadow-soft);
-  --shadow-card: var(--wm-shadow-card);
-  --shadow-float: var(--wm-shadow-float);
-  --shadow-focus: var(--wm-shadow-focus);
-  --glow-blue: var(--wm-glow-blue);
-  --glow-orange: var(--wm-glow-orange);
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --radius: 1rem;
@@ -253,7 +182,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
 
   html {
