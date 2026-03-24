@@ -137,12 +137,12 @@ const GradeReveal = ({
           </motion.div>
           <motion.div {...stagger(3.5)}>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF", letterSpacing: "0.12em", marginBottom: 8 }}>FAIR MARKET RANGE · {county.toUpperCase()} COUNTY</p>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, fontWeight: 700, color: "#0099BB" }}>${fairPriceLow!.toLocaleString()} – ${fairPriceHigh!.toLocaleString()}</p>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, fontWeight: 700, color: "#2563EB" }}>${fairPriceLow!.toLocaleString()} – ${fairPriceHigh!.toLocaleString()}</p>
             <div style={{ position: "relative", marginTop: 12 }}>
-              <div style={{ height: 8, background: "#E5E7EB", borderRadius: 4, overflow: "hidden" }}>
-                <div style={{ height: 8, borderRadius: 4, background: "linear-gradient(90deg, #0099BB, #059669)", width: "70%" }} />
+              <div style={{ height: 8, background: "#1A1A1A", borderRadius: 0, overflow: "hidden" }}>
+                <div style={{ height: 8, borderRadius: 0, background: "linear-gradient(90deg, #2563EB, #059669)", width: "70%" }} />
               </div>
-              <div style={{ position: "absolute", top: -3, left: "75%", width: 14, height: 14, borderRadius: "50%", background: config.color, border: "2px solid white", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
+              <div style={{ position: "absolute", top: -3, left: "75%", width: 14, height: 14, borderRadius: "50%", background: config.color, border: "2px solid #0A0A0A", boxShadow: `0 0 0 1px ${config.color}` }} />
             </div>
             <div className="flex justify-between mt-1.5">
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#9CA3AF" }}>p25 — budget range</span>
@@ -167,8 +167,8 @@ const GradeReveal = ({
               <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#FFFFFF" }}>What We Found</h2>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#9CA3AF" }}>{issueCount} issue{issueCount !== 1 ? "s" : ""} identified · {greenCount} item{greenCount !== 1 ? "s" : ""} confirmed correct</p>
             </div>
-            <div className="hidden md:block" style={{ background: "rgba(0,153,187,0.12)", border: "1px solid #0099BB", borderRadius: 6, padding: "6px 12px" }}>
-              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#0099BB", letterSpacing: "0.08em" }}>BASED ON {county.toUpperCase()} COUNTY BENCHMARKS</span>
+            <div className="hidden md:block" style={{ background: "rgba(37,99,235,0.12)", border: "1px solid #2563EB", borderRadius: 0, padding: "6px 12px" }}>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#2563EB", letterSpacing: "0.08em" }}>BASED ON {county.toUpperCase()} COUNTY BENCHMARKS</span>
             </div>
           </div>
 
@@ -183,7 +183,7 @@ const GradeReveal = ({
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: "#FFFFFF", marginTop: 8 }}>{flag.label}</p>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", lineHeight: 1.7, marginTop: 6 }}>{flag.detail}</p>
                     {flag.tip && (
-                      <div style={{ background: s.tipBg, borderRadius: 8, padding: "12px 16px", marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <div style={{ background: s.tipBg, borderRadius: 0, padding: "12px 16px", marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
                         <span style={{ fontSize: 16, flexShrink: 0 }}>💬</span>
                         <div>
                           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#C8952A", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>NEGOTIATION TIP</p>
@@ -234,11 +234,11 @@ const GradeReveal = ({
             <div className="max-w-4xl mx-auto">
               <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#FFFFFF" }}>How to handle this quote.</h2>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#9CA3AF", marginTop: 8, marginBottom: 28 }}>Use this exact language when you call your contractor back.</p>
-              <div style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.1)", borderLeft: "4px solid #0099BB", borderRadius: 0, padding: "24px 28px", position: "relative", boxShadow: "none" }}>
-                <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "#0A0A0A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}>
+              <div style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.1)", borderLeft: "4px solid #2563EB", borderRadius: 0, padding: "24px 28px", position: "relative", boxShadow: "none" }}>
+                <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "#0A0A0A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 0, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}>
                   {copied ? "✓ Copied" : "Copy Script"}
                 </button>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#0099BB", letterSpacing: "0.1em", marginBottom: 16 }}>WORD-FOR-WORD SCRIPT</p>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#2563EB", letterSpacing: "0.1em", marginBottom: 16 }}>WORD-FOR-WORD SCRIPT</p>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#FFFFFF", lineHeight: 2.0, whiteSpace: "pre-line" }}>{scriptText}</p>
               </div>
             </div>
@@ -263,7 +263,7 @@ const GradeReveal = ({
                 </motion.button>
               </div>
               <button onClick={() => { console.log({ event: "wm_report_shared" }); toast({ title: "Link copied to clipboard" }); }}
-                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#0099BB", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", marginTop: 12, display: "inline-block" }}>
+                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#2563EB", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", marginTop: 12, display: "inline-block" }}>
                 Share this report →
               </button>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9CA3AF", marginTop: 20 }}>Your contractor will never see this report unless you choose to share it.</p>
