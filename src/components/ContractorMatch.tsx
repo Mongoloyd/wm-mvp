@@ -1,8 +1,25 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Check, ShieldCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-interface ContractorMatchProps { isVisible: boolean; grade?: string; county?: string; }
+interface ContractorMatchProps { isVisible: boolean; grade?: string; county?: string; scanSessionId?: string | null; isFullLoaded?: boolean; }
+
+const logContractorMatchClick = async (scanSessionId: string | null | undefined, isFullLoaded: boolean | undefined) => {
+  try {
+    await supabase.from("event_logs").insert({
+      event_name: "contractor_match_clicked",
+      session_id: scanSessionId ?? null,
+      route: window.location.pathname,
+      metadata: {
+        after_full_unlock: !!isFullLoaded,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  } catch (err) {
+    console.error("[ContractorMatch] event log failed:", err);
+  }
+};
 
 const vetItems = [
   "Each contractor submits 10+ sample quotes for our red flag audit before they're listed in our network.",
