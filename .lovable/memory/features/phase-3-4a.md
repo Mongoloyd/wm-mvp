@@ -1,16 +1,23 @@
-Phase 3.4A — Immediate Match + Call Momentum Layer. COMPLETE.
+Phase 3.4A — Immediate Match + Call Momentum Layer. COMPLETE. Architecture simplified.
 
 ## What was built
 - DB migration: 14 new columns on contractor_opportunities (suggested_match_*, last_call_*, cta_source)
 - `generate-contractor-brief` now runs deterministic weighted match logic, persists top candidate + top 3
-- New edge function: `voice-followup` — CTA-aware phonecall.bot webhook with full context payload
-- `ContractorMatch.tsx` rebuilt with dual CTAs: "I'd Like an Introduction" + "Call WindowMan About My Report"
-- Immediate match card renders synchronously with confidence badge, fit reasons, process strip
-- `/how-we-beat-window-quotes` manifesto/trust/SEO page created
+- Edge function: `voice-followup` — CTA-aware phonecall.bot webhook with full context payload
+- Dual CTAs now NATIVE inside TruthReportClassic.tsx CTA section (no separate component)
+- Match card renders inline in TruthReportClassic after intro request succeeds
+- `/how-we-beat-window-quotes` manifesto/trust/SEO page
 - `src/shared/matchReasons.ts` — shared taxonomy for match reason keys
-- AdminDashboard: suggested match panel with contractor name, confidence, reasons, call intent, webhook status
-- `statusConstants.ts` extended with 15 new Phase 3.4A event names
-- `docs/phase-3-4a-inspection.md` — reality check inspection doc
+- AdminDashboard: suggested match panel
+- `statusConstants.ts` extended with Phase 3.4A event names
+
+## Architecture (simplified March 2026)
+- **DELETED**: ContractorMatch.tsx — replaced by native CTA section in TruthReportClassic
+- TruthReportClassic is pure UI — receives `onContractorMatchClick`, `onReportHelpCall`, `introRequested`, `reportCallRequested`, `isCtaLoading`, `suggestedMatch` as props
+- ReportClassic.tsx (smart container) handles all edge function calls and state
+- SuggestedMatch type exported from TruthReportClassic.tsx
+- Auto-scroll to #cta-section on bad grades (B/C/D/F) when isFullLoaded
+- CTAs only visible when accessLevel === "full" (phone verified)
 
 ## Key decisions
 - Match logic is deterministic weighted scoring (county 30pts, vetted 20pts, project type 20pts, window fit 15pts)

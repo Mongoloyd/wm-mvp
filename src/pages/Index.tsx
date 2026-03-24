@@ -11,7 +11,7 @@ import TruthGateFlow from "@/components/TruthGateFlow";
 import UploadZone from "@/components/UploadZone";
 import ScanTheatrics from "@/components/ScanTheatrics";
 import { PostScanReportSwitcher } from "@/components/post-scan/PostScanReportSwitcher";
-import ContractorMatch from "@/components/ContractorMatch";
+// ContractorMatch removed — CTAs now native in TruthReportClassic
 import IndustryTruth from "@/components/IndustryTruth";
 import ProcessSteps from "@/components/ProcessSteps";
 import NarrativeProof from "@/components/NarrativeProof";
@@ -47,7 +47,7 @@ const Index = () => {
   const [truthGateHighlight, setTruthGateHighlight] = useState(false);
   const [fileUploaded, setFileUploaded] = useState(false);
   const [gradeRevealed, setGradeRevealed] = useState(false);
-  const [contractorMatchVisible, setContractorMatchVisible] = useState(false);
+  // contractorMatchVisible removed — CTAs now native in TruthReportClassic
   const [flowBLeadCaptured, setFlowBLeadCaptured] = useState(false);
   const [baselineRevealed, setBaselineRevealed] = useState(false);
   const [quoteWatcherSet, setQuoteWatcherSet] = useState(false);
@@ -108,7 +108,7 @@ const Index = () => {
 
   const triggerTruthGate = (source: string) => {
     trackEvent({ event_name: "cta_scan_funnel", session_id: sessionId, metadata: { source } });
-    if (gradeRevealed) { setGradeRevealed(false); setFileUploaded(false); setContractorMatchVisible(false); }
+    if (gradeRevealed) { setGradeRevealed(false); setFileUploaded(false); }
     if (flowMode !== 'A') setFlowMode('A');
     pendingScrollRef.current = true;
     setTruthGateHighlight(true);
@@ -120,19 +120,7 @@ const Index = () => {
     }
   }, [flowMode, gradeRevealed]);
 
-  // ── Auto-surface Contractor Match after full unlock ─────────────────
-  const prevFullLoadedRef = useRef(false);
-  useEffect(() => {
-    if (isFullLoaded && !prevFullLoadedRef.current) {
-      prevFullLoadedRef.current = true;
-      setContractorMatchVisible(true);
-      trackEvent({ event_name: "contractor_match_surfaced", session_id: scanSessionId, metadata: {} });
-      // Brief delay to let the full report render, then scroll CTA into view
-      setTimeout(() => {
-        document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 600);
-    }
-  }, [isFullLoaded]);
+  // Auto-scroll removed — CTA auto-scroll is now handled natively in TruthReportClassic
 
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
 
@@ -274,7 +262,6 @@ const Index = () => {
               </div>
             </div>
           ) : activeData ? (
-            <>
               <PostScanReportSwitcher
                 grade={reportGrade}
                 flags={reportFlags}
@@ -289,7 +276,8 @@ const Index = () => {
                 hasPermits={activeData.hasPermits}
                 pageCount={activeData.pageCount}
                 lineItemCount={activeData.lineItemCount}
-                onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
+                onContractorMatchClick={() => {}}
+                onReportHelpCall={() => {}}
                 onSecondScan={() => triggerTruthGate('second_opinion_scan')}
                 scanSessionId={scanSessionId}
                 flagCount={activeData?.flagCount}
@@ -298,8 +286,6 @@ const Index = () => {
                 isFullLoaded={isFullLoaded}
                 onVerified={(phoneE164: string) => { fetchFull(phoneE164); }}
               />
-              <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} scanSessionId={scanSessionId} isFullLoaded={isFullLoaded} phoneE164={getVerifiedAccess(scanSessionId)?.phone_e164 || null} />
-            </>
           ) : null}
         </>
       )}
@@ -322,7 +308,7 @@ const Index = () => {
         flowMode={flowMode} flowBLeadCaptured={flowBLeadCaptured} quoteWatcherSet={quoteWatcherSet}
         onDemoCTAClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
         leadCaptured={leadCaptured} isDevMode={IS_DEV_MODE} gradeRevealed={gradeRevealed}
-        onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }} />
+        onContractorMatchClick={() => { document.getElementById("cta-section")?.scrollIntoView({ behavior: "smooth" }); }} />
 
       <StickyCTAFooter
         onScanClick={() => triggerTruthGate('sticky_footer')}

@@ -2,16 +2,13 @@
  * ReportClassic — Smart Container for the Classic Truth Report route.
  * Route: /report/classic/:sessionId
  *
- * This mirrors Report.tsx (V2) but renders the Classic UI via TruthReportClassic.
- * It is the ONLY layer that touches Twilio / usePhonePipeline for the Classic flow.
- * TruthReportClassic and LockedOverlay remain pure UI — zero Twilio knowledge.
+ * This is the ONLY layer that touches Twilio / usePhonePipeline for the Classic flow.
+ * TruthReportClassic remains pure UI — zero Twilio/Supabase knowledge.
  *
  * Data source: useAnalysisData (existing hook, fetches via get_analysis_preview RPC)
  * County:      fetched from leads table via scan_sessions.lead_id join
  * Gate:        LockedOverlay props built from usePhonePipeline + funnel context
- *
- * STRICT UI CONSTRAINT: No visual changes to TruthReportClassic or LockedOverlay.
- * We only supply the correct props and callbacks.
+ * CTAs:        generate-contractor-brief + voice-followup edge functions
  */
 
 import { useState, useCallback, useEffect, Component, type ReactNode, type ErrorInfo } from "react";
@@ -21,27 +18,11 @@ import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import TruthReportClassic from "@/components/TruthReportClassic";
-import ContractorMatch from "@/components/ContractorMatch";
+import type { SuggestedMatch } from "@/components/TruthReportClassic";
 import type { GateMode, LockedOverlayProps } from "@/components/LockedOverlay";
 import type { OtpVerifyOutcome } from "@/types/report-v2";
-
-// ── ErrorBoundary for ContractorMatch ────────────────────────────────────────
-class ContractorMatchErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
-  static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("[ContractorMatch] render error caught by boundary:", error, info);
-  }
-  render() {
-    if (this.state.hasError) return null; // Silent fail — report stays intact
-    return this.props.children;
-  }
-}
-
 
 // ── PipelineVerifyResult → OtpVerifyOutcome mapping ──────────────────────────
 const PIPELINE_TO_OUTCOME: Record<string, OtpVerifyOutcome> = {
@@ -51,7 +32,7 @@ const PIPELINE_TO_OUTCOME: Record<string, OtpVerifyOutcome> = {
   error: "error",
 };
 
-// ── GateMode derivation (same logic as PostScanReportSwitcher) ───────────────
+// ── GateMode derivation ─────────────────────────────────────────────────────
 function deriveGateMode(
   funnelPhoneStatus: string | undefined,
   funnelPhoneE164: string | null | undefined
@@ -75,7 +56,6 @@ function useCountyForSession(sessionId: string | undefined): string {
 
     async function fetchCounty() {
       try {
-        // Step 1: get lead_id from scan_sessions
         const { data: session } = await supabase
           .from("scan_sessions")
           .select("lead_id")
@@ -84,7 +64,6 @@ function useCountyForSession(sessionId: string | undefined): string {
 
         if (cancelled || !session?.lead_id) return;
 
-        // Step 2: get county from leads
         const { data: lead } = await supabase
           .from("leads")
           .select("county")
@@ -146,11 +125,14 @@ export default function ReportClassic() {
     }
   }, [funnel?.phoneStatus, funnel?.phoneE164, isFullLoaded, isLoadingFull, fetchFull]);
 
-  // ── OTP value state (lives here in the smart container) ────────────────
+  // ── OTP value state ────────────────────────────────────────────────────
   const [otpValue, setOtpValue] = useState("");
 
-  // ── Contractor match visibility ────────────────────────────────────────
-  const [contractorMatchVisible, setContractorMatchVisible] = useState(false);
+  // ── CTA post-click state ───────────────────────────────────────────────
+  const [introRequested, setIntroRequested] = useState(false);
+  const [reportCallRequested, setReportCallRequested] = useState(false);
+  const [isCtaLoading, setIsCtaLoading] = useState(false);
+  const [suggestedMatch, setSuggestedMatch] = useState<SuggestedMatch | null>(null);
 
   // ── Gate mode derived from funnel state ────────────────────────────────
   const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164);
@@ -161,8 +143,6 @@ export default function ReportClassic() {
     if (otpValue.length < 6) return;
     const result = await pipeline.submitOtp(otpValue);
     const outcome = PIPELINE_TO_OUTCOME[result.status] || "error";
-    // On verified, accessLevel will flip to "full" via funnel.phoneStatus
-    // On invalid/expired/error, LockedOverlay shows errorMsg from pipeline
     if (outcome === "verified") {
       setOtpValue("");
     }
@@ -187,11 +167,88 @@ export default function ReportClassic() {
     await pipeline.resend();
   }, [pipeline]);
 
-  // ── CTA handlers ───────────────────────────────────────────────────────
+  // ── CTA A: Get Counter-Quote (generate-contractor-brief + voice-followup) ─
+  const phoneE164 = funnel?.phoneE164 || pipeline.e164 || null;
 
-  const handleContractorMatchClick = useCallback(() => {
-    setContractorMatchVisible(true);
-  }, []);
+  const handleContractorMatchClick = useCallback(async () => {
+    if (!sessionId || !phoneE164) {
+      toast.error("Unable to process request. Please verify your phone number first.");
+      return;
+    }
+
+    setIsCtaLoading(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("generate-contractor-brief", {
+        body: { scan_session_id: sessionId, phone_e164: phoneE164, cta_source: "intro_request" },
+      });
+
+      if (fnError || !data?.success) {
+        console.error("[ReportClassic] brief generation failed", fnError || data);
+        toast.error("Something went wrong. Please try again.");
+        setIsCtaLoading(false);
+        return;
+      }
+
+      if (data.suggested_match) {
+        setSuggestedMatch(data.suggested_match);
+      }
+
+      // Fire voice followup webhook
+      supabase.functions.invoke("voice-followup", {
+        body: {
+          scan_session_id: sessionId,
+          phone_e164: phoneE164,
+          call_intent: "contractor_intro",
+          cta_source: "intro_request",
+          opportunity_id: data.opportunity_id,
+        },
+      }).catch(err => console.warn("[ReportClassic] voice followup failed", err));
+
+      setIntroRequested(true);
+    } catch (err) {
+      console.error("[ReportClassic] unexpected error", err);
+      toast.error("Connection error. Please try again.");
+    } finally {
+      setIsCtaLoading(false);
+    }
+  }, [sessionId, phoneE164]);
+
+  // ── CTA B: Call WindowMan About My Report (voice-followup only) ────────
+  const handleReportHelpCall = useCallback(async () => {
+    if (!sessionId || !phoneE164) {
+      toast.error("Unable to process request. Please verify your phone number first.");
+      return;
+    }
+
+    setIsCtaLoading(true);
+    try {
+      await supabase.functions.invoke("voice-followup", {
+        body: {
+          scan_session_id: sessionId,
+          phone_e164: phoneE164,
+          call_intent: "report_explainer",
+          cta_source: "report_help",
+        },
+      });
+      setReportCallRequested(true);
+    } catch (err) {
+      console.error("[ReportClassic] report help call failed", err);
+      toast.error("Connection error. Please try again.");
+    } finally {
+      setIsCtaLoading(false);
+    }
+  }, [sessionId, phoneE164]);
+
+  // ── Auto-scroll to CTA on bad grades after full load ───────────────────
+  useEffect(() => {
+    if (!isFullLoaded || !analysisData?.grade) return;
+    const grade = analysisData.grade;
+    if (["B", "C", "D", "F"].includes(grade)) {
+      setTimeout(() => {
+        document.getElementById("cta-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 600);
+    }
+  }, [isFullLoaded, analysisData?.grade]);
 
   const handleSecondScan = useCallback(() => {
     navigate("/");
@@ -298,7 +355,7 @@ export default function ReportClassic() {
     );
   }
 
-  // ── Build gateProps for LockedOverlay (EXACT same shape, no visual changes) ─
+  // ── Build gateProps for LockedOverlay ───────────────────────────────────
 
   const gateProps: Omit<LockedOverlayProps, "grade" | "flagCount"> = {
     gateMode,
@@ -323,7 +380,6 @@ export default function ReportClassic() {
   // ── Render ─────────────────────────────────────────────────────────────
 
   return (
-    <>
     <TruthReportClassic
       grade={analysisData.grade}
       flags={analysisData.flags}
@@ -342,19 +398,13 @@ export default function ReportClassic() {
       flagRedCount={analysisData.flagRedCount}
       flagAmberCount={analysisData.flagAmberCount}
       onContractorMatchClick={handleContractorMatchClick}
+      onReportHelpCall={handleReportHelpCall}
       onSecondScan={handleSecondScan}
       gateProps={accessLevel === "preview" ? gateProps : undefined}
+      introRequested={introRequested}
+      reportCallRequested={reportCallRequested}
+      isCtaLoading={isCtaLoading}
+      suggestedMatch={suggestedMatch}
     />
-    <ContractorMatchErrorBoundary>
-      <ContractorMatch
-        isVisible={contractorMatchVisible}
-        grade={analysisData.grade}
-        county={county}
-        scanSessionId={sessionId ?? null}
-        isFullLoaded={isFullLoaded}
-        phoneE164={funnel?.phoneE164 || pipeline.e164 || null}
-      />
-    </ContractorMatchErrorBoundary>
-    </>
   );
 }

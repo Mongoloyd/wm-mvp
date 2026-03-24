@@ -2,13 +2,13 @@
  * DevReportPreview — Dev-only route for deep UI testing.
  * Route: /dev/report-preview
  *
- * Renders TruthReportClassic + ContractorMatch with hardcoded mock data.
+ * Renders TruthReportClassic with hardcoded mock data including post-click match card state.
  * No OTP, no upload, no Supabase calls needed.
  */
 
 import { useState } from "react";
 import TruthReportClassic from "@/components/TruthReportClassic";
-import ContractorMatch from "@/components/ContractorMatch";
+import type { SuggestedMatch } from "@/components/TruthReportClassic";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 
 const MOCK_FLAGS: AnalysisFlag[] = [
@@ -27,8 +27,15 @@ const MOCK_PILLARS: PillarScore[] = [
   { key: "warranty", label: "Warranty", score: 45, status: "warn" },
 ];
 
+const MOCK_MATCH: SuggestedMatch = {
+  confidence: "high",
+  reasons: ["county_specialist", "project_type_fit", "vetted_contractor"],
+  contractor_alias: "WM-TEST01",
+};
+
 export default function DevReportPreview() {
-  const [matchVisible, setMatchVisible] = useState(true);
+  const [introRequested, setIntroRequested] = useState(false);
+  const [reportCallRequested, setReportCallRequested] = useState(false);
 
   if (!import.meta.env.DEV) {
     return (
@@ -39,35 +46,29 @@ export default function DevReportPreview() {
   }
 
   return (
-    <>
-      <TruthReportClassic
-        grade="D"
-        flags={MOCK_FLAGS}
-        pillarScores={MOCK_PILLARS}
-        contractorName="Sample Contractor LLC"
-        county="Broward"
-        confidenceScore={82}
-        documentType="contractor_quote"
-        accessLevel="full"
-        qualityBand="poor"
-        hasWarranty={true}
-        hasPermits={false}
-        pageCount={3}
-        lineItemCount={8}
-        flagCount={5}
-        flagRedCount={3}
-        flagAmberCount={2}
-        onContractorMatchClick={() => setMatchVisible(true)}
-        onSecondScan={() => window.location.assign("/")}
-      />
-      <ContractorMatch
-        isVisible={matchVisible}
-        grade="D"
-        county="Broward"
-        scanSessionId={null}
-        isFullLoaded={true}
-        phoneE164={null}
-      />
-    </>
+    <TruthReportClassic
+      grade="D"
+      flags={MOCK_FLAGS}
+      pillarScores={MOCK_PILLARS}
+      contractorName="Sample Contractor LLC"
+      county="Broward"
+      confidenceScore={82}
+      documentType="contractor_quote"
+      accessLevel="full"
+      qualityBand="poor"
+      hasWarranty={true}
+      hasPermits={false}
+      pageCount={3}
+      lineItemCount={8}
+      flagCount={5}
+      flagRedCount={3}
+      flagAmberCount={2}
+      onContractorMatchClick={() => setIntroRequested(true)}
+      onReportHelpCall={() => setReportCallRequested(true)}
+      onSecondScan={() => window.location.assign("/")}
+      introRequested={introRequested}
+      reportCallRequested={reportCallRequested}
+      suggestedMatch={introRequested ? MOCK_MATCH : null}
+    />
   );
 }
