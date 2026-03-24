@@ -766,59 +766,48 @@ function OutcomeEditor({
 // MAIN ADMIN DASHBOARD
 // ══════════════════════════════════════════════════════════════════════════════
 
-export default function AdminDashboard() {
-  // ── Password gate ────
+function AdminPasswordGate({ children }: { children: React.ReactNode }) {
   const ADMIN_SECRET = import.meta.env.VITE_ADMIN_SECRET;
   const [authed, setAuthed] = useState(() => {
-    if (!ADMIN_SECRET) return true; // no secret configured = open (dev convenience)
+    if (!ADMIN_SECRET) return true;
     return sessionStorage.getItem("wm_admin_authed") === "1";
   });
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState(false);
 
-  if (!authed) {
-    return (
-      <div style={{ minHeight: "100vh", background: "#0A0E14", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ background: "#111418", border: "1px solid #2E3A50", padding: "40px 32px", maxWidth: 360, width: "100%" }}>
-          <div style={{ fontFamily: dispFont, fontSize: 22, fontWeight: 900, color: "#C8DEFF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>OPERATOR ACCESS</div>
-          <div style={{ fontFamily: monoFont, fontSize: 10, color: "#7D9DBB", letterSpacing: "0.1em", marginBottom: 24 }}>WINDOWMAN COMMAND CENTER</div>
-          <input
-            type="password"
-            value={pwInput}
-            onChange={(e) => { setPwInput(e.target.value); setPwError(false); }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                if (pwInput === ADMIN_SECRET) {
-                  sessionStorage.setItem("wm_admin_authed", "1");
-                  setAuthed(true);
-                } else {
-                  setPwError(true);
-                }
-              }
-            }}
-            placeholder="Enter access code"
-            style={{ width: "100%", fontFamily: monoFont, fontSize: 13, background: "#0A0E14", border: `1px solid ${pwError ? "#DC2626" : "#2E3A50"}`, color: "#C8DEFF", padding: "12px 14px", marginBottom: 12, outline: "none", boxSizing: "border-box" }}
-            autoFocus
-          />
-          {pwError && <div style={{ fontFamily: monoFont, fontSize: 10, color: "#DC2626", marginBottom: 12 }}>ACCESS DENIED</div>}
-          <button
-            onClick={() => {
-              if (pwInput === ADMIN_SECRET) {
-                sessionStorage.setItem("wm_admin_authed", "1");
-                setAuthed(true);
-              } else {
-                setPwError(true);
-              }
-            }}
-            style={{ width: "100%", fontFamily: bodyFont, fontWeight: 700, fontSize: 13, color: "#FFFFFF", background: "#0B60C5", border: "none", padding: "10px 0", cursor: "pointer" }}
-          >
-            AUTHENTICATE
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (authed) return <>{children}</>;
 
+  const tryAuth = () => {
+    if (pwInput === ADMIN_SECRET) {
+      sessionStorage.setItem("wm_admin_authed", "1");
+      setAuthed(true);
+    } else {
+      setPwError(true);
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#0A0E14", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: "#111418", border: "1px solid #2E3A50", padding: "40px 32px", maxWidth: 360, width: "100%" }}>
+        <div style={{ fontFamily: dispFont, fontSize: 22, fontWeight: 900, color: "#C8DEFF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>OPERATOR ACCESS</div>
+        <div style={{ fontFamily: monoFont, fontSize: 10, color: "#7D9DBB", letterSpacing: "0.1em", marginBottom: 24 }}>WINDOWMAN COMMAND CENTER</div>
+        <input type="password" value={pwInput} onChange={(e) => { setPwInput(e.target.value); setPwError(false); }}
+          onKeyDown={(e) => { if (e.key === "Enter") tryAuth(); }}
+          placeholder="Enter access code"
+          style={{ width: "100%", fontFamily: monoFont, fontSize: 13, background: "#0A0E14", border: `1px solid ${pwError ? "#DC2626" : "#2E3A50"}`, color: "#C8DEFF", padding: "12px 14px", marginBottom: 12, outline: "none", boxSizing: "border-box" }}
+          autoFocus
+        />
+        {pwError && <div style={{ fontFamily: monoFont, fontSize: 10, color: "#DC2626", marginBottom: 12 }}>ACCESS DENIED</div>}
+        <button onClick={tryAuth}
+          style={{ width: "100%", fontFamily: bodyFont, fontWeight: 700, fontSize: 13, color: "#FFFFFF", background: "#0B60C5", border: "none", padding: "10px 0", cursor: "pointer" }}>
+          AUTHENTICATE
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'calls' | 'contractor' | 'release' | 'revenue'>('calls');
 
   // ── Call Queue State ────
