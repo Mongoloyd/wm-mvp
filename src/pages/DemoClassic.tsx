@@ -288,6 +288,7 @@ const DemoClassic = () => {
         pageCount={2}
         lineItemCount={6}
         onContractorMatchClick={() => {}}
+        onReportHelpCall={() => {}}
         onSecondScan={() => { window.location.href = "/"; }}
         gateProps={gateProps}
       />
