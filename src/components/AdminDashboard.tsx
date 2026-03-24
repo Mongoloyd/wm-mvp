@@ -55,7 +55,7 @@ interface Opportunity {
   suggested_match_confidence: string | null;
   suggested_match_reasons: string[] | null;
   suggested_match_snapshot: Record<string, unknown> | null;
-  suggested_match_top_candidates: Array<{ contractor_id: string; score: number; reasons: string[] }> | null;
+  suggested_match_top_candidates: unknown[] | null;
   suggested_match_overridden: boolean;
   suggested_match_overridden_at: string | null;
   suggested_match_override_reason: string | null;
