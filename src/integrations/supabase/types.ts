@@ -700,18 +700,124 @@ export type Database = {
           },
         ]
       }
+      lead_events: {
+        Row: {
+          analysis_id: string | null
+          created_at: string
+          event_id: string | null
+          event_name: string
+          event_source: string | null
+          id: string
+          lead_id: string
+          metadata: Json
+          opportunity_id: string | null
+          scan_session_id: string | null
+          status: string | null
+          voice_followup_id: string | null
+        }
+        Insert: {
+          analysis_id?: string | null
+          created_at?: string
+          event_id?: string | null
+          event_name: string
+          event_source?: string | null
+          id?: string
+          lead_id: string
+          metadata?: Json
+          opportunity_id?: string | null
+          scan_session_id?: string | null
+          status?: string | null
+          voice_followup_id?: string | null
+        }
+        Update: {
+          analysis_id?: string | null
+          created_at?: string
+          event_id?: string | null
+          event_name?: string
+          event_source?: string | null
+          id?: string
+          lead_id?: string
+          metadata?: Json
+          opportunity_id?: string | null
+          scan_session_id?: string | null
+          status?: string | null
+          voice_followup_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
+          amber_flag_count: number
+          appointment_booked_at: string | null
+          billable_intro_created_at: string | null
+          billable_status: string | null
+          city: string | null
+          closed_at: string | null
+          confidence_score: number | null
+          contact_release_status: string | null
+          contractor_id: string | null
           county: string | null
           created_at: string
+          critical_flag_count: number
+          deal_status: string | null
+          deal_value: number | null
           email: string | null
+          estimated_savings_high: number | null
+          estimated_savings_low: number | null
+          estimated_savings_midpoint: number | null
+          fbc: string | null
           fbclid: string | null
+          fbp: string | null
           first_name: string | null
+          first_page_path: string | null
+          flag_count: number
+          gbraid: string | null
+          gclid: string | null
+          grade: string | null
+          has_estimate: boolean | null
+          homeowner: boolean | null
           id: string
           initial_referrer: string | null
+          intent: string | null
+          intro_requested_at: string | null
+          landing_page_url: string | null
+          last_call_answered_at: string | null
+          last_call_booking_intent: boolean | null
+          last_call_completed_at: string | null
+          last_call_duration_seconds: number | null
+          last_call_failure_reason: string | null
+          last_call_intent: string | null
+          last_call_outcome: string | null
+          last_call_queued_at: string | null
+          last_call_recording_url: string | null
+          last_call_status: string | null
+          last_call_summary: string | null
+          last_call_transcript_id: string | null
+          last_name: string | null
+          last_otp_sent_at: string | null
+          last_otp_verified_at: string | null
+          last_page_path: string | null
+          latest_analysis_id: string | null
+          latest_opportunity_id: string | null
+          latest_scan_session_id: string | null
+          lead_score: number | null
+          lead_source: string | null
+          lead_type: string | null
+          li_fat_id: string | null
+          metro_area: string | null
+          msclkid: string | null
           otp_failure_count: number
           otp_locked_until: string | null
           otp_state: string | null
+          persona_bucket: string | null
           phone_carrier_name: string | null
           phone_e164: string | null
           phone_line_type: string | null
@@ -721,29 +827,107 @@ export type Database = {
           phone_verification_channel: string | null
           phone_verified: boolean
           phone_verified_at: string | null
+          pricing_posture: string | null
           project_type: string | null
+          qualification_answers_json: Json
+          qualification_status: string | null
           quote_range: string | null
+          red_flag_count: number
+          referring_domain: string | null
+          replacement_quote_submitted_at: string | null
+          report_help_call_requested_at: string | null
+          report_unlocked_at: string | null
+          revenue_amount: number | null
+          routed_to_contractor_at: string | null
+          scan_count: number
+          service_area_valid: boolean | null
           session_id: string
           source: string | null
+          state: string | null
           status: string | null
+          suggested_contractor_id: string | null
+          suggested_match_confidence: string | null
+          suggested_match_generated_at: string | null
+          timeline_bucket: string | null
+          ttclid: string | null
+          twclid: string | null
+          updated_at: string
+          urgency_score: number | null
           utm_campaign: string | null
           utm_content: string | null
+          utm_id: string | null
           utm_medium: string | null
           utm_source: string | null
           utm_term: string | null
+          voice_fallback_used: boolean
+          wbraid: string | null
           window_count: number | null
+          zip: string | null
         }
         Insert: {
+          amber_flag_count?: number
+          appointment_booked_at?: string | null
+          billable_intro_created_at?: string | null
+          billable_status?: string | null
+          city?: string | null
+          closed_at?: string | null
+          confidence_score?: number | null
+          contact_release_status?: string | null
+          contractor_id?: string | null
           county?: string | null
           created_at?: string
+          critical_flag_count?: number
+          deal_status?: string | null
+          deal_value?: number | null
           email?: string | null
+          estimated_savings_high?: number | null
+          estimated_savings_low?: number | null
+          estimated_savings_midpoint?: number | null
+          fbc?: string | null
           fbclid?: string | null
+          fbp?: string | null
           first_name?: string | null
+          first_page_path?: string | null
+          flag_count?: number
+          gbraid?: string | null
+          gclid?: string | null
+          grade?: string | null
+          has_estimate?: boolean | null
+          homeowner?: boolean | null
           id?: string
           initial_referrer?: string | null
+          intent?: string | null
+          intro_requested_at?: string | null
+          landing_page_url?: string | null
+          last_call_answered_at?: string | null
+          last_call_booking_intent?: boolean | null
+          last_call_completed_at?: string | null
+          last_call_duration_seconds?: number | null
+          last_call_failure_reason?: string | null
+          last_call_intent?: string | null
+          last_call_outcome?: string | null
+          last_call_queued_at?: string | null
+          last_call_recording_url?: string | null
+          last_call_status?: string | null
+          last_call_summary?: string | null
+          last_call_transcript_id?: string | null
+          last_name?: string | null
+          last_otp_sent_at?: string | null
+          last_otp_verified_at?: string | null
+          last_page_path?: string | null
+          latest_analysis_id?: string | null
+          latest_opportunity_id?: string | null
+          latest_scan_session_id?: string | null
+          lead_score?: number | null
+          lead_source?: string | null
+          lead_type?: string | null
+          li_fat_id?: string | null
+          metro_area?: string | null
+          msclkid?: string | null
           otp_failure_count?: number
           otp_locked_until?: string | null
           otp_state?: string | null
+          persona_bucket?: string | null
           phone_carrier_name?: string | null
           phone_e164?: string | null
           phone_line_type?: string | null
@@ -753,29 +937,107 @@ export type Database = {
           phone_verification_channel?: string | null
           phone_verified?: boolean
           phone_verified_at?: string | null
+          pricing_posture?: string | null
           project_type?: string | null
+          qualification_answers_json?: Json
+          qualification_status?: string | null
           quote_range?: string | null
+          red_flag_count?: number
+          referring_domain?: string | null
+          replacement_quote_submitted_at?: string | null
+          report_help_call_requested_at?: string | null
+          report_unlocked_at?: string | null
+          revenue_amount?: number | null
+          routed_to_contractor_at?: string | null
+          scan_count?: number
+          service_area_valid?: boolean | null
           session_id: string
           source?: string | null
+          state?: string | null
           status?: string | null
+          suggested_contractor_id?: string | null
+          suggested_match_confidence?: string | null
+          suggested_match_generated_at?: string | null
+          timeline_bucket?: string | null
+          ttclid?: string | null
+          twclid?: string | null
+          updated_at?: string
+          urgency_score?: number | null
           utm_campaign?: string | null
           utm_content?: string | null
+          utm_id?: string | null
           utm_medium?: string | null
           utm_source?: string | null
           utm_term?: string | null
+          voice_fallback_used?: boolean
+          wbraid?: string | null
           window_count?: number | null
+          zip?: string | null
         }
         Update: {
+          amber_flag_count?: number
+          appointment_booked_at?: string | null
+          billable_intro_created_at?: string | null
+          billable_status?: string | null
+          city?: string | null
+          closed_at?: string | null
+          confidence_score?: number | null
+          contact_release_status?: string | null
+          contractor_id?: string | null
           county?: string | null
           created_at?: string
+          critical_flag_count?: number
+          deal_status?: string | null
+          deal_value?: number | null
           email?: string | null
+          estimated_savings_high?: number | null
+          estimated_savings_low?: number | null
+          estimated_savings_midpoint?: number | null
+          fbc?: string | null
           fbclid?: string | null
+          fbp?: string | null
           first_name?: string | null
+          first_page_path?: string | null
+          flag_count?: number
+          gbraid?: string | null
+          gclid?: string | null
+          grade?: string | null
+          has_estimate?: boolean | null
+          homeowner?: boolean | null
           id?: string
           initial_referrer?: string | null
+          intent?: string | null
+          intro_requested_at?: string | null
+          landing_page_url?: string | null
+          last_call_answered_at?: string | null
+          last_call_booking_intent?: boolean | null
+          last_call_completed_at?: string | null
+          last_call_duration_seconds?: number | null
+          last_call_failure_reason?: string | null
+          last_call_intent?: string | null
+          last_call_outcome?: string | null
+          last_call_queued_at?: string | null
+          last_call_recording_url?: string | null
+          last_call_status?: string | null
+          last_call_summary?: string | null
+          last_call_transcript_id?: string | null
+          last_name?: string | null
+          last_otp_sent_at?: string | null
+          last_otp_verified_at?: string | null
+          last_page_path?: string | null
+          latest_analysis_id?: string | null
+          latest_opportunity_id?: string | null
+          latest_scan_session_id?: string | null
+          lead_score?: number | null
+          lead_source?: string | null
+          lead_type?: string | null
+          li_fat_id?: string | null
+          metro_area?: string | null
+          msclkid?: string | null
           otp_failure_count?: number
           otp_locked_until?: string | null
           otp_state?: string | null
+          persona_bucket?: string | null
           phone_carrier_name?: string | null
           phone_e164?: string | null
           phone_line_type?: string | null
@@ -785,17 +1047,42 @@ export type Database = {
           phone_verification_channel?: string | null
           phone_verified?: boolean
           phone_verified_at?: string | null
+          pricing_posture?: string | null
           project_type?: string | null
+          qualification_answers_json?: Json
+          qualification_status?: string | null
           quote_range?: string | null
+          red_flag_count?: number
+          referring_domain?: string | null
+          replacement_quote_submitted_at?: string | null
+          report_help_call_requested_at?: string | null
+          report_unlocked_at?: string | null
+          revenue_amount?: number | null
+          routed_to_contractor_at?: string | null
+          scan_count?: number
+          service_area_valid?: boolean | null
           session_id?: string
           source?: string | null
+          state?: string | null
           status?: string | null
+          suggested_contractor_id?: string | null
+          suggested_match_confidence?: string | null
+          suggested_match_generated_at?: string | null
+          timeline_bucket?: string | null
+          ttclid?: string | null
+          twclid?: string | null
+          updated_at?: string
+          urgency_score?: number | null
           utm_campaign?: string | null
           utm_content?: string | null
+          utm_id?: string | null
           utm_medium?: string | null
           utm_source?: string | null
           utm_term?: string | null
+          voice_fallback_used?: boolean
+          wbraid?: string | null
           window_count?: number | null
+          zip?: string | null
         }
         Relationships: []
       }
@@ -984,6 +1271,107 @@ export type Database = {
             columns: ["quote_file_id"]
             isOneToOne: true
             referencedRelation: "quote_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_followups: {
+        Row: {
+          answered_at: string | null
+          appointment_booked: boolean
+          appointment_time_requested: string | null
+          booking_intent_detected: boolean
+          call_intent: string
+          call_outcome: string | null
+          completed_at: string | null
+          created_at: string
+          cta_source: string | null
+          duration_seconds: number | null
+          failure_reason: string | null
+          id: string
+          lead_id: string
+          opportunity_id: string | null
+          payload_json: Json
+          phone_e164: string
+          provider: string
+          provider_call_id: string | null
+          queued_at: string
+          recording_url: string | null
+          result_json: Json
+          scan_session_id: string | null
+          started_at: string | null
+          status: string
+          summary: string | null
+          transcript_text: string | null
+          transcript_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          answered_at?: string | null
+          appointment_booked?: boolean
+          appointment_time_requested?: string | null
+          booking_intent_detected?: boolean
+          call_intent: string
+          call_outcome?: string | null
+          completed_at?: string | null
+          created_at?: string
+          cta_source?: string | null
+          duration_seconds?: number | null
+          failure_reason?: string | null
+          id?: string
+          lead_id: string
+          opportunity_id?: string | null
+          payload_json?: Json
+          phone_e164: string
+          provider?: string
+          provider_call_id?: string | null
+          queued_at?: string
+          recording_url?: string | null
+          result_json?: Json
+          scan_session_id?: string | null
+          started_at?: string | null
+          status?: string
+          summary?: string | null
+          transcript_text?: string | null
+          transcript_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answered_at?: string | null
+          appointment_booked?: boolean
+          appointment_time_requested?: string | null
+          booking_intent_detected?: boolean
+          call_intent?: string
+          call_outcome?: string | null
+          completed_at?: string | null
+          created_at?: string
+          cta_source?: string | null
+          duration_seconds?: number | null
+          failure_reason?: string | null
+          id?: string
+          lead_id?: string
+          opportunity_id?: string | null
+          payload_json?: Json
+          phone_e164?: string
+          provider?: string
+          provider_call_id?: string | null
+          queued_at?: string
+          recording_url?: string | null
+          result_json?: Json
+          scan_session_id?: string | null
+          started_at?: string | null
+          status?: string
+          summary?: string | null
+          transcript_text?: string | null
+          transcript_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_followups_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]
