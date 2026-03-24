@@ -30,7 +30,9 @@ import { trackEvent } from "@/lib/trackEvent";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
-import { DevQuoteGenerator } from "@/components/dev/DevQuoteGenerator";
+const DevQuoteGenerator = import.meta.env.DEV
+  ? React.lazy(() => import("@/components/dev/DevQuoteGenerator").then(m => ({ default: m.DevQuoteGenerator })))
+  : null;
 import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "@/dev/fixtures";
 import { AlertTriangle, RotateCcw, FileX } from "lucide-react";
 
