@@ -22,6 +22,7 @@ import { useReportAccess } from "@/hooks/useReportAccess";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { supabase } from "@/integrations/supabase/client";
 import TruthReportClassic from "@/components/TruthReportClassic";
+import ContractorMatch from "@/components/ContractorMatch";
 import type { GateMode, LockedOverlayProps } from "@/components/LockedOverlay";
 import type { OtpVerifyOutcome } from "@/types/report-v2";
 
@@ -132,6 +133,9 @@ export default function ReportClassic() {
   // ── OTP value state (lives here in the smart container) ────────────────
   const [otpValue, setOtpValue] = useState("");
 
+  // ── Contractor match visibility ────────────────────────────────────────
+  const [contractorMatchVisible, setContractorMatchVisible] = useState(false);
+
   // ── Gate mode derived from funnel state ────────────────────────────────
   const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164);
 
@@ -170,8 +174,7 @@ export default function ReportClassic() {
   // ── CTA handlers ───────────────────────────────────────────────────────
 
   const handleContractorMatchClick = useCallback(() => {
-    // Navigate to contractor match or open modal — placeholder
-    console.log("[ReportClassic] Contractor match clicked");
+    setContractorMatchVisible(true);
   }, []);
 
   const handleSecondScan = useCallback(() => {
@@ -325,6 +328,14 @@ export default function ReportClassic() {
       onContractorMatchClick={handleContractorMatchClick}
       onSecondScan={handleSecondScan}
       gateProps={accessLevel === "preview" ? gateProps : undefined}
+    />
+    <ContractorMatch
+      isVisible={contractorMatchVisible}
+      grade={analysisData.grade}
+      county={county}
+      scanSessionId={sessionId ?? null}
+      isFullLoaded={isFullLoaded}
+      phoneE164={funnel?.phoneE164 || pipeline.e164 || null}
     />
     </>
   );

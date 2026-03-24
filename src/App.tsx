@@ -14,6 +14,7 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 // Dev/internal only — not linked from any production CTA
 const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
 const AdminDashboard = lazy(() => import("./components/AdminDashboard.tsx"));
+const DevReportPreview = lazy(() => import("./pages/DevReportPreview.tsx"));
 
 // ── Static content pages ─────────────────────────────────────────────────────
 const About = lazy(() => import("./pages/About.tsx"));
@@ -59,6 +60,7 @@ const App = () => (
           {/* Internal/dev only — zero production CTAs point here */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/demo-classic" element={<DemoClassic />} />
+          <Route path="/dev/report-preview" element={<DevReportPreview />} />
           {/* ── Static content pages ── */}
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
