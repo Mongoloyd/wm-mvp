@@ -56,6 +56,10 @@ export interface LockedOverlayProps {
   errorType?: "rate_limit" | "expired_session" | "invalid_code" | "network" | "generic";
   resendCooldown: number;
   onResend: () => void;
+  /** True when fetchFull has stalled after OTP success */
+  fetchStalled?: boolean;
+  /** Retry fetchFull without resending OTP */
+  onRetryFetchFull?: () => void;
 }
 
 export function LockedOverlay({
@@ -81,6 +85,8 @@ export function LockedOverlay({
   errorType,
   resendCooldown,
   onResend,
+  fetchStalled,
+  onRetryFetchFull,
 }: LockedOverlayProps) {
   const issueCount = flagCount;
   const redCount = flagRedCount ?? flagCount;
