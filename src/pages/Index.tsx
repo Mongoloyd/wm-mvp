@@ -25,7 +25,7 @@ import StickyCTAFooter from "@/components/StickyCTAFooter";
 import Footer from "@/components/Footer";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { ScanFunnelProvider } from "@/state/scanFunnel";
-import { getVerifiedAccess } from "@/lib/verifiedAccess";
+import { getVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -236,6 +236,25 @@ const Index = () => {
       )}
 
       {/* ─── Report view (real or dev fixture) ─── */}
+      {shouldShowReport && (
+        <>
+          <div className="max-w-4xl mx-auto px-4 pt-4 flex justify-end">
+            <button
+              onClick={() => {
+                clearVerifiedAccess();
+                setScanSessionId(null);
+                setFileUploaded(false);
+                setGradeRevealed(false);
+                setLeadCaptured(false);
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground text-sm font-medium transition-colors"
+            >
+              <RotateCcw size={14} />
+              Start New Scan
+            </button>
+          </div>
+        </>
+      )}
       {shouldShowReport && (
         <>
           {!showReportFromDev && analysisLoading ? (
