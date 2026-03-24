@@ -751,6 +751,8 @@ export default function AdminDashboard() {
   const [outcomes, setOutcomes] = useState<ContractorOutcome[]>([]);
   const [revenueLoading, setRevenueLoading] = useState(true);
   const [outcomeEditorIntro, setOutcomeEditorIntro] = useState<BillableIntro | null>(null);
+  const [revDateFrom, setRevDateFrom] = useState('');
+  const [revDateTo, setRevDateTo] = useState('');
 
   // ── Release model state (for the detail modal) ────
   const [releaseModel, setReleaseModel] = useState('flat_fee');
@@ -1105,31 +1107,87 @@ export default function AdminDashboard() {
       )}
 
       {/* ═══ REVENUE TAB ═══ */}
-      {activeTab === 'revenue' && (
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, background: '#2E3A50', marginBottom: 20 }}>
-            {[
-              { label: 'TOTAL INTROS', value: billableIntros.length, color: '#C8DEFF' },
-              { label: 'BILLABLE', value: billableIntros.filter(i => i.billing_status === 'billable').length, color: '#F59E0B' },
-              { label: 'PAID', value: billableIntros.filter(i => i.billing_status === 'paid').length, color: '#10B981' },
-              { label: 'REVENUE', value: `$${billableIntros.filter(i => i.billing_status === 'paid').reduce((s, i) => s + (i.fee_amount || 0), 0).toLocaleString()}`, color: '#F59E0B' },
-            ].map(({ label, value, color }) => (
-              <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
-                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
-                <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
-              </div>
-            ))}
-          </div>
+      {activeTab === 'revenue' && (() => {
+        const filtered = billableIntros.filter(i => {
+          if (revDateFrom && i.created_at < revDateFrom) return false;
+          if (revDateTo && i.created_at > revDateTo + 'T23:59:59.999Z') return false;
+          return true;
+        });
+        const paidIntros = filtered.filter(i => i.billing_status === 'paid');
+        const totalRevenue = paidIntros.reduce((s, i) => s + (i.fee_amount || 0), 0);
 
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>BILLABLE INTROS ({billableIntros.length})</div>
-          {revenueLoading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING...</div> :
-            billableIntros.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 40, textAlign: 'center' }}>NO BILLABLE INTROS YET</div> :
-            billableIntros.map(intro => (
-              <BillableIntroRow key={intro.id} intro={intro} contractors={contractors} outcomes={outcomes}
-                onStatusChange={handleBillingStatusChange} onOpenOutcome={setOutcomeEditorIntro} />
-            ))}
-        </>
-      )}
+        const exportCSV = () => {
+          const header = ['ID','Contractor','Billing Model','Fee','Status','Invoice Ref','Created','Paid At','Deal Status','Deal Value','Appointment'];
+          const rows = filtered.map(intro => {
+            const c = contractors.find(x => x.id === intro.contractor_id);
+            const out = outcomes.find(o => o.billable_intro_id === intro.id);
+            return [
+              intro.id,
+              c?.company_name || '',
+              intro.billing_model || '',
+              intro.fee_amount?.toString() || '',
+              intro.billing_status,
+              intro.invoice_reference || '',
+              intro.created_at,
+              intro.paid_at || '',
+              out?.deal_status || '',
+              out?.deal_value?.toString() || '',
+              out?.appointment_status || '',
+            ];
+          });
+          const csv = [header, ...rows].map(r => r.map(c => `"${(c ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url;
+          a.download = `windowman-revenue-${new Date().toISOString().slice(0,10)}.csv`;
+          a.click(); URL.revokeObjectURL(url);
+        };
+
+        return (
+          <>
+            {/* Date filter + Export */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>FROM</div>
+              <input type="date" value={revDateFrom} onChange={e => setRevDateFrom(e.target.value)}
+                style={{ fontFamily: monoFont, fontSize: 10, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '5px 8px', borderRadius: 0 }} />
+              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>TO</div>
+              <input type="date" value={revDateTo} onChange={e => setRevDateTo(e.target.value)}
+                style={{ fontFamily: monoFont, fontSize: 10, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '5px 8px', borderRadius: 0 }} />
+              {(revDateFrom || revDateTo) && (
+                <button onClick={() => { setRevDateFrom(''); setRevDateTo(''); }}
+                  style={{ fontFamily: monoFont, fontSize: 9, color: '#EF4444', background: 'none', border: '1px solid rgba(239,68,68,0.3)', padding: '5px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.08em' }}>CLEAR</button>
+              )}
+              <div style={{ flex: 1 }} />
+              <button onClick={exportCSV}
+                style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '6px 14px', borderRadius: 2, cursor: 'pointer' }}>
+                ⬇ EXPORT CSV
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, background: '#2E3A50', marginBottom: 20 }}>
+              {[
+                { label: 'TOTAL INTROS', value: filtered.length, color: '#C8DEFF' },
+                { label: 'BILLABLE', value: filtered.filter(i => i.billing_status === 'billable').length, color: '#F59E0B' },
+                { label: 'PAID', value: paidIntros.length, color: '#10B981' },
+                { label: 'REVENUE', value: `$${totalRevenue.toLocaleString()}`, color: '#F59E0B' },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
+                  <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
+                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>BILLABLE INTROS ({filtered.length})</div>
+            {revenueLoading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING...</div> :
+              filtered.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 40, textAlign: 'center' }}>NO BILLABLE INTROS {revDateFrom || revDateTo ? 'IN DATE RANGE' : 'YET'}</div> :
+              filtered.map(intro => (
+                <BillableIntroRow key={intro.id} intro={intro} contractors={contractors} outcomes={outcomes}
+                  onStatusChange={handleBillingStatusChange} onOpenOutcome={setOutcomeEditorIntro} />
+              ))}
+          </>
+        );
+      })()}
 
       {/* Opportunity Detail Modal */}
       {selectedOpp && (
