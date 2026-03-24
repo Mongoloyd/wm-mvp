@@ -9,7 +9,7 @@
  */
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, Clock, RefreshCw } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 export type GateMode = "enter_code" | "send_code" | "enter_phone";
@@ -52,6 +52,8 @@ export interface LockedOverlayProps {
   /* ── Shared pipeline state ── */
   isLoading: boolean;
   errorMsg: string;
+  /** Classifies the error for richer UX */
+  errorType?: "rate_limit" | "expired_session" | "invalid_code" | "network" | "generic";
   resendCooldown: number;
   onResend: () => void;
 }
