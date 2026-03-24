@@ -75,6 +75,7 @@ const config: Config = {
         "gold-accent": "var(--color-gold-accent)",
         emerald: "var(--color-emerald)",
         danger: "var(--color-danger)",
+        gold: "var(--color-gold-accent)",
 
         /* New WindowMan light-theme tokens */
         "wm-blue": "var(--wm-blue)",
