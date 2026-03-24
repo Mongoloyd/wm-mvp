@@ -11,7 +11,7 @@ import TruthGateFlow from "@/components/TruthGateFlow";
 import UploadZone from "@/components/UploadZone";
 import ScanTheatrics from "@/components/ScanTheatrics";
 import { PostScanReportSwitcher } from "@/components/post-scan/PostScanReportSwitcher";
-import ContractorMatch from "@/components/ContractorMatch";
+// ContractorMatch removed — CTAs now native in TruthReportClassic
 import IndustryTruth from "@/components/IndustryTruth";
 import ProcessSteps from "@/components/ProcessSteps";
 import NarrativeProof from "@/components/NarrativeProof";
