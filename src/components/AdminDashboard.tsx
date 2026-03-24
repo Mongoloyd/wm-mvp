@@ -751,6 +751,8 @@ export default function AdminDashboard() {
   const [outcomes, setOutcomes] = useState<ContractorOutcome[]>([]);
   const [revenueLoading, setRevenueLoading] = useState(true);
   const [outcomeEditorIntro, setOutcomeEditorIntro] = useState<BillableIntro | null>(null);
+  const [revDateFrom, setRevDateFrom] = useState('');
+  const [revDateTo, setRevDateTo] = useState('');
 
   // ── Release model state (for the detail modal) ────
   const [releaseModel, setReleaseModel] = useState('flat_fee');
