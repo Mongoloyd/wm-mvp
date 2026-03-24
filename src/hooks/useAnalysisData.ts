@@ -15,6 +15,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getVerifiedAccess, saveVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
@@ -171,6 +172,10 @@ export interface UseAnalysisDataResult {
   fetchFull: (phoneE164: string) => Promise<void>;
   isLoadingFull: boolean;
   isFullLoaded: boolean;
+  /** Try to resume a previously verified session from localStorage. */
+  tryResume: () => Promise<boolean>;
+  /** True while tryResume is running */
+  isResuming: boolean;
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -184,7 +189,9 @@ export function useAnalysisData(
   const [error, setError] = useState<string | null>(null);
   const [isLoadingFull, setIsLoadingFull] = useState(false);
   const [isFullLoaded, setIsFullLoaded] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
   const previewFetchedRef = useRef<string | null>(null);
+  const resumeAttemptedRef = useRef<string | null>(null);
 
   // ── Phase 1: Preview fetch ─────────────────────────────────────────────
   useEffect(() => {
@@ -318,7 +325,9 @@ export function useAnalysisData(
         analysisStatus: "complete",
       });
       setIsFullLoaded(true);
-      console.log("[fetchFull] SUCCESS — isFullLoaded set to true, modal should dismiss");
+      // Save resume record for returning users
+      saveVerifiedAccess(scanSessionId, phoneE164);
+      console.log("[fetchFull] SUCCESS — isFullLoaded set to true, resume record saved");
     } catch (err) {
       console.error("[fetchFull] exception:", err);
     } finally {
@@ -326,5 +335,80 @@ export function useAnalysisData(
     }
   }, [scanSessionId, isFullLoaded]);
 
-  return { data, isLoading, error, fetchFull, isLoadingFull, isFullLoaded };
+  // ── Phase 3: Auto-resume for returning verified users ─────────────────
+  const tryResume = useCallback(async (): Promise<boolean> => {
+    if (!scanSessionId || isFullLoaded) return false;
+    if (resumeAttemptedRef.current === scanSessionId) return false;
+    resumeAttemptedRef.current = scanSessionId;
+
+    const record = getVerifiedAccess(scanSessionId);
+    if (!record) {
+      console.log("[tryResume] no valid resume record for", scanSessionId);
+      return false;
+    }
+
+    console.log("[tryResume] found resume record, attempting full fetch", {
+      scanSessionId: record.scan_session_id,
+      phone: record.phone_e164.slice(0, 5) + "***",
+      expiresAt: record.expires_at,
+    });
+
+    setIsResuming(true);
+    try {
+      const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
+        "get_analysis_full",
+        { p_scan_session_id: scanSessionId, p_phone_e164: record.phone_e164 }
+      );
+
+      if (rpcErr) {
+        console.warn("[tryResume] RPC error — clearing stale record", rpcErr);
+        clearVerifiedAccess();
+        return false;
+      }
+
+      const row = Array.isArray(rows) ? rows[0] : rows;
+      if (!row || !row.grade) {
+        console.warn("[tryResume] empty result — clearing stale record");
+        clearVerifiedAccess();
+        return false;
+      }
+
+      const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
+      const previewJson = row.preview_json as Record<string, unknown> | null;
+      const flags = mapFlags(row.flags);
+      const qualityBandRaw = previewJson?.quality_band as string | undefined;
+      const validBands = new Set(["good", "fair", "poor"]);
+
+      setData({
+        grade: row.grade,
+        flags,
+        flagCount: flags.length,
+        flagRedCount: flags.filter(f => f.severity === "red").length,
+        flagAmberCount: flags.filter(f => f.severity === "amber").length,
+        contractorName: (proofOfRead?.contractor_name as string) || null,
+        confidenceScore: row.confidence_score ?? null,
+        pillarScores: extractPillarScoresWithFlags(row.preview_json, flags),
+        documentType: row.document_type || null,
+        pageCount: typeof proofOfRead?.page_count === "number" ? proofOfRead.page_count : null,
+        openingCount: typeof proofOfRead?.opening_count === "number" ? proofOfRead.opening_count : null,
+        lineItemCount: typeof proofOfRead?.line_item_count === "number" ? proofOfRead.line_item_count : null,
+        qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
+        hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
+        hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
+        analysisStatus: "complete",
+      });
+      previewFetchedRef.current = scanSessionId;
+      setIsFullLoaded(true);
+      console.log("[tryResume] SUCCESS — full report restored from resume record");
+      return true;
+    } catch (err) {
+      console.error("[tryResume] exception — clearing stale record", err);
+      clearVerifiedAccess();
+      return false;
+    } finally {
+      setIsResuming(false);
+    }
+  }, [scanSessionId, isFullLoaded]);
+
+  return { data, isLoading, error, fetchFull, isLoadingFull, isFullLoaded, tryResume, isResuming };
 }
