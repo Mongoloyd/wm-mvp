@@ -83,25 +83,27 @@ Deno.serve(async (req) => {
       .slice(0, 5)
       .map((f: any) => f.title || f.name || "Unknown");
 
-    // ── 2. Build webhook payload ─────────────────────────────────────────
+    // ── 2. Build webhook payload (phonecall.bot format) ─────────────────
     const payload = {
-      lead_id: lead?.id || session.lead_id,
-      scan_session_id,
-      opportunity_id: opportunity_id || opp?.id || null,
-      phone_e164,
-      first_name: lead?.first_name || null,
-      cta_source: cta_source || call_intent,
-      call_intent,
-      county: lead?.county || null,
-      project_type: lead?.project_type || null,
-      window_count: lead?.window_count || null,
-      quote_range: lead?.quote_range || null,
-      grade: analysis?.grade || null,
-      flag_count: opp?.flag_count || flags.length,
-      critical_flag_count: opp?.red_flag_count || majorFlags.length,
-      major_flags: majorFlags,
-      suggested_match_confidence: opp?.suggested_match_confidence || null,
-      suggested_contractor_id: opp?.suggested_contractor_id || null,
+      to: phone_e164,
+      info: {
+        lead_id: lead?.id || session.lead_id,
+        scan_session_id,
+        opportunity_id: opportunity_id || opp?.id || null,
+        first_name: lead?.first_name || null,
+        cta_source: cta_source || call_intent,
+        call_intent,
+        county: lead?.county || null,
+        project_type: lead?.project_type || null,
+        window_count: lead?.window_count || null,
+        quote_range: lead?.quote_range || null,
+        grade: analysis?.grade || null,
+        flag_count: opp?.flag_count || flags.length,
+        critical_flag_count: opp?.red_flag_count || majorFlags.length,
+        major_flags: majorFlags,
+        suggested_match_confidence: opp?.suggested_match_confidence || null,
+        suggested_contractor_id: opp?.suggested_contractor_id || null,
+      },
     };
 
     console.log("[voice-followup] payload built", {
