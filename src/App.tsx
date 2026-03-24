@@ -22,6 +22,7 @@ const FAQ = lazy(() => import("./pages/FAQ.tsx"));
 const Privacy = lazy(() => import("./pages/Privacy.tsx"));
 const Terms = lazy(() => import("./pages/Terms.tsx"));
 const Disclaimer = lazy(() => import("./pages/Disclaimer.tsx"));
+const HowWeBeatWindowQuotes = lazy(() => import("./pages/HowWeBeatWindowQuotes.tsx"));
 
 // Redirect helper: /report/:sessionId → /report/classic/:sessionId
 function ReportRedirect() {
@@ -65,6 +66,7 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/disclaimer" element={<Disclaimer />} />
+          <Route path="/how-we-beat-window-quotes" element={<HowWeBeatWindowQuotes />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
