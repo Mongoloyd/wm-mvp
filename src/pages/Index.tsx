@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import LinearHeader from "@/components/LinearHeader";
 import AuditHero from "@/components/AuditHero";
@@ -25,6 +25,7 @@ import StickyCTAFooter from "@/components/StickyCTAFooter";
 import Footer from "@/components/Footer";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { ScanFunnelProvider } from "@/state/scanFunnel";
+import { getVerifiedAccess } from "@/lib/verifiedAccess";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
@@ -61,8 +62,36 @@ const Index = () => {
   const isDevPreview = IS_DEV_MODE && devState !== "none";
   const devConfig = isDevPreview ? DEV_PREVIEW_CONFIGS[devState] : null;
   const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
-  const { data: analysisData, isLoading: analysisLoading, error: analysisError, fetchFull, isFullLoaded } = useAnalysisData(scanSessionId, fileUploaded);
-  
+  const { data: analysisData, isLoading: analysisLoading, error: analysisError, fetchFull, isFullLoaded, tryResume, isResuming } = useAnalysisData(scanSessionId, fileUploaded || !!scanSessionId);
+
+  // ── Returning user resume: check localStorage on mount ────────────────
+  const resumeCheckedRef = useRef(false);
+  useEffect(() => {
+    if (resumeCheckedRef.current) return;
+    resumeCheckedRef.current = true;
+
+    const record = getVerifiedAccess();
+    if (!record) return;
+
+    console.log("[Index] resume record found, restoring scan state", {
+      scanSessionId: record.scan_session_id,
+    });
+    // Restore enough state to render the report view
+    setScanSessionId(record.scan_session_id);
+    setFileUploaded(true);
+    setGradeRevealed(true);
+    setLeadCaptured(true);
+  }, []);
+
+  // After scanSessionId is set from resume, try auto-fetching full data
+  useEffect(() => {
+    if (!scanSessionId || isFullLoaded || isResuming) return;
+    // Only auto-resume if we restored from localStorage (gradeRevealed is true on mount)
+    const record = getVerifiedAccess(scanSessionId);
+    if (!record) return;
+
+    tryResume();
+  }, [scanSessionId, isFullLoaded, isResuming, tryResume]);
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
