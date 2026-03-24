@@ -43,6 +43,8 @@ export interface PipelineStartResult {
 export interface PipelineVerifyResult {
   status: "verified" | "invalid_code" | "expired" | "error";
   error?: string;
+  /** Server-canonical phone in E.164 format, returned on successful verify */
+  e164?: string;
 }
 
 export interface UsePhonePipelineReturn {
