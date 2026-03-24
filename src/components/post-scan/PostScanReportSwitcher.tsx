@@ -15,7 +15,7 @@
  * so the backend can bind phone_verifications.lead_id via scan_sessions.
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
@@ -83,6 +83,8 @@ export function PostScanReportSwitcher(props: Props) {
   const [tcpaConsent, setTcpaConsent] = useState(false);
   const [localGateOverride, setLocalGateOverride] = useState<GateMode | null>(null);
   const [capturedPhone, setCapturedPhone] = useState<string | null>(null);
+  const [fetchStalled, setFetchStalled] = useState(false);
+  const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: props.scanSessionId,
@@ -93,6 +95,24 @@ export function PostScanReportSwitcher(props: Props) {
       if (phone) props.onVerified?.(phone);
     },
   });
+
+  // ── Stall detection: if verified but full report not loaded after 5s ──
+  useEffect(() => {
+    if (pipeline.phoneStatus === "verified" && !props.isFullLoaded) {
+      stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);
+      return () => { if (stallTimerRef.current) clearTimeout(stallTimerRef.current); };
+    }
+    if (props.isFullLoaded && fetchStalled) setFetchStalled(false);
+    if (stallTimerRef.current) { clearTimeout(stallTimerRef.current); stallTimerRef.current = null; }
+  }, [pipeline.phoneStatus, props.isFullLoaded, fetchStalled]);
+
+  const handleRetryFetchFull = useCallback(() => {
+    const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
+    if (phone) {
+      setFetchStalled(false);
+      props.onVerified?.(phone);
+    }
+  }, [capturedPhone, funnel?.phoneE164, pipeline.e164, props]);
 
   const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164, localGateOverride);
 
@@ -172,6 +192,8 @@ export function PostScanReportSwitcher(props: Props) {
     errorType: pipeline.errorType ?? undefined,
     resendCooldown: pipeline.resendCooldown,
     onResend: handleResend,
+    fetchStalled,
+    onRetryFetchFull: handleRetryFetchFull,
   };
 
   return (

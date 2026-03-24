@@ -56,6 +56,10 @@ export interface LockedOverlayProps {
   errorType?: "rate_limit" | "expired_session" | "invalid_code" | "network" | "generic";
   resendCooldown: number;
   onResend: () => void;
+  /** True when fetchFull has stalled after OTP success */
+  fetchStalled?: boolean;
+  /** Retry fetchFull without resending OTP */
+  onRetryFetchFull?: () => void;
 }
 
 export function LockedOverlay({
@@ -81,6 +85,8 @@ export function LockedOverlay({
   errorType,
   resendCooldown,
   onResend,
+  fetchStalled,
+  onRetryFetchFull,
 }: LockedOverlayProps) {
   const issueCount = flagCount;
   const redCount = flagRedCount ?? flagCount;
@@ -366,6 +372,58 @@ export function LockedOverlay({
                   This protects your phone from abuse. The limit resets shortly.
                 </p>
               )}
+            </div>
+          )}
+
+          {/* ─── Full-fetch stall recovery ─── */}
+          {fetchStalled && (
+            <div style={{
+              background: "rgba(220,38,38,0.08)",
+              border: "1px solid rgba(220,38,38,0.25)",
+              borderRadius: 0,
+              padding: "16px 20px",
+              marginBottom: 12,
+              textAlign: "center",
+            }}>
+              <div className="flex items-center justify-center gap-2" style={{ marginBottom: 8 }}>
+                <AlertCircle size={14} style={{ color: "#DC2626", flexShrink: 0 }} />
+                <p style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#DC2626",
+                  margin: 0,
+                }}>
+                  Report loading failed
+                </p>
+              </div>
+              <p style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 12,
+                color: "#94A3B8",
+                margin: "0 0 12px 0",
+              }}>
+                Your identity was verified, but the full report didn't load. Tap below to retry.
+              </p>
+              <button
+                onClick={onRetryFetchFull}
+                className="flex items-center gap-1.5 mx-auto"
+                style={{
+                  background: "linear-gradient(135deg, #C8952A, #E2B04A)",
+                  border: "none",
+                  borderRadius: 0,
+                  padding: "10px 24px",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "white",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(200,149,42,0.3)",
+                }}
+              >
+                <RefreshCw size={14} />
+                Tap to Retry
+              </button>
             </div>
           )}
 
