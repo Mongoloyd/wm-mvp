@@ -49,6 +49,21 @@ interface Opportunity {
   homeowner_contact_released_at: string | null;
   release_ready: boolean; last_interest_at: string | null;
   last_release_at: string | null;
+  // Phase 3.4A fields
+  suggested_contractor_id: string | null;
+  suggested_match_generated_at: string | null;
+  suggested_match_confidence: string | null;
+  suggested_match_reasons: string[] | null;
+  suggested_match_snapshot: Record<string, unknown> | null;
+  suggested_match_top_candidates: Array<{ contractor_id: string; score: number; reasons: string[] }> | null;
+  suggested_match_overridden: boolean;
+  suggested_match_overridden_at: string | null;
+  suggested_match_override_reason: string | null;
+  last_call_intent: string | null;
+  last_call_requested_at: string | null;
+  last_call_webhook_status: string | null;
+  last_call_webhook_error: string | null;
+  cta_source: string | null;
 }
 
 interface Contractor {
