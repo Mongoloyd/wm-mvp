@@ -12,19 +12,19 @@ import ContractorMatch from "@/components/ContractorMatch";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 
 const MOCK_FLAGS: AnalysisFlag[] = [
-  { id: "f1", label: "Missing NOA documentation", severity: "red", pillar: "safety_code", detail: "No Florida product approval or NOA numbers listed for any windows." },
-  { id: "f2", label: "No cancellation clause", severity: "red", pillar: "fine_print", detail: "Contract has no cancellation or rescission language." },
-  { id: "f3", label: "Vague disposal terms", severity: "red", pillar: "install_scope", detail: "No mention of debris removal or old window disposal." },
-  { id: "f4", label: "Warranty duration unclear", severity: "amber", pillar: "warranty", detail: "Warranty mentioned but no specific duration or coverage details." },
-  { id: "f5", label: "Per-unit pricing not itemized", severity: "amber", pillar: "price_fairness", detail: "Total price given but no per-opening breakdown." },
+  { id: 1, label: "Missing NOA documentation", severity: "red", pillar: "safety_code", detail: "No Florida product approval or NOA numbers listed for any windows.", tip: null },
+  { id: 2, label: "No cancellation clause", severity: "red", pillar: "fine_print", detail: "Contract has no cancellation or rescission language.", tip: null },
+  { id: 3, label: "Vague disposal terms", severity: "red", pillar: "install_scope", detail: "No mention of debris removal or old window disposal.", tip: null },
+  { id: 4, label: "Warranty duration unclear", severity: "amber", pillar: "warranty", detail: "Warranty mentioned but no specific duration or coverage details.", tip: null },
+  { id: 5, label: "Per-unit pricing not itemized", severity: "amber", pillar: "price_fairness", detail: "Total price given but no per-opening breakdown.", tip: null },
 ];
 
 const MOCK_PILLARS: PillarScore[] = [
-  { pillar: "safety_code", score: 25, status: "fail", flags: 1 },
-  { pillar: "install_scope", score: 40, status: "warn", flags: 1 },
-  { pillar: "price_fairness", score: 55, status: "warn", flags: 1 },
-  { pillar: "fine_print", score: 30, status: "fail", flags: 1 },
-  { pillar: "warranty", score: 45, status: "warn", flags: 1 },
+  { key: "safety_code", label: "Safety & Code", score: 25, status: "fail" },
+  { key: "install_scope", label: "Install & Scope", score: 40, status: "warn" },
+  { key: "price_fairness", label: "Price Fairness", score: 55, status: "warn" },
+  { key: "fine_print", label: "Fine Print", score: 30, status: "fail" },
+  { key: "warranty", label: "Warranty", score: 45, status: "warn" },
 ];
 
 export default function DevReportPreview() {
