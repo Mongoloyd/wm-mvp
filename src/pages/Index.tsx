@@ -25,7 +25,7 @@ import StickyCTAFooter from "@/components/StickyCTAFooter";
 import Footer from "@/components/Footer";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { ScanFunnelProvider } from "@/state/scanFunnel";
-import { getVerifiedAccess } from "@/lib/verifiedAccess";
+import { getVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
 
 import { Skeleton } from "@/components/ui/skeleton";
