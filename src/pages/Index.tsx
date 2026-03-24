@@ -26,6 +26,7 @@ import Footer from "@/components/Footer";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { ScanFunnelProvider } from "@/state/scanFunnel";
 import { getVerifiedAccess } from "@/lib/verifiedAccess";
+import { trackEvent } from "@/lib/trackEvent";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
@@ -106,6 +107,7 @@ const Index = () => {
   const pendingScrollRef = useRef(false);
 
   const triggerTruthGate = (source: string) => {
+    trackEvent({ event_name: "cta_scan_funnel", session_id: sessionId, metadata: { source } });
     if (gradeRevealed) { setGradeRevealed(false); setFileUploaded(false); setContractorMatchVisible(false); }
     if (flowMode !== 'A') setFlowMode('A');
     pendingScrollRef.current = true;
@@ -230,7 +232,7 @@ const Index = () => {
                 highlight={truthGateHighlight}
                 onHighlightDone={() => setTruthGateHighlight(false)}
               />
-              <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={(_fileName, ssId) => { setScanSessionId(ssId); setFileUploaded(true); }} />
+              <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={(_fileName, ssId) => { trackEvent({ event_name: "scan_started", session_id: ssId, metadata: { file_name: _fileName } }); setScanSessionId(ssId); setFileUploaded(true); }} />
             </>
           )}
         </>
