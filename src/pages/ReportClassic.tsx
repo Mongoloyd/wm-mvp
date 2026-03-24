@@ -345,14 +345,16 @@ export default function ReportClassic() {
       onSecondScan={handleSecondScan}
       gateProps={accessLevel === "preview" ? gateProps : undefined}
     />
-    <ContractorMatch
-      isVisible={contractorMatchVisible}
-      grade={analysisData.grade}
-      county={county}
-      scanSessionId={sessionId ?? null}
-      isFullLoaded={isFullLoaded}
-      phoneE164={funnel?.phoneE164 || pipeline.e164 || null}
-    />
+    <ContractorMatchErrorBoundary>
+      <ContractorMatch
+        isVisible={contractorMatchVisible}
+        grade={analysisData.grade}
+        county={county}
+        scanSessionId={sessionId ?? null}
+        isFullLoaded={isFullLoaded}
+        phoneE164={funnel?.phoneE164 || pipeline.e164 || null}
+      />
+    </ContractorMatchErrorBoundary>
     </>
   );
 }
