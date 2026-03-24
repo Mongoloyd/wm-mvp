@@ -262,7 +262,6 @@ const Index = () => {
               </div>
             </div>
           ) : activeData ? (
-            <>
               <PostScanReportSwitcher
                 grade={reportGrade}
                 flags={reportFlags}
