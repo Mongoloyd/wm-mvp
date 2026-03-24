@@ -31,6 +31,8 @@ export type PhoneStatus =
   | "verified"
   | "error";
 
+export type ErrorType = "rate_limit" | "expired_session" | "invalid_code" | "network" | "generic";
+
 export interface PipelineStartResult {
   status: "valid" | "otp_sent" | "already_verified" | "blocked" | "error";
   e164?: string;
@@ -55,6 +57,8 @@ export interface UsePhonePipelineReturn {
   phoneStatus: PhoneStatus;
   /** Human-readable error message (empty if none) */
   errorMsg: string;
+  /** Classifies the error for richer UX */
+  errorType: ErrorType | null;
   /** Resend cooldown in seconds (0 = can resend) */
   resendCooldown: number;
   /** onChange handler for phone input */
@@ -90,6 +94,7 @@ export function usePhonePipeline(
 
   const [phoneStatus, setPhoneStatus] = useState<PhoneStatus>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [errorType, setErrorType] = useState<ErrorType | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isSendingRef = useRef(false);
