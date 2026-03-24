@@ -16,6 +16,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getVerifiedAccess, saveVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
+import { trackEvent } from "@/lib/trackEvent";
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
@@ -243,6 +244,7 @@ export function useAnalysisData(
         }
 
         previewFetchedRef.current = scanSessionId;
+        trackEvent({ event_name: "preview_rendered", session_id: scanSessionId, metadata: { grade: row.grade, flag_count: row.flag_count } });
 
         const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
         const previewJson = row.preview_json as Record<string, unknown> | null;
@@ -327,6 +329,7 @@ export function useAnalysisData(
       setIsFullLoaded(true);
       // Save resume record for returning users
       saveVerifiedAccess(scanSessionId, phoneE164);
+      trackEvent({ event_name: "report_unlocked", session_id: scanSessionId, metadata: { grade: row.grade, flag_count: flags.length } });
       console.log("[fetchFull] SUCCESS — isFullLoaded set to true, resume record saved");
     } catch (err) {
       console.error("[fetchFull] exception:", err);
@@ -399,6 +402,7 @@ export function useAnalysisData(
       });
       previewFetchedRef.current = scanSessionId;
       setIsFullLoaded(true);
+      trackEvent({ event_name: "resume_flow_triggered", session_id: scanSessionId, metadata: { grade: row.grade } });
       console.log("[tryResume] SUCCESS — full report restored from resume record");
       return true;
     } catch (err) {
