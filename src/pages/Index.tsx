@@ -277,7 +277,8 @@ const Index = () => {
                 hasPermits={activeData.hasPermits}
                 pageCount={activeData.pageCount}
                 lineItemCount={activeData.lineItemCount}
-                onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
+                onContractorMatchClick={() => {}}
+                onReportHelpCall={() => {}}
                 onSecondScan={() => triggerTruthGate('second_opinion_scan')}
                 scanSessionId={scanSessionId}
                 flagCount={activeData?.flagCount}
@@ -286,8 +287,6 @@ const Index = () => {
                 isFullLoaded={isFullLoaded}
                 onVerified={(phoneE164: string) => { fetchFull(phoneE164); }}
               />
-              <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} scanSessionId={scanSessionId} isFullLoaded={isFullLoaded} phoneE164={getVerifiedAccess(scanSessionId)?.phone_e164 || null} />
-            </>
           ) : null}
         </>
       )}
@@ -310,7 +309,7 @@ const Index = () => {
         flowMode={flowMode} flowBLeadCaptured={flowBLeadCaptured} quoteWatcherSet={quoteWatcherSet}
         onDemoCTAClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
         leadCaptured={leadCaptured} isDevMode={IS_DEV_MODE} gradeRevealed={gradeRevealed}
-        onContractorMatchClick={() => { setContractorMatchVisible(true); setTimeout(() => { document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth" }); }, 100); }} />
+        onContractorMatchClick={() => { document.getElementById("cta-section")?.scrollIntoView({ behavior: "smooth" }); }} />
 
       <StickyCTAFooter
         onScanClick={() => triggerTruthGate('sticky_footer')}
