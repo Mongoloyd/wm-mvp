@@ -1,56 +1,68 @@
 
 
-## Assessment: Both Tests Are Already Passing
+# Fix: Unify Dual CTAs into Report Page & Add Dev Bypass Route
 
-After tracing the full code path, both items from your Phase 1 list are **already implemented and working**. Here's the proof:
+## Problem
 
----
+There are **two disconnected CTA surfaces**:
 
-### Test 1: "Finalize verify-otp binding and logging" — ALREADY DONE
+1. **`TruthReportClassic.tsx`** (lines 492–535) — renders a standalone "Get a Counter-Quote" button that calls `onContractorMatchClick`, which in `ReportClassic.tsx` just does `console.log`. Dead end.
+2. **`ContractorMatch.tsx`** — the full dual-CTA component (Introduction + Report Help Call) with match card, confidence badge, fit reasons, process strip. Only wired into `Index.tsx`, never into the `/report/classic/:sessionId` route.
 
-**verify-otp edge function** (`supabase/functions/verify-otp/index.ts`):
-- Resolves `lead_id` from `scan_sessions` via `scan_session_id` (lines 99-106)
-- Updates `phone_verifications` row with `status: 'verified'`, `verified_at`, and `lead_id` (lines 112-131)
-- Updates `leads.phone_verified = true` and `leads.phone_e164` (lines 140-153)
-- Comprehensive logging at every step (pending row lookup, lead resolution, Twilio response, final state)
+Result: visitors on the report page see a non-functional CTA and never see the match card.
 
-The earlier "leadless scan_sessions" bug (Issue C) was already fixed with a fallback lead creation in `scan-quote`. The backfill migration handled the 121 orphaned rows. The binding chain is complete:
+## Plan
 
-```text
-scan_session_id → scan_sessions.lead_id → leads.id → phone_verifications.lead_id
+### Step 1: Wire ContractorMatch into ReportClassic.tsx
+
+- Import `ContractorMatch` into `ReportClassic.tsx`
+- Add state: `contractorMatchVisible` (boolean)
+- Change `handleContractorMatchClick` to set `contractorMatchVisible = true`
+- Render `<ContractorMatch>` below `<TruthReportClassic>`, passing:
+  - `isVisible={contractorMatchVisible}`
+  - `grade={analysisData.grade}`
+  - `county={county}`
+  - `scanSessionId={sessionId}`
+  - `isFullLoaded={isFullLoaded}`
+  - `phoneE164` from verified access (funnel context or pipeline)
+- ContractorMatch already handles: dual CTAs, match generation, match card rendering, voice webhook
+
+### Step 2: Replace the static CTA section in TruthReportClassic.tsx
+
+- Replace the "CONTRACTOR MATCH CTA" section (lines 492–535) with a simpler prompt that scrolls to the ContractorMatch component
+- OR keep it as-is since it calls `onContractorMatchClick` which will now trigger ContractorMatch visibility — this is the cleaner approach since it preserves the existing report layout
+
+**Decision**: Keep the existing CTA section in TruthReportClassic as the trigger. It already calls `onContractorMatchClick`. No duplication — the match card renders below only after click.
+
+### Step 3: Add Dev Preview Route `/dev/report-preview`
+
+Create `src/pages/DevReportPreview.tsx`:
+- Renders `TruthReportClassic` + `ContractorMatch` with hardcoded mock data
+- No OTP, no upload, no Supabase calls needed
+- Pre-populates: grade D, 3 red flags, 2 amber flags, county "Broward", mock pillar scores
+- `ContractorMatch` starts with `isVisible={true}` and a pre-set `suggestedMatch` object
+- Only accessible in dev mode (guard with `import.meta.env.DEV`)
+
+Register route in `App.tsx` under dev-only lazy import.
+
+### Step 4: Resolve phoneE164 for ContractorMatch on report page
+
+In `ReportClassic.tsx`, the phone is available via `pipeline.e164` or `funnel?.phoneE164` after verification. Pass whichever is available:
+```tsx
+phoneE164={funnel?.phoneE164 || pipeline.e164 || null}
 ```
 
-**Verdict: No work needed.**
+## Files Changed
 
----
+| File | Change |
+|---|---|
+| `src/pages/ReportClassic.tsx` | Import ContractorMatch, add visibility state, render below report |
+| `src/pages/DevReportPreview.tsx` | New dev-only route with mock data for deep UI testing |
+| `src/App.tsx` | Add `/dev/report-preview` route (dev lazy import) |
 
-### Test 2: "Fix frontend unlock handoff after OTP success" — ALREADY DONE
+## What stays untouched
 
-The handoff chain is fully wired:
-
-1. `PostScanReportSwitcher` passes `scanSessionId` to `usePhonePipeline`
-2. On OTP success, `pipeline.onVerified()` fires → calls `props.onVerified(phoneE164)`
-3. Parent (`Index.tsx` line 254) handles it: `onVerified={(phoneE164) => { fetchFull(phoneE164); }}`
-4. `fetchFull` calls `get_analysis_full` RPC with `(scan_session_id, phone_e164)`
-5. RPC checks `phone_verifications` join chain, returns full data
-6. `setIsFullLoaded(true)` triggers `useReportAccess` to return `"full"`
-7. `accessLevel` flips from `"preview"` to `"full"` → gate overlay dismisses → vault opens
-
-**Verdict: No work needed.**
-
----
-
-### What I'd Actually Prioritize Instead
-
-Since the foundation is solid, here's where the predator moves are:
-
-| Priority | Item | Why |
-|----------|------|-----|
-| 1 | **End-to-end smoke test with real SMS** | You've never confirmed the full chain with a real phone. One encoding bug or Twilio config drift and the vault stays locked in prod. |
-| 2 | **Returning user resume flow** | If a verified user returns to their report URL, does `get_analysis_full` still work? The phone is in localStorage but `usePhonePipeline` resets on mount. |
-| 3 | **Error state UX for OTP failures** | What happens when Twilio returns 20404 (expired session)? The error message appears, but there's no "request new code" button distinct from "resend". |
-| 4 | **Contractor Match handoff after unlock** | The dopamine hit you mentioned — after vault opens, is the Contractor Match CTA immediately visible and tracked? |
-| 5 | **Rate limiting on send-otp** | No server-side rate limit exists. A bot could burn your Twilio budget in minutes. |
-
-**Bottom line**: Your Phase 1 items 1 and 2 are already shipped. The real risk is in the edges — returning users, error recovery, and abuse prevention.
+- `ContractorMatch.tsx` — no changes needed, it already has the full dual-CTA system
+- `TruthReportClassic.tsx` — the existing CTA section stays as the trigger button
+- `Index.tsx` — its ContractorMatch integration stays as-is
 
