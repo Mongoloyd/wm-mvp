@@ -1,20 +1,18 @@
 /**
  * AdminDashboard.tsx — WindowMan Operator Command Center
  *
- * Two tabs:
+ * Four tabs:
  *   1. CALL QUEUE — existing lead triage (preserved)
- *   2. CONTRACTOR QUEUE — new routing console for contractor opportunities
+ *   2. CONTRACTOR QUEUE — routing console for contractor opportunities
+ *   3. RELEASE REVIEW — interest/approval/release decisions
+ *   4. REVENUE — billable intros, billing status, outcomes
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { ROUTE_STATUS, RELEASE_STATUS, BILLING_STATUS, BILLING_MODEL, EVENTS, APPOINTMENT_STATUS, QUOTE_STATUS, DEAL_STATUS } from '@/lib/statusConstants';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-
-// Use service-role for admin operations (read contractor tables)
 const supabaseAdmin = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -52,6 +50,8 @@ interface Opportunity {
   assigned_operator: string | null; internal_notes: string | null;
   priority_score: number; routed_at: string | null;
   homeowner_contact_released_at: string | null;
+  release_ready: boolean; last_interest_at: string | null;
+  last_release_at: string | null;
 }
 
 interface Contractor {
@@ -67,6 +67,35 @@ interface Route {
   route_status: string; sent_at: string | null;
   contact_released: boolean; contact_released_at: string | null;
   assigned_by: string | null; routing_reason: string | null;
+  interested_at: string | null; interest_notes: string | null;
+  release_status: string; release_requested_at: string | null;
+  release_reviewed_at: string | null; release_reviewed_by: string | null;
+  release_denial_reason: string | null;
+}
+
+interface BillableIntro {
+  id: string; created_at: string; updated_at: string;
+  opportunity_id: string; route_id: string; contractor_id: string;
+  lead_id: string; analysis_id: string | null;
+  release_approved_at: string | null; contact_released_at: string | null;
+  billing_status: string; billing_model: string | null;
+  fee_amount: number | null; currency: string;
+  invoice_reference: string | null;
+  paid_at: string | null; waived_at: string | null;
+  refunded_at: string | null; disputed_at: string | null;
+  released_by: string | null; notes: string | null;
+}
+
+interface ContractorOutcome {
+  id: string; created_at: string; updated_at: string;
+  billable_intro_id: string; opportunity_id: string;
+  route_id: string | null; contractor_id: string | null;
+  appointment_status: string | null; appointment_booked_at: string | null;
+  quote_status: string | null; replacement_quote_range: string | null;
+  did_beat_price: boolean | null; did_improve_warranty: boolean | null;
+  did_fix_scope_gaps: boolean | null;
+  deal_status: string | null; deal_value: number | null;
+  closed_at: string | null; outcome_notes: string | null;
 }
 
 interface DailyStats {
@@ -143,6 +172,25 @@ function StatusPill({ status }: { status: string }) {
     closed_won: { bg: 'rgba(16,185,129,0.25)', color: '#10B981' },
     closed_lost: { bg: 'rgba(107,114,128,0.2)', color: '#6B7280' },
     dead: { bg: 'rgba(107,114,128,0.15)', color: '#6B7280' },
+    // Release statuses
+    none: { bg: 'rgba(107,114,128,0.1)', color: '#6B7280' },
+    pending_review: { bg: 'rgba(245,158,11,0.15)', color: '#F59E0B' },
+    approved: { bg: 'rgba(16,185,129,0.15)', color: '#10B981' },
+    denied: { bg: 'rgba(239,68,68,0.15)', color: '#EF4444' },
+    released: { bg: 'rgba(59,130,246,0.15)', color: '#3B82F6' },
+    // Billing statuses
+    pending: { bg: 'rgba(245,158,11,0.12)', color: '#F59E0B' },
+    billable: { bg: 'rgba(16,185,129,0.15)', color: '#10B981' },
+    invoiced: { bg: 'rgba(59,130,246,0.15)', color: '#3B82F6' },
+    paid: { bg: 'rgba(16,185,129,0.25)', color: '#10B981' },
+    waived: { bg: 'rgba(107,114,128,0.15)', color: '#6B7280' },
+    refunded: { bg: 'rgba(239,68,68,0.12)', color: '#EF4444' },
+    disputed: { bg: 'rgba(220,38,38,0.15)', color: '#DC2626' },
+    void: { bg: 'rgba(107,114,128,0.1)', color: '#6B7280' },
+    // Route statuses
+    interested: { bg: 'rgba(16,185,129,0.15)', color: '#10B981' },
+    sent: { bg: 'rgba(6,182,212,0.15)', color: '#06B6D4' },
+    suggested: { bg: 'rgba(107,114,128,0.12)', color: '#7D9DBB' },
   };
   const style = colorMap[status] || { bg: 'rgba(107,114,128,0.15)', color: '#6B7280' };
   return (
@@ -293,50 +341,20 @@ function StatsHeader({ stats }: { stats: DailyStats }) {
 // CONTRACTOR QUEUE — OPPORTUNITY ROW
 // ══════════════════════════════════════════════════════════════════════════════
 
-function OpportunityRow({
-  opp, onOpenDetail,
-}: {
-  opp: Opportunity;
-  onOpenDetail: (opp: Opportunity) => void;
-}) {
+function OpportunityRow({ opp, onOpenDetail }: { opp: Opportunity; onOpenDetail: (opp: Opportunity) => void; }) {
   const age = secondsSince(opp.intro_requested_at);
-
   return (
-    <div
-      style={{
-        background: '#111418', border: '1px solid #2E3A50',
-        borderLeft: `3px solid ${opp.priority_score >= 60 ? '#DC2626' : opp.priority_score >= 35 ? '#F59E0B' : '#2E3A50'}`,
-        marginBottom: 6, cursor: 'pointer',
-      }}
-      onClick={() => onOpenDetail(opp)}
-    >
-      <div style={{
-        display: 'grid', gridTemplateColumns: '50px 1fr 100px 80px 100px 120px',
-        gap: 0, alignItems: 'center', padding: '12px 14px',
-      }}>
-        {/* Priority */}
-        <div style={{
-          fontFamily: dispFont, fontWeight: 900, fontSize: 22,
-          color: opp.priority_score >= 60 ? '#DC2626' : opp.priority_score >= 35 ? '#F59E0B' : '#7D9DBB',
-        }}>
-          {opp.priority_score}
-        </div>
-
-        {/* Grade + county + project */}
+    <div style={{ background: '#111418', border: '1px solid #2E3A50', borderLeft: `3px solid ${opp.priority_score >= 60 ? '#DC2626' : opp.priority_score >= 35 ? '#F59E0B' : '#2E3A50'}`, marginBottom: 6, cursor: 'pointer' }} onClick={() => onOpenDetail(opp)}>
+      <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 100px 80px 100px 120px', gap: 0, alignItems: 'center', padding: '12px 14px' }}>
+        <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 22, color: opp.priority_score >= 60 ? '#DC2626' : opp.priority_score >= 35 ? '#F59E0B' : '#7D9DBB' }}>{opp.priority_score}</div>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 3 }}>
             <GradeBadge grade={opp.grade} />
-            <span style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>
-              {opp.county || '—'} County
-            </span>
+            <span style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{opp.county || '—'} County</span>
             <StatusPill status={opp.status} />
           </div>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>
-            {opp.project_type || '—'} · {opp.window_count ?? '—'} windows · {opp.quote_range || '—'}
-          </div>
+          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>{opp.project_type || '—'} · {opp.window_count ?? '—'} windows · {opp.quote_range || '—'}</div>
         </div>
-
-        {/* Flags */}
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em', marginBottom: 2 }}>FLAGS</div>
           <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
@@ -345,33 +363,12 @@ function OpportunityRow({
             {opp.flag_count === 0 && <span style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB' }}>0</span>}
           </div>
         </div>
-
-        {/* Age */}
-        <div style={{ fontFamily: monoFont, fontSize: 12, color: '#A0B8D8', textAlign: 'right' }}>
-          {formatAge(age)} ago
-        </div>
-
-        {/* Routed? */}
+        <div style={{ fontFamily: monoFont, fontSize: 12, color: '#A0B8D8', textAlign: 'right' }}>{formatAge(age)} ago</div>
         <div style={{ textAlign: 'center' }}>
-          {opp.routed_at ? (
-            <span style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', letterSpacing: '0.08em' }}>ROUTED</span>
-          ) : (
-            <span style={{ fontFamily: monoFont, fontSize: 9, color: '#F59E0B', letterSpacing: '0.08em' }}>PENDING</span>
-          )}
+          {opp.routed_at ? <span style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', letterSpacing: '0.08em' }}>ROUTED</span> : <span style={{ fontFamily: monoFont, fontSize: 9, color: '#F59E0B', letterSpacing: '0.08em' }}>PENDING</span>}
         </div>
-
-        {/* Actions */}
         <div style={{ display: 'flex', gap: 5, justifyContent: 'flex-end' }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); onOpenDetail(opp); }}
-            style={{
-              fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#FFFFFF',
-              background: '#0B60C5', border: 'none', padding: '5px 12px',
-              borderRadius: 2, cursor: 'pointer',
-            }}
-          >
-            OPEN BRIEF
-          </button>
+          <button onClick={(e) => { e.stopPropagation(); onOpenDetail(opp); }} style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}>OPEN BRIEF</button>
         </div>
       </div>
     </div>
@@ -379,53 +376,48 @@ function OpportunityRow({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// OPPORTUNITY DETAIL PANEL
+// OPPORTUNITY DETAIL PANEL (with Phase 3.4 interest/release actions)
 // ══════════════════════════════════════════════════════════════════════════════
 
 function OpportunityDetail({
-  opp, contractors, routes, onClose, onRoute, onReleaseContact, onMarkDead, onRefresh,
+  opp, contractors, routes, onClose, onRoute, onMarkInterested, onReviewRelease, onReleaseContact, onMarkDead, onRefresh,
 }: {
-  opp: Opportunity;
-  contractors: Contractor[];
-  routes: Route[];
+  opp: Opportunity; contractors: Contractor[]; routes: Route[];
   onClose: () => void;
   onRoute: (oppId: string, contractorId: string) => void;
-  onReleaseContact: (oppId: string, routeId: string) => void;
+  onMarkInterested: (routeId: string, oppId: string, contractorId: string) => void;
+  onReviewRelease: (routeId: string, decision: 'approve' | 'deny', reason?: string) => void;
+  onReleaseContact: (routeId: string, oppId: string, contractorId: string, leadId: string, analysisId: string) => void;
   onMarkDead: (oppId: string) => void;
   onRefresh: () => void;
 }) {
+  const [releaseModel, setReleaseModel] = useState('flat_fee');
+  const [releaseFee, setReleaseFee] = useState('');
+  const [denyReason, setDenyReason] = useState('');
   const briefJson = opp.brief_json as Record<string, unknown> | null;
 
-  // Suggested contractors: match county, project type, vetting status
   const suggested = contractors.filter(c => {
     if (c.status !== 'active' || !c.is_vetted) return false;
-    const countyMatch = !opp.county || c.service_counties.length === 0 ||
-      c.service_counties.some(sc => sc.toLowerCase() === opp.county?.toLowerCase());
-    const projectMatch = !opp.project_type || c.project_types.length === 0 ||
-      c.project_types.some(pt => pt.toLowerCase() === opp.project_type?.toLowerCase());
-    const windowFit = (!c.min_window_count || (opp.window_count ?? 0) >= c.min_window_count) &&
-      (!c.max_window_count || (opp.window_count ?? 999) <= c.max_window_count);
+    const countyMatch = !opp.county || c.service_counties.length === 0 || c.service_counties.some(sc => sc.toLowerCase() === opp.county?.toLowerCase());
+    const projectMatch = !opp.project_type || c.project_types.length === 0 || c.project_types.some(pt => pt.toLowerCase() === opp.project_type?.toLowerCase());
+    const windowFit = (!c.min_window_count || (opp.window_count ?? 0) >= c.min_window_count) && (!c.max_window_count || (opp.window_count ?? 999) <= c.max_window_count);
     const gradeOk = c.accepts_low_grade_leads || (opp.grade === 'A' || opp.grade === 'B');
     return countyMatch && projectMatch && windowFit && gradeOk;
   });
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: 40, overflowY: 'auto' }}>
-      <div style={{ background: '#0E1117', border: '1px solid #2E3A50', width: '100%', maxWidth: 800, maxHeight: '90vh', overflowY: 'auto', padding: '28px 32px' }}>
+      <div style={{ background: '#0E1117', border: '1px solid #2E3A50', width: '100%', maxWidth: 850, maxHeight: '90vh', overflowY: 'auto', padding: '28px 32px' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
               <GradeBadge grade={opp.grade} />
-              <span style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 24, color: '#FFFFFF', textTransform: 'uppercase' }}>
-                {opp.county || '—'} County Opportunity
-              </span>
+              <span style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 24, color: '#FFFFFF', textTransform: 'uppercase' }}>{opp.county || '—'} County Opportunity</span>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <StatusPill status={opp.status} />
-              <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>
-                PRIORITY: {opp.priority_score}
-              </span>
+              <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>PRIORITY: {opp.priority_score}</span>
             </div>
           </div>
           <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 14, color: '#7D9DBB', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>✕</button>
@@ -436,14 +428,10 @@ function OpportunityDetail({
           <div style={{ fontFamily: monoFont, fontSize: 9, color: '#2563EB', letterSpacing: '0.12em', marginBottom: 12 }}>CONTRACTOR-SAFE BRIEF</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {[
-              ['Grade', opp.grade || '—'],
-              ['County', opp.county || '—'],
-              ['Project', opp.project_type || '—'],
-              ['Windows', opp.window_count?.toString() || '—'],
-              ['Quote Range', opp.quote_range || '—'],
-              ['Total Flags', opp.flag_count.toString()],
-              ['Red Flags', opp.red_flag_count.toString()],
-              ['Amber Flags', opp.amber_flag_count.toString()],
+              ['Grade', opp.grade || '—'], ['County', opp.county || '—'],
+              ['Project', opp.project_type || '—'], ['Windows', opp.window_count?.toString() || '—'],
+              ['Quote Range', opp.quote_range || '—'], ['Total Flags', opp.flag_count.toString()],
+              ['Red Flags', opp.red_flag_count.toString()], ['Amber Flags', opp.amber_flag_count.toString()],
             ].map(([label, value]) => (
               <div key={label} style={{ display: 'flex', gap: 8 }}>
                 <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', width: 80, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
@@ -451,7 +439,6 @@ function OpportunityDetail({
               </div>
             ))}
           </div>
-          {/* Flag summary */}
           {briefJson?.flag_summary && Array.isArray(briefJson.flag_summary) && (
             <div style={{ marginTop: 16, borderTop: '1px solid #2E3A50', paddingTop: 12 }}>
               <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 8 }}>FLAG SUMMARY</div>
@@ -462,43 +449,27 @@ function OpportunityDetail({
               ))}
             </div>
           )}
-          {/* Brief text */}
           {opp.brief_text && (
             <div style={{ marginTop: 12 }}>
-              <button
-                onClick={() => { navigator.clipboard.writeText(opp.brief_text || ''); }}
-                style={{ fontFamily: monoFont, fontSize: 9, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}
-              >
-                📋 COPY FULL BRIEF
-              </button>
+              <button onClick={() => navigator.clipboard.writeText(opp.brief_text || '')} style={{ fontFamily: monoFont, fontSize: 9, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}>📋 COPY FULL BRIEF</button>
             </div>
           )}
         </div>
 
         {/* Internal-only section — PII warning */}
         <div style={{ background: 'rgba(220,38,38,0.04)', border: '1px solid rgba(220,38,38,0.2)', padding: '16px 20px', marginBottom: 16 }}>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#DC2626', letterSpacing: '0.12em', marginBottom: 8 }}>
-            ⚠ INTERNAL OPERATOR ONLY — NOT CONTRACTOR-SAFE
-          </div>
-          <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB' }}>
-            Lead ID: {opp.lead_id.slice(0, 8)}… · Session: {opp.scan_session_id.slice(0, 8)}…
-          </div>
+          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#DC2626', letterSpacing: '0.12em', marginBottom: 8 }}>⚠ INTERNAL OPERATOR ONLY — NOT CONTRACTOR-SAFE</div>
+          <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB' }}>Lead ID: {opp.lead_id.slice(0, 8)}… · Session: {opp.scan_session_id.slice(0, 8)}…</div>
           {opp.homeowner_contact_released_at && (
-            <div style={{ fontFamily: monoFont, fontSize: 10, color: '#F59E0B', marginTop: 4 }}>
-              Contact released: {new Date(opp.homeowner_contact_released_at).toLocaleString()}
-            </div>
+            <div style={{ fontFamily: monoFont, fontSize: 10, color: '#F59E0B', marginTop: 4 }}>Contact released: {new Date(opp.homeowner_contact_released_at).toLocaleString()}</div>
           )}
         </div>
 
         {/* Suggested Contractors */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>
-            SUGGESTED CONTRACTORS ({suggested.length})
-          </div>
+          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>SUGGESTED CONTRACTORS ({suggested.length})</div>
           {suggested.length === 0 ? (
-            <div style={{ fontFamily: bodyFont, fontSize: 13, color: '#7D9DBB', padding: 12, background: '#111418', border: '1px solid #2E3A50' }}>
-              No matching contractors found. Check contractor registry.
-            </div>
+            <div style={{ fontFamily: bodyFont, fontSize: 13, color: '#7D9DBB', padding: 12, background: '#111418', border: '1px solid #2E3A50' }}>No matching contractors found.</div>
           ) : (
             suggested.map(c => {
               const alreadyRouted = routes.some(r => r.contractor_id === c.id);
@@ -509,19 +480,10 @@ function OpportunityDetail({
                       {c.company_name}
                       {c.is_vetted && <span style={{ fontFamily: monoFont, fontSize: 8, color: '#10B981', marginLeft: 8, letterSpacing: '0.08em' }}>✓ VETTED</span>}
                     </div>
-                    <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.06em', marginTop: 2 }}>
-                      {c.service_counties.join(', ') || '—'} · {c.project_types.join(', ') || 'all types'}
-                    </div>
+                    <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.06em', marginTop: 2 }}>{c.service_counties.join(', ') || '—'} · {c.project_types.join(', ') || 'all types'}</div>
                   </div>
-                  {alreadyRouted ? (
-                    <span style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', letterSpacing: '0.08em' }}>ROUTED</span>
-                  ) : (
-                    <button
-                      onClick={() => onRoute(opp.id, c.id)}
-                      style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}
-                    >
-                      ROUTE BRIEF
-                    </button>
+                  {alreadyRouted ? <span style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', letterSpacing: '0.08em' }}>ROUTED</span> : (
+                    <button onClick={() => onRoute(opp.id, c.id)} style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}>ROUTE BRIEF</button>
                   )}
                 </div>
               );
@@ -529,31 +491,63 @@ function OpportunityDetail({
           )}
         </div>
 
-        {/* Existing routes */}
+        {/* Routing History with Phase 3.4 actions */}
         {routes.length > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>
-              ROUTING HISTORY ({routes.length})
-            </div>
+            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>ROUTING HISTORY ({routes.length})</div>
             {routes.map(r => {
               const contractor = contractors.find(c => c.id === r.contractor_id);
               return (
-                <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: '#111418', border: '1px solid #2E3A50', marginBottom: 4 }}>
-                  <div>
-                    <span style={{ fontFamily: bodyFont, fontSize: 13, color: '#FFFFFF' }}>{contractor?.company_name || 'Unknown'}</span>
-                    <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginLeft: 8 }}>{r.route_status.toUpperCase()}</span>
+                <div key={r.id} style={{ padding: '12px 14px', background: '#111418', border: '1px solid #2E3A50', marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <div>
+                      <span style={{ fontFamily: bodyFont, fontSize: 13, color: '#FFFFFF' }}>{contractor?.company_name || 'Unknown'}</span>
+                      <StatusPill status={r.route_status} />
+                      <StatusPill status={r.release_status} />
+                    </div>
                   </div>
-                  {!r.contact_released && (
-                    <button
-                      onClick={() => onReleaseContact(opp.id, r.id)}
-                      style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}
-                    >
-                      RELEASE CONTACT
-                    </button>
-                  )}
-                  {r.contact_released && (
-                    <span style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981' }}>CONTACT RELEASED</span>
-                  )}
+                  {/* Action buttons based on lifecycle state */}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                    {/* Mark Interested */}
+                    {r.route_status === 'sent' && (
+                      <button onClick={() => onMarkInterested(r.id, opp.id, r.contractor_id)}
+                        style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                        MARK INTERESTED
+                      </button>
+                    )}
+                    {/* Approve / Deny release */}
+                    {r.release_status === 'pending_review' && (
+                      <>
+                        <button onClick={() => onReviewRelease(r.id, 'approve')}
+                          style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                          APPROVE RELEASE
+                        </button>
+                        <button onClick={() => { const reason = denyReason || undefined; onReviewRelease(r.id, 'deny', reason); }}
+                          style={{ fontFamily: monoFont, fontSize: 9, color: '#EF4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                          DENY
+                        </button>
+                        <input value={denyReason} onChange={e => setDenyReason(e.target.value)} placeholder="denial reason..."
+                          style={{ fontFamily: monoFont, fontSize: 9, color: '#A0B8D8', background: '#161C28', border: '1px solid #2E3A50', padding: '3px 8px', borderRadius: 0, width: 160 }} />
+                      </>
+                    )}
+                    {/* Release Contact — explicit, requires approval first */}
+                    {r.release_status === 'approved' && !r.contact_released && (
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', border: '1px solid rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.04)', padding: '6px 10px' }}>
+                        <select value={releaseModel} onChange={e => setReleaseModel(e.target.value)}
+                          style={{ fontFamily: monoFont, fontSize: 9, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '3px 6px', borderRadius: 0 }}>
+                          {Object.entries(BILLING_MODEL).map(([k, v]) => <option key={v} value={v}>{k}</option>)}
+                        </select>
+                        <input value={releaseFee} onChange={e => setReleaseFee(e.target.value)} placeholder="fee $" type="number"
+                          style={{ fontFamily: monoFont, fontSize: 9, color: '#A0B8D8', background: '#161C28', border: '1px solid #2E3A50', padding: '3px 6px', width: 70, borderRadius: 0 }} />
+                        <button onClick={() => onReleaseContact(r.id, opp.id, r.contractor_id, opp.lead_id, opp.analysis_id)}
+                          style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}>
+                          ⚠ RELEASE HOMEOWNER CONTACT
+                        </button>
+                      </div>
+                    )}
+                    {r.contact_released && <span style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981' }}>✓ CONTACT RELEASED {r.contact_released_at ? new Date(r.contact_released_at).toLocaleDateString() : ''}</span>}
+                    {r.release_status === 'denied' && <span style={{ fontFamily: monoFont, fontSize: 9, color: '#EF4444' }}>✗ DENIED {r.release_denial_reason ? `(${r.release_denial_reason})` : ''}</span>}
+                  </div>
                 </div>
               );
             })}
@@ -579,20 +573,169 @@ function OpportunityDetail({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// BILLABLE INTRO ROW
+// ══════════════════════════════════════════════════════════════════════════════
+
+function BillableIntroRow({
+  intro, contractors, outcomes, onStatusChange, onOpenOutcome,
+}: {
+  intro: BillableIntro;
+  contractors: Contractor[];
+  outcomes: ContractorOutcome[];
+  onStatusChange: (id: string, status: string) => void;
+  onOpenOutcome: (intro: BillableIntro) => void;
+}) {
+  const contractor = contractors.find(c => c.id === intro.contractor_id);
+  const outcome = outcomes.find(o => o.billable_intro_id === intro.id);
+  const age = secondsSince(intro.created_at);
+
+  return (
+    <div style={{ background: '#111418', border: '1px solid #2E3A50', borderLeft: `3px solid ${intro.billing_status === 'paid' ? '#10B981' : intro.billing_status === 'billable' ? '#F59E0B' : '#2E3A50'}`, marginBottom: 6, padding: '12px 14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 100px 100px 140px', gap: 8, alignItems: 'center' }}>
+        <div>
+          <div style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{contractor?.company_name || 'Unknown Contractor'}</div>
+          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 2 }}>
+            {intro.billing_model?.replace(/_/g, ' ').toUpperCase() || '—'} · {formatAge(age)} ago
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          {intro.fee_amount != null ? (
+            <span style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 18, color: '#F59E0B' }}>${intro.fee_amount}</span>
+          ) : (
+            <span style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB' }}>—</span>
+          )}
+        </div>
+        <div><StatusPill status={intro.billing_status} /></div>
+        <div>
+          {outcome && (
+            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB' }}>
+              {outcome.deal_status?.toUpperCase() || 'OPEN'} · {outcome.appointment_status?.toUpperCase() || 'PENDING'}
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+          <select value={intro.billing_status} onChange={e => onStatusChange(intro.id, e.target.value)}
+            style={{ fontFamily: monoFont, fontSize: 9, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '3px 6px', borderRadius: 0 }}>
+            {Object.values(BILLING_STATUS).map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+          </select>
+          <button onClick={() => onOpenOutcome(intro)}
+            style={{ fontFamily: monoFont, fontSize: 9, color: '#2563EB', background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.3)', padding: '4px 8px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
+            OUTCOME
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// OUTCOME EDITOR MODAL
+// ══════════════════════════════════════════════════════════════════════════════
+
+function OutcomeEditor({
+  intro, outcome, contractors, onSave, onClose,
+}: {
+  intro: BillableIntro;
+  outcome: ContractorOutcome | null;
+  contractors: Contractor[];
+  onSave: (data: Partial<ContractorOutcome>) => void;
+  onClose: () => void;
+}) {
+  const contractor = contractors.find(c => c.id === intro.contractor_id);
+  const [apptStatus, setApptStatus] = useState(outcome?.appointment_status || 'pending');
+  const [apptDate, setApptDate] = useState(outcome?.appointment_booked_at?.split('T')[0] || '');
+  const [quoteStatus, setQuoteStatus] = useState(outcome?.quote_status || 'pending');
+  const [replRange, setReplRange] = useState(outcome?.replacement_quote_range || '');
+  const [beatPrice, setBeatPrice] = useState(outcome?.did_beat_price || false);
+  const [improvedWarranty, setImprovedWarranty] = useState(outcome?.did_improve_warranty || false);
+  const [fixedGaps, setFixedGaps] = useState(outcome?.did_fix_scope_gaps || false);
+  const [dealStatus, setDealStatus] = useState(outcome?.deal_status || 'open');
+  const [dealValue, setDealValue] = useState(outcome?.deal_value?.toString() || '');
+  const [notes, setNotes] = useState(outcome?.outcome_notes || '');
+
+  const handleSave = () => {
+    onSave({
+      appointment_status: apptStatus,
+      appointment_booked_at: apptDate ? new Date(apptDate).toISOString() : undefined,
+      quote_status: quoteStatus,
+      replacement_quote_range: replRange || undefined,
+      did_beat_price: beatPrice,
+      did_improve_warranty: improvedWarranty,
+      did_fix_scope_gaps: fixedGaps,
+      deal_status: dealStatus,
+      deal_value: dealValue ? parseFloat(dealValue) : undefined,
+      outcome_notes: notes || undefined,
+    } as Partial<ContractorOutcome>);
+  };
+
+  const fieldRow = (label: string, children: React.ReactNode) => (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
+      <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', width: 110, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
+      {children}
+    </div>
+  );
+
+  const selectStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: 10, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '4px 8px', borderRadius: 0 };
+  const inputStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: 10, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '4px 8px', borderRadius: 0, width: 160 };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={{ background: '#0E1117', border: '1px solid #2E3A50', width: '100%', maxWidth: 520, padding: '28px 32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div>
+            <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 20, color: '#FFFFFF', textTransform: 'uppercase' }}>OUTCOME TRACKING</div>
+            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 4 }}>
+              Contractor: {contractor?.company_name || '—'} · Intro: {intro.id.slice(0, 8)}…
+            </div>
+          </div>
+          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 14, color: '#7D9DBB', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+        </div>
+
+        {fieldRow('APPOINTMENT', (
+          <select value={apptStatus} onChange={e => setApptStatus(e.target.value)} style={selectStyle}>
+            {Object.values(APPOINTMENT_STATUS).map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+          </select>
+        ))}
+        {fieldRow('BOOKED DATE', <input type="date" value={apptDate} onChange={e => setApptDate(e.target.value)} style={inputStyle} />)}
+        {fieldRow('QUOTE STATUS', (
+          <select value={quoteStatus} onChange={e => setQuoteStatus(e.target.value)} style={selectStyle}>
+            {Object.values(QUOTE_STATUS).map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+          </select>
+        ))}
+        {fieldRow('REPL. RANGE', <input value={replRange} onChange={e => setReplRange(e.target.value)} placeholder="e.g. $8,000-$12,000" style={inputStyle} />)}
+        {fieldRow('BEAT PRICE', <input type="checkbox" checked={beatPrice} onChange={e => setBeatPrice(e.target.checked)} />)}
+        {fieldRow('BETTER WARRANTY', <input type="checkbox" checked={improvedWarranty} onChange={e => setImprovedWarranty(e.target.checked)} />)}
+        {fieldRow('FIXED GAPS', <input type="checkbox" checked={fixedGaps} onChange={e => setFixedGaps(e.target.checked)} />)}
+        {fieldRow('DEAL STATUS', (
+          <select value={dealStatus} onChange={e => setDealStatus(e.target.value)} style={selectStyle}>
+            {Object.values(DEAL_STATUS).map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+          </select>
+        ))}
+        {fieldRow('DEAL VALUE', <input type="number" value={dealValue} onChange={e => setDealValue(e.target.value)} placeholder="$" style={inputStyle} />)}
+        {fieldRow('NOTES', <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} style={{ ...inputStyle, width: '100%', resize: 'vertical' }} />)}
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20, borderTop: '1px solid #2E3A50', paddingTop: 16 }}>
+          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB', background: 'transparent', border: '1px solid #2E3A50', padding: '7px 14px', borderRadius: 2, cursor: 'pointer' }}>CANCEL</button>
+          <button onClick={handleSave} style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 11, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '7px 18px', borderRadius: 2, cursor: 'pointer' }}>SAVE OUTCOME</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // MAIN ADMIN DASHBOARD
 // ══════════════════════════════════════════════════════════════════════════════
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'calls' | 'contractor'>('calls');
+  const [activeTab, setActiveTab] = useState<'calls' | 'contractor' | 'release' | 'revenue'>('calls');
 
   // ── Call Queue State ────
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filter, setFilter] = useState<'all' | 'new' | 'tier1'>('tier1');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<DailyStats>({
-    totalLeads: 0, tier1Leads: 0, verifiedLeads: 0, appointmentsToday: 0, projectedRevenue: 0,
-  });
+  const [stats, setStats] = useState<DailyStats>({ totalLeads: 0, tier1Leads: 0, verifiedLeads: 0, appointmentsToday: 0, projectedRevenue: 0 });
 
   // ── Contractor Queue State ────
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -602,18 +745,26 @@ export default function AdminDashboard() {
   const [oppFilter, setOppFilter] = useState<'all' | 'pending' | 'routed'>('all');
   const [oppLoading, setOppLoading] = useState(true);
 
+  // ── Release Review State ────
+  const [allRoutes, setAllRoutes] = useState<Route[]>([]);
+  const [releaseLoading, setReleaseLoading] = useState(true);
+
+  // ── Revenue State ────
+  const [billableIntros, setBillableIntros] = useState<BillableIntro[]>([]);
+  const [outcomes, setOutcomes] = useState<ContractorOutcome[]>([]);
+  const [revenueLoading, setRevenueLoading] = useState(true);
+  const [outcomeEditorIntro, setOutcomeEditorIntro] = useState<BillableIntro | null>(null);
+
+  // ── Release model state (for the detail modal) ────
+  const [releaseModel, setReleaseModel] = useState('flat_fee');
+  const [releaseFee, setReleaseFee] = useState('');
+
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // ── Call Queue Fetch ────
+  // ── Fetch functions ────
   const fetchLeads = useCallback(async () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const { data, error } = await supabase
-      .from('leads')
-      .select('*')
-      .gte('created_at', today.toISOString())
-      .order('created_at', { ascending: false });
-
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const { data, error } = await supabase.from('leads').select('*').gte('created_at', today.toISOString()).order('created_at', { ascending: false });
     if (!error && data) {
       setLeads(data as Lead[]);
       const todayLeads = data as Lead[];
@@ -628,126 +779,124 @@ export default function AdminDashboard() {
     setLoading(false);
   }, []);
 
-  // ── Contractor Queue Fetch ────
   const fetchOpportunities = useCallback(async () => {
     setOppLoading(true);
-    const { data, error } = await supabase
-      .from('contractor_opportunities')
-      .select('*')
-      .order('priority_score', { ascending: false });
-
-    if (!error && data) {
-      setOpportunities(data as Opportunity[]);
-    }
-
-    const { data: contractorData } = await supabase
-      .from('contractors')
-      .select('*')
-      .eq('status', 'active');
-    if (contractorData) setContractors(contractorData as Contractor[]);
-
+    const { data } = await supabase.from('contractor_opportunities').select('*').order('priority_score', { ascending: false });
+    if (data) setOpportunities(data as Opportunity[]);
+    const { data: cd } = await supabase.from('contractors').select('*').eq('status', 'active');
+    if (cd) setContractors(cd as Contractor[]);
     setOppLoading(false);
   }, []);
 
   const fetchRoutesForOpp = useCallback(async (oppId: string) => {
-    const { data } = await supabase
-      .from('contractor_opportunity_routes')
-      .select('*')
-      .eq('opportunity_id', oppId)
-      .order('created_at', { ascending: false });
+    const { data } = await supabase.from('contractor_opportunity_routes').select('*').eq('opportunity_id', oppId).order('created_at', { ascending: false });
     if (data) setOppRoutes(data as Route[]);
+  }, []);
+
+  const fetchAllRoutes = useCallback(async () => {
+    setReleaseLoading(true);
+    const { data } = await supabase.from('contractor_opportunity_routes').select('*').order('created_at', { ascending: false });
+    if (data) setAllRoutes(data as Route[]);
+    setReleaseLoading(false);
+  }, []);
+
+  const fetchBillableIntros = useCallback(async () => {
+    setRevenueLoading(true);
+    const { data: intros } = await supabase.from('billable_intros').select('*').order('created_at', { ascending: false });
+    if (intros) setBillableIntros(intros as BillableIntro[]);
+    const { data: outs } = await supabase.from('contractor_outcomes').select('*');
+    if (outs) setOutcomes(outs as ContractorOutcome[]);
+    setRevenueLoading(false);
   }, []);
 
   useEffect(() => {
     fetchLeads();
     fetchOpportunities();
-
+    fetchAllRoutes();
+    fetchBillableIntros();
     channelRef.current = supabase
       .channel('admin-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => fetchLeads())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'contractor_opportunities' }, () => fetchOpportunities())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contractor_opportunity_routes' }, () => { fetchAllRoutes(); if (selectedOpp) fetchRoutesForOpp(selectedOpp.id); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'billable_intros' }, () => fetchBillableIntros())
       .subscribe();
-
     return () => { channelRef.current?.unsubscribe(); };
-  }, [fetchLeads, fetchOpportunities]);
+  }, [fetchLeads, fetchOpportunities, fetchAllRoutes, fetchBillableIntros]);
 
-  useEffect(() => {
-    if (selectedOpp) fetchRoutesForOpp(selectedOpp.id);
-  }, [selectedOpp, fetchRoutesForOpp]);
+  useEffect(() => { if (selectedOpp) fetchRoutesForOpp(selectedOpp.id); }, [selectedOpp, fetchRoutesForOpp]);
 
   // ── Call Queue Actions ────
   const handleStatusChange = async (id: string, status: Lead['status']) => {
     await supabase.from('leads').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
   };
-  const handleCallNow = (lead: Lead) => {
-    window.open(`tel:${lead.phone}`, '_self');
-    handleStatusChange(lead.id, 'called');
-  };
-  const handleSMS = (lead: Lead) => {
-    window.open(`sms:${lead.phone}?body=${encodeURIComponent(buildSMSScript(lead))}`, '_self');
-  };
+  const handleCallNow = (lead: Lead) => { window.open(`tel:${lead.phone}`, '_self'); handleStatusChange(lead.id, 'called'); };
+  const handleSMS = (lead: Lead) => { window.open(`sms:${lead.phone}?body=${encodeURIComponent(buildSMSScript(lead))}`, '_self'); };
 
   // ── Contractor Queue Actions ────
   const handleRoute = async (oppId: string, contractorId: string) => {
     const now = new Date().toISOString();
     await supabase.from('contractor_opportunity_routes').insert({
-      opportunity_id: oppId,
-      contractor_id: contractorId,
-      route_status: 'sent',
-      sent_at: now,
-      assigned_by: 'operator',
-      routing_reason: 'manual_assignment',
+      opportunity_id: oppId, contractor_id: contractorId, route_status: 'sent',
+      sent_at: now, assigned_by: 'operator', routing_reason: 'manual_assignment',
     });
-    await supabase.from('contractor_opportunities').update({
-      status: 'sent_to_contractor',
-      routed_at: now,
-    }).eq('id', oppId);
-
-    await supabase.from('event_logs').insert({
-      event_name: 'contractor_intro_routed',
-      session_id: opportunities.find(o => o.id === oppId)?.scan_session_id || null,
-      route: '/admin',
-      metadata: { opportunity_id: oppId, contractor_id: contractorId, timestamp: now },
-    });
-
-    fetchOpportunities();
+    await supabase.from('contractor_opportunities').update({ status: 'sent_to_contractor', routed_at: now }).eq('id', oppId);
+    await supabase.from('event_logs').insert({ event_name: 'contractor_intro_routed', session_id: opportunities.find(o => o.id === oppId)?.scan_session_id || null, route: '/admin', metadata: { opportunity_id: oppId, contractor_id: contractorId, timestamp: now } });
+    fetchOpportunities(); fetchAllRoutes();
     if (selectedOpp?.id === oppId) fetchRoutesForOpp(oppId);
   };
 
-  const handleReleaseContact = async (oppId: string, routeId: string) => {
-    const now = new Date().toISOString();
-    await supabase.from('contractor_opportunity_routes').update({
-      contact_released: true,
-      contact_released_at: now,
-    }).eq('id', routeId);
+  // ── Phase 3.4 Actions (via edge function) ────
+  const invokeAction = async (action: string, payload: Record<string, unknown>) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('contractor-actions', { body: { action, ...payload } });
+      if (error || !data?.success) {
+        console.error(`[AdminDashboard] ${action} failed`, error || data);
+        return false;
+      }
+      return data;
+    } catch (err) {
+      console.error(`[AdminDashboard] ${action} error`, err);
+      return false;
+    }
+  };
 
-    await supabase.from('contractor_opportunities').update({
-      status: 'homeowner_contact_released',
-      homeowner_contact_released_at: now,
-    }).eq('id', oppId);
+  const handleMarkInterested = async (routeId: string, oppId: string, contractorId: string) => {
+    const result = await invokeAction('mark_interest', { route_id: routeId, opportunity_id: oppId, contractor_id: contractorId });
+    if (result) { fetchOpportunities(); fetchAllRoutes(); if (selectedOpp) fetchRoutesForOpp(selectedOpp.id); }
+  };
 
-    await supabase.from('event_logs').insert({
-      event_name: 'contractor_contact_released',
-      session_id: opportunities.find(o => o.id === oppId)?.scan_session_id || null,
-      route: '/admin',
-      metadata: { opportunity_id: oppId, route_id: routeId, timestamp: now },
+  const handleReviewRelease = async (routeId: string, decision: 'approve' | 'deny', reason?: string) => {
+    const result = await invokeAction('review_release', { route_id: routeId, decision, reviewer: 'operator', reason });
+    if (result) { fetchAllRoutes(); if (selectedOpp) fetchRoutesForOpp(selectedOpp.id); }
+  };
+
+  const handleReleaseContact = async (routeId: string, oppId: string, contractorId: string, leadId: string, analysisId: string) => {
+    if (!confirm('⚠ This will release homeowner contact information to the contractor and create a billable intro. Continue?')) return;
+    const result = await invokeAction('release_contact', {
+      route_id: routeId, opportunity_id: oppId, contractor_id: contractorId, lead_id: leadId, analysis_id: analysisId,
+      billing_model: releaseModel, fee_amount: releaseFee ? parseFloat(releaseFee) : null, released_by: 'operator',
     });
-
-    fetchOpportunities();
-    fetchRoutesForOpp(oppId);
+    if (result) { fetchOpportunities(); fetchAllRoutes(); fetchBillableIntros(); if (selectedOpp) fetchRoutesForOpp(selectedOpp.id); }
   };
 
   const handleMarkDead = async (oppId: string) => {
     await supabase.from('contractor_opportunities').update({ status: 'dead' }).eq('id', oppId);
-    await supabase.from('event_logs').insert({
-      event_name: 'contractor_opportunity_marked_dead',
-      session_id: opportunities.find(o => o.id === oppId)?.scan_session_id || null,
-      route: '/admin',
-      metadata: { opportunity_id: oppId },
-    });
-    setSelectedOpp(null);
-    fetchOpportunities();
+    await supabase.from('event_logs').insert({ event_name: 'contractor_opportunity_marked_dead', session_id: opportunities.find(o => o.id === oppId)?.scan_session_id || null, route: '/admin', metadata: { opportunity_id: oppId } });
+    setSelectedOpp(null); fetchOpportunities();
+  };
+
+  const handleBillingStatusChange = async (introId: string, newStatus: string) => {
+    await invokeAction('update_billing_status', { billable_intro_id: introId, billing_status: newStatus });
+    fetchBillableIntros();
+  };
+
+  const handleOutcomeSave = async (data: Partial<ContractorOutcome>) => {
+    if (!outcomeEditorIntro) return;
+    await invokeAction('update_outcome', { billable_intro_id: outcomeEditorIntro.id, ...data });
+    setOutcomeEditorIntro(null);
+    fetchBillableIntros();
   };
 
   // ── Filtering ────
@@ -763,6 +912,14 @@ export default function AdminDashboard() {
     return true;
   });
 
+  const pendingReviewRoutes = allRoutes.filter(r => r.release_status === 'pending_review');
+  const approvedRoutes = allRoutes.filter(r => r.release_status === 'approved' && !r.contact_released);
+
+  // ── Tab badge counts ────
+  const pendingOppCount = opportunities.filter(o => !o.routed_at && o.status !== 'dead').length;
+  const pendingReleaseCount = pendingReviewRoutes.length + approvedRoutes.length;
+  const activeBillingCount = billableIntros.filter(i => i.billing_status === 'billable' || i.billing_status === 'invoiced').length;
+
   return (
     <div style={{ background: '#0A0A0A', minHeight: '100vh', padding: '24px 20px', fontFamily: bodyFont }}>
       <style>{`
@@ -776,12 +933,8 @@ export default function AdminDashboard() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 28, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
-            OPERATOR COMMAND CENTER
-          </div>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginTop: 2 }}>
-            WINDOWMAN · LEAD & CONTRACTOR OPS · REALTIME
-          </div>
+          <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 28, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>OPERATOR COMMAND CENTER</div>
+          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginTop: 2 }}>WINDOWMAN · LEAD & CONTRACTOR OPS · REVENUE · REALTIME</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse-red 2s infinite' }} />
@@ -790,22 +943,21 @@ export default function AdminDashboard() {
       </div>
 
       {/* Tab Switcher */}
-      <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-        {([['calls', 'CALL QUEUE'], ['contractor', 'CONTRACTOR QUEUE']] as const).map(([key, label]) => (
+      <div style={{ display: 'flex', gap: 2, marginBottom: 20, flexWrap: 'wrap' }}>
+        {([
+          ['calls', 'CALL QUEUE', 0] as const,
+          ['contractor', 'CONTRACTOR QUEUE', pendingOppCount] as const,
+          ['release', 'RELEASE REVIEW', pendingReleaseCount] as const,
+          ['revenue', 'REVENUE', activeBillingCount] as const,
+        ]).map(([key, label, badge]) => (
           <button key={key} onClick={() => setActiveTab(key)}
             style={{
-              fontFamily: monoFont, fontSize: 10, letterSpacing: '0.1em',
-              padding: '10px 20px', border: 'none', cursor: 'pointer',
-              background: activeTab === key ? '#1D4ED8' : '#161C28',
-              color: activeTab === key ? '#FFFFFF' : '#7D9DBB',
+              fontFamily: monoFont, fontSize: 10, letterSpacing: '0.1em', padding: '10px 20px', border: 'none', cursor: 'pointer',
+              background: activeTab === key ? '#1D4ED8' : '#161C28', color: activeTab === key ? '#FFFFFF' : '#7D9DBB',
               borderBottom: activeTab === key ? '2px solid #3B82F6' : '2px solid transparent',
             }}>
             {label}
-            {key === 'contractor' && opportunities.filter(o => !o.routed_at && o.status !== 'dead').length > 0 && (
-              <span style={{ marginLeft: 8, background: '#DC2626', color: '#FFFFFF', padding: '1px 6px', borderRadius: 8, fontSize: 9 }}>
-                {opportunities.filter(o => !o.routed_at && o.status !== 'dead').length}
-              </span>
-            )}
+            {badge > 0 && <span style={{ marginLeft: 8, background: '#DC2626', color: '#FFFFFF', padding: '1px 6px', borderRadius: 8, fontSize: 9 }}>{badge}</span>}
           </button>
         ))}
       </div>
@@ -816,30 +968,19 @@ export default function AdminDashboard() {
           <StatsHeader stats={stats} />
           <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center' }}>
             {(['tier1', 'new', 'all'] as const).map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer', background: filter === f ? '#1D4ED8' : '#161C28', color: filter === f ? '#FFFFFF' : '#7D9DBB' }}>
-                {f === 'tier1' ? 'TIER 1 ONLY' : f.toUpperCase()}
-              </button>
+              <button key={f} onClick={() => setFilter(f)} style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer', background: filter === f ? '#1D4ED8' : '#161C28', color: filter === f ? '#FFFFFF' : '#7D9DBB' }}>{f === 'tier1' ? 'TIER 1 ONLY' : f.toUpperCase()}</button>
             ))}
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, county, phone..."
-              style={{ fontFamily: bodyFont, fontSize: 12, color: '#FFFFFF', background: '#161C28', border: '1px solid #2E3A50', padding: '6px 12px', borderRadius: 0, outline: 'none', flex: 1, maxWidth: 280 }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." style={{ fontFamily: bodyFont, fontSize: 12, color: '#FFFFFF', background: '#161C28', border: '1px solid #2E3A50', padding: '6px 12px', borderRadius: 0, outline: 'none', flex: 1, maxWidth: 280 }} />
           </div>
-          {loading ? (
-            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING...</div>
-          ) : filteredLeads.length === 0 ? (
-            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>NO LEADS MATCH FILTER</div>
-          ) : (
-            filteredLeads.map(lead => (
-              <LeadRow key={lead.id} lead={lead} onStatusChange={handleStatusChange} onCallNow={handleCallNow} onSMS={handleSMS} />
-            ))
-          )}
+          {loading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING...</div> :
+            filteredLeads.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>NO LEADS MATCH FILTER</div> :
+            filteredLeads.map(lead => <LeadRow key={lead.id} lead={lead} onStatusChange={handleStatusChange} onCallNow={handleCallNow} onSMS={handleSMS} />)}
         </>
       )}
 
       {/* ═══ CONTRACTOR QUEUE TAB ═══ */}
       {activeTab === 'contractor' && (
         <>
-          {/* Queue stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, background: '#2E3A50', marginBottom: 20 }}>
             {[
               { label: 'TOTAL OPPORTUNITIES', value: opportunities.length, color: '#C8DEFF' },
@@ -853,49 +994,168 @@ export default function AdminDashboard() {
               </div>
             ))}
           </div>
-
-          {/* Filters */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
             {(['all', 'pending', 'routed'] as const).map(f => (
-              <button key={f} onClick={() => setOppFilter(f)}
-                style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer', background: oppFilter === f ? '#1D4ED8' : '#161C28', color: oppFilter === f ? '#FFFFFF' : '#7D9DBB' }}>
-                {f.toUpperCase()}
-              </button>
+              <button key={f} onClick={() => setOppFilter(f)} style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer', background: oppFilter === f ? '#1D4ED8' : '#161C28', color: oppFilter === f ? '#FFFFFF' : '#7D9DBB' }}>{f.toUpperCase()}</button>
             ))}
           </div>
-
-          {/* Column headers */}
           <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 100px 80px 100px 120px', padding: '6px 14px', marginBottom: 4 }}>
             {['PRI', 'OPPORTUNITY', 'FLAGS', 'AGE', 'STATUS', ''].map(h => (
               <div key={h} style={{ fontFamily: monoFont, fontSize: 8, color: '#7D9DBB', letterSpacing: '0.12em' }}>{h}</div>
             ))}
           </div>
+          {oppLoading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING QUEUE...</div> :
+            filteredOpps.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>NO OPPORTUNITIES IN QUEUE</div> :
+            filteredOpps.map(opp => <OpportunityRow key={opp.id} opp={opp} onOpenDetail={(o) => setSelectedOpp(o)} />)}
+        </>
+      )}
 
-          {oppLoading ? (
-            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING QUEUE...</div>
-          ) : filteredOpps.length === 0 ? (
-            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>
-              NO OPPORTUNITIES IN QUEUE
+      {/* ═══ RELEASE REVIEW TAB ═══ */}
+      {activeTab === 'release' && (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: '#2E3A50', marginBottom: 20 }}>
+            {[
+              { label: 'PENDING REVIEW', value: pendingReviewRoutes.length, color: '#F59E0B' },
+              { label: 'APPROVED (UNRELEASED)', value: approvedRoutes.length, color: '#10B981' },
+              { label: 'TOTAL RELEASES', value: allRoutes.filter(r => r.contact_released).length, color: '#3B82F6' },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
+                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
+                <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pending review */}
+          {pendingReviewRoutes.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#F59E0B', letterSpacing: '0.12em', marginBottom: 10 }}>AWAITING RELEASE DECISION ({pendingReviewRoutes.length})</div>
+              {pendingReviewRoutes.map(r => {
+                const opp = opportunities.find(o => o.id === r.opportunity_id);
+                const contractor = contractors.find(c => c.id === r.contractor_id);
+                return (
+                  <div key={r.id} style={{ background: '#111418', border: '1px solid rgba(245,158,11,0.3)', borderLeft: '3px solid #F59E0B', marginBottom: 6, padding: '12px 14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <div>
+                        <span style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{contractor?.company_name || '—'}</span>
+                        <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginLeft: 12 }}>→ {opp?.county || '—'} County</span>
+                        {opp && <GradeBadge grade={opp.grade} />}
+                      </div>
+                      <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB' }}>
+                        Interest: {r.interested_at ? formatAge(secondsSince(r.interested_at)) + ' ago' : '—'}
+                      </div>
+                    </div>
+                    {opp && (
+                      <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginBottom: 8 }}>
+                        Priority: {opp.priority_score} · {opp.red_flag_count}R {opp.amber_flag_count}A flags · {opp.window_count ?? '—'} windows · {opp.quote_range || '—'}
+                      </div>
+                    )}
+                    {r.interest_notes && <div style={{ fontFamily: monoFont, fontSize: 10, color: '#A0B8D8', marginBottom: 8, fontStyle: 'italic' }}>"{r.interest_notes}"</div>}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => handleReviewRelease(r.id, 'approve')}
+                        style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', padding: '5px 14px', borderRadius: 2, cursor: 'pointer' }}>
+                        ✓ APPROVE RELEASE
+                      </button>
+                      <button onClick={() => handleReviewRelease(r.id, 'deny')}
+                        style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#EF4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', padding: '5px 14px', borderRadius: 2, cursor: 'pointer' }}>
+                        ✗ DENY
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ) : (
-            filteredOpps.map(opp => (
-              <OpportunityRow key={opp.id} opp={opp} onOpenDetail={(o) => setSelectedOpp(o)} />
-            ))
           )}
+
+          {/* Approved but unreleased */}
+          {approvedRoutes.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', letterSpacing: '0.12em', marginBottom: 10 }}>APPROVED — READY TO RELEASE ({approvedRoutes.length})</div>
+              {approvedRoutes.map(r => {
+                const opp = opportunities.find(o => o.id === r.opportunity_id);
+                const contractor = contractors.find(c => c.id === r.contractor_id);
+                return (
+                  <div key={r.id} style={{ background: '#111418', border: '1px solid rgba(16,185,129,0.3)', borderLeft: '3px solid #10B981', marginBottom: 6, padding: '12px 14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <div>
+                        <span style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{contractor?.company_name || '—'}</span>
+                        <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginLeft: 12 }}>→ {opp?.county || '—'} County</span>
+                      </div>
+                      <StatusPill status="approved" />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 }}>
+                      <select value={releaseModel} onChange={e => setReleaseModel(e.target.value)}
+                        style={{ fontFamily: monoFont, fontSize: 9, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '3px 6px', borderRadius: 0 }}>
+                        {Object.entries(BILLING_MODEL).map(([k, v]) => <option key={v} value={v}>{k}</option>)}
+                      </select>
+                      <input value={releaseFee} onChange={e => setReleaseFee(e.target.value)} placeholder="fee $" type="number"
+                        style={{ fontFamily: monoFont, fontSize: 9, color: '#A0B8D8', background: '#161C28', border: '1px solid #2E3A50', padding: '3px 6px', width: 70, borderRadius: 0 }} />
+                      <button onClick={() => opp && handleReleaseContact(r.id, opp.id, r.contractor_id, opp.lead_id, opp.analysis_id)}
+                        style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', padding: '5px 14px', borderRadius: 2, cursor: 'pointer' }}>
+                        ⚠ RELEASE HOMEOWNER CONTACT
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {pendingReviewRoutes.length === 0 && approvedRoutes.length === 0 && !releaseLoading && (
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 40, textAlign: 'center' }}>NO RELEASES PENDING</div>
+          )}
+        </>
+      )}
+
+      {/* ═══ REVENUE TAB ═══ */}
+      {activeTab === 'revenue' && (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, background: '#2E3A50', marginBottom: 20 }}>
+            {[
+              { label: 'TOTAL INTROS', value: billableIntros.length, color: '#C8DEFF' },
+              { label: 'BILLABLE', value: billableIntros.filter(i => i.billing_status === 'billable').length, color: '#F59E0B' },
+              { label: 'PAID', value: billableIntros.filter(i => i.billing_status === 'paid').length, color: '#10B981' },
+              { label: 'REVENUE', value: `$${billableIntros.filter(i => i.billing_status === 'paid').reduce((s, i) => s + (i.fee_amount || 0), 0).toLocaleString()}`, color: '#F59E0B' },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
+                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
+                <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>BILLABLE INTROS ({billableIntros.length})</div>
+          {revenueLoading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING...</div> :
+            billableIntros.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 40, textAlign: 'center' }}>NO BILLABLE INTROS YET</div> :
+            billableIntros.map(intro => (
+              <BillableIntroRow key={intro.id} intro={intro} contractors={contractors} outcomes={outcomes}
+                onStatusChange={handleBillingStatusChange} onOpenOutcome={setOutcomeEditorIntro} />
+            ))}
         </>
       )}
 
       {/* Opportunity Detail Modal */}
       {selectedOpp && (
         <OpportunityDetail
-          opp={selectedOpp}
-          contractors={contractors}
-          routes={oppRoutes}
+          opp={selectedOpp} contractors={contractors} routes={oppRoutes}
           onClose={() => { setSelectedOpp(null); setOppRoutes([]); }}
           onRoute={handleRoute}
-          onReleaseContact={handleReleaseContact}
+          onMarkInterested={handleMarkInterested}
+          onReviewRelease={handleReviewRelease}
+          onReleaseContact={(routeId, oppId, contractorId, leadId, analysisId) => handleReleaseContact(routeId, oppId, contractorId, leadId, analysisId)}
           onMarkDead={handleMarkDead}
           onRefresh={fetchOpportunities}
+        />
+      )}
+
+      {/* Outcome Editor Modal */}
+      {outcomeEditorIntro && (
+        <OutcomeEditor
+          intro={outcomeEditorIntro}
+          outcome={outcomes.find(o => o.billable_intro_id === outcomeEditorIntro.id) || null}
+          contractors={contractors}
+          onSave={handleOutcomeSave}
+          onClose={() => setOutcomeEditorIntro(null)}
         />
       )}
     </div>
