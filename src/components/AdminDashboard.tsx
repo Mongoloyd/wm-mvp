@@ -854,9 +854,9 @@ export default function AdminDashboard() {
 
   // ── Fetch functions ────
   const fetchLeads = useCallback(async () => {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const { data, error } = await supabase.from('leads').select('*').gte('created_at', today.toISOString()).order('created_at', { ascending: false });
-    if (!error && data) {
+    const result = await adminFetch('fetch_leads');
+    if (result?.data) {
+      const data = result.data;
       setLeads(data as unknown as Lead[]);
       const todayLeads = data as unknown as Lead[];
       setStats({
@@ -872,31 +872,30 @@ export default function AdminDashboard() {
 
   const fetchOpportunities = useCallback(async () => {
     setOppLoading(true);
-    const { data } = await supabase.from('contractor_opportunities').select('*').order('priority_score', { ascending: false });
-    if (data) setOpportunities(data as Opportunity[]);
-    const { data: cd } = await supabase.from('contractors').select('*').eq('status', 'active');
-    if (cd) setContractors(cd as Contractor[]);
+    const oppResult = await adminFetch('fetch_opportunities');
+    if (oppResult?.data) setOpportunities(oppResult.data as Opportunity[]);
+    const cResult = await adminFetch('fetch_contractors');
+    if (cResult?.data) setContractors(cResult.data as Contractor[]);
     setOppLoading(false);
   }, []);
 
   const fetchRoutesForOpp = useCallback(async (oppId: string) => {
-    const { data } = await supabase.from('contractor_opportunity_routes').select('*').eq('opportunity_id', oppId).order('created_at', { ascending: false });
-    if (data) setOppRoutes(data as Route[]);
+    const result = await adminFetch('fetch_routes', { opportunity_id: oppId });
+    if (result?.data) setOppRoutes(result.data as Route[]);
   }, []);
 
   const fetchAllRoutes = useCallback(async () => {
     setReleaseLoading(true);
-    const { data } = await supabase.from('contractor_opportunity_routes').select('*').order('created_at', { ascending: false });
-    if (data) setAllRoutes(data as Route[]);
+    const result = await adminFetch('fetch_routes');
+    if (result?.data) setAllRoutes(result.data as Route[]);
     setReleaseLoading(false);
   }, []);
 
   const fetchBillableIntros = useCallback(async () => {
     setRevenueLoading(true);
-    const { data: intros } = await supabase.from('billable_intros').select('*').order('created_at', { ascending: false });
-    if (intros) setBillableIntros(intros as BillableIntro[]);
-    const { data: outs } = await supabase.from('contractor_outcomes').select('*');
-    if (outs) setOutcomes(outs as ContractorOutcome[]);
+    const result = await adminFetch('fetch_billable');
+    if (result?.intros) setBillableIntros(result.intros as BillableIntro[]);
+    if (result?.outcomes) setOutcomes(result.outcomes as ContractorOutcome[]);
     setRevenueLoading(false);
   }, []);
 
