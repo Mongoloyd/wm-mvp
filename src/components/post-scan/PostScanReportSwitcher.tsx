@@ -76,6 +76,26 @@ export function PostScanReportSwitcher(props: Props) {
   const [isCtaLoading, setIsCtaLoading] = useState(false);
   const [suggestedMatch, setSuggestedMatch] = useState<SuggestedMatch | null>(null);
 
+  // ── Hydrate CTA state from DB on mount (prevents duplicates after refresh) ──
+  useEffect(() => {
+    if (!props.scanSessionId || !props.isFullLoaded) return;
+    let cancelled = false;
+    supabase
+      .from("contractor_opportunities")
+      .select("id, status, suggested_match_snapshot")
+      .eq("scan_session_id", props.scanSessionId)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        setIntroRequested(true);
+        if (data.suggested_match_snapshot) {
+          setSuggestedMatch(data.suggested_match_snapshot as unknown as SuggestedMatch);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [props.scanSessionId, props.isFullLoaded]);
+
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: props.scanSessionId,
     externalPhoneE164: funnel?.phoneE164 ?? null,
