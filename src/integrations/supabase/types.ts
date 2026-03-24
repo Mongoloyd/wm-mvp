@@ -1438,6 +1438,7 @@ export type Database = {
           status: string
         }[]
       }
+      is_internal_operator: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
