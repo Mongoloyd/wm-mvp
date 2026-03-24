@@ -766,8 +766,8 @@ export default function AdminDashboard() {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const { data, error } = await supabase.from('leads').select('*').gte('created_at', today.toISOString()).order('created_at', { ascending: false });
     if (!error && data) {
-      setLeads(data as Lead[]);
-      const todayLeads = data as Lead[];
+      setLeads(data as unknown as Lead[]);
+      const todayLeads = data as unknown as Lead[];
       setStats({
         totalLeads: todayLeads.length,
         tier1Leads: todayLeads.filter((l: any) => l.lead_tier === 1).length,
