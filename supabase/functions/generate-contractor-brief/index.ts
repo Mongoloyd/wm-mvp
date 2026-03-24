@@ -429,12 +429,37 @@ Deno.serve(async (req) => {
       candidateCount: matchResult.topThree.length,
     });
 
-    // ── 6. Upsert canonical contractor_opportunity ──────────────────────────
+    // ── 6. Idempotency: return existing opportunity if already created ───────
     const { data: existingOpp } = await supabase
       .from("contractor_opportunities")
-      .select("id")
+      .select("id, suggested_match_snapshot, suggested_match_confidence, suggested_match_reasons, suggested_contractor_id")
       .eq("scan_session_id", scan_session_id)
       .maybeSingle();
+
+    if (existingOpp) {
+      console.log("[generate-contractor-brief] idempotent hit — returning existing opportunity", {
+        opportunityId: existingOpp.id,
+      });
+
+      // Build suggested_match response from stored data
+      const existingMatch = existingOpp.suggested_contractor_id ? {
+        confidence: existingOpp.suggested_match_confidence || "low",
+        reasons: (existingOpp.suggested_match_reasons as string[]) || [],
+        contractor_alias: `WM-${existingOpp.suggested_contractor_id.slice(0, 6).toUpperCase()}`,
+      } : null;
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          opportunity_id: existingOpp.id,
+          analysis_id: analysisRow.id,
+          status: "brief_ready",
+          suggested_match: existingMatch,
+          idempotent: true,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     let opportunityId: string;
 
@@ -448,68 +473,40 @@ Deno.serve(async (req) => {
       cta_source: cta_source || "intro_request",
     };
 
-    if (existingOpp) {
-      const { error: updateErr } = await supabase
-        .from("contractor_opportunities")
-        .update({
-          status: "brief_ready",
-          brief_generated_at: now,
-          brief_version: "1.0",
-          brief_json: brief.briefJson,
-          brief_text: brief.briefText,
-          county: lead?.county || null,
-          project_type: lead?.project_type || null,
-          window_count: lead?.window_count || null,
-          quote_range: lead?.quote_range || null,
-          grade: analysis.grade,
-          flag_count: brief.flagCount,
-          red_flag_count: brief.redFlagCount,
-          amber_flag_count: brief.amberFlagCount,
-          priority_score: priorityScore,
-          ...matchFields,
-        })
-        .eq("id", existingOpp.id);
+    const { data: newOpp, error: insertErr } = await supabase
+      .from("contractor_opportunities")
+      .insert({
+        lead_id: session.lead_id,
+        scan_session_id,
+        analysis_id: analysisRow.id,
+        status: "brief_ready",
+        intro_requested_at: now,
+        brief_generated_at: now,
+        brief_version: "1.0",
+        brief_json: brief.briefJson,
+        brief_text: brief.briefText,
+        county: lead?.county || null,
+        project_type: lead?.project_type || null,
+        window_count: lead?.window_count || null,
+        quote_range: lead?.quote_range || null,
+        grade: analysis.grade,
+        flag_count: brief.flagCount,
+        red_flag_count: brief.redFlagCount,
+        amber_flag_count: brief.amberFlagCount,
+        priority_score: priorityScore,
+        ...matchFields,
+      })
+      .select("id")
+      .single();
 
-      if (updateErr) {
-        console.error("[generate-contractor-brief] opportunity update failed", updateErr);
-      }
-      opportunityId = existingOpp.id;
-    } else {
-      const { data: newOpp, error: insertErr } = await supabase
-        .from("contractor_opportunities")
-        .insert({
-          lead_id: session.lead_id,
-          scan_session_id,
-          analysis_id: analysisRow.id,
-          status: "brief_ready",
-          intro_requested_at: now,
-          brief_generated_at: now,
-          brief_version: "1.0",
-          brief_json: brief.briefJson,
-          brief_text: brief.briefText,
-          county: lead?.county || null,
-          project_type: lead?.project_type || null,
-          window_count: lead?.window_count || null,
-          quote_range: lead?.quote_range || null,
-          grade: analysis.grade,
-          flag_count: brief.flagCount,
-          red_flag_count: brief.redFlagCount,
-          amber_flag_count: brief.amberFlagCount,
-          priority_score: priorityScore,
-          ...matchFields,
-        })
-        .select("id")
-        .single();
-
-      if (insertErr) {
-        console.error("[generate-contractor-brief] opportunity insert failed", insertErr);
-        return new Response(
-          JSON.stringify({ error: "Failed to create opportunity." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      opportunityId = newOpp!.id;
+    if (insertErr) {
+      console.error("[generate-contractor-brief] opportunity insert failed", insertErr);
+      return new Response(
+        JSON.stringify({ error: "Failed to create opportunity." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+    opportunityId = newOpp!.id;
 
     // ── 7. Log events ───────────────────────────────────────────────────────
     await supabase.from("event_logs").insert({
