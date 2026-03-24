@@ -134,6 +134,26 @@ export default function ReportClassic() {
   const [isCtaLoading, setIsCtaLoading] = useState(false);
   const [suggestedMatch, setSuggestedMatch] = useState<SuggestedMatch | null>(null);
 
+  // ── Hydrate CTA state from DB on mount (prevents duplicates after refresh) ──
+  useEffect(() => {
+    if (!sessionId || !isFullLoaded) return;
+    let cancelled = false;
+    supabase
+      .from("contractor_opportunities")
+      .select("id, status, suggested_match_snapshot")
+      .eq("scan_session_id", sessionId)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        setIntroRequested(true);
+        if (data.suggested_match_snapshot) {
+          setSuggestedMatch(data.suggested_match_snapshot as unknown as SuggestedMatch);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [sessionId, isFullLoaded]);
+
   // ── Gate mode derived from funnel state ────────────────────────────────
   const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164);
 
