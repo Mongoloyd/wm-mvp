@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/trackEvent";
 import { toast } from "sonner";
 
 interface UploadZoneProps {
@@ -83,6 +84,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       const scanSessionId = crypto.randomUUID();
       const { error: ssError } = await supabase.from("scan_sessions").insert({ id: scanSessionId, status: "uploading", lead_id: leadId, quote_file_id: quoteFileId });
       if (ssError) { console.error("scan_sessions insert failed:", ssError); toast.error("Failed to start scan session. Please try again."); setUploading(false); return; }
+      trackEvent({ event_name: "upload_completed", session_id: sessionId, metadata: { scan_session_id: scanSessionId, file_name: file.name, file_size: file.size } });
       onScanStart?.(file.name, scanSessionId);
       const { error: fnError } = await supabase.functions.invoke("scan-quote", { body: { scan_session_id: scanSessionId } });
       if (fnError) {

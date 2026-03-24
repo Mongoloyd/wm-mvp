@@ -14,6 +14,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { screenPhone } from "@/utils/screenPhone";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/trackEvent";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -213,6 +214,7 @@ export function usePhonePipeline(
       console.log("[usePhonePipeline] send-otp SUCCESS");
       setPhoneStatus("otp_sent");
       setCooldown(RESEND_COOLDOWN_SECONDS);
+      trackEvent({ event_name: "otp_sent", session_id: options?.scanSessionId, metadata: { phone_last4: normalizedE164.slice(-4) } });
       return { status: "otp_sent", e164: normalizedE164 };
     } catch (err) {
       console.error("[usePhonePipeline] send-otp network exception:", err);
@@ -269,6 +271,7 @@ export function usePhonePipeline(
           setPhoneStatus("otp_sent"); // allow retry
           setErrorMsg(parsedMsg);
           setErrorType(classifiedType);
+          trackEvent({ event_name: "otp_error", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: parsedMsg } });
           return { status: "invalid_code", error: parsedMsg };
         }
 
@@ -278,11 +281,13 @@ export function usePhonePipeline(
           setPhoneStatus("otp_sent"); // allow retry
           setErrorMsg(msg);
           setErrorType("invalid_code");
+          trackEvent({ event_name: "otp_error", session_id: options?.scanSessionId, metadata: { error_type: "invalid_code", error_msg: msg } });
           return { status: "invalid_code", error: msg };
         }
 
         console.log("[usePhonePipeline] verify-otp SUCCESS — calling onVerified");
         setPhoneStatus("verified");
+        trackEvent({ event_name: "otp_verified", session_id: options?.scanSessionId, metadata: { phone_last4: activePhone.slice(-4) } });
         options?.onVerified?.();
         return { status: "verified" };
       } catch (err) {
