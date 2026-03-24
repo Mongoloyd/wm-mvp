@@ -12,8 +12,17 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ROUTE_STATUS, RELEASE_STATUS, BILLING_STATUS, BILLING_MODEL, EVENTS, APPOINTMENT_STATUS, QUOTE_STATUS, DEAL_STATUS } from '@/lib/statusConstants';
 
-// Use the shared supabase client (no separate admin client needed)
-const supabaseAdmin = supabase;
+// Helper to call admin-data edge function (uses service_role server-side)
+async function adminFetch(action: string, payload: Record<string, unknown> = {}) {
+  const { data, error } = await supabase.functions.invoke('admin-data', {
+    body: { action, ...payload },
+  });
+  if (error) {
+    console.error(`[AdminDashboard] admin-data ${action} failed`, error);
+    return null;
+  }
+  return data;
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SHARED TYPES & HELPERS
