@@ -1,0 +1,107 @@
+/**
+ * statusConstants.ts — Centralized lifecycle status strings for the WindowMan marketplace.
+ * Prevents magic strings across codebase.
+ */
+
+// ── Route statuses ──
+export const ROUTE_STATUS = {
+  SUGGESTED: 'suggested',
+  ASSIGNED: 'assigned',
+  SENT: 'sent',
+  VIEWED: 'viewed',
+  INTERESTED: 'interested',
+  DECLINED: 'declined',
+  EXPIRED: 'expired',
+} as const;
+
+// ── Release statuses (on route) ──
+export const RELEASE_STATUS = {
+  NONE: 'none',
+  PENDING_REVIEW: 'pending_review',
+  APPROVED: 'approved',
+  DENIED: 'denied',
+  RELEASED: 'released',
+} as const;
+
+// ── Opportunity statuses ──
+export const OPP_STATUS = {
+  INTRO_REQUESTED: 'intro_requested',
+  BRIEF_GENERATING: 'brief_generating',
+  BRIEF_READY: 'brief_ready',
+  QUEUED: 'queued',
+  ASSIGNED_INTERNAL: 'assigned_internal',
+  SENT_TO_CONTRACTOR: 'sent_to_contractor',
+  CONTRACTOR_INTERESTED: 'contractor_interested',
+  CONTRACTOR_DECLINED: 'contractor_declined',
+  HOMEOWNER_CONTACT_RELEASED: 'homeowner_contact_released',
+  INTRO_COMPLETED: 'intro_completed',
+  CLOSED_WON: 'closed_won',
+  CLOSED_LOST: 'closed_lost',
+  DEAD: 'dead',
+} as const;
+
+// ── Billing statuses ──
+export const BILLING_STATUS = {
+  PENDING: 'pending',
+  BILLABLE: 'billable',
+  INVOICED: 'invoiced',
+  PAID: 'paid',
+  WAIVED: 'waived',
+  REFUNDED: 'refunded',
+  DISPUTED: 'disputed',
+  VOID: 'void',
+} as const;
+
+// ── Billing models ──
+export const BILLING_MODEL = {
+  FLAT_FEE: 'flat_fee',
+  REFERRAL_FEE: 'referral_fee',
+  PILOT: 'pilot',
+  INTERNAL: 'internal',
+  WAIVED: 'waived',
+} as const;
+
+// ── Appointment statuses ──
+export const APPOINTMENT_STATUS = {
+  PENDING: 'pending',
+  BOOKED: 'booked',
+  NO_SHOW: 'no_show',
+  CANCELED: 'canceled',
+} as const;
+
+// ── Quote statuses ──
+export const QUOTE_STATUS = {
+  PENDING: 'pending',
+  SUBMITTED: 'submitted',
+  NOT_SUBMITTED: 'not_submitted',
+} as const;
+
+// ── Deal statuses ──
+export const DEAL_STATUS = {
+  OPEN: 'open',
+  WON: 'won',
+  LOST: 'lost',
+  DEAD: 'dead',
+} as const;
+
+// ── Event names ──
+export const EVENTS = {
+  // Economic funnel
+  CONTRACTOR_INTEREST_SUBMITTED: 'contractor_interest_submitted',
+  CONTACT_RELEASE_REVIEW_STARTED: 'contact_release_review_started',
+  CONTACT_RELEASE_APPROVED: 'contact_release_approved',
+  CONTACT_RELEASE_DENIED: 'contact_release_denied',
+  HOMEOWNER_CONTACT_RELEASED: 'homeowner_contact_released',
+  BILLABLE_INTRO_CREATED: 'billable_intro_created',
+  CONTRACTOR_OUTCOME_INITIALIZED: 'contractor_outcome_record_initialized',
+  // Billing
+  BILLABLE_INTRO_MARKED_INVOICED: 'billable_intro_marked_invoiced',
+  BILLABLE_INTRO_MARKED_PAID: 'billable_intro_marked_paid',
+  BILLABLE_INTRO_MARKED_WAIVED: 'billable_intro_marked_waived',
+  BILLABLE_INTRO_MARKED_REFUNDED: 'billable_intro_marked_refunded',
+  BILLABLE_INTRO_MARKED_DISPUTED: 'billable_intro_marked_disputed',
+  // Outcomes
+  APPOINTMENT_BOOKED: 'appointment_booked',
+  REPLACEMENT_QUOTE_SUBMITTED: 'replacement_quote_submitted',
+  DEAL_OUTCOME_UPDATED: 'deal_outcome_updated',
+} as const;

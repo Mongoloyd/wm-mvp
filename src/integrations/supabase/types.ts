@@ -101,6 +101,114 @@ export type Database = {
           },
         ]
       }
+      billable_intros: {
+        Row: {
+          analysis_id: string | null
+          billing_model: string | null
+          billing_status: string
+          contact_released_at: string | null
+          contractor_id: string
+          created_at: string
+          currency: string
+          disputed_at: string | null
+          fee_amount: number | null
+          id: string
+          invoice_reference: string | null
+          lead_id: string
+          notes: string | null
+          opportunity_id: string
+          paid_at: string | null
+          refunded_at: string | null
+          release_approved_at: string | null
+          released_by: string | null
+          route_id: string
+          updated_at: string
+          waived_at: string | null
+        }
+        Insert: {
+          analysis_id?: string | null
+          billing_model?: string | null
+          billing_status?: string
+          contact_released_at?: string | null
+          contractor_id: string
+          created_at?: string
+          currency?: string
+          disputed_at?: string | null
+          fee_amount?: number | null
+          id?: string
+          invoice_reference?: string | null
+          lead_id: string
+          notes?: string | null
+          opportunity_id: string
+          paid_at?: string | null
+          refunded_at?: string | null
+          release_approved_at?: string | null
+          released_by?: string | null
+          route_id: string
+          updated_at?: string
+          waived_at?: string | null
+        }
+        Update: {
+          analysis_id?: string | null
+          billing_model?: string | null
+          billing_status?: string
+          contact_released_at?: string | null
+          contractor_id?: string
+          created_at?: string
+          currency?: string
+          disputed_at?: string | null
+          fee_amount?: number | null
+          id?: string
+          invoice_reference?: string | null
+          lead_id?: string
+          notes?: string | null
+          opportunity_id?: string
+          paid_at?: string | null
+          refunded_at?: string | null
+          release_approved_at?: string | null
+          released_by?: string | null
+          route_id?: string
+          updated_at?: string
+          waived_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billable_intros_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billable_intros_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billable_intros_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billable_intros_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billable_intros_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: true
+            referencedRelation: "contractor_opportunity_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_opportunities: {
         Row: {
           amber_flag_count: number
@@ -118,11 +226,14 @@ export type Database = {
           id: string
           internal_notes: string | null
           intro_requested_at: string
+          last_interest_at: string | null
+          last_release_at: string | null
           lead_id: string
           priority_score: number
           project_type: string | null
           quote_range: string | null
           red_flag_count: number
+          release_ready: boolean
           routed_at: string | null
           scan_session_id: string
           status: string
@@ -145,11 +256,14 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           intro_requested_at?: string
+          last_interest_at?: string | null
+          last_release_at?: string | null
           lead_id: string
           priority_score?: number
           project_type?: string | null
           quote_range?: string | null
           red_flag_count?: number
+          release_ready?: boolean
           routed_at?: string | null
           scan_session_id: string
           status?: string
@@ -172,11 +286,14 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           intro_requested_at?: string
+          last_interest_at?: string | null
+          last_release_at?: string | null
           lead_id?: string
           priority_score?: number
           project_type?: string | null
           quote_range?: string | null
           red_flag_count?: number
+          release_ready?: boolean
           routed_at?: string | null
           scan_session_id?: string
           status?: string
@@ -215,7 +332,14 @@ export type Database = {
           contractor_id: string
           created_at: string
           id: string
+          interest_notes: string | null
+          interested_at: string | null
           opportunity_id: string
+          release_denial_reason: string | null
+          release_requested_at: string | null
+          release_reviewed_at: string | null
+          release_reviewed_by: string | null
+          release_status: string
           responded_at: string | null
           response_notes: string | null
           route_status: string
@@ -230,7 +354,14 @@ export type Database = {
           contractor_id: string
           created_at?: string
           id?: string
+          interest_notes?: string | null
+          interested_at?: string | null
           opportunity_id: string
+          release_denial_reason?: string | null
+          release_requested_at?: string | null
+          release_reviewed_at?: string | null
+          release_reviewed_by?: string | null
+          release_status?: string
           responded_at?: string | null
           response_notes?: string | null
           route_status?: string
@@ -245,7 +376,14 @@ export type Database = {
           contractor_id?: string
           created_at?: string
           id?: string
+          interest_notes?: string | null
+          interested_at?: string | null
           opportunity_id?: string
+          release_denial_reason?: string | null
+          release_requested_at?: string | null
+          release_reviewed_at?: string | null
+          release_reviewed_by?: string | null
+          release_status?: string
           responded_at?: string | null
           response_notes?: string | null
           route_status?: string
@@ -266,6 +404,98 @@ export type Database = {
             columns: ["opportunity_id"]
             isOneToOne: false
             referencedRelation: "contractor_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_outcomes: {
+        Row: {
+          appointment_booked_at: string | null
+          appointment_status: string | null
+          billable_intro_id: string
+          closed_at: string | null
+          contractor_id: string | null
+          created_at: string
+          deal_status: string | null
+          deal_value: number | null
+          did_beat_price: boolean | null
+          did_fix_scope_gaps: boolean | null
+          did_improve_warranty: boolean | null
+          id: string
+          opportunity_id: string
+          outcome_notes: string | null
+          quote_status: string | null
+          replacement_quote_range: string | null
+          route_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_booked_at?: string | null
+          appointment_status?: string | null
+          billable_intro_id: string
+          closed_at?: string | null
+          contractor_id?: string | null
+          created_at?: string
+          deal_status?: string | null
+          deal_value?: number | null
+          did_beat_price?: boolean | null
+          did_fix_scope_gaps?: boolean | null
+          did_improve_warranty?: boolean | null
+          id?: string
+          opportunity_id: string
+          outcome_notes?: string | null
+          quote_status?: string | null
+          replacement_quote_range?: string | null
+          route_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_booked_at?: string | null
+          appointment_status?: string | null
+          billable_intro_id?: string
+          closed_at?: string | null
+          contractor_id?: string | null
+          created_at?: string
+          deal_status?: string | null
+          deal_value?: number | null
+          did_beat_price?: boolean | null
+          did_fix_scope_gaps?: boolean | null
+          did_improve_warranty?: boolean | null
+          id?: string
+          opportunity_id?: string
+          outcome_notes?: string | null
+          quote_status?: string | null
+          replacement_quote_range?: string | null
+          route_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_outcomes_billable_intro_id_fkey"
+            columns: ["billable_intro_id"]
+            isOneToOne: true
+            referencedRelation: "billable_intros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_outcomes_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_outcomes_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_outcomes_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_opportunity_routes"
             referencedColumns: ["id"]
           },
         ]
