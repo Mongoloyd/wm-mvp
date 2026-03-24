@@ -199,6 +199,7 @@ export function usePhonePipeline(
         setPhoneStatus("otp_failed");
         setErrorMsg(parsedMsg);
         setErrorType(classifiedType);
+        trackEvent({ event_name: classifiedType === "rate_limit" ? "rate_limit_hit" : "otp_send_failed", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: parsedMsg } });
         return { status: "error", error: parsedMsg };
       }
 
