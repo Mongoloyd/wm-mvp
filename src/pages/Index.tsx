@@ -295,8 +295,6 @@ const Index = () => {
                 hasPermits={activeData.hasPermits}
                 pageCount={activeData.pageCount}
                 lineItemCount={activeData.lineItemCount}
-                onContractorMatchClick={() => {}}
-                onReportHelpCall={() => {}}
                 onSecondScan={() => triggerTruthGate('second_opinion_scan')}
                 scanSessionId={scanSessionId}
                 flagCount={activeData?.flagCount}
