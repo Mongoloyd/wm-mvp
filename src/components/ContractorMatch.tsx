@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Check, ShieldCheck } from "lucide-react";
+import { Check, ShieldCheck, Loader2 } from "lucide-react";
 import { trackEvent } from "@/lib/trackEvent";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-interface ContractorMatchProps { isVisible: boolean; grade?: string; county?: string; scanSessionId?: string | null; isFullLoaded?: boolean; }
-
-const logContractorMatchClick = (scanSessionId: string | null | undefined, isFullLoaded: boolean | undefined) => {
-  trackEvent({
-    event_name: "contractor_match_clicked",
-    session_id: scanSessionId,
-    metadata: { after_full_unlock: !!isFullLoaded },
-  });
-};
+interface ContractorMatchProps {
+  isVisible: boolean;
+  grade?: string;
+  county?: string;
+  scanSessionId?: string | null;
+  isFullLoaded?: boolean;
+  phoneE164?: string | null;
+}
 
 const vetItems = [
   "Each contractor submits 10+ sample quotes for our red flag audit before they're listed in our network.",
@@ -20,13 +21,66 @@ const vetItems = [
   "Your contractor never sees your WindowMan grade report unless you choose to share it.",
 ];
 
-const ContractorMatch = ({ isVisible, grade = "C", county = "Broward", scanSessionId, isFullLoaded }: ContractorMatchProps) => {
+const ContractorMatch = ({ isVisible, grade = "C", county = "Broward", scanSessionId, isFullLoaded, phoneE164 }: ContractorMatchProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [introRequested, setIntroRequested] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const isGoodGrade = grade === "A" || grade === "B";
 
   useEffect(() => { if (isVisible && ref.current) ref.current.scrollIntoView({ behavior: "smooth", block: "start" }); }, [isVisible]);
   if (!isVisible) return null;
+
+  const handleIntroRequest = async () => {
+    if (!scanSessionId || !phoneE164) {
+      toast.error("Unable to process request. Please verify your phone number first.");
+      return;
+    }
+
+    setIsGenerating(true);
+    trackEvent({
+      event_name: "contractor_match_clicked",
+      session_id: scanSessionId,
+      metadata: { after_full_unlock: !!isFullLoaded, grade },
+    });
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-contractor-brief", {
+        body: { scan_session_id: scanSessionId, phone_e164: phoneE164 },
+      });
+
+      if (error || !data?.success) {
+        console.error("[ContractorMatch] brief generation failed", error || data);
+        toast.error("Something went wrong. Please try again.");
+        setIsGenerating(false);
+        return;
+      }
+
+      setIntroRequested(true);
+      setIsGenerating(false);
+
+      trackEvent({
+        event_name: "contractor_brief_generated",
+        session_id: scanSessionId,
+        metadata: {
+          opportunity_id: data.opportunity_id,
+          grade,
+        },
+      });
+    } catch (err) {
+      console.error("[ContractorMatch] unexpected error", err);
+      toast.error("Connection error. Please try again.");
+      setIsGenerating(false);
+    }
+  };
+
+  const handleComparisonRequest = () => {
+    trackEvent({
+      event_name: "contractor_match_clicked",
+      session_id: scanSessionId,
+      metadata: { after_full_unlock: !!isFullLoaded, grade, type: "comparison_request" },
+    });
+    handleIntroRequest();
+  };
 
   return (
     <motion.div ref={ref} id="contractor-match" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15 }} style={{ background: "#0A0A0A" }} className="py-16 md:py-24 px-4 md:px-8">
@@ -41,7 +95,14 @@ const ContractorMatch = ({ isVisible, grade = "C", county = "Broward", scanSessi
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E5E5", lineHeight: 1.8 }}>"What happens if a seal fails in year 3 — is the labor to replace the unit covered under your warranty, or just the glass?"</p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", marginTop: 12, lineHeight: 1.7 }}>Most contractors cover the product but not the labor after year 1. A good warranty covers both for at least 3 years. Ask before you sign.</p>
               <div style={{ borderTop: "1px solid #1A1A1A", margin: "20px 0" }} />
-              <button onClick={() => { logContractorMatchClick(scanSessionId, isFullLoaded); console.log({ event: "wm_comparison_quote_requested", grade }); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Request a comparison quote anyway →</button>
+              <button
+                onClick={handleComparisonRequest}
+                disabled={isGenerating || introRequested}
+                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: isGenerating ? "#7D9DBB" : "#E5E7EB", background: "none", border: "none", cursor: isGenerating ? "wait" : "pointer", textDecoration: "underline", padding: 0, display: "flex", alignItems: "center", gap: 6 }}
+              >
+                {isGenerating && <Loader2 size={14} className="animate-spin" />}
+                {introRequested ? "Introduction requested ✓" : isGenerating ? "Processing..." : "Request a comparison quote anyway →"}
+              </button>
             </div>
           </>
         ) : (
@@ -73,9 +134,11 @@ const ContractorMatch = ({ isVisible, grade = "C", county = "Broward", scanSessi
                     <p style={{ marginTop: 4 }}>3. Their quote comes in writing with every specification named.</p>
                   </div>
                   <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => { logContractorMatchClick(scanSessionId, isFullLoaded); console.log({ event: "wm_contractor_intro_requested", grade }); setIntroRequested(true); }}
-                    style={{ width: "100%", marginTop: 24, background: "#2563EB", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, height: 54, borderRadius: 0, border: "none", cursor: "pointer" }}>
-                    Yes — Make the Introduction →
+                    onClick={handleIntroRequest}
+                    disabled={isGenerating}
+                    style={{ width: "100%", marginTop: 24, background: isGenerating ? "#1e40af" : "#2563EB", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, height: 54, borderRadius: 0, border: "none", cursor: isGenerating ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    {isGenerating && <Loader2 size={18} className="animate-spin" />}
+                    {isGenerating ? "Processing..." : "Yes — Make the Introduction →"}
                   </motion.button>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", textAlign: "center", marginTop: 12, fontStyle: "italic" }}>No obligation. The estimate is free.<br />You're under no pressure to accept it.</p>
                 </>
