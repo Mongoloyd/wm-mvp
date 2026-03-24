@@ -658,6 +658,9 @@ export function LockedOverlay({
                     }}
                     onFocus={(e) => {
                       e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+                      setTimeout(() => {
+                        e.currentTarget?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }, 300);
                     }}
                     onBlur={(e) => {
                       e.currentTarget.style.background = "rgba(255,255,255,0.07)";
