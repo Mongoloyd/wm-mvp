@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useTickerStats } from '@/hooks/useTickerStats';
@@ -32,15 +32,21 @@ const ExitIntentModal = ({ stepsCompleted, flowMode, leadCaptured, flowBLeadCapt
   return (
     <AnimatePresence>
       {open && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="fixed inset-0 z-[9500] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)' }} onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}>
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} transition={{ duration: 0.15 }} className="relative w-[92%] max-w-[520px] p-9 md:p-9" style={{ background: '#111111', border: '1px solid #1A1A1A', borderRadius: 0, boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
-            <button onClick={dismiss} className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center bg-transparent border-none cursor-pointer" style={{ color: '#E5E7EB' }}><X size={16} /></button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
+          className="fixed inset-0 z-[9500] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}>
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} transition={{ duration: 0.15 }}
+            className="relative w-[92%] max-w-[520px] p-9 glass-card-strong rounded-2xl" style={{ boxShadow: 'var(--wm-shadow-float)' }}>
+            <button onClick={dismiss} className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center bg-transparent border-none cursor-pointer text-muted-foreground"><X size={16} /></button>
             <div className="text-center">
-              <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: '#E5E5E5', marginTop: 8, lineHeight: 1.15, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Before you go — one question.</h2>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: '#E5E7EB', lineHeight: 1.7, marginTop: 12 }}>Homeowners {locationLabel} saved an average of <span style={{ fontFamily: "'DM Mono', monospace", fontWeight: 700, color: '#F97316' }}>${stats.savings.toLocaleString()}</span> after scanning with WindowMan. Yours takes 60 seconds.</p>
-              <div className="flex items-center justify-center gap-2 mt-4"><span className="relative flex h-2.5 w-2.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" /></span><span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#E5E7EB' }}>{liveViewers} homeowners checking right now</span></div>
-              <button onClick={handleCTA} style={{ marginTop: 24, width: '100%', borderRadius: 0, background: '#2563EB', padding: '14px 0', fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: '#FFFFFF', border: 'none', cursor: 'pointer' }}>Check My Quote — It's Free</button>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#E5E7EB', marginTop: 12, cursor: 'pointer' }} onClick={dismiss}>I'll risk overpaying →</p>
+              <h2 className="display-secondary text-foreground mt-2" style={{ fontSize: 26, lineHeight: 1.15 }}>Before you go — one question.</h2>
+              <p className="font-body text-base text-muted-foreground leading-relaxed mt-3">Homeowners {locationLabel} saved an average of <span className="font-mono font-bold text-wm-orange">${stats.savings.toLocaleString()}</span> after scanning with WindowMan. Yours takes 60 seconds.</p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <span className="relative flex h-2.5 w-2.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" /></span>
+                <span className="font-body text-xs text-muted-foreground">{liveViewers} homeowners checking right now</span>
+              </div>
+              <button onClick={handleCTA} className="btn-depth-primary rounded-xl w-full mt-6 py-3.5 font-body text-base font-bold">Check My Quote — It's Free</button>
+              <p className="font-body text-xs text-muted-foreground mt-3 cursor-pointer" onClick={dismiss}>I'll risk overpaying →</p>
             </div>
           </motion.div>
         </motion.div>
