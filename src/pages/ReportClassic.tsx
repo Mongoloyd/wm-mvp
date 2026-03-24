@@ -200,30 +200,78 @@ export default function ReportClassic() {
     );
   }
 
-  // ── Error state ────────────────────────────────────────────────────────
+  // ── Terminal states (invalid document, failed, etc.) ─────────────────
+
+  const TERMINAL_MESSAGES: Record<string, { title: string; body: string; cta: string }> = {
+    invalid_document: {
+      title: "Not a Window or Door Quote",
+      body: "The document you uploaded doesn't appear to be an impact window or door contractor quote. Our scanner only analyzes quotes for impact-rated windows and doors.",
+      cta: "Upload a Different Quote",
+    },
+    failed: {
+      title: "Scan Failed",
+      body: "Something went wrong while analyzing your document. This can happen with heavily formatted or image-heavy files.",
+      cta: "Try Again",
+    },
+    error: {
+      title: "Scan Error",
+      body: "An unexpected error occurred during analysis. Please try uploading your quote again.",
+      cta: "Try Again",
+    },
+    unreadable: {
+      title: "Document Unreadable",
+      body: "We couldn't extract enough information from this file. Try uploading a clearer photo or the original PDF.",
+      cta: "Upload a Clearer Copy",
+    },
+  };
+
+  const terminalStatus = analysisData?.analysisStatus;
+  const terminalMsg = terminalStatus ? TERMINAL_MESSAGES[terminalStatus] : null;
+
+  if (terminalMsg) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md px-5">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-none border-2 border-destructive/40 flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--destructive))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <h1 className="font-heading text-xl font-bold text-foreground uppercase tracking-wider mb-3">
+            {terminalMsg.title}
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-8">
+            {terminalMsg.body}
+          </p>
+          <a
+            href="/"
+            className="inline-block bg-primary text-primary-foreground font-semibold text-sm px-8 py-3 rounded-none hover:bg-primary/90 transition-colors duration-150"
+          >
+            {terminalMsg.cta}
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Error / not-found state ────────────────────────────────────────────
 
   if (error || !analysisData) {
     return (
-      <div style={{ background: "#0A0A0A", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center", maxWidth: 400, padding: "0 20px" }}>
-          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 20, fontWeight: 800, color: "#FFFFFF", marginBottom: 8 }}>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md px-5">
+          <h1 className="font-heading text-xl font-bold text-foreground uppercase tracking-wider mb-2">
             Report Not Found
-          </p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#9CA3AF", marginBottom: 24 }}>
+          </h1>
+          <p className="text-sm text-muted-foreground mb-6">
             {error || "We couldn't find a report for this session."}
           </p>
-          <a href="/" style={{
-            display: "inline-block",
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.15)",
-            color: "#D1D5DB",
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 14,
-            fontWeight: 600,
-            padding: "10px 24px",
-            borderRadius: 0,
-            textDecoration: "none",
-          }}>
+          <a
+            href="/"
+            className="inline-block bg-muted border border-border text-muted-foreground text-sm font-semibold px-6 py-2.5 rounded-none hover:bg-muted/80 transition-colors duration-150"
+          >
             Back to Home
           </a>
         </div>
