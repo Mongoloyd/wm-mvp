@@ -41,6 +41,7 @@ type Props = {
   flagRedCount?: number;
   flagAmberCount?: number;
   onContractorMatchClick: () => void;
+  onReportHelpCall: () => void;
   onSecondScan: () => void;
   scanSessionId?: string | null;
   /** Called after real OTP verification succeeds. Parent should call fetchFull(). */
