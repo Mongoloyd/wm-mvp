@@ -28,7 +28,7 @@ const vetItems = [
   "Your contractor never sees your WindowMan grade report unless you choose to share it.",
 ];
 
-const ContractorMatch = ({ isVisible, grade = "C", county = "Broward" }: ContractorMatchProps) => {
+const ContractorMatch = ({ isVisible, grade = "C", county = "Broward", scanSessionId, isFullLoaded }: ContractorMatchProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [introRequested, setIntroRequested] = useState(false);
   const isGoodGrade = grade === "A" || grade === "B";
@@ -49,7 +49,7 @@ const ContractorMatch = ({ isVisible, grade = "C", county = "Broward" }: Contrac
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E5E5", lineHeight: 1.8 }}>"What happens if a seal fails in year 3 — is the labor to replace the unit covered under your warranty, or just the glass?"</p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", marginTop: 12, lineHeight: 1.7 }}>Most contractors cover the product but not the labor after year 1. A good warranty covers both for at least 3 years. Ask before you sign.</p>
               <div style={{ borderTop: "1px solid #1A1A1A", margin: "20px 0" }} />
-              <button onClick={() => console.log({ event: "wm_comparison_quote_requested", grade })} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Request a comparison quote anyway →</button>
+              <button onClick={() => { logContractorMatchClick(scanSessionId, isFullLoaded); console.log({ event: "wm_comparison_quote_requested", grade }); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Request a comparison quote anyway →</button>
             </div>
           </>
         ) : (
@@ -81,7 +81,7 @@ const ContractorMatch = ({ isVisible, grade = "C", county = "Broward" }: Contrac
                     <p style={{ marginTop: 4 }}>3. Their quote comes in writing with every specification named.</p>
                   </div>
                   <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => { console.log({ event: "wm_contractor_intro_requested", grade }); setIntroRequested(true); }}
+                    onClick={() => { logContractorMatchClick(scanSessionId, isFullLoaded); console.log({ event: "wm_contractor_intro_requested", grade }); setIntroRequested(true); }}
                     style={{ width: "100%", marginTop: 24, background: "#2563EB", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, height: 54, borderRadius: 0, border: "none", cursor: "pointer" }}>
                     Yes — Make the Introduction →
                   </motion.button>
