@@ -56,6 +56,7 @@ const App = () => (
           {/* Legacy V2 route → permanent redirect to Classic */}
           <Route path="/report/:sessionId" element={<ReportRedirect />} />
           {/* Internal/dev only — zero production CTAs point here */}
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/demo-classic" element={<DemoClassic />} />
           {/* ── Static content pages ── */}
           <Route path="/about" element={<About />} />
