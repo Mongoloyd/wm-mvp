@@ -90,11 +90,16 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       if (ssError) { console.error("scan_sessions insert failed:", ssError); toast.error("Failed to start scan session. Please try again."); setUploading(false); return; }
       trackEvent({ event_name: "upload_completed", session_id: sessionId, metadata: { scan_session_id: scanSessionId, file_name: file.name, file_size: file.size } });
       onScanStart?.(file.name, scanSessionId);
-      const { error: fnError } = await supabase.functions.invoke("scan-quote", { body: { scan_session_id: scanSessionId } });
+      const { data: fnData, error: fnError } = await supabase.functions.invoke("scan-quote", { body: { scan_session_id: scanSessionId } });
       if (fnError) {
-        console.error("scan-quote invoke failed:", fnError);
-        toast.error("Scan encountered an issue. We'll retry automatically.");
-        await supabase.from("event_logs").insert({ event_name: "scan_invoke_failed", session_id: sessionId || null, metadata: { scan_session_id: scanSessionId, quote_file_id: quoteFileId, error_message: fnError.message || String(fnError), file_name: file.name, file_size: file.size, timestamp: new Date().toISOString() } });
+        // Check if the response body indicates rate limiting
+        const isRateLimited = fnData?.error === "rate_limit_exceeded";
+        if (isRateLimited) {
+          toast.error(fnData?.message || "You've reached the limit for free scans this hour. Please try again in a bit or contact us for a bulk review.");
+        } else {
+          toast.error("Scan encountered an issue. We'll retry automatically.");
+        }
+        await supabase.from("event_logs").insert({ event_name: isRateLimited ? "scan_rate_limited" : "scan_invoke_failed", session_id: sessionId || null, metadata: { scan_session_id: scanSessionId, quote_file_id: quoteFileId, error_message: fnError.message || String(fnError), file_name: file.name, file_size: file.size, timestamp: new Date().toISOString() } });
       }
     } catch (err) { console.error("Scan error:", err); toast.error("Something went wrong. Please try again."); } finally { setUploading(false); }
   };
