@@ -13,6 +13,7 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 // Dev/internal only — not linked from any production CTA
 const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
+const AdminDashboard = lazy(() => import("./components/AdminDashboard.tsx"));
 
 // ── Static content pages ─────────────────────────────────────────────────────
 const About = lazy(() => import("./pages/About.tsx"));
