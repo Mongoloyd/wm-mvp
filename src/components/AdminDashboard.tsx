@@ -1003,6 +1003,7 @@ export default function AdminDashboard() {
   const activeBillingCount = billableIntros.filter(i => i.billing_status === 'billable' || i.billing_status === 'invoiced').length;
 
   return (
+    <AdminPasswordGate>
     <div style={{ background: '#0A0A0A', minHeight: '100vh', padding: '24px 20px', fontFamily: bodyFont }}>
       <style>{`
         @keyframes pulse-red {
@@ -1297,5 +1298,6 @@ export default function AdminDashboard() {
         />
       )}
     </div>
+    </AdminPasswordGate>
   );
 }
