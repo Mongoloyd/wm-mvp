@@ -74,9 +74,7 @@ const Index = () => {
     const record = getVerifiedAccess();
     if (!record) return;
 
-    console.log("[Index] resume record found, restoring scan state", {
-      scanSessionId: record.scan_session_id,
-    });
+    // Resume record found — restoring scan state
     // Restore enough state to render the report view
     setScanSessionId(record.scan_session_id);
     setFileUploaded(true);

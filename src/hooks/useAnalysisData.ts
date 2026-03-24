@@ -285,19 +285,19 @@ export function useAnalysisData(
 
   // ── Phase 2: Full gated fetch ──────────────────────────────────────────
   const fetchFull = useCallback(async (phoneE164: string) => {
-    console.log("[fetchFull] called", { scanSessionId, phoneE164, isFullLoaded });
+    
     if (!scanSessionId || isFullLoaded) {
       console.warn("[fetchFull] skipped — missing scanSessionId or already loaded", { scanSessionId, isFullLoaded });
       return;
     }
     setIsLoadingFull(true);
     try {
-      console.log("[fetchFull] calling get_analysis_full RPC...");
+      
       const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
         "get_analysis_full",
         { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
       );
-      console.log("[fetchFull] RPC response", { rows, rpcErr });
+      
       if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); return; }
       const row = Array.isArray(rows) ? rows[0] : rows;
       if (!row || !row.grade) { console.error("[fetchFull] get_analysis_full returned empty", { row }); return; }
@@ -330,7 +330,7 @@ export function useAnalysisData(
       // Save resume record for returning users
       saveVerifiedAccess(scanSessionId, phoneE164);
       trackEvent({ event_name: "report_unlocked", session_id: scanSessionId, metadata: { grade: row.grade, flag_count: flags.length } });
-      console.log("[fetchFull] SUCCESS — isFullLoaded set to true, resume record saved");
+      
     } catch (err) {
       console.error("[fetchFull] exception:", err);
     } finally {
@@ -346,15 +346,10 @@ export function useAnalysisData(
 
     const record = getVerifiedAccess(scanSessionId);
     if (!record) {
-      console.log("[tryResume] no valid resume record for", scanSessionId);
+      
       return false;
     }
 
-    console.log("[tryResume] found resume record, attempting full fetch", {
-      scanSessionId: record.scan_session_id,
-      phone: record.phone_e164.slice(0, 5) + "***",
-      expiresAt: record.expires_at,
-    });
 
     setIsResuming(true);
     try {
@@ -403,7 +398,7 @@ export function useAnalysisData(
       previewFetchedRef.current = scanSessionId;
       setIsFullLoaded(true);
       trackEvent({ event_name: "resume_flow_triggered", session_id: scanSessionId, metadata: { grade: row.grade } });
-      console.log("[tryResume] SUCCESS — full report restored from resume record");
+      
       return true;
     } catch (err) {
       console.error("[tryResume] exception — clearing stale record", err);

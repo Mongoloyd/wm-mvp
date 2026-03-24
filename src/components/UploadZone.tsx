@@ -79,7 +79,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
           return;
         }
         leadId = fallbackLeadId;
-        console.log("[UploadZone] Created fallback lead:", leadId);
+        // fallback lead created
       }
 
       const quoteFileId = crypto.randomUUID();
@@ -169,7 +169,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
 
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", textAlign: "center", marginTop: 16 }}>
               Don't have a digital copy?{" "}
-              <button onClick={() => console.log({ event: "wm_photo_option_clicked" })} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#2563EB", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}>
+              <button onClick={() => trackEvent({ event_name: "photo_option_clicked" })} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#2563EB", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}>
                 Take a photo with your phone →
               </button>
             </p>
