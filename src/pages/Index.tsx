@@ -298,7 +298,7 @@ const Index = () => {
                 isFullLoaded={isFullLoaded}
                 onVerified={(phoneE164: string) => { fetchFull(phoneE164); }}
               />
-              <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} scanSessionId={scanSessionId} isFullLoaded={isFullLoaded} />
+              <ContractorMatch isVisible={contractorMatchVisible} county={selectedCounty} grade={reportGrade} scanSessionId={scanSessionId} isFullLoaded={isFullLoaded} phoneE164={getVerifiedAccess(scanSessionId)?.phone_e164 || null} />
             </>
           ) : null}
         </>

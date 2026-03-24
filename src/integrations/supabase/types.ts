@@ -101,6 +101,238 @@ export type Database = {
           },
         ]
       }
+      contractor_opportunities: {
+        Row: {
+          amber_flag_count: number
+          analysis_id: string
+          assigned_operator: string | null
+          brief_generated_at: string | null
+          brief_json: Json | null
+          brief_text: string | null
+          brief_version: string | null
+          county: string | null
+          created_at: string
+          flag_count: number
+          grade: string | null
+          homeowner_contact_released_at: string | null
+          id: string
+          internal_notes: string | null
+          intro_requested_at: string
+          lead_id: string
+          priority_score: number
+          project_type: string | null
+          quote_range: string | null
+          red_flag_count: number
+          routed_at: string | null
+          scan_session_id: string
+          status: string
+          updated_at: string
+          window_count: number | null
+        }
+        Insert: {
+          amber_flag_count?: number
+          analysis_id: string
+          assigned_operator?: string | null
+          brief_generated_at?: string | null
+          brief_json?: Json | null
+          brief_text?: string | null
+          brief_version?: string | null
+          county?: string | null
+          created_at?: string
+          flag_count?: number
+          grade?: string | null
+          homeowner_contact_released_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          intro_requested_at?: string
+          lead_id: string
+          priority_score?: number
+          project_type?: string | null
+          quote_range?: string | null
+          red_flag_count?: number
+          routed_at?: string | null
+          scan_session_id: string
+          status?: string
+          updated_at?: string
+          window_count?: number | null
+        }
+        Update: {
+          amber_flag_count?: number
+          analysis_id?: string
+          assigned_operator?: string | null
+          brief_generated_at?: string | null
+          brief_json?: Json | null
+          brief_text?: string | null
+          brief_version?: string | null
+          county?: string | null
+          created_at?: string
+          flag_count?: number
+          grade?: string | null
+          homeowner_contact_released_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          intro_requested_at?: string
+          lead_id?: string
+          priority_score?: number
+          project_type?: string | null
+          quote_range?: string | null
+          red_flag_count?: number
+          routed_at?: string | null
+          scan_session_id?: string
+          status?: string
+          updated_at?: string
+          window_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_opportunities_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_opportunities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_opportunities_scan_session_id_fkey"
+            columns: ["scan_session_id"]
+            isOneToOne: true
+            referencedRelation: "scan_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_opportunity_routes: {
+        Row: {
+          assigned_by: string | null
+          contact_released: boolean
+          contact_released_at: string | null
+          contractor_id: string
+          created_at: string
+          id: string
+          opportunity_id: string
+          responded_at: string | null
+          response_notes: string | null
+          route_status: string
+          routing_reason: string | null
+          sent_at: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          contact_released?: boolean
+          contact_released_at?: string | null
+          contractor_id: string
+          created_at?: string
+          id?: string
+          opportunity_id: string
+          responded_at?: string | null
+          response_notes?: string | null
+          route_status?: string
+          routing_reason?: string | null
+          sent_at?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          contact_released?: boolean
+          contact_released_at?: string | null
+          contractor_id?: string
+          created_at?: string
+          id?: string
+          opportunity_id?: string
+          responded_at?: string | null
+          response_notes?: string | null
+          route_status?: string
+          routing_reason?: string | null
+          sent_at?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_opportunity_routes_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_opportunity_routes_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractors: {
+        Row: {
+          accepts_low_grade_leads: boolean
+          company_name: string
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_vetted: boolean
+          max_window_count: number | null
+          min_window_count: number | null
+          notes: string | null
+          phone_e164: string | null
+          pricing_model: string | null
+          project_types: string[]
+          service_counties: string[]
+          service_regions: string[]
+          status: string
+          updated_at: string
+          vetted_at: string | null
+        }
+        Insert: {
+          accepts_low_grade_leads?: boolean
+          company_name: string
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_vetted?: boolean
+          max_window_count?: number | null
+          min_window_count?: number | null
+          notes?: string | null
+          phone_e164?: string | null
+          pricing_model?: string | null
+          project_types?: string[]
+          service_counties?: string[]
+          service_regions?: string[]
+          status?: string
+          updated_at?: string
+          vetted_at?: string | null
+        }
+        Update: {
+          accepts_low_grade_leads?: boolean
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_vetted?: boolean
+          max_window_count?: number | null
+          min_window_count?: number | null
+          notes?: string | null
+          phone_e164?: string | null
+          pricing_model?: string | null
+          project_types?: string[]
+          service_counties?: string[]
+          service_regions?: string[]
+          status?: string
+          updated_at?: string
+          vetted_at?: string | null
+        }
+        Relationships: []
+      }
       conversion_events: {
         Row: {
           created_at: string
