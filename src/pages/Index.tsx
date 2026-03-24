@@ -126,6 +126,7 @@ const Index = () => {
     if (isFullLoaded && !prevFullLoadedRef.current) {
       prevFullLoadedRef.current = true;
       setContractorMatchVisible(true);
+      trackEvent({ event_name: "contractor_match_surfaced", session_id: scanSessionId, metadata: {} });
       // Brief delay to let the full report render, then scroll CTA into view
       setTimeout(() => {
         document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth", block: "start" });
