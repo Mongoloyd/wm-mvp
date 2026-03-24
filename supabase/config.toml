@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.contractor-actions]
 verify_jwt = false
+
+[functions.voice-followup]
+verify_jwt = false
