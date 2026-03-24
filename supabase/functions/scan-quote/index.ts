@@ -534,6 +534,17 @@ Deno.serve(async (req: Request) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
+    // ── Rate-limit constants ──
+    const RATE_LIMIT_MAX = 3;
+    const RATE_LIMIT_WINDOW_MINUTES = 60;
+
+    // Capture client IP for rate-limit tracking
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+
     // 1. Load scan session
     const { data: session, error: sessionErr } = await supabase
       .from("scan_sessions")
@@ -544,6 +555,26 @@ Deno.serve(async (req: Request) => {
     if (sessionErr || !session) {
       console.error("Session not found:", sessionErr);
       return jsonResponse({ error: "Session not found" }, 404);
+    }
+
+    // ── Rate-limit check (by lead_id — one lead per visitor session) ──
+    if (session.lead_id && !_isDevBypass) {
+      const cutoff = new Date(Date.now() - RATE_LIMIT_WINDOW_MINUTES * 60 * 1000).toISOString();
+      const { count, error: rlErr } = await supabase
+        .from("scan_sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("lead_id", session.lead_id)
+        .gte("created_at", cutoff);
+
+      if (!rlErr && (count ?? 0) > RATE_LIMIT_MAX) {
+        console.warn(`Rate limit hit: lead_id=${session.lead_id} ip=${clientIp} count=${count}`);
+        // Mark this session so it doesn't sit in "uploading" forever
+        await supabase.from("scan_sessions").update({ status: "error" }).eq("id", scan_session_id);
+        return jsonResponse({
+          error: "rate_limit_exceeded",
+          message: "You've reached the limit for free scans this hour. Please try again in a bit or contact us for a bulk review.",
+        }, 429);
+      }
     }
 
     // 2. Set status to processing
