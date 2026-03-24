@@ -475,7 +475,34 @@ function OpportunityDetail({
           {opp.homeowner_contact_released_at && (
             <div style={{ fontFamily: monoFont, fontSize: 10, color: '#F59E0B', marginTop: 4 }}>Contact released: {new Date(opp.homeowner_contact_released_at).toLocaleString()}</div>
           )}
+          {opp.cta_source && <div style={{ fontFamily: monoFont, fontSize: 10, color: '#A0B8D8', marginTop: 4 }}>CTA Source: {opp.cta_source}</div>}
+          {opp.last_call_intent && <div style={{ fontFamily: monoFont, fontSize: 10, color: '#A0B8D8', marginTop: 4 }}>Call Intent: {opp.last_call_intent} · Webhook: <span style={{ color: opp.last_call_webhook_status === 'sent' ? '#10B981' : opp.last_call_webhook_status === 'failed' ? '#EF4444' : '#F59E0B' }}>{opp.last_call_webhook_status || '—'}</span></div>}
         </div>
+
+        {/* Suggested Match (Phase 3.4A) */}
+        {opp.suggested_match_generated_at && (
+          <div style={{ background: 'rgba(200,149,42,0.04)', border: '1px solid rgba(200,149,42,0.2)', padding: '16px 20px', marginBottom: 16 }}>
+            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#C8952A', letterSpacing: '0.12em', marginBottom: 8 }}>SUGGESTED MATCH</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {[
+                ['Contractor', opp.suggested_contractor_id ? (contractors.find(c => c.id === opp.suggested_contractor_id)?.company_name || opp.suggested_contractor_id.slice(0, 8) + '…') : '—'],
+                ['Confidence', opp.suggested_match_confidence?.toUpperCase() || '—'],
+                ['Generated', opp.suggested_match_generated_at ? new Date(opp.suggested_match_generated_at).toLocaleString() : '—'],
+                ['Overridden', opp.suggested_match_overridden ? '✗ YES' : 'No'],
+              ].map(([label, value]) => (
+                <div key={label} style={{ display: 'flex', gap: 8 }}>
+                  <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', width: 80, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
+                  <span style={{ fontFamily: monoFont, fontSize: 11, color: '#C8DEFF' }}>{value}</span>
+                </div>
+              ))}
+            </div>
+            {opp.suggested_match_reasons && Array.isArray(opp.suggested_match_reasons) && (
+              <div style={{ marginTop: 8, fontFamily: monoFont, fontSize: 10, color: '#A0B8D8' }}>
+                Reasons: {(opp.suggested_match_reasons as string[]).join(', ')}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Suggested Contractors */}
         <div style={{ marginBottom: 16 }}>
