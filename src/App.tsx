@@ -13,6 +13,7 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 // Dev/internal only — not linked from any production CTA
 const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
+const AdminDashboard = lazy(() => import("./components/AdminDashboard.tsx"));
 
 // ── Static content pages ─────────────────────────────────────────────────────
 const About = lazy(() => import("./pages/About.tsx"));
@@ -55,6 +56,7 @@ const App = () => (
           {/* Legacy V2 route → permanent redirect to Classic */}
           <Route path="/report/:sessionId" element={<ReportRedirect />} />
           {/* Internal/dev only — zero production CTAs point here */}
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/demo-classic" element={<DemoClassic />} />
           {/* ── Static content pages ── */}
           <Route path="/about" element={<About />} />
