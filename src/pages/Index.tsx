@@ -118,6 +118,19 @@ const Index = () => {
     }
   }, [flowMode, gradeRevealed]);
 
+  // ── Auto-surface Contractor Match after full unlock ─────────────────
+  const prevFullLoadedRef = useRef(false);
+  useEffect(() => {
+    if (isFullLoaded && !prevFullLoadedRef.current) {
+      prevFullLoadedRef.current = true;
+      setContractorMatchVisible(true);
+      // Brief delay to let the full report render, then scroll CTA into view
+      setTimeout(() => {
+        document.getElementById("contractor-match")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 600);
+    }
+  }, [isFullLoaded]);
+
   const switchToFlowA = (triggeredFrom: string) => { setFlowMode('A'); pendingScrollRef.current = true; };
 
   // Resolve active data: dev fixtures override real backend data
