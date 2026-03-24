@@ -918,7 +918,7 @@ export default function AdminDashboard() {
 
   // ── Call Queue Actions ────
   const handleStatusChange = async (id: string, status: Lead['status']) => {
-    await supabase.from('leads').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
+    await adminFetch('update_lead_status', { lead_id: id, status });
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
   };
   const handleCallNow = (lead: Lead) => { window.open(`tel:${lead.phone}`, '_self'); handleStatusChange(lead.id, 'called'); };
@@ -926,13 +926,8 @@ export default function AdminDashboard() {
 
   // ── Contractor Queue Actions ────
   const handleRoute = async (oppId: string, contractorId: string) => {
-    const now = new Date().toISOString();
-    await supabase.from('contractor_opportunity_routes').insert({
-      opportunity_id: oppId, contractor_id: contractorId, route_status: 'sent',
-      sent_at: now, assigned_by: 'operator', routing_reason: 'manual_assignment',
-    });
-    await supabase.from('contractor_opportunities').update({ status: 'sent_to_contractor', routed_at: now }).eq('id', oppId);
-    await supabase.from('event_logs').insert({ event_name: 'contractor_intro_routed', session_id: opportunities.find(o => o.id === oppId)?.scan_session_id || null, route: '/admin', metadata: { opportunity_id: oppId, contractor_id: contractorId, timestamp: now } });
+    const scanSessionId = opportunities.find(o => o.id === oppId)?.scan_session_id || null;
+    await adminFetch('route_opportunity', { opportunity_id: oppId, contractor_id: contractorId, scan_session_id: scanSessionId });
     fetchOpportunities(); fetchAllRoutes();
     if (selectedOpp?.id === oppId) fetchRoutesForOpp(oppId);
   };
@@ -972,8 +967,8 @@ export default function AdminDashboard() {
   };
 
   const handleMarkDead = async (oppId: string) => {
-    await supabase.from('contractor_opportunities').update({ status: 'dead' }).eq('id', oppId);
-    await supabase.from('event_logs').insert({ event_name: 'contractor_opportunity_marked_dead', session_id: opportunities.find(o => o.id === oppId)?.scan_session_id || null, route: '/admin', metadata: { opportunity_id: oppId } });
+    const scanSessionId = opportunities.find(o => o.id === oppId)?.scan_session_id || null;
+    await adminFetch('mark_dead', { opportunity_id: oppId, scan_session_id: scanSessionId });
     setSelectedOpp(null); fetchOpportunities();
   };
 
