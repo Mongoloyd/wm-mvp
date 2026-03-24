@@ -78,6 +78,7 @@ export function LockedOverlay({
   onChangePhone,
   isLoading,
   errorMsg,
+  errorType,
   resendCooldown,
   onResend,
 }: LockedOverlayProps) {
