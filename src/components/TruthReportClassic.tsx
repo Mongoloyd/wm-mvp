@@ -490,6 +490,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       }
 
       {/* ─── CONTRACTOR MATCH CTA ─── */}
+      {accessLevel === "full" && (
       <section className="py-12 md:py-16 px-4 md:px-8" style={{ background: "#0A0A0A" }}>
         <div className="max-w-4xl mx-auto text-center">
           <motion.div {...stagger(8)}>
@@ -533,6 +534,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           </p>
         </div>
       </section>
+      )}
 
       {/* ─── REPORT FOOTER ─── */}
       <section className="py-6 px-4 md:px-8" style={{ background: "#0A0A0A", borderTop: "1px solid rgba(255,255,255,0.1)" }}>

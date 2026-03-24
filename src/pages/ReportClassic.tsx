@@ -14,7 +14,7 @@
  * We only supply the correct props and callbacks.
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Component, type ReactNode, type ErrorInfo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
@@ -25,6 +25,22 @@ import TruthReportClassic from "@/components/TruthReportClassic";
 import ContractorMatch from "@/components/ContractorMatch";
 import type { GateMode, LockedOverlayProps } from "@/components/LockedOverlay";
 import type { OtpVerifyOutcome } from "@/types/report-v2";
+
+// ── ErrorBoundary for ContractorMatch ────────────────────────────────────────
+class ContractorMatchErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[ContractorMatch] render error caught by boundary:", error, info);
+  }
+  render() {
+    if (this.state.hasError) return null; // Silent fail — report stays intact
+    return this.props.children;
+  }
+}
 
 
 // ── PipelineVerifyResult → OtpVerifyOutcome mapping ──────────────────────────
