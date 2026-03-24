@@ -238,7 +238,7 @@ const Index = () => {
       {/* ─── Report view (real or dev fixture) ─── */}
       {shouldShowReport && (
         <>
-          <div className="max-w-4xl mx-auto px-4 pt-4 flex justify-end">
+           <div className="max-w-4xl mx-auto px-4 pt-4 flex justify-end">
             <button
               onClick={() => {
                 clearVerifiedAccess();
@@ -247,9 +247,9 @@ const Index = () => {
                 setGradeRevealed(false);
                 setLeadCaptured(false);
               }}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground text-sm font-medium transition-colors"
+              className="group flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border/60 bg-card/80 backdrop-blur-sm text-muted-foreground text-sm font-medium transition-all duration-200 hover:border-primary/40 hover:text-primary hover:shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
             >
-              <RotateCcw size={14} />
+              <RotateCcw size={14} className="transition-transform duration-300 group-hover:-rotate-180" />
               Start New Scan
             </button>
           </div>
