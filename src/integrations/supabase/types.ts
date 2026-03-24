@@ -220,12 +220,17 @@ export type Database = {
           brief_version: string | null
           county: string | null
           created_at: string
+          cta_source: string | null
           flag_count: number
           grade: string | null
           homeowner_contact_released_at: string | null
           id: string
           internal_notes: string | null
           intro_requested_at: string
+          last_call_intent: string | null
+          last_call_requested_at: string | null
+          last_call_webhook_error: string | null
+          last_call_webhook_status: string | null
           last_interest_at: string | null
           last_release_at: string | null
           lead_id: string
@@ -237,6 +242,15 @@ export type Database = {
           routed_at: string | null
           scan_session_id: string
           status: string
+          suggested_contractor_id: string | null
+          suggested_match_confidence: string | null
+          suggested_match_generated_at: string | null
+          suggested_match_overridden: boolean | null
+          suggested_match_overridden_at: string | null
+          suggested_match_override_reason: string | null
+          suggested_match_reasons: Json | null
+          suggested_match_snapshot: Json | null
+          suggested_match_top_candidates: Json | null
           updated_at: string
           window_count: number | null
         }
@@ -250,12 +264,17 @@ export type Database = {
           brief_version?: string | null
           county?: string | null
           created_at?: string
+          cta_source?: string | null
           flag_count?: number
           grade?: string | null
           homeowner_contact_released_at?: string | null
           id?: string
           internal_notes?: string | null
           intro_requested_at?: string
+          last_call_intent?: string | null
+          last_call_requested_at?: string | null
+          last_call_webhook_error?: string | null
+          last_call_webhook_status?: string | null
           last_interest_at?: string | null
           last_release_at?: string | null
           lead_id: string
@@ -267,6 +286,15 @@ export type Database = {
           routed_at?: string | null
           scan_session_id: string
           status?: string
+          suggested_contractor_id?: string | null
+          suggested_match_confidence?: string | null
+          suggested_match_generated_at?: string | null
+          suggested_match_overridden?: boolean | null
+          suggested_match_overridden_at?: string | null
+          suggested_match_override_reason?: string | null
+          suggested_match_reasons?: Json | null
+          suggested_match_snapshot?: Json | null
+          suggested_match_top_candidates?: Json | null
           updated_at?: string
           window_count?: number | null
         }
@@ -280,12 +308,17 @@ export type Database = {
           brief_version?: string | null
           county?: string | null
           created_at?: string
+          cta_source?: string | null
           flag_count?: number
           grade?: string | null
           homeowner_contact_released_at?: string | null
           id?: string
           internal_notes?: string | null
           intro_requested_at?: string
+          last_call_intent?: string | null
+          last_call_requested_at?: string | null
+          last_call_webhook_error?: string | null
+          last_call_webhook_status?: string | null
           last_interest_at?: string | null
           last_release_at?: string | null
           lead_id?: string
@@ -297,6 +330,15 @@ export type Database = {
           routed_at?: string | null
           scan_session_id?: string
           status?: string
+          suggested_contractor_id?: string | null
+          suggested_match_confidence?: string | null
+          suggested_match_generated_at?: string | null
+          suggested_match_overridden?: boolean | null
+          suggested_match_overridden_at?: string | null
+          suggested_match_override_reason?: string | null
+          suggested_match_reasons?: Json | null
+          suggested_match_snapshot?: Json | null
+          suggested_match_top_candidates?: Json | null
           updated_at?: string
           window_count?: number | null
         }
@@ -320,6 +362,13 @@ export type Database = {
             columns: ["scan_session_id"]
             isOneToOne: true
             referencedRelation: "scan_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_opportunities_suggested_contractor_id_fkey"
+            columns: ["suggested_contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
             referencedColumns: ["id"]
           },
         ]

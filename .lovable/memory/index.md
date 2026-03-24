@@ -39,3 +39,13 @@ WindowMan.PRO design system and architecture constraints
 - contractor_outcomes.billable_intro_id has UNIQUE constraint
 - Release requires explicit approval → then explicit contact release → creates billable intro + outcome stub
 - All billing/release/outcome actions fire events to event_logs
+
+## Phase 3.4A — Immediate Match + Call Momentum (completed)
+- Extended `contractor_opportunities` with 14 new columns: suggested_match_*, last_call_*, cta_source
+- `generate-contractor-brief` now runs deterministic match scoring + persists top candidate + top 3
+- New edge function: `voice-followup` (phonecall.bot webhook, CTA-aware)
+- `ContractorMatch.tsx` rebuilt: dual CTAs (intro + report help), immediate match card, process strip
+- `/how-we-beat-window-quotes` — manifesto/trust/SEO page
+- `src/shared/matchReasons.ts` — shared match reason taxonomy
+- AdminDashboard shows suggested match panel (contractor, confidence, reasons, call intent, webhook status)
+- Secret needed: PHONECALL_BOT_WEBHOOK_URL (optional — gracefully skips)

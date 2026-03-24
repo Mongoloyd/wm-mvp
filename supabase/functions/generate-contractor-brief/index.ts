@@ -17,23 +17,15 @@ function computePriorityScore(params: {
   confidenceScore: number | null;
 }): number {
   let score = 0;
-
-  // Grade severity (worse grade = higher priority = more monetizable)
   const gradeMap: Record<string, number> = { F: 40, D: 30, C: 20, B: 10, A: 5 };
   score += gradeMap[params.grade || "C"] ?? 15;
-
-  // Red flags are high-value signals
   score += Math.min(params.redFlagCount * 8, 40);
   score += Math.min(params.amberFlagCount * 3, 15);
-
-  // Larger projects = higher value
   if (params.windowCount) {
     if (params.windowCount >= 15) score += 20;
     else if (params.windowCount >= 8) score += 12;
     else if (params.windowCount >= 4) score += 6;
   }
-
-  // Quote range signals project size
   if (params.quoteRange) {
     const match = params.quoteRange.match(/[\d,]+/g);
     if (match) {
@@ -43,10 +35,7 @@ function computePriorityScore(params: {
       else if (maxVal >= 8000) score += 5;
     }
   }
-
-  // High confidence = reliable lead
   if (params.confidenceScore && params.confidenceScore >= 80) score += 5;
-
   return Math.min(score, 100);
 }
 
@@ -72,7 +61,6 @@ function buildBrief(params: {
   );
   const amberFlags = flagSummary.filter((f) => f.severity === "Medium");
 
-  // Extract scope gaps from flags
   const scopeGapKeywords = ["missing", "not specified", "unclear", "absent"];
   const majorScopeGaps = flagSummary
     .filter((f) =>
@@ -81,12 +69,10 @@ function buildBrief(params: {
     .map((f) => f.title)
     .slice(0, 5);
 
-  // Extract warranty concerns
   const warrantyFlags = flagSummary
     .filter((f) => f.title.toLowerCase().includes("warranty"))
     .map((f) => f.title);
 
-  // Pricing posture from grade
   const pricingPosture =
     params.grade === "F" || params.grade === "D"
       ? "significantly_above_market"
@@ -96,7 +82,6 @@ function buildBrief(params: {
       ? "market_rate"
       : "competitive";
 
-  // Window count bucket
   let windowCountBucket: string | null = null;
   if (params.windowCount) {
     if (params.windowCount <= 4) windowCountBucket = "1-4";
@@ -124,7 +109,6 @@ function buildBrief(params: {
     generated_at: new Date().toISOString(),
   };
 
-  // Human-readable brief text
   const lines = [
     `WINDOWMAN CONTRACTOR BRIEF`,
     `Generated: ${new Date().toISOString().split("T")[0]}`,
@@ -158,6 +142,138 @@ function buildBrief(params: {
   };
 }
 
+// ── Suggested Match Logic ────────────────────────────────────────────────────
+interface ContractorRow {
+  id: string;
+  company_name: string;
+  status: string;
+  is_vetted: boolean;
+  service_counties: string[];
+  project_types: string[];
+  min_window_count: number | null;
+  max_window_count: number | null;
+  accepts_low_grade_leads: boolean;
+}
+
+interface MatchCandidate {
+  contractor_id: string;
+  score: number;
+  reasons: string[];
+}
+
+function computeSuggestedMatch(params: {
+  contractors: ContractorRow[];
+  county: string | null;
+  projectType: string | null;
+  windowCount: number | null;
+  grade: string | null;
+}): {
+  topCandidate: MatchCandidate | null;
+  topThree: MatchCandidate[];
+  confidence: "high" | "medium" | "low";
+} {
+  const candidates: MatchCandidate[] = [];
+
+  for (const c of params.contractors) {
+    if (c.status !== "active") continue;
+
+    let score = 0;
+    const reasons: string[] = [];
+
+    // Vetted (required baseline)
+    if (c.is_vetted) {
+      score += 20;
+      reasons.push("vetted_contractor");
+    } else {
+      continue; // Only suggest vetted contractors
+    }
+
+    // County / service area match
+    if (params.county && c.service_counties.length > 0) {
+      const match = c.service_counties.some(
+        (sc) => sc.toLowerCase() === params.county!.toLowerCase()
+      );
+      if (match) {
+        score += 30;
+        reasons.push("county_specialist");
+      } else {
+        score -= 20; // penalize non-matching county
+      }
+    } else if (c.service_counties.length === 0) {
+      score += 10; // no restrictions = broad coverage
+      reasons.push("strong_local_coverage");
+    }
+
+    // Project type fit
+    if (params.projectType && c.project_types.length > 0) {
+      const match = c.project_types.some(
+        (pt) => pt.toLowerCase() === params.projectType!.toLowerCase()
+      );
+      if (match) {
+        score += 20;
+        reasons.push("project_type_fit");
+      }
+    } else if (c.project_types.length === 0) {
+      score += 10; // handles all types
+      reasons.push("project_type_fit");
+    }
+
+    // Window count fit
+    if (params.windowCount) {
+      const minOk = !c.min_window_count || params.windowCount >= c.min_window_count;
+      const maxOk = !c.max_window_count || params.windowCount <= c.max_window_count;
+      if (minOk && maxOk) {
+        score += 15;
+        reasons.push("window_count_fit");
+      } else {
+        score -= 10;
+      }
+    }
+
+    // Grade acceptance
+    const isLowGrade = params.grade === "D" || params.grade === "F";
+    if (isLowGrade) {
+      if (c.accepts_low_grade_leads) {
+        score += 10;
+        reasons.push("accepts_low_grade_leads");
+      } else {
+        score -= 15;
+      }
+    }
+
+    // Scope complexity bonus for high-flag quotes
+    if (isLowGrade) {
+      reasons.push("suitable_for_scope_complexity");
+      score += 5;
+    }
+
+    // Performance score placeholder (neutral for now)
+    score += 0;
+
+    // Operator priority placeholder (neutral for now)
+    score += 0;
+
+    if (score > 0) {
+      candidates.push({ contractor_id: c.id, score, reasons });
+    }
+  }
+
+  // Sort by score descending
+  candidates.sort((a, b) => b.score - a.score);
+
+  const topThree = candidates.slice(0, 3);
+  const topCandidate = topThree[0] || null;
+
+  // Compute confidence
+  let confidence: "high" | "medium" | "low" = "low";
+  if (topCandidate) {
+    if (topCandidate.score >= 70) confidence = "high";
+    else if (topCandidate.score >= 40) confidence = "medium";
+  }
+
+  return { topCandidate, topThree, confidence };
+}
+
 // ── Main Handler ─────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -165,12 +281,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { scan_session_id, phone_e164: rawPhone } = await req.json();
+    const { scan_session_id, phone_e164: rawPhone, cta_source } = await req.json();
     const phone_e164 = typeof rawPhone === "string" ? rawPhone.trim() : "";
 
     console.log("[generate-contractor-brief] invoked", {
       scan_session_id,
       phone_e164: phone_e164 ? `${phone_e164.slice(0, 4)}****` : "(empty)",
+      cta_source: cta_source || "intro_request",
     });
 
     if (!scan_session_id || !phone_e164) {
@@ -192,9 +309,7 @@ Deno.serve(async (req) => {
     });
 
     if (!authCheck || authCheck.length === 0) {
-      console.error("[generate-contractor-brief] authorization failed", {
-        scan_session_id,
-      });
+      console.error("[generate-contractor-brief] authorization failed", { scan_session_id });
       return new Response(
         JSON.stringify({ error: "Not authorized. Phone verification required." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -220,7 +335,7 @@ Deno.serve(async (req) => {
 
     const { data: lead } = await supabase
       .from("leads")
-      .select("county, window_count, project_type, quote_range")
+      .select("county, window_count, project_type, quote_range, first_name")
       .eq("id", session.lead_id)
       .maybeSingle();
 
@@ -282,8 +397,39 @@ Deno.serve(async (req) => {
       })
       .eq("id", analysisRow.id);
 
+    // ── 5.5. Suggested Match Logic ──────────────────────────────────────────
+    const { data: allContractors } = await supabase
+      .from("contractors")
+      .select("id, company_name, status, is_vetted, service_counties, project_types, min_window_count, max_window_count, accepts_low_grade_leads")
+      .eq("status", "active");
+
+    const matchResult = computeSuggestedMatch({
+      contractors: (allContractors || []) as ContractorRow[],
+      county: lead?.county || null,
+      projectType: lead?.project_type || null,
+      windowCount: lead?.window_count || null,
+      grade: analysis.grade,
+    });
+
+    const suggestedMatchSnapshot = matchResult.topCandidate ? {
+      confidence: matchResult.confidence,
+      generated_at: now,
+      reason_count: matchResult.topCandidate.reasons.length,
+    } : null;
+
+    const suggestedTopCandidates = matchResult.topThree.map(c => ({
+      contractor_id: c.contractor_id,
+      score: c.score,
+      reasons: c.reasons,
+    }));
+
+    console.log("[generate-contractor-brief] match computed", {
+      topCandidate: matchResult.topCandidate?.contractor_id || null,
+      confidence: matchResult.confidence,
+      candidateCount: matchResult.topThree.length,
+    });
+
     // ── 6. Upsert canonical contractor_opportunity ──────────────────────────
-    // Check for existing opportunity (idempotent)
     const { data: existingOpp } = await supabase
       .from("contractor_opportunities")
       .select("id")
@@ -292,8 +438,17 @@ Deno.serve(async (req) => {
 
     let opportunityId: string;
 
+    const matchFields = {
+      suggested_contractor_id: matchResult.topCandidate?.contractor_id || null,
+      suggested_match_generated_at: now,
+      suggested_match_confidence: matchResult.confidence,
+      suggested_match_reasons: matchResult.topCandidate?.reasons || null,
+      suggested_match_snapshot: suggestedMatchSnapshot,
+      suggested_match_top_candidates: suggestedTopCandidates,
+      cta_source: cta_source || "intro_request",
+    };
+
     if (existingOpp) {
-      // Update existing
       const { error: updateErr } = await supabase
         .from("contractor_opportunities")
         .update({
@@ -311,6 +466,7 @@ Deno.serve(async (req) => {
           red_flag_count: brief.redFlagCount,
           amber_flag_count: brief.amberFlagCount,
           priority_score: priorityScore,
+          ...matchFields,
         })
         .eq("id", existingOpp.id);
 
@@ -318,9 +474,7 @@ Deno.serve(async (req) => {
         console.error("[generate-contractor-brief] opportunity update failed", updateErr);
       }
       opportunityId = existingOpp.id;
-      console.log("[generate-contractor-brief] updated existing opportunity", { opportunityId });
     } else {
-      // Create new
       const { data: newOpp, error: insertErr } = await supabase
         .from("contractor_opportunities")
         .insert({
@@ -342,6 +496,7 @@ Deno.serve(async (req) => {
           red_flag_count: brief.redFlagCount,
           amber_flag_count: brief.amberFlagCount,
           priority_score: priorityScore,
+          ...matchFields,
         })
         .select("id")
         .single();
@@ -354,10 +509,9 @@ Deno.serve(async (req) => {
         );
       }
       opportunityId = newOpp!.id;
-      console.log("[generate-contractor-brief] created new opportunity", { opportunityId });
     }
 
-    // ── 7. Log event ────────────────────────────────────────────────────────
+    // ── 7. Log events ───────────────────────────────────────────────────────
     await supabase.from("event_logs").insert({
       event_name: "contractor_brief_generated",
       session_id: scan_session_id,
@@ -372,18 +526,53 @@ Deno.serve(async (req) => {
       },
     });
 
+    if (matchResult.topCandidate) {
+      await supabase.from("event_logs").insert({
+        event_name: "suggested_match_generated",
+        session_id: scan_session_id,
+        route: "/",
+        metadata: {
+          opportunity_id: opportunityId,
+          suggested_contractor_id: matchResult.topCandidate.contractor_id,
+          confidence: matchResult.confidence,
+          score: matchResult.topCandidate.score,
+          reason_count: matchResult.topCandidate.reasons.length,
+          candidate_count: matchResult.topThree.length,
+          timestamp: now,
+        },
+      });
+    } else {
+      await supabase.from("event_logs").insert({
+        event_name: "suggested_match_unavailable",
+        session_id: scan_session_id,
+        route: "/",
+        metadata: {
+          opportunity_id: opportunityId,
+          contractor_count: allContractors?.length || 0,
+          timestamp: now,
+        },
+      });
+    }
+
     console.log("[generate-contractor-brief] complete", {
       opportunityId,
       analysisId: analysisRow.id,
       status: "brief_ready",
+      suggestedContractor: matchResult.topCandidate?.contractor_id || null,
     });
 
+    // ── 8. Return response with match data ──────────────────────────────────
     return new Response(
       JSON.stringify({
         success: true,
         opportunity_id: opportunityId,
         analysis_id: analysisRow.id,
         status: "brief_ready",
+        suggested_match: matchResult.topCandidate ? {
+          confidence: matchResult.confidence,
+          reasons: matchResult.topCandidate.reasons,
+          contractor_alias: `WM-${matchResult.topCandidate.contractor_id.slice(0, 6).toUpperCase()}`,
+        } : null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

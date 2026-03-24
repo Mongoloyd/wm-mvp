@@ -104,4 +104,18 @@ export const EVENTS = {
   APPOINTMENT_BOOKED: 'appointment_booked',
   REPLACEMENT_QUOTE_SUBMITTED: 'replacement_quote_submitted',
   DEAL_OUTCOME_UPDATED: 'deal_outcome_updated',
+  // Phase 3.4A — Match + Call Momentum
+  SUGGESTED_MATCH_GENERATED: 'suggested_match_generated',
+  SUGGESTED_MATCH_SHOWN: 'suggested_match_shown_to_homeowner',
+  SUGGESTED_MATCH_UNAVAILABLE: 'suggested_match_unavailable',
+  SUGGESTED_MATCH_VIEWED_ADMIN: 'suggested_match_viewed_in_admin',
+  SUGGESTED_MATCH_CONFIRMED: 'suggested_match_confirmed',
+  SUGGESTED_MATCH_OVERRIDDEN: 'suggested_match_overridden',
+  INTRO_CALL_REQUESTED: 'intro_call_requested',
+  REPORT_HELP_CALL_REQUESTED: 'report_help_call_requested',
+  VOICE_FOLLOWUP_QUEUED: 'voice_followup_queued',
+  VOICE_FOLLOWUP_SENT: 'voice_followup_webhook_sent',
+  VOICE_FOLLOWUP_FAILED: 'voice_followup_failed',
+  MANIFESTO_SECTION_VIEWED: 'manifesto_section_viewed',
+  MANIFESTO_PAGE_OPENED: 'manifesto_page_opened',
 } as const;
