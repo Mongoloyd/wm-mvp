@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Ruler, DollarSign, FileText, ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Shield, Ruler, DollarSign, FileText, ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
 import { LockedOverlay } from "@/components/LockedOverlay";
 import type { LockedOverlayProps } from "@/components/LockedOverlay";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
+import { MATCH_REASON_HOMEOWNER, type MatchReasonKey, type MatchConfidence } from "@/shared/matchReasons";
+
+export interface SuggestedMatch {
+  confidence: MatchConfidence;
+  reasons: string[];
+  contractor_alias: string;
+}
 
 interface TruthReportProps {
   grade: string;
@@ -19,14 +26,18 @@ interface TruthReportProps {
   hasPermits?: boolean | null;
   pageCount?: number | null;
   lineItemCount?: number | null;
-  /** Aggregate counts from preview RPC — used when flags[] is empty */
   flagCount?: number;
   flagRedCount?: number;
   flagAmberCount?: number;
   onContractorMatchClick: () => void;
+  onReportHelpCall: () => void;
   onSecondScan: () => void;
-  /** Gate props — passed through to LockedOverlay when accessLevel is "preview" */
   gateProps?: Omit<LockedOverlayProps, "grade" | "flagCount">;
+  /** CTA post-click state — managed by smart container */
+  introRequested?: boolean;
+  reportCallRequested?: boolean;
+  isCtaLoading?: boolean;
+  suggestedMatch?: SuggestedMatch | null;
 }
 
 const gradeConfig: Record<string, {color: string;bg: string;label: string;verdict: string;}> = {
