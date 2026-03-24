@@ -33,10 +33,10 @@ function ReportRedirect() {
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 rounded-full border-2 border-cyan-400/30 border-t-cyan-400 animate-spin" />
-        <p className="text-xs text-slate-500 font-mono">Loading analysis...</p>
+        <div className="h-8 w-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+        <p className="text-xs text-muted-foreground font-mono">Loading analysis...</p>
       </div>
     </div>
   );
