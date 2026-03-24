@@ -101,6 +101,7 @@ export function PostScanReportSwitcher(props: Props) {
     externalPhoneE164: funnel?.phoneE164 ?? null,
     onVerified: () => {
       funnel?.setPhoneStatus("verified");
+      // Phone will be passed via submitOtp result in handleOtpSubmit
       const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
       if (phone) props.onVerified?.(phone);
     },
@@ -132,7 +133,11 @@ export function PostScanReportSwitcher(props: Props) {
 
   const handleOtpSubmit = useCallback(async () => {
     if (otpValue.length < 6) return;
-    await pipeline.submitOtp(otpValue);
+    const result = await pipeline.submitOtp(otpValue);
+    // If server returned canonical phone, prefer it for downstream use
+    if (result.status === "verified" && result.e164) {
+      setCapturedPhone(result.e164);
+    }
   }, [otpValue, pipeline]);
 
   const handleSendCode = useCallback(async () => {

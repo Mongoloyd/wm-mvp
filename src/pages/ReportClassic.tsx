@@ -164,6 +164,10 @@ export default function ReportClassic() {
     const result = await pipeline.submitOtp(otpValue);
     const outcome = PIPELINE_TO_OUTCOME[result.status] || "error";
     if (outcome === "verified") {
+      // Use server-canonical phone if available
+      if (result.e164) {
+        capturedPhoneRef.current = result.e164;
+      }
       setOtpValue("");
     }
   }, [otpValue, pipeline]);

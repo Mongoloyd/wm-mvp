@@ -294,7 +294,7 @@ export function usePhonePipeline(
         setPhoneStatus("verified");
         trackEvent({ event_name: "otp_verified", session_id: options?.scanSessionId, metadata: { phone_last4: canonicalPhone.slice(-4) } });
         options?.onVerified?.();
-        return { status: "verified", e164: canonicalPhone } as unknown as PipelineVerifyResult;
+        return { status: "verified", e164: canonicalPhone };
       } catch (err) {
         console.error("[usePhonePipeline] verify-otp network exception:", err);
         const msg = "Network error. Check your connection and try again.";
