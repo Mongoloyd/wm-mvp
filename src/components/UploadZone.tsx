@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload } from "lucide-react";
+import { Upload, Lock, Mail, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
 import { toast } from "sonner";
+import { isValidEmail, isValidName } from "@/utils/formatPhone";
 
 interface UploadZoneProps {
   isVisible: boolean;
@@ -24,14 +25,26 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState("");
+  const [email, setEmail] = useState("");
+  const [gateWarning, setGateWarning] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const nameValid = isValidName(firstName);
+  const emailValid = isValidEmail(email);
+  const fieldsComplete = nameValid && emailValid;
 
   useEffect(() => {
     if (isVisible && containerRef.current) {
       setTimeout(() => { containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }, 450);
     }
   }, [isVisible]);
+
+  // Clear gate warning when fields become valid
+  useEffect(() => {
+    if (fieldsComplete) setGateWarning(false);
+  }, [fieldsComplete]);
 
   const handleFile = useCallback((f: File) => {
     setFileError(null);
@@ -41,10 +54,24 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }, [handleFile]);
+  const handleDropzoneInteraction = useCallback(() => {
+    if (!fieldsComplete) {
+      setGateWarning(true);
+      return;
+    }
+    if (inputRef.current) { inputRef.current.value = ""; inputRef.current.click(); }
+  }, [fieldsComplete]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (!fieldsComplete) { setGateWarning(true); return; }
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  }, [handleFile, fieldsComplete]);
 
   const handleScan = async () => {
-    if (!file || uploading) return;
+    if (!file || uploading || !fieldsComplete) return;
     setUploading(true);
     try {
       const filePath = `${sessionId || crypto.randomUUID()}/${Date.now()}_${file.name}`;
@@ -56,18 +83,27 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       if (sessionId) {
         const { data: leads } = await supabase.rpc("get_lead_by_session", { p_session_id: sessionId });
         leadId = leads?.[0]?.id || null;
+
+        // Update the existing lead with name+email if we found one
+        if (leadId) {
+          await supabase.from("leads").update({
+            first_name: firstName.trim(),
+            email: email.trim(),
+          }).eq("id", leadId);
+        }
       }
       if (!leadId) {
-        // No prior lead exists (e.g. direct upload without TruthGateFlow).
-        // Create a minimal lead so the scan_session → lead → phone_verifications
-        // authorization chain can work after OTP verification.
-        // Generate UUID client-side to avoid needing SELECT-back (leads RLS
-        // requires x-session-id header for SELECT which the anon client lacks).
         const fallbackLeadId = crypto.randomUUID();
         const fallbackSessionId = sessionId || crypto.randomUUID();
         const { error: leadErr } = await supabase
           .from("leads")
-          .insert({ id: fallbackLeadId, session_id: fallbackSessionId, source: "direct_upload" });
+          .insert({
+            id: fallbackLeadId,
+            session_id: fallbackSessionId,
+            source: "direct_upload",
+            first_name: firstName.trim(),
+            email: email.trim(),
+          });
         if (leadErr) {
           console.error("Failed to create fallback lead:", leadErr);
           toast.error("Failed to initialize session. Please try again.");
@@ -95,6 +131,29 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
     } catch (err) { console.error("Scan error:", err); toast.error("Something went wrong. Please try again."); } finally { setUploading(false); }
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    height: 48,
+    background: "#0A0A0A",
+    border: "1.5px solid #1A1A1A",
+    borderRadius: 0,
+    padding: "0 16px",
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: 15,
+    color: "#E5E5E5",
+    outline: "none",
+    transition: "border-color 0.15s ease",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontFamily: "'DM Mono', monospace",
+    fontSize: 11,
+    color: "#6B7280",
+    letterSpacing: "0.08em",
+    marginBottom: 6,
+    display: "block",
+  };
+
   return (
     <AnimatePresence>
       {isVisible && (
@@ -107,31 +166,101 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
               Drop your quote to start the scan.
             </h2>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 28 }}>
-              PDF, photo, or screenshot — any format works.
+              Enter your details first, then upload your file.
             </p>
 
+            {/* ── Name + Email gate fields ── */}
+            <div className="flex flex-col gap-4 mb-6">
+              <div>
+                <label style={labelStyle}>FIRST NAME</label>
+                <div style={{ position: "relative" }}>
+                  <User size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#6B7280", pointerEvents: "none" }} />
+                  <input
+                    type="text"
+                    placeholder="Your first name"
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    style={{ ...inputStyle, paddingLeft: 40 }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = "#2563EB"; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = "#1A1A1A"; }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>EMAIL ADDRESS</label>
+                <div style={{ position: "relative" }}>
+                  <Mail size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#6B7280", pointerEvents: "none" }} />
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={{ ...inputStyle, paddingLeft: 40 }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = "#2563EB"; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = "#1A1A1A"; }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* ── Gate warning ── */}
+            {gateWarning && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  background: "rgba(249,115,22,0.08)",
+                  border: "1px solid rgba(249,115,22,0.3)",
+                  borderRadius: 0,
+                  padding: "12px 16px",
+                  marginBottom: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <Lock size={16} style={{ color: "#F97316", flexShrink: 0 }} />
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#F97316", fontWeight: 600 }}>
+                  Please enter your name and email to unlock the scanner.
+                </p>
+              </motion.div>
+            )}
+
+            {/* ── Dropzone ── */}
             <div
-              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+              onDragOver={(e) => { e.preventDefault(); if (fieldsComplete) setIsDragOver(true); else setGateWarning(true); }}
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleDrop}
-              onClick={() => { if (inputRef.current) { inputRef.current.value = ""; inputRef.current.click(); } }}
+              onClick={handleDropzoneInteraction}
               style={{
-                border: `2px dashed ${isDragOver ? "#2563EB" : "#1A1A1A"}`,
+                border: `2px dashed ${!fieldsComplete ? "#1A1A1A" : isDragOver ? "#2563EB" : "#1A1A1A"}`,
                 borderRadius: 0,
                 padding: "48px 32px",
-                background: isDragOver ? "rgba(37,99,235,0.06)" : "#0A0A0A",
+                background: !fieldsComplete ? "rgba(10,10,10,0.5)" : isDragOver ? "rgba(37,99,235,0.06)" : "#0A0A0A",
                 textAlign: "center",
-                cursor: "pointer",
+                cursor: fieldsComplete ? "pointer" : "not-allowed",
                 transition: "all 0.15s ease",
+                opacity: fieldsComplete ? 1 : 0.45,
+                position: "relative",
               }}
             >
               <input ref={inputRef} type="file" accept=".pdf,image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} style={{ display: "none" }} />
 
               {!file ? (
                 <>
-                  <Upload size={48} style={{ color: "#E5E7EB", margin: "0 auto 12px" }} />
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E5E5", fontWeight: 600 }}>Drag your quote here</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", marginTop: 4 }}>or click to browse files</p>
+                  {!fieldsComplete ? (
+                    <Lock size={48} style={{ color: "#6B7280", margin: "0 auto 12px" }} />
+                  ) : (
+                    <Upload size={48} style={{ color: "#E5E7EB", margin: "0 auto 12px" }} />
+                  )}
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: fieldsComplete ? "#E5E5E5" : "#6B7280", fontWeight: 600 }}>
+                    {fieldsComplete ? "Drag your quote here" : "Enter your details above to unlock"}
+                  </p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", marginTop: 4, opacity: fieldsComplete ? 1 : 0.5 }}>
+                    {fieldsComplete ? "or click to browse files" : "Name and email required"}
+                  </p>
                 </>
               ) : (
                 <div onClick={(e) => e.stopPropagation()}>
@@ -150,7 +279,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
 
             {fileError && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#F97316", textAlign: "center", marginTop: 12, fontWeight: 500 }}>{fileError}</p>}
 
-            {file && (
+            {file && fieldsComplete && (
               <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                 onClick={handleScan} disabled={uploading}
                 style={{ width: "100%", height: 54, background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, borderRadius: 0, border: "none", boxShadow: "0 4px 16px rgba(37, 99, 235, 0.3)", cursor: uploading ? "not-allowed" : "pointer", marginTop: 20, opacity: uploading ? 0.7 : 1 }}>
