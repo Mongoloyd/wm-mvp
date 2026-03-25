@@ -112,7 +112,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             <div className="hidden md:block relative z-10">
               <div
                 className="absolute -inset-12 rounded-full -z-10"
-                style={{ background: "radial-gradient(circle, rgba(37,99,235,0.12) 0%, rgba(56,189,248,0.08) 50%, transparent 100%)", filter: "blur(60px)" }}
+                style={{ background: "radial-gradient(circle, rgba(8,145,178,0.12) 0%, rgba(6,182,212,0.08) 50%, transparent 100%)", filter: "blur(60px)" }}
               />
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
