@@ -20,7 +20,7 @@ import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
 import InteractiveDemoScan from "@/components/InteractiveDemoScan";
 import ExitIntentModal from "@/components/ExitIntentModal";
-import ScamConcernImageCarousel from "@/components/ScamConcernImageCarousel";
+import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
 import Footer from "@/components/Footer";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
@@ -198,7 +198,7 @@ const Index = () => {
             ) : (
               <motion.div key="flow-b-entry" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                 <FlowBEntry onContinueToTool={() => { document.getElementById("market-baseline")?.scrollIntoView({ behavior: "smooth" }); }} onSwitchToFlowA={() => switchToFlowA('hero_switch')} />
-                <ScamConcernImageCarousel />
+                <ScamConcernImage />
                 <MarketBaselineTool />
                 {flowBLeadCaptured && (
                   <>
@@ -213,7 +213,7 @@ const Index = () => {
           {flowMode === 'A' && (
             <>
               <SocialProofStrip />
-              <ScamConcernImageCarousel />
+              <ScamConcernImage />
               <InteractiveDemoScan onScanClick={() => triggerTruthGate('demo_scan')} />
               <TruthGateFlow
                 onLeadCaptured={(sid) => { setLeadCaptured(true); setSessionId(sid); }}
