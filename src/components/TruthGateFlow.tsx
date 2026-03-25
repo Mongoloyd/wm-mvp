@@ -433,6 +433,10 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               height: 54,
               fontSize: 18,
               background: submitState === "error" ? "linear-gradient(135deg,#F97316 0%,#EA580C 100%)" : undefined,
+              boxShadow:
+                submitState === "error"
+                  ? "0 10px 25px rgba(249,115,22,0.35), 0 0 0 1px rgba(234,88,12,0.9)"
+                  : undefined,
               marginTop: 4,
             }}
           >
