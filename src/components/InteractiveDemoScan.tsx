@@ -252,15 +252,16 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
   const counter = useCounter(activeScan.delta, 1200, phase === "reveal" || phase === "hook");
 
   return (
-    <section className="border-t border-b border-border bg-background py-14 px-4 md:py-20 md:px-8">
-      <div className="text-center mb-9">
-        <p className="font-mono text-[13px] text-cobalt tracking-[0.1em] mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
-        <h2 className="font-display text-[28px] md:text-[34px] font-bold text-white mb-1.5">See the AI at work.</h2>
-        <p className="font-body text-[15px] text-foreground">This runs automatically. No upload required.</p>
+    <section className="border-t border-b bg-background py-18 px-4 md:py-24 md:px-8" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+      <div className="text-center mb-12">
+        <p className="font-mono text-[11px] text-cobalt tracking-[0.12em] mb-4 font-bold" style={{ letterSpacing: "0.12em" }}>LIVE DEMO — WATCH A REAL SCAN</p>
+        <h2 className="font-display text-[32px] md:text-[42px] font-bold text-white mb-3 leading-tight" style={{ letterSpacing: "-0.01em" }}>See the AI at work.</h2>
+        <p className="font-body text-[16px] text-foreground" style={{ color: "rgba(229,231,235,0.85)" }}>This runs automatically. No upload required.</p>
       </div>
 
       <div
-        className="mx-auto max-w-[520px] rounded-none border-[1.5px] border-border bg-card p-6 md:p-8 shadow-[0_4px_24px_rgba(0,242,255,0.12),0_16px_48px_rgba(0,242,255,0.06),0_2px_8px_rgba(0,0,0,0.08)] min-h-[480px] flex flex-col relative"
+        className="mx-auto max-w-[540px] rounded-none border-[1.5px] bg-card p-6 md:p-8 min-h-[500px] flex flex-col relative"
+        style={{ borderColor: "rgba(255,255,255,0.08)", boxShadow: "0 6px 28px rgba(37,99,235,0.15), 0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(37,99,235,0.08) inset" }}
       >
         <AnimatePresence mode="wait">
           {/* ── PHASES 1 & 2: Document & Scan ───────── */}
@@ -366,9 +367,16 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 <motion.button
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 }}
+                  transition={{ delay: 0.8, type: "spring", stiffness: 400, damping: 25 }}
+                  whileHover={{ scale: 1.02, y: -1 }}
+                  whileTap={{ scale: 0.98, y: 0 }}
                   onClick={handleCtaClick}
-                  className="mt-4 w-full rounded-none border border-border bg-muted px-5 py-2.5 font-body text-[13px] font-semibold text-foreground cursor-pointer hover:bg-accent transition-colors"
+                  className="mt-4 w-full rounded-none border px-5 py-3 font-body text-[14px] font-semibold cursor-pointer transition-all"
+                  style={{
+                    borderColor: "rgba(37,99,235,0.3)",
+                    backgroundColor: "rgba(37,99,235,0.06)",
+                    color: "#FFFFFF",
+                  }}
                 >
                   Scan My Quote — It's Free →
                 </motion.button>
@@ -393,8 +401,15 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                     <motion.button
                       animate={{ scale: [1, 1.02, 1] }}
                       transition={{ repeat: Infinity, duration: 2 }}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ y: 0 }}
                       onClick={handleCtaClick}
-                      className="w-full rounded-none bg-gold px-7 py-3 font-body text-[14px] font-bold text-white shadow-[0_3px_14px_rgba(245,158,11,0.35)] cursor-pointer border-none"
+                      className="w-full rounded-none px-7 py-3.5 font-body text-[15px] font-bold cursor-pointer border-none"
+                      style={{
+                        backgroundColor: "#C8952A",
+                        color: "#FFFFFF",
+                        boxShadow: "0 4px 20px rgba(200,149,42,0.4), 0 2px 8px rgba(0,0,0,0.3)",
+                      }}
                     >
                       Upload My Real Quote — It's Free →
                     </motion.button>
