@@ -69,6 +69,28 @@ const severityStyles = {
   green: { border: "1.5px solid rgba(5,150,105,0.3)", borderLeft: "4px solid #059669", badgeBg: "rgba(5,150,105,0.12)", badgeColor: "#059669", badgeText: "✓ CONFIRMED", tipBg: "" }
 };
 
+const fonts = {
+  display: "var(--font-display)",
+  body: "var(--font-body)",
+  mono: "var(--font-mono)"
+};
+
+const createGlassCard = (accent = "rgba(37,99,235,0.10)") => ({
+  background: `linear-gradient(145deg, rgba(255,255,255,0.97), rgba(241,245,249,0.9)),
+    radial-gradient(circle at 14% 16%, rgba(37,99,235,0.10), transparent 32%),
+    radial-gradient(circle at 84% 10%, rgba(56,189,248,0.12), transparent 30%),
+    radial-gradient(circle at 50% 84%, ${accent}, transparent 46%)`,
+  border: "1px solid rgba(15,23,42,0.08)",
+  boxShadow: "var(--wm-shadow-card)",
+  backdropFilter: "blur(14px)"
+});
+
+const severityAccent = {
+  red: "rgba(220,38,38,0.12)",
+  amber: "rgba(245,158,11,0.14)",
+  green: "rgba(16,185,129,0.12)"
+};
+
 const stagger = (i: number) => ({
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
@@ -153,23 +175,23 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           <div>
             <div className="flex items-center gap-2 mb-1">
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#059669" }} />
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#059669", letterSpacing: "0.08em", fontWeight: 700 }}>ANALYSIS COMPLETE</span>
+              <span style={{ fontFamily: fonts.display, fontSize: 11, color: "#059669", letterSpacing: "0.16em", fontWeight: 800, textTransform: "uppercase" }}>Analysis Complete</span>
             </div>
-            <h1 style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, color: "#0F172A", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+            <h1 style={{ fontFamily: fonts.display, fontSize: "clamp(26px, 4vw, 34px)", fontWeight: 900, color: "#0F172A", letterSpacing: "-0.03em", lineHeight: 1.15 }}>
               WindowMan Truth Report™
             </h1>
-            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#475569", marginTop: 4 }}>
+            <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#475569", marginTop: 4 }}>
               {county} County · {reportDate} · {documentType ? humanizeDocType(documentType) : "Quote Document"}
             </p>
           </div>
           <div className="flex items-center gap-4">
             {isFull && confidenceScore != null &&
             <div className="text-right hidden md:block">
-                <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#475569", letterSpacing: "0.08em" }}>CONFIDENCE</p>
-                <p style={{ fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, color: confidenceScore >= 70 ? "#059669" : "#D97706" }}>{Math.round(confidenceScore)}%</p>
+                <p style={{ fontFamily: fonts.display, fontSize: 10, color: "#475569", letterSpacing: "0.16em", textTransform: "uppercase" }}>Confidence</p>
+                <p style={{ fontFamily: fonts.mono, fontSize: 18, fontWeight: 700, color: confidenceScore >= 70 ? "#059669" : "#D97706" }}>{Math.round(confidenceScore)}%</p>
               </div>
             }
-            <motion.div
+              <motion.div
               initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" as const }}
               style={{
                 width: 80, height: 80, borderRadius: "50%",
@@ -177,7 +199,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: `0 0 0 6px ${config.color}1A`
               }}>
-              <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 48, fontWeight: 800, color: config.color, lineHeight: 1 }}>{grade}</span>
+              <span style={{ fontFamily: fonts.display, fontSize: 48, fontWeight: 900, color: config.color, lineHeight: 1, letterSpacing: "-0.03em" }}>{grade}</span>
             </motion.div>
           </div>
         </div>
@@ -188,11 +210,11 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
             <div className="flex items-center gap-3">
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700, color: config.color, letterSpacing: "0.06em", background: "#FFFFFF", borderRadius: 4, padding: "4px 14px", border: `1px solid ${config.color}` }}>
+              <span style={{ fontFamily: fonts.display, fontSize: 12, fontWeight: 800, color: config.color, letterSpacing: "0.12em", textTransform: "uppercase", background: "#FFFFFF", borderRadius: 6, padding: "6px 16px", border: `1px solid ${config.color}` }}>
                 GRADE {grade} — {config.label}
               </span>
             </div>
-            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 15, color: "#0F172A" }}>{config.verdict}</p>
+            <p style={{ fontFamily: fonts.body, fontSize: 15, color: "#0F172A" }}>{config.verdict}</p>
           </div>
 
           {/* Summary chips — affirmative only, preview mode */}
@@ -200,7 +222,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <div className="flex flex-wrap gap-2 mt-3">
               {qualityBand && (
                 <span style={{
-                  fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
+                  fontFamily: fonts.display, fontSize: 10, fontWeight: 800, textTransform: "uppercase",
                   color: qualityBand === "good" ? "#059669" : qualityBand === "fair" ? "#D97706" : "#475569",
                   background: qualityBand === "good" ? "rgba(5,150,105,0.12)" : qualityBand === "fair" ? "rgba(245,158,11,0.12)" : "rgba(71,85,105,0.12)",
                   padding: "3px 10px", letterSpacing: "0.06em", borderRadius: 4,
@@ -210,7 +232,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               )}
               {hasWarranty === true && (
                 <span style={{
-                  fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
+                  fontFamily: fonts.display, fontSize: 10, fontWeight: 800, textTransform: "uppercase",
                   color: "#059669", background: "rgba(5,150,105,0.12)",
                   padding: "3px 10px", letterSpacing: "0.06em", borderRadius: 4,
                 }}>
@@ -219,7 +241,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               )}
               {hasPermits === true && (
                 <span style={{
-                  fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
+                  fontFamily: fonts.display, fontSize: 10, fontWeight: 800, textTransform: "uppercase",
                   color: "#059669", background: "rgba(5,150,105,0.12)",
                   padding: "3px 10px", letterSpacing: "0.06em", borderRadius: 4,
                 }}>
@@ -233,34 +255,34 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
       {/* ─── PROOF-OF-READ TRUST STRIP (preview only) ─── */}
       {!isFull && (pageCount != null || lineItemCount != null || contractorName) && (
-        <motion.section {...stagger(0.5)} className="py-3 px-4 md:px-8" style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
+        <motion.section {...stagger(0.5)} className="py-3 px-4 md:px-8 wm-grid-bg" style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0", position: "relative", overflow: "hidden" }}>
           <div className="max-w-4xl mx-auto flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#0891B2", letterSpacing: "0.1em", fontWeight: 700 }}>
-              DOCUMENT VERIFIED
+            <span style={{ fontFamily: fonts.display, fontSize: 10, color: "#0E7490", letterSpacing: "0.16em", fontWeight: 800, textTransform: "uppercase" }}>
+              Document Verified
             </span>
             {pageCount != null && (
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#475569" }}>
+              <span style={{ fontFamily: fonts.body, fontSize: 11, color: "#475569" }}>
                 Multi-page document analyzed
               </span>
             )}
             {lineItemCount != null && lineItemCount > 0 && (
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#475569" }}>
+              <span style={{ fontFamily: fonts.body, fontSize: 11, color: "#475569" }}>
                 · Detailed line items detected
               </span>
             )}
             {contractorName && (
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#475569" }}>
+              <span style={{ fontFamily: fonts.body, fontSize: 11, color: "#475569" }}>
                 · Contractor identified
               </span>
             )}
             {confidenceScore != null && (
               <span style={{
-                fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, marginLeft: "auto",
+                fontFamily: fonts.display, fontSize: 10, fontWeight: 800, marginLeft: "auto",
                 color: confidenceScore >= 85 ? "#059669" : confidenceScore >= 70 ? "#059669" : confidenceScore >= 55 ? "#0891B2" : "#D97706",
                 background: confidenceScore >= 55 ? "rgba(5,150,105,0.12)" : "rgba(217,119,6,0.12)",
                 padding: "2px 10px", letterSpacing: "0.06em", borderRadius: 4,
               }}>
-                READ QUALITY: {confidenceScore >= 85 ? "EXCELLENT" : confidenceScore >= 70 ? "GREAT" : confidenceScore >= 55 ? "GOOD" : "FAIR"}
+                Read Quality: {confidenceScore >= 85 ? "EXCELLENT" : confidenceScore >= 70 ? "GREAT" : confidenceScore >= 55 ? "GOOD" : "FAIR"}
               </span>
             )}
           </div>
@@ -268,16 +290,16 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       )}
 
       {/* ─── 5-PILLAR ANALYSIS ─── */}
-      <section className="py-10 md:py-14 px-4 md:px-8" style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0" }}>
+      <section className="wm-grid-bg py-10 md:py-14 px-4 md:px-8" style={{ background: "linear-gradient(180deg, #f8fbff 0%, #eef4ff 50%, #f8fbff 100%)", borderBottom: "1px solid #E2E8F0", position: "relative", overflow: "hidden" }}>
         <div className="max-w-4xl mx-auto">
           <motion.div {...stagger(1)}>
             <div className="flex items-center gap-2 mb-1">
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#0E7490", letterSpacing: "0.12em", fontWeight: 700 }}>5-PILLAR ANALYSIS</span>
+              <span style={{ fontFamily: fonts.display, fontSize: 11, color: "#0E7490", letterSpacing: "0.18em", fontWeight: 900, textTransform: "uppercase" }}>5-Pillar Analysis</span>
             </div>
-            <h2 style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 24, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.02em", marginBottom: 6 }}>
+            <h2 style={{ fontFamily: fonts.display, fontSize: 26, fontWeight: 900, color: "#0F172A", letterSpacing: "-0.02em", marginBottom: 6 }}>
               How Your Quote Scores Across 5 Key Areas
             </h2>
-            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#475569", marginBottom: 28 }}>
+            <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#475569", marginBottom: 28 }}>
               Each pillar is scored independently against {county} County standards.
             </p>
           </motion.div>
@@ -291,15 +313,20 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               return (
                 <motion.div key={pillar.key} {...stagger(i + 1.5)}
                 style={{
-                  background: "rgba(255,255,255,0.8)", backdropFilter: "blur(24px)", border: `1px solid ${sc.border}66`,
-                  borderRadius: 16, padding: "20px 16px",
-                  boxShadow: "0 25px 50px -12px rgba(44,62,80,0.10)",
-                  display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center"
+                  ...createGlassCard(`${sc.color}18`),
+                  border: `1px solid ${sc.border}`,
+                  borderRadius: 18, padding: "20px 16px",
+                  display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
+                  position: "relative",
+                  overflow: "hidden"
                 }}>
-                  <div style={{ color: sc.color, marginBottom: 10 }}>{icon}</div>
+                  <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 24% 18%, rgba(37,99,235,0.06), transparent 40%)", pointerEvents: "none" }} />
+                  <div style={{ color: sc.color, marginBottom: 10, background: "rgba(15,23,42,0.04)", borderRadius: 12, padding: 8, border: `1px solid ${sc.border}` }}>
+                    {icon}
+                  </div>
 
                   {isFull && pillar.score != null ?
-                  <div style={{ position: "relative", width: 56, height: 56, marginBottom: 10 }}>
+                  <div style={{ position: "relative", width: 64, height: 64, marginBottom: 10 }}>
                       <svg viewBox="0 0 56 56" style={{ transform: "rotate(-90deg)" }}>
                         <circle cx="28" cy="28" r="24" fill="none" stroke="#E2E8F0" strokeWidth="4" />
                         <circle cx="28" cy="28" r="24" fill="none" stroke={sc.color} strokeWidth="4"
@@ -308,28 +335,28 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                       </svg>
                       <span style={{
                       position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                      fontFamily: "var(--font-mono)", fontSize: 16, fontWeight: 700, color: sc.color
+                      fontFamily: fonts.display, fontSize: 18, fontWeight: 800, color: sc.color, letterSpacing: "-0.02em"
                     }}>{pillar.score}</span>
                     </div> :
 
                   <div style={{
-                    width: 56, height: 56, borderRadius: "50%", background: sc.bg, border: `2px solid ${sc.border}`,
-                    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10
+                    width: 64, height: 64, borderRadius: "50%", background: sc.bg, border: `2px solid ${sc.border}`,
+                    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10, boxShadow: "var(--wm-shadow-soft)"
                   }}>
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: sc.color }}>{sc.label}</span>
+                      <span style={{ fontFamily: fonts.display, fontSize: 11, fontWeight: 800, color: sc.color, letterSpacing: "0.08em", textTransform: "uppercase" }}>{sc.label}</span>
                     </div>
                   }
 
-                  <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, fontWeight: 700, color: "#0F172A", lineHeight: 1.3, marginBottom: 4 }}>
+                  <p style={{ fontFamily: fonts.display, fontSize: 14, fontWeight: 800, color: "#0F172A", lineHeight: 1.3, marginBottom: 4, letterSpacing: "-0.01em" }}>
                     {pillar.label}
                   </p>
                   <span style={{
-                    fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, color: sc.color,
-                    letterSpacing: "0.08em", background: sc.bg, borderRadius: 4, padding: "2px 8px"
+                    fontFamily: fonts.display, fontSize: 10, fontWeight: 800, color: sc.color,
+                    letterSpacing: "0.12em", background: sc.bg, borderRadius: 6, padding: "3px 9px", textTransform: "uppercase"
                   }}>{sc.label}</span>
 
                   {pillarFlags.length > 0 &&
-                  <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 11, color: "#475569", marginTop: 8 }}>
+                  <p style={{ fontFamily: fonts.body, fontSize: 11, color: "#475569", marginTop: 8 }}>
                       {pillarFlags.filter((f) => f.severity === "red").length > 0 && `${pillarFlags.filter((f) => f.severity === "red").length} critical`}
                       {pillarFlags.filter((f) => f.severity === "red").length > 0 && pillarFlags.filter((f) => f.severity === "amber").length > 0 && " · "}
                       {pillarFlags.filter((f) => f.severity === "amber").length > 0 && `${pillarFlags.filter((f) => f.severity === "amber").length} caution`}
@@ -343,29 +370,29 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       </section>
 
       {/* ─── FORENSIC FINDINGS ─── */}
-      <section className="py-10 md:py-14 px-4 md:px-8" style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0" }}>
+      <section className="wm-grid-bg py-10 md:py-14 px-4 md:px-8" style={{ background: "linear-gradient(180deg, #fdfefe 0%, #f5f8ff 48%, #fdfefe 100%)", borderBottom: "1px solid #E2E8F0", position: "relative", overflow: "hidden" }}>
         <div className="max-w-4xl mx-auto">
           <motion.div {...stagger(3)}>
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
               <div>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#DC2626", letterSpacing: "0.12em", fontWeight: 700 }}>FORENSIC FINDINGS</span>
-                <h2 style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 24, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.02em", marginTop: 4 }}>
+                <span style={{ fontFamily: fonts.display, fontSize: 11, color: "#DC2626", letterSpacing: "0.18em", fontWeight: 900, textTransform: "uppercase" }}>Forensic Findings</span>
+                <h2 style={{ fontFamily: fonts.display, fontSize: 26, fontWeight: 900, color: "#0F172A", letterSpacing: "-0.02em", marginTop: 4 }}>
                   {issueCount} Issue{issueCount !== 1 ? "s" : ""} Identified
                 </h2>
-                <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#475569" }}>
+                <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#475569" }}>
                   {redCount} critical · {amberCount} caution · {greenCount} confirmed
                 </p>
               </div>
-              <div className="hidden md:block" style={{ background: "rgba(8,145,178,0.08)", border: "1px solid #0891B2", borderRadius: 6, padding: "6px 12px" }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#0E7490", letterSpacing: "0.08em" }}>
-                  {county.toUpperCase()} COUNTY BENCHMARKS
+              <div className="hidden md:block" style={{ background: "rgba(8,145,178,0.08)", border: "1px solid #0891B2", borderRadius: 10, padding: "8px 14px" }}>
+                <span style={{ fontFamily: fonts.display, fontSize: 10, color: "#0E7490", letterSpacing: "0.14em", textTransform: "uppercase" }}>
+                  {county.toUpperCase()} County Benchmarks
                 </span>
               </div>
             </div>
           </motion.div>
 
           {isFull ?
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {flags.map((flag, i) => {
               const s = severityStyles[flag.severity];
               const isExpanded = expandedFlags.has(flag.id);
@@ -374,9 +401,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               return (
                 <motion.div key={flag.id} {...stagger(i * 0.5 + 4)}
                 style={{
-                  background: "#FFFFFF", border: s.border, borderLeft: s.borderLeft,
-                  borderRadius: 8, overflow: "hidden",
-                  boxShadow: "0 1px 3px rgba(15,23,42,0.08)"
+                  ...createGlassCard(severityAccent[flag.severity]),
+                  border: s.border, borderLeft: s.borderLeft,
+                  borderRadius: 14, overflow: "hidden",
+                  boxShadow: "var(--wm-shadow-card)"
                 }}>
                     <button
                     onClick={() => toggleFlag(flag.id)}
@@ -386,17 +414,17 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1.5">
                             <span style={{
-                            display: "inline-block", background: s.badgeBg, borderRadius: 4, padding: "3px 10px",
-                            fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: s.badgeColor, letterSpacing: "0.06em"
+                            display: "inline-block", background: s.badgeBg, borderRadius: 6, padding: "4px 11px",
+                            fontFamily: fonts.display, fontSize: 10, fontWeight: 800, color: s.badgeColor, letterSpacing: "0.12em", textTransform: "uppercase"
                           }}>{s.badgeText}</span>
                             {pillarLabel &&
                           <span style={{
-                            fontFamily: "var(--font-mono)", fontSize: 9, color: "#475569",
-                            letterSpacing: "0.06em", background: "#F1F5F9", borderRadius: 4, padding: "2px 8px"
+                            fontFamily: fonts.display, fontSize: 9, color: "#475569",
+                            letterSpacing: "0.12em", background: "#F1F5F9", borderRadius: 6, padding: "3px 9px", textTransform: "uppercase"
                           }}>{pillarLabel}</span>
                           }
                           </div>
-                          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: "#0F172A" }}>{flag.label}</p>
+                          <p style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em" }}>{flag.label}</p>
                         </div>
                         <div style={{ color: "#475569", flexShrink: 0, marginTop: 4 }}>
                           {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -408,7 +436,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} transition={{ duration: 0.25 }}
                   style={{ padding: "0 20px 20px 24px" }}>
                         <div style={{ borderTop: "1px solid #E2E8F0", paddingTop: 14 }}>
-                          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#334155", lineHeight: 1.7 }}>{flag.detail}</p>
+                          <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#334155", lineHeight: 1.7 }}>{flag.detail}</p>
 
                           {flag.tip &&
                       <div style={{
@@ -418,10 +446,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                       }}>
                               <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
                               <div>
-                                <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "#B45309", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>
-                                  WHAT TO DO
+                                <p style={{ fontFamily: fonts.display, fontSize: 10, color: "#B45309", letterSpacing: "0.12em", fontWeight: 800, marginBottom: 4, textTransform: "uppercase" }}>
+                                  What to do
                                 </p>
-                                <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, color: "#334155", lineHeight: 1.6 }}>{flag.tip}</p>
+                                <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#334155", lineHeight: 1.6 }}>{flag.tip}</p>
                               </div>
                             </div>
                       }
@@ -443,7 +471,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           ) : (
             // Fallback if no gateProps provided (e.g. dev/demo without orchestrator)
             <div className="py-12 text-center">
-            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#475569" }}>
+            <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#475569" }}>
               Verify your phone to unlock findings.
             </p>
             </div>
@@ -453,10 +481,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           {/* Summary bar */}
           <div style={{ background: "#FFFFFF", borderRadius: 8, padding: "14px 20px", marginTop: 16, border: "1px solid #E2E8F0" }}
           className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#0F172A" }}>
+            <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#0F172A" }}>
               {redCount} critical, {amberCount} caution, {greenCount} confirmed across 5 pillars.
             </p>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "#475569" }}>Grade {grade} · {isFull ? flags.length : (flagCountProp ?? flags.length)} items reviewed</p>
+            <p style={{ fontFamily: fonts.display, fontSize: 12, color: "#475569", letterSpacing: "0.12em", textTransform: "uppercase" }}>Grade {grade} · {isFull ? flags.length : (flagCountProp ?? flags.length)} items reviewed</p>
           </div>
         </div>
       </section>
@@ -466,27 +494,26 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       <section className="py-10 md:py-14 px-4 md:px-8" style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0" }}>
           <div className="max-w-4xl mx-auto">
             <motion.div {...stagger(6)}>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#0E7490", letterSpacing: "0.12em", fontWeight: 700 }}>NEGOTIATION TOOL</span>
-              <h2 style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 24, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.02em", marginTop: 4, marginBottom: 6 }}>
+              <span style={{ fontFamily: fonts.display, fontSize: 11, color: "#0E7490", letterSpacing: "0.18em", fontWeight: 900, textTransform: "uppercase" }}>Negotiation Tool</span>
+              <h2 style={{ fontFamily: fonts.display, fontSize: 26, fontWeight: 900, color: "#0F172A", letterSpacing: "-0.02em", marginTop: 4, marginBottom: 6 }}>
                 Your Word-for-Word Script
               </h2>
-              <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#475569", marginBottom: 20 }}>
+              <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#475569", marginBottom: 20 }}>
                 Customized for {displayName} based on the {issueCount} issue{issueCount !== 1 ? "s" : ""} found in your quote.
               </p>
             </motion.div>
 
             <motion.div {...stagger(7)} style={{
-            background: "#FFFFFF", border: "1px solid #E2E8F0", borderLeft: "4px solid #0891B2",
-            borderRadius: 8, padding: "24px 28px", position: "relative",
-            boxShadow: "0 1px 3px rgba(15,23,42,0.08)"
+            ...createGlassCard("rgba(8,145,178,0.12)"), border: "1px solid #E2E8F0", borderLeft: "4px solid #0891B2",
+            borderRadius: 12, padding: "24px 28px", position: "relative"
           }}>
               <button onClick={handleCopy}
             className="flex items-center gap-1.5"
             style={{
               position: "absolute", top: 16, right: 16,
               background: copied ? "rgba(5,150,105,0.12)" : "#FFFFFF", border: `1px solid ${copied ? "rgba(5,150,105,0.3)" : "#E2E8F0"}`,
-              borderRadius: 6, padding: "6px 14px",
-              fontFamily: "'Inter', system-ui, sans-serif", fontSize: 12, fontWeight: 600,
+              borderRadius: 8, padding: "6px 14px",
+              fontFamily: fonts.display, fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase",
               color: copied ? "#059669" : "#0F172A", cursor: "pointer",
               transition: "all 0.15s"
             }}>
@@ -494,10 +521,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 {copied ? "Copied!" : "Copy Script"}
               </button>
 
-              <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#0E7490", letterSpacing: "0.1em", marginBottom: 16 }}>
-                CALL SCRIPT · {displayName.toUpperCase()}
+              <p style={{ fontFamily: fonts.display, fontSize: 11, color: "#0E7490", letterSpacing: "0.16em", marginBottom: 16, textTransform: "uppercase" }}>
+                Call Script · {displayName.toUpperCase()}
               </p>
-              <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 15, color: "#0F172A", lineHeight: 2.0, whiteSpace: "pre-line" }}>
+              <p style={{ fontFamily: fonts.body, fontSize: 15, color: "#0F172A", lineHeight: 2.0, whiteSpace: "pre-line" }}>
                 {scriptText}
               </p>
             </motion.div>
@@ -507,20 +534,20 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
       {/* ─── CONTRACTOR MATCH CTA ─── */}
       {accessLevel === "full" && (
-      <section id="cta-section" className="py-12 md:py-16 px-4 md:px-8" style={{ background: "#FFFFFF" }}>
+      <section id="cta-section" className="wm-grid-bg py-12 md:py-16 px-4 md:px-8" style={{ background: "linear-gradient(180deg, #f8fbff 0%, #eef4ff 48%, #ffffff 100%)", borderTop: "1px solid #E2E8F0" }}>
         <div className="max-w-4xl mx-auto text-center">
 
           {!introRequested && !reportCallRequested ? (
             /* ── PRE-CLICK: Dual CTAs ── */
             <>
               <motion.div {...stagger(8)}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#B45309", letterSpacing: "0.12em", fontWeight: 700 }}>
-                  NEXT STEP
+                <span style={{ fontFamily: fonts.display, fontSize: 11, color: "#B45309", letterSpacing: "0.18em", fontWeight: 900, textTransform: "uppercase" }}>
+                  Next Step
                 </span>
-                <h2 style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, color: "#0F172A", letterSpacing: "-0.02em", marginTop: 8, marginBottom: 8 }}>
+                <h2 style={{ fontFamily: fonts.display, fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 900, color: "#0F172A", letterSpacing: "-0.02em", marginTop: 8, marginBottom: 8 }}>
                   Want a Contractor Who Will Do This job Right?
                 </h2>
-                <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 16, color: "#334155", maxWidth: 560, margin: "0 auto 32px", lineHeight: 1.7 }}>
+                <p style={{ fontFamily: fonts.body, fontSize: 16, color: "#334155", maxWidth: 560, margin: "0 auto 32px", lineHeight: 1.7 }}>
                   Based on your Grade {grade} and the {issueCount} issue{issueCount !== 1 ? "s" : ""} found, I can introduce you to a vetted {county} County contractor who quotes fair.
                 </p>
               </motion.div>
@@ -533,7 +560,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   className="flex items-center justify-center gap-2 w-full"
                   style={{
                     background: isCtaLoading ? "#1d4ed8" : "linear-gradient(to right, #D97706, #B45309)", color: "white",
-                    fontFamily: "'Inter', system-ui, sans-serif", fontSize: 17, fontWeight: 700,
+                    fontFamily: fonts.display, fontSize: 17, fontWeight: 900, letterSpacing: "0.01em",
                     padding: "16px 36px", borderRadius: 8, border: "none",
                     cursor: isCtaLoading ? "wait" : "pointer",
                     boxShadow: "0 12px 35px -5px rgba(180,83,9,0.35)",
@@ -552,9 +579,9 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   style={{
                     background: "#F8FAFC",
                     color: "#0F172A",
-                    fontFamily: "'Inter', system-ui, sans-serif",
+                    fontFamily: fonts.display,
                     fontSize: 15,
-                    fontWeight: 600,
+                    fontWeight: 800,
                     padding: "14px 28px",
                     borderRadius: 8,
                     border: "1.5px solid #E2E8F0",
@@ -570,14 +597,14 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   onClick={onSecondScan}
                   style={{
                     background: "none", border: "none",
-                    color: "#475569", fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, fontWeight: 500,
+                    color: "#475569", fontFamily: fonts.body, fontSize: 14, fontWeight: 500,
                     padding: "8px 0", cursor: "pointer", textDecoration: "underline",
                   }}>
                   Scan Another Quote →
                 </motion.button>
               </motion.div>
 
-              <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 12, color: "#0F172A", fontStyle: "italic", marginTop: 20 }}>
+              <p style={{ fontFamily: fonts.body, fontSize: 12, color: "#0F172A", fontStyle: "italic", marginTop: 20 }}>
                 No obligation. Free estimate. Your contractor never sees this report unless you share it.
               </p>
             </>
@@ -587,18 +614,18 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <motion.div key="intro-success" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
                 {suggestedMatch ? (
                   <div className="mx-auto text-left" style={{ maxWidth: 520, marginTop: 8 }}>
-                    <h2 style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "clamp(26px, 4vw, 32px)", color: "#0F172A", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.02em", textAlign: "center", marginBottom: 20 }}>
+                    <h2 style={{ fontFamily: fonts.display, fontSize: "clamp(26px, 4vw, 32px)", color: "#0F172A", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.01em", textAlign: "center", marginBottom: 20 }}>
                       Potential match found for your project
                     </h2>
                     {/* Match Card */}
-                    <div style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", padding: "28px 24px", borderRadius: 8 }}>
+                    <div style={{ ...createGlassCard("rgba(200,149,42,0.12)"), border: "1px solid #E2E8F0", padding: "28px 24px", borderRadius: 12 }}>
                       <div className="flex items-center gap-4 mb-4">
                         <div className="flex items-center justify-center flex-shrink-0" style={{ width: 56, height: 56, background: "rgba(200,149,42,0.1)", border: "2px solid #C8952A" }}>
                           <span style={{ fontFamily: "var(--font-mono)", fontSize: 16, fontWeight: 700, color: "#B45309" }}>WM</span>
                         </div>
                         <div>
-                          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: "#0F172A" }}>WindowMan Verified Contractor</p>
-                          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 13, color: "#475569" }}>{county} County, Florida</p>
+                          <p style={{ fontFamily: fonts.display, fontSize: 16, fontWeight: 800, color: "#0F172A" }}>WindowMan Verified Contractor</p>
+                          <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#475569" }}>{county} County, Florida</p>
                         </div>
                       </div>
                       {/* Confidence badge */}
@@ -615,12 +642,12 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                       </div>
                       {/* Fit Reasons */}
                       <div style={{ borderTop: "1px solid #E2E8F0", paddingTop: 16, marginTop: 8 }}>
-                        <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "#475569", letterSpacing: "0.1em", marginBottom: 10 }}>WHY THIS FIT</p>
+                        <p style={{ fontFamily: fonts.display, fontSize: 10, color: "#475569", letterSpacing: "0.14em", marginBottom: 10, textTransform: "uppercase" }}>Why this fit</p>
                         <div className="flex flex-col gap-2">
                           {suggestedMatch.reasons.map((reason) => (
                             <div key={reason} className="flex items-start gap-2">
                               <ChevronRight size={12} color="#C8952A" style={{ marginTop: 3, flexShrink: 0 }} />
-                              <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#0F172A", lineHeight: 1.5 }}>
+                              <span style={{ fontFamily: fonts.body, fontSize: 14, color: "#0F172A", lineHeight: 1.5 }}>
                                 {MATCH_REASON_HOMEOWNER[reason as MatchReasonKey] || reason}
                               </span>
                             </div>
@@ -629,8 +656,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                       </div>
                     </div>
                     {/* Process Strip */}
-                    <div style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", padding: "24px", marginTop: 12, borderRadius: 8 }}>
-                      <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "#475569", letterSpacing: "0.1em", marginBottom: 14 }}>WHAT HAPPENS NEXT</p>
+                    <div style={{ ...createGlassCard("rgba(37,99,235,0.08)"), border: "1px solid #E2E8F0", padding: "24px", marginTop: 12, borderRadius: 12 }}>
+                      <p style={{ fontFamily: fonts.display, fontSize: 10, color: "#475569", letterSpacing: "0.14em", marginBottom: 14, textTransform: "uppercase" }}>What happens next</p>
                       <div className="flex flex-col gap-3">
                         {[
                           { label: "Best-fit candidate identified", done: true },
@@ -646,18 +673,18 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                             }}>
                               {step.done ? <Check size={12} color="#10B981" /> : <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#B45309" }}>{i + 1}</span>}
                             </div>
-                            <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: step.done ? "#10B981" : "#0F172A" }}>{step.label}</span>
+                            <span style={{ fontFamily: fonts.body, fontSize: 14, color: step.done ? "#10B981" : "#0F172A" }}>{step.label}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                     {/* Call Expectation */}
-                    <div style={{ background: "rgba(200,149,42,0.06)", border: "1px solid rgba(200,149,42,0.2)", padding: "16px 20px", marginTop: 12, textAlign: "center" }}>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", lineHeight: 1.7 }}>
+                    <div style={{ background: "rgba(200,149,42,0.08)", border: "1px solid rgba(200,149,42,0.24)", padding: "16px 20px", marginTop: 12, textAlign: "center", borderRadius: 10 }}>
+                      <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#0F172A", lineHeight: 1.7 }}>
                         You may receive a free WindowMan call shortly to explain your report, answer questions, and help move your introduction forward.
                       </p>
                     </div>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9CA3AF", textAlign: "center", marginTop: 16, fontStyle: "italic", lineHeight: 1.7 }}>
+                    <p style={{ fontFamily: fonts.body, fontSize: 12, color: "#475569", textAlign: "center", marginTop: 16, fontStyle: "italic", lineHeight: 1.7 }}>
                       This is a candidate pending review by the WindowMan operations team.<br />Expect an SMS or call update within 15 minutes.
                     </p>
                   </div>
@@ -667,8 +694,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                     <div className="mx-auto flex items-center justify-center" style={{ width: 72, height: 72, background: "rgba(200,149,42,0.1)", border: "2px solid #C8952A" }}>
                       <Check size={32} color="#C8952A" strokeWidth={3} />
                     </div>
-                    <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 20, fontWeight: 700, color: "#0F172A", marginTop: 16 }}>Introduction requested.</p>
-                    <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#334155", lineHeight: 1.8, marginTop: 12 }}>
+                    <p style={{ fontFamily: fonts.display, fontSize: 20, fontWeight: 900, color: "#0F172A", marginTop: 16 }}>Introduction requested.</p>
+                    <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#334155", lineHeight: 1.8, marginTop: 12 }}>
                       We're finalizing your best-fit contractor review now. Our operations team will identify the strongest candidate for your {county} County project.
                       <br /><br />Expect an SMS or call update within 15 minutes.
                     </p>
@@ -683,23 +710,23 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 <div className="mx-auto flex items-center justify-center" style={{ width: 72, height: 72, background: "rgba(200,149,42,0.1)", border: "2px solid #C8952A" }}>
                   <Phone size={32} color="#C8952A" strokeWidth={2} />
                 </div>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#E5E5E5", marginTop: 16 }}>Call requested.</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", lineHeight: 1.8, marginTop: 12 }}>
+                <p style={{ fontFamily: fonts.display, fontSize: 20, fontWeight: 900, color: "#0F172A", marginTop: 16 }}>Call requested.</p>
+                <p style={{ fontFamily: fonts.body, fontSize: 14, color: "#334155", lineHeight: 1.8, marginTop: 12 }}>
                   WindowMan is preparing a free call to explain your report and answer your questions.
                   <br /><br />Expect a call or text within 15 minutes. We'll walk through what the Grade {grade} means, what the flags mean for your project, and what options you have.
                 </p>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF", marginTop: 16 }}>You can still use your negotiation script with your current contractor.</p>
+                <p style={{ fontFamily: fonts.display, fontSize: 11, color: "#475569", marginTop: 16, letterSpacing: "0.08em", textTransform: "uppercase" }}>You can still use your negotiation script with your current contractor.</p>
               </motion.div>
             </AnimatePresence>
           ) : null}
         </div>
 
         {/* ── HOW WINDOWMAN VETS (always visible in full mode) ── */}
-        <div className="max-w-4xl mx-auto mt-10" style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "32px 28px" }}>
+        <div className="max-w-4xl mx-auto mt-10" style={{ ...createGlassCard("rgba(37,99,235,0.08)"), border: "1px solid #E2E8F0", borderRadius: 12, padding: "32px 28px" }}>
           <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
             <div className="flex flex-col items-center flex-shrink-0">
               <ShieldCheck size={64} color="#C8952A" strokeWidth={1.5} />
-              <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 20, fontWeight: 700, color: "#0F172A", marginTop: 12, textAlign: "center" }}>How WindowMan vets these contractors</p>
+              <p style={{ fontFamily: fonts.display, fontSize: 20, fontWeight: 900, color: "#0F172A", marginTop: 12, textAlign: "center", letterSpacing: "-0.02em" }}>How WindowMan vets these contractors</p>
             </div>
             <div className="flex flex-col gap-3">
               {[
@@ -709,8 +736,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 "Your contractor never sees your WindowMan grade report unless you choose to share it.",
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-2.5">
-                  <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#B45309", flexShrink: 0, marginTop: 2 }}>✓</span>
-                  <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14, color: "#0F172A", lineHeight: 1.6 }}>{item}</span>
+                  <span style={{ fontFamily: fonts.display, fontSize: 14, color: "#B45309", flexShrink: 0, marginTop: 2 }}>✓</span>
+                  <span style={{ fontFamily: fonts.body, fontSize: 14, color: "#0F172A", lineHeight: 1.6 }}>{item}</span>
                 </div>
               ))}
             </div>
@@ -723,13 +750,13 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       <section className="py-6 px-4 md:px-8" style={{ background: "#FFFFFF", borderTop: "1px solid #E2E8F0" }}>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#0F172A", fontWeight: 700 }}>WindowMan Truth Report™</p>
-            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 12, color: "#475569" }}>
+            <p style={{ fontFamily: fonts.display, fontSize: 11, color: "#0F172A", fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase" }}>WindowMan Truth Report™</p>
+            <p style={{ fontFamily: fonts.body, fontSize: 12, color: "#475569" }}>
               {reportDate} · {county} County · Grade {grade}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 12, color: "#475569" }}>
+            <p style={{ fontFamily: fonts.body, fontSize: 12, color: "#475569" }}>
               This report is private. Only you can access it.
             </p>
           </div>
