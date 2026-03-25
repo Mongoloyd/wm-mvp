@@ -158,17 +158,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "#0A0A0A",
-        zIndex: 9000,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 32,
-      }}
+      className="fixed inset-0 z-[9000] flex flex-col items-center justify-center p-8 bg-background/95 backdrop-blur-md"
     >
       <AnimatePresence mode="wait">
         {(phase === "scanning" || phase === "cliffhanger") && (
@@ -178,25 +168,18 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            style={{
-              background: "#111111",
-              border: "1px solid #1A1A1A",
-              borderRadius: 0,
-              padding: "48px 40px",
-              maxWidth: 520,
-              width: "100%",
-              textAlign: "center",
-            }}
+            className="glass-card-strong shadow-2xl text-center max-w-[520px] w-full"
+            style={{ padding: "48px 40px" }}
           >
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#2563EB", letterSpacing: "0.1em", marginBottom: 32 }}>
+            <p className="eyebrow text-primary mb-8">
               WINDOWMAN AI · ANALYZING QUOTE
             </p>
 
-            <div style={{ textAlign: "left" }}>
+            <div className="text-left">
               {logSteps.map((step, i) => {
                 if (i > activeLogIndex) return null;
                 const isComplete = i < activeLogIndex;
-                const dotColor = isComplete ? "#2563EB" : "#F97316";
+                const dotColor = isComplete ? "hsl(var(--primary))" : "hsl(var(--wm-orange))";
                 const text = isComplete ? step.done : step.active.replace("{county}", county);
 
                 return (
@@ -205,26 +188,16 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.15 }}
-                    className="flex items-center gap-2.5"
-                    style={{ marginBottom: 8 }}
+                    className="flex items-center gap-2.5 mb-2"
                   >
                     <span
+                      className="w-2 h-2 rounded-full shrink-0"
                       style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
                         backgroundColor: dotColor,
-                        flexShrink: 0,
                         animation: !isComplete ? "pulse 1.5s infinite" : "none",
                       }}
                     />
-                    <span
-                      style={{
-                        fontFamily: "'DM Mono', monospace",
-                        fontSize: 13,
-                        color: isComplete ? "#E5E7EB" : "#E5E5E5",
-                      }}
-                    >
+                    <span className="font-mono text-[13px] text-foreground">
                       {text}
                     </span>
                   </motion.div>
@@ -232,12 +205,11 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
               })}
             </div>
 
-            <div style={{ marginTop: 24, background: "#1A1A1A", height: 6, borderRadius: 0, overflow: "hidden" }}>
+            <div className="mt-6 bg-border/50 h-1.5 rounded-full overflow-hidden">
               <motion.div
+                className="h-1.5 rounded-full"
                 style={{
-                  height: 6,
-                  borderRadius: 0,
-                  background: "linear-gradient(90deg, #2563EB, #F97316)",
+                  background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--wm-orange)))",
                   width: `${progressWidth}%`,
                 }}
                 animate={phase === "cliffhanger" ? { opacity: [0.7, 1, 0.7] } : {}}
@@ -250,10 +222,9 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15 }}
-                style={{ marginTop: 24 }}
+                className="mt-6"
               >
-                {/* OCR Validation Summary */}
-                <div style={{ textAlign: "left", marginBottom: 16 }}>
+                <div className="text-left mb-4">
                   {[
                     { label: "Document structure detected", done: true },
                     { label: "Text readability confirmed", done: true },
@@ -264,58 +235,44 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.15, delay: i * 0.15 }}
-                      className="flex items-center gap-2"
-                      style={{ marginBottom: 6 }}
+                      className="flex items-center gap-2 mb-1.5"
                     >
-                      <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
-                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>{item.label}</span>
+                      <span className="font-mono text-xs text-emerald-600">✓</span>
+                      <span className="font-mono text-xs text-muted-foreground">{item.label}</span>
                     </motion.div>
                   ))}
                 </div>
 
-                {/* Real trust signals when analysisData available */}
                 {analysisData && (analysisData.analysisStatus === "preview_ready" || analysisData.analysisStatus === "complete") && (
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: 0.5 }}
-                    style={{
-                      background: "#111111",
-                      border: "1px solid #1A1A1A",
-                      padding: "14px 18px",
-                      marginBottom: 12,
-                    }}
+                    className="bg-card border border-border rounded-lg p-3.5 mb-3"
                   >
-                    {/* Proof-of-read trust signals — presence-based only */}
                     <div className="flex flex-wrap gap-3 mb-3">
                       {analysisData.pageCount != null && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                        <span className="font-mono text-[11px] text-muted-foreground">
                           Multi-page document analyzed
                         </span>
                       )}
                       {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                        <span className="font-mono text-[11px] text-muted-foreground">
                           {analysisData.pageCount != null ? "·" : ""} Detailed line items detected
                         </span>
                       )}
                       {analysisData.contractorName && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                        <span className="font-mono text-[11px] text-muted-foreground">
                           · Contractor information identified
                         </span>
                       )}
                     </div>
 
-                    {/* OCR Read Quality Badge */}
                     <OcrQualityBadge confidenceScore={analysisData.confidenceScore} data={analysisData} />
                   </motion.div>
                 )}
 
-                <p style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 12,
-                  color: "#F97316",
-                  letterSpacing: "0.05em",
-                }}>
+                <p className="font-mono text-xs text-wm-orange tracking-wider">
                   Data extracted successfully. Analysis ready to compile.
                 </p>
               </motion.div>
@@ -329,7 +286,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.15 }}
-            style={{ maxWidth: 520, width: "100%", textAlign: "center" }}
+            className="max-w-[520px] w-full text-center"
           >
             {!showGrade && (
               <div>
@@ -354,15 +311,10 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                 className="flex flex-col items-center"
               >
                 <div
+                  className="w-[120px] h-[120px] rounded-full flex items-center justify-center"
                   style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 0,
                     background: `${GRADE_COLORS[gradeProp] || GRADE_COLORS.C}14`,
                     border: `3px solid ${GRADE_COLORS[gradeProp] || GRADE_COLORS.C}`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
                     boxShadow: `0 0 40px ${GRADE_COLORS[gradeProp] || GRADE_COLORS.C}4D`,
                   }}
                 >
@@ -371,7 +323,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                   </span>
                 </div>
 
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E5E5", marginTop: 20 }}>
+                <p className="font-body text-[16px] text-foreground mt-5">
                   Your grade is ready.
                 </p>
               </motion.div>
@@ -400,33 +352,27 @@ const PillarCard = ({
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
     transition={{ duration: 0.15, delay }}
-    style={{
-      background: "#111111",
-      border: "1px solid #1A1A1A",
-      borderRadius: 0,
-      padding: "16px 20px",
-      marginBottom: 12,
-      textAlign: "left",
-    }}
+    className="glass-card shadow-lg text-left mb-3 p-4"
   >
-    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#E5E7EB", letterSpacing: "0.1em", marginBottom: 4 }}>
+    <p className="font-mono text-[10px] text-foreground tracking-widest mb-1">
       {label}
     </p>
-    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E5E5", marginBottom: 8 }}>
+    <p className="font-body text-[14px] text-muted-foreground mb-2">
       {isDone ? "Complete" : text}
     </p>
-    <div style={{ background: "#1A1A1A", height: 4, borderRadius: 0, overflow: "hidden" }}>
+    <div className="bg-border/50 h-1 rounded-full overflow-hidden">
       <motion.div
         initial={{ width: "0%" }}
         animate={{ width: isDone ? "100%" : "60%" }}
         transition={{ duration: isDone ? 0.15 : 1.2, ease: "easeOut" }}
-        style={{ height: 4, borderRadius: 0, backgroundColor: color }}
+        className="h-1 rounded-full"
+        style={{ backgroundColor: color }}
       />
     </div>
     {isDone && (
       <div className="flex items-center gap-1.5 mt-1.5">
-        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#2563EB", display: "inline-block" }} />
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#2563EB" }}>Complete</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
+        <span className="font-mono text-[10px] text-primary">Complete</span>
       </div>
     )}
   </motion.div>
@@ -434,7 +380,6 @@ const PillarCard = ({
 
 /** OCR Read Quality Badge — always affirmative */
 function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | null; data: AnalysisData }) {
-  // Derive quality from confidence + anchor presence
   let anchorCount = 0;
   if (data.documentType) anchorCount++;
   if (data.contractorName) anchorCount++;
@@ -452,17 +397,13 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
 
   return (
     <div className="flex items-center gap-2">
-      <span style={{
-        fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF",
-        letterSpacing: "0.08em",
-      }}>
+      <span className="font-mono text-[10px] text-muted-foreground tracking-wider">
         OCR READ QUALITY
       </span>
-      <span style={{
-        fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700,
-        color, background: `${color}1A`, padding: "2px 10px",
-        letterSpacing: "0.06em",
-      }}>
+      <span
+        className="font-mono text-[11px] font-bold px-2.5 py-0.5 rounded tracking-wider"
+        style={{ color, background: `${color}1A` }}
+      >
         {label.toUpperCase()}
       </span>
     </div>

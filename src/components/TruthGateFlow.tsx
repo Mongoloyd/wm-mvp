@@ -79,41 +79,18 @@ const OptionButton = ({
 }) => (
   <button
     onClick={onClick}
-    style={{
-      background: selected ? "rgba(37, 99, 235, 0.12)" : "#111111",
-      border: `1.5px solid ${selected ? "#2563EB" : "#1A1A1A"}`,
-      borderRadius: 0,
-      padding: "18px 16px",
-      fontFamily: "'DM Sans', sans-serif",
-      fontSize: 15,
-      fontWeight: 600,
-      color: selected ? "#2563EB" : "#E5E5E5",
-      textAlign: "center",
-      cursor: "pointer",
-      transition: "all 0.15s ease",
-      boxShadow: selected ? "0 0 0 3px rgba(37,99,235,0.15)" : "none",
-    }}
-    onMouseEnter={(e) => {
-      if (!selected) {
-        e.currentTarget.style.borderColor = "#2563EB";
-        e.currentTarget.style.background = "rgba(37,99,235,0.08)";
-        e.currentTarget.style.color = "#2563EB";
-      }
-    }}
-    onMouseLeave={(e) => {
-      if (!selected) {
-        e.currentTarget.style.borderColor = "#1A1A1A";
-        e.currentTarget.style.background = "#111111";
-        e.currentTarget.style.color = "#E5E5E5";
-      }
-    }}
+    className={`w-full text-center cursor-pointer transition-all duration-150 rounded-lg p-4 font-body text-[15px] font-semibold border-[1.5px] ${
+      selected
+        ? "bg-primary/10 border-primary text-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]"
+        : "bg-card border-border text-foreground hover:border-primary hover:bg-primary/5 hover:text-primary"
+    }`}
   >
     {label}
   </button>
 );
 
 const Spinner = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" className="animate-spin" style={{ color: "#2563EB" }}>
+  <svg width="20" height="20" viewBox="0 0 20 20" className="animate-spin text-primary">
     <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.25" />
     <path d="M10 2a8 8 0 0 1 8 8" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
   </svg>
@@ -214,13 +191,11 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     setSubmitState("submitting");
 
     try {
-      // Insert lead row — phone is captured later at LockedOverlay (Just-in-Time OTP)
       const sessionId = crypto.randomUUID();
       const { error } = await supabase.from('leads').insert({
         session_id: sessionId,
         first_name: answers.firstName,
         email: answers.email,
-        // phone_e164 intentionally omitted — captured at LockedOverlay after scan
         county: answers.county,
         project_type: answers.projectType,
         window_count: parseWindowCount(answers.windowCount),
@@ -230,12 +205,10 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
       if (error) throw error;
 
-      // Write to ScanFunnelContext (persist sessionId)
       if (funnel) {
         funnel.setSessionId(sessionId);
       }
 
-      // Analytics: track lead capture (no OTP at this stage)
       supabase.from("event_logs").insert({
         event_name: "lead_captured_no_phone",
         session_id: sessionId,
@@ -253,7 +226,6 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     } catch (err) {
       console.error('Lead capture error:', err);
 
-      // Analytics: track upstream failure
       supabase.from("event_logs").insert({
         event_name: "lead_capture_failed",
         session_id: funnel?.sessionId || null,
@@ -285,7 +257,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           className="flex flex-col items-center justify-center py-12 gap-4"
         >
           <Spinner />
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 15, color: "#2563EB" }}>
+          <p className="font-mono text-[15px] text-primary">
             Configuring your analysis...
           </p>
         </motion.div>
@@ -302,17 +274,17 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           exit="exit"
           transition={{ duration: 0.15 }}
         >
-          <div style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 0, padding: 20 }}>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#2563EB", letterSpacing: "0.1em" }}>
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-5">
+            <p className="font-mono text-xs text-primary tracking-widest">
               BASED ON YOUR ANSWERS
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E5E5", fontWeight: 700, marginTop: 8 }}>
+            <p className="font-body text-[16px] text-foreground font-bold mt-2">
               Quotes in {selectedCounty} in the {selectedRange} range...
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 6 }}>
+            <p className="font-body text-[14px] text-muted-foreground mt-1.5">
               ...score between C and D on average. 67% contain at least one red flag.
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", fontStyle: "italic", marginTop: 8 }}>
+            <p className="font-body text-[13px] text-muted-foreground italic mt-2">
               Your actual grade requires your quote. But you're in a high-risk range.
             </p>
           </div>
@@ -331,20 +303,10 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           exit="exit"
           transition={{ duration: 0.15 }}
         >
-          <h2
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: "clamp(26px, 4vw, 32px)",
-              color: "#E5E5E5",
-              fontWeight: 800,
-              letterSpacing: "0.02em",
-              textTransform: "uppercase",
-              marginBottom: 8,
-            }}
-          >
+          <h2 className="display-secondary text-foreground mb-2" style={{ fontSize: "clamp(26px, 4vw, 32px)" }}>
             {cfg.question}
           </h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginBottom: 28 }}>
+          <p className="font-body text-[14px] text-muted-foreground mb-7">
             {cfg.sub}
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -361,7 +323,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
       );
     }
 
-    // Step 5 — Lead Gate (name + email only, phone captured later at LockedOverlay)
+    // Step 5 — Lead Gate
     return (
       <motion.div
         key="lead-gate"
@@ -371,51 +333,30 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         exit="exit"
         transition={{ duration: 0.15 }}
       >
-        <div
-          className="inline-flex items-center mb-5"
-          style={{
-            background: "rgba(37,99,235,0.1)",
-            border: "1px solid #2563EB",
-            borderRadius: 0,
-            padding: "4px 12px",
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 12,
-            color: "#2563EB",
-          }}
-        >
-          ✓ Your scan is configured
+        <div className="inline-flex items-center mb-5 badge-signal rounded-lg px-3 py-1">
+          <span className="eyebrow text-primary">✓ Your scan is configured</span>
         </div>
 
-        <h2
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: "clamp(28px, 4vw, 34px)",
-            color: "#E5E5E5",
-            fontWeight: 800,
-            letterSpacing: "0.02em",
-            textTransform: "uppercase",
-            marginBottom: 8,
-          }}
-        >
+        <h2 className="display-secondary text-foreground mb-2" style={{ fontSize: "clamp(28px, 4vw, 34px)" }}>
           See What's In Your Quote.
         </h2>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 24 }}>
+        <p className="font-body text-[15px] text-muted-foreground mb-6">
           Enter your details to run the scan.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label style={labelStyle}>FIRST NAME</label>
-            <div style={{ position: "relative" }}>
+            <label className="block font-mono text-[10px] text-muted-foreground tracking-widest mb-1.5">FIRST NAME</label>
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Your first name"
                 autoComplete="given-name"
                 value={answers.firstName}
                 onChange={(e) => setAnswers((p) => ({ ...p, firstName: e.target.value }))}
+                className="w-full h-12 rounded-lg px-4 font-body text-[15px] text-foreground bg-card outline-none transition-all duration-150"
                 style={{
-                  ...inputStyle,
-                  borderColor: fieldStatus.firstName === "invalid" ? "#F97316" : fieldStatus.firstName === "valid" ? "#2563EB" : "#1A1A1A",
+                  border: `1.5px solid ${fieldStatus.firstName === "invalid" ? "hsl(var(--wm-orange))" : fieldStatus.firstName === "valid" ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
                   paddingRight: fieldStatus.firstName !== "untouched" ? 40 : 16,
                 }}
                 onFocus={handleInputFocus}
@@ -425,24 +366,24 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               {fieldStatus.firstName === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.firstName === "invalid" && (
-              <p style={errorTextStyle}>Please enter your first name (2+ characters)</p>
+              <p className="font-body text-xs text-wm-orange mt-1">Please enter your first name (2+ characters)</p>
             )}
           </div>
 
           <div>
-            <label style={labelStyle}>
-              EMAIL ADDRESS <span style={{ color: "#6B7280", fontWeight: 400 }}>(your grade report is sent here)</span>
+            <label className="block font-mono text-[10px] text-muted-foreground tracking-widest mb-1.5">
+              EMAIL ADDRESS <span className="font-normal text-muted-foreground/70">(your grade report is sent here)</span>
             </label>
-            <div style={{ position: "relative" }}>
+            <div className="relative">
               <input
                 type="email"
                 placeholder="your@email.com"
                 autoComplete="email"
                 value={answers.email}
                 onChange={(e) => setAnswers((p) => ({ ...p, email: e.target.value }))}
+                className="w-full h-12 rounded-lg px-4 font-body text-[15px] text-foreground bg-card outline-none transition-all duration-150"
                 style={{
-                  ...inputStyle,
-                  borderColor: fieldStatus.email === "invalid" ? "#F97316" : fieldStatus.email === "valid" ? "#2563EB" : "#1A1A1A",
+                  border: `1.5px solid ${fieldStatus.email === "invalid" ? "hsl(var(--wm-orange))" : fieldStatus.email === "valid" ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
                   paddingRight: fieldStatus.email !== "untouched" ? 40 : 16,
                 }}
                 onFocus={handleInputFocus}
@@ -452,7 +393,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               {fieldStatus.email === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.email === "invalid" && (
-              <p style={errorTextStyle}>Please enter a valid email address</p>
+              <p className="font-body text-xs text-wm-orange mt-1">Please enter a valid email address</p>
             )}
           </div>
 
@@ -461,22 +402,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
             disabled={submitState === "submitting" || submitState === "success"}
             whileHover={submitState === "idle" || submitState === "error" ? { scale: 1.01 } : {}}
             whileTap={submitState === "idle" || submitState === "error" ? { scale: 0.98 } : {}}
-            style={{
-              width: "100%",
-              height: 54,
-              background: submitState === "success" ? "#2563EB" : submitState === "error" ? "#F97316" : "#2563EB",
-              color: "#FFFFFF",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 17,
-              fontWeight: 700,
-              borderRadius: 0,
-              border: "none",
-              boxShadow: "0 4px 16px rgba(37, 99, 235, 0.35)",
-              cursor: submitState === "submitting" ? "not-allowed" : "pointer",
-              marginTop: 4,
-              opacity: submitState === "submitting" ? 0.85 : 1,
-              transition: "background 0.15s, opacity 0.15s",
-            }}
+            className={`btn-depth-primary w-full h-[54px] rounded-xl font-body text-[17px] font-bold mt-1 ${
+              submitState === "submitting" ? "opacity-85 cursor-not-allowed" : ""
+            } ${submitState === "error" ? "!bg-wm-orange" : ""}`}
           >
             {submitState === "idle" && "Upload My Quote →"}
             {submitState === "submitting" && (
@@ -493,43 +421,17 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           </motion.button>
         </form>
 
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 12,
-            color: "#6B7280",
-            lineHeight: 1.8,
-            textAlign: "center",
-            marginTop: 14,
-          }}
-        >
+        <p className="font-body text-xs text-muted-foreground leading-loose text-center mt-3.5">
           No contractor will be contacted without your permission.
           <br />
           No sales calls. Your report is yours — we just help you read it.
         </p>
 
-        <div
-          className="flex items-center gap-2"
-          style={{
-            marginTop: 12,
-            padding: "10px 14px",
-            background: "#111111",
-            borderRadius: 0,
-            border: "1px solid #1A1A1A",
-          }}
-        >
+        <div className="flex items-center gap-2 mt-3 p-2.5 bg-card rounded-lg border border-border">
           <span
-            className="animate-pulse-dot"
-            style={{
-              width: 8,
-              height: 8,
-              backgroundColor: "#2563EB",
-              borderRadius: "50%",
-              display: "inline-block",
-              flexShrink: 0,
-            }}
+            className="animate-pulse-dot w-2 h-2 bg-primary rounded-full inline-block shrink-0"
           />
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#6B7280" }}>
+          <span className="font-mono text-xs text-muted-foreground">
             {tickerToday} homeowners in {selectedCounty} found red flags today
           </span>
         </div>
@@ -538,37 +440,24 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   };
 
   return (
-    <section id="truth-gate" style={{ backgroundColor: "#0A0A0A" }}>
-      <div className={`mx-auto max-w-2xl px-4 md:px-8 py-16 md:py-24 transition-all duration-500 ${glowing ? 'ring-2 ring-cobalt shadow-lg shadow-cobalt/20' : ''}`}>
-        <p
-          className="text-center mb-3"
-          style={{
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 11,
-            color: "#2563EB",
-            letterSpacing: "0.1em",
-          }}
-        >
+    <section id="truth-gate" className="bg-muted">
+      <div className={`mx-auto max-w-2xl px-4 md:px-8 py-16 md:py-24 transition-all duration-500 ${glowing ? 'ring-2 ring-primary shadow-lg shadow-primary/20' : ''}`}>
+        <p className="text-center mb-3 eyebrow text-primary">
           {eyebrowLabels[Math.min(currentStep - 1, 4)]}
         </p>
-        <div style={{ width: "100%", height: 4, backgroundColor: "#1A1A1A", borderRadius: 0, marginBottom: 32 }}>
+        <div className="w-full h-1 bg-border rounded mb-8">
           <motion.div
-            style={{ height: 4, backgroundColor: "#2563EB", borderRadius: 0 }}
+            className="h-1 bg-primary rounded"
             animate={{ width: progressWidth }}
             transition={{ duration: 0.15 }}
           />
         </div>
 
         <div
-          className="transform -translate-y-1"
+          className="glass-card-strong shadow-2xl overflow-hidden"
           style={{
-            background: "#111111",
-            border: "2px solid rgba(255,255,255,0.08)",
-            borderRadius: 0,
             padding: "clamp(32px, 5vw, 40px)",
-            boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 30px 20px -10px rgba(255,255,255,0.03), 0 8px 24px rgba(30,64,175,0.15)",
             minHeight: 280,
-            overflow: "hidden",
           }}
         >
           <AnimatePresence mode="wait">{renderStepContent()}</AnimatePresence>
@@ -578,40 +467,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   );
 };
 
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontFamily: "'DM Mono', monospace",
-  fontSize: 10,
-  color: "#6B7280",
-  letterSpacing: "0.08em",
-  marginBottom: 6,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  height: 48,
-  border: "1.5px solid #1A1A1A",
-  borderRadius: 0,
-  padding: "0 16px",
-  fontFamily: "'DM Sans', sans-serif",
-  fontSize: 15,
-  color: "#E5E5E5",
-  background: "#0A0A0A",
-  outline: "none",
-  transition: "border-color 0.15s, box-shadow 0.15s",
-  boxSizing: "border-box",
-};
-
-const errorTextStyle: React.CSSProperties = {
-  fontFamily: "'DM Sans', sans-serif",
-  fontSize: 12,
-  color: "#F97316",
-  marginTop: 4,
-};
-
 const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.15)";
-  e.currentTarget.style.borderColor = "#2563EB";
+  e.currentTarget.style.boxShadow = "0 0 0 3px hsl(var(--primary) / 0.15)";
+  e.currentTarget.style.borderColor = "hsl(var(--primary))";
 };
 
 const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -620,15 +478,7 @@ const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
 
 const ValidationIcon = ({ valid }: { valid: boolean }) => (
   <span
-    style={{
-      position: "absolute",
-      right: 12,
-      top: "50%",
-      transform: "translateY(-50%)",
-      fontSize: 16,
-      lineHeight: 1,
-      color: valid ? "#2563EB" : "#F97316",
-    }}
+    className={`absolute right-3 top-1/2 -translate-y-1/2 text-[16px] leading-none ${valid ? "text-primary" : "text-wm-orange"}`}
   >
     {valid ? "✓" : "✗"}
   </span>
