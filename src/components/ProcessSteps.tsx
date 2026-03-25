@@ -44,7 +44,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
                   <span className="font-mono text-[15px] font-bold text-primary">{step.num}</span>
                 </div>
                 <h3 className="font-body text-base font-bold text-foreground mt-3">{step.title}</h3>
-                <p className="font-body text-[13px] text-muted-foreground leading-relaxed mt-1">{step.copy}</p>
+                <p className="font-body text-[13px] text-muted-foreground mt-1" style={{ lineHeight: 1.65 }}>{step.copy}</p>
               </motion.div>
             ))}
           </div>
@@ -59,7 +59,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
               </div>
               <div>
                 <h3 className="font-body text-base font-bold text-foreground">{step.title}</h3>
-                <p className="font-body text-[13px] text-muted-foreground leading-relaxed mt-1">{step.copy}</p>
+                <p className="font-body text-[13px] text-muted-foreground mt-1" style={{ lineHeight: 1.65 }}>{step.copy}</p>
               </div>
             </motion.div>
           ))}
@@ -73,7 +73,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
                 <div className="flex items-center justify-center flex-shrink-0 w-7 h-7 rounded-lg" style={{ backgroundColor: `${d.color}15` }}>
                   <span className="font-mono text-sm font-bold" style={{ color: d.color }}>{d.icon}</span>
                 </div>
-                <p className="font-body text-sm text-muted-foreground leading-relaxed">{d.text}</p>
+                <p className="font-body text-[13px] text-muted-foreground" style={{ lineHeight: 1.65 }}>{d.text}</p>
               </div>
             ))}
           </div>

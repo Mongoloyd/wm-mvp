@@ -53,12 +53,12 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
         <motion.div {...fade(0.1)} className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
             { icon: <Check size={16} className="text-primary" strokeWidth={3} />, title: "What Do You Get — Free", borderColor: "border-primary/20", bgColor: "bg-primary/[0.04]", content: listItems.map((item, i) => (
-              <div key={i} className="flex gap-2 items-start font-body text-[13px] text-muted-foreground leading-[2.0]">
+              <div key={i} className="flex gap-2 items-start font-body text-[13px] text-muted-foreground" style={{ lineHeight: 1.65 }}>
                 <span className="text-primary flex-shrink-0">→</span><span>{item}</span>
               </div>
             ))},
-            { icon: <Scale size={16} className="text-wm-gold" strokeWidth={2.5} />, title: "​So How Do I Make Money", borderColor: "border-wm-gold/20", bgColor: "bg-wm-gold/[0.04]", content: <p className="font-body text-[13px] text-muted-foreground leading-relaxed mt-3">WindowMan earns a percentage of the sale — only when you choose to work with one of our contractors and your project is completed. We never charge homeowners.</p> },
-            { icon: <BarChart3 size={16} className="text-primary" strokeWidth={2.5} />, title: "Why Work With Me", borderColor: "border-primary/20", bgColor: "bg-primary/[0.04]", content: <p className="font-body text-[13px] text-muted-foreground leading-relaxed mt-3">Every homeowner we introduce already understands fair-market pricing. Our contractors walk into conversations that are already halfway won.</p> },
+            { icon: <Scale size={16} className="text-wm-gold" strokeWidth={2.5} />, title: "​So How Do I Make Money", borderColor: "border-wm-gold/20", bgColor: "bg-wm-gold/[0.04]", content: <p className="font-body text-[13px] text-muted-foreground mt-3" style={{ lineHeight: 1.65 }}>WindowMan earns a percentage of the sale — only when you choose to work with one of our contractors and your project is completed. We never charge homeowners.</p> },
+            { icon: <BarChart3 size={16} className="text-primary" strokeWidth={2.5} />, title: "Why Work With Me", borderColor: "border-primary/20", bgColor: "bg-primary/[0.04]", content: <p className="font-body text-[13px] text-muted-foreground mt-3" style={{ lineHeight: 1.65 }}>Every homeowner we introduce already understands fair-market pricing. Our contractors walk into conversations that are already halfway won.</p> },
           ].map((card, i) => (
             <div key={i} className={`glass-card rounded-2xl p-6 ${card.bgColor}`}>
               <div className="flex items-center gap-2.5 mb-3.5">
