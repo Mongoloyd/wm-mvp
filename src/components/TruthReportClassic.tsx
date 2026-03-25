@@ -543,16 +543,23 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 </motion.button>
 
                 {/* Secondary CTA — Call About Report */}
-                <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
+                <motion.button
+                  whileHover={{ scale: 1.01, backgroundColor: "#F1F5F9" }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={onReportHelpCall}
                   disabled={isCtaLoading}
                   className="flex items-center justify-center gap-2 w-full"
                   style={{
-                    background: "rgba(8,145,178,0.04)", color: "#334155",
-                    fontFamily: "'Inter', system-ui, sans-serif", fontSize: 15, fontWeight: 600,
-                    padding: "14px 28px", borderRadius: 8,
-                    border: "1.5px solid rgba(8,145,178,0.2)",
+                    background: "#F8FAFC",
+                    color: "#0F172A",
+                    fontFamily: "'Inter', system-ui, sans-serif",
+                    fontSize: 15,
+                    fontWeight: 600,
+                    padding: "14px 28px",
+                    borderRadius: 8,
+                    border: "1.5px solid #E2E8F0",
                     cursor: isCtaLoading ? "wait" : "pointer",
+                    transition: "background-color 0.2s ease",
                   }}>
                   <Phone size={16} />
                   Call WindowMan About My Report

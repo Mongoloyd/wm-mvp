@@ -178,13 +178,14 @@ export function LockedOverlay({
         ))}
       </div>
 
-      {/* Gate overlay */}
+      {/* Gate overlay - Holographic Dark Glass */}
       <div
         className="absolute inset-0 flex flex-col items-center justify-center"
         style={{
-          background: "rgba(255,255,255,0.92)",
+          background: "rgba(15, 23, 42, 0.90)",
           borderRadius: 8,
-          backdropFilter: "blur(16px)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
         }}
       >
         <motion.div
@@ -192,12 +193,13 @@ export function LockedOverlay({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            background: "#FFFFFF",
+            background: "rgba(15, 23, 42, 0.95)",
             borderRadius: 16,
             padding: "28px 32px 32px",
             textAlign: "center",
             boxShadow:
-              "0 25px 50px -12px rgba(44,62,80,0.15), 0 0 0 1px rgba(8,145,178,0.12) inset, 0 1px 0 rgba(255,255,255,0.8) inset",
+              "0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,149,42,0.2) inset, 0 1px 0 rgba(255,255,255,0.05) inset",
+            border: "1px solid rgba(200,149,42,0.3)",
             width: "100%",
             maxWidth: 400,
           }}
@@ -257,7 +259,7 @@ export function LockedOverlay({
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: 11,
-                color: "#B45309",
+                color: "#E2B04A",
                 letterSpacing: "0.1em",
                 marginBottom: 8,
               }}
@@ -269,7 +271,7 @@ export function LockedOverlay({
                 fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: 22,
                 fontWeight: 800,
-                color: "#0F172A",
+                color: "#FFFFFF",
                 lineHeight: 1.25,
                 marginBottom: 6,
               }}
@@ -280,7 +282,7 @@ export function LockedOverlay({
               style={{
                 fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: 14,
-                color: "#64748B",
+                color: "#CBD5E1",
                 marginBottom: 4,
               }}
             >
@@ -290,7 +292,7 @@ export function LockedOverlay({
               style={{
                 fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: 14,
-                color: "#64748B",
+                color: "#CBD5E1",
                 marginBottom: 20,
               }}
             >
@@ -438,7 +440,7 @@ export function LockedOverlay({
                 transition={{ duration: 0.25 }}
                 className="flex flex-col items-center gap-4"
               >
-                <div className="[&_input]:!bg-transparent [&_input]:!text-slate-900">
+                <div className="[&_input]:!bg-transparent [&_input]:!text-white">
                   <InputOTP
                     maxLength={6}
                     value={otpValue}
@@ -450,7 +452,7 @@ export function LockedOverlay({
                         <InputOTPSlot
                           key={i}
                           index={i}
-                          className="!border-slate-300 !bg-white !text-slate-900 !w-12 !h-14 !text-xl !font-bold"
+                          className="!border-amber-700/40 !bg-slate-800/50 !text-white !w-12 !h-14 !text-xl !font-bold"
                         />
                       ))}
                     </InputOTPGroup>
@@ -616,7 +618,7 @@ export function LockedOverlay({
                       left: 14,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      fontFamily: "'DM Mono', monospace",
+                      fontFamily: "var(--font-mono)",
                       fontSize: 14,
                       color: "#94A3B8",
                       fontWeight: 600,
@@ -634,13 +636,13 @@ export function LockedOverlay({
                     style={{
                       width: "100%",
                       height: 54,
-                      background: "rgba(255,255,255,0.07)",
+                      background: "rgba(30, 41, 59, 0.5)",
                       border: phoneIsValid
                         ? "2px solid #C8952A"
                         : phoneDigitCount > 0
-                          ? "2px solid rgba(255,255,255,0.2)"
-                          : "2px solid rgba(255,255,255,0.1)",
-                      borderRadius: 0,
+                          ? "2px solid rgba(200,149,42,0.3)"
+                          : "2px solid rgba(200,149,42,0.2)",
+                      borderRadius: 8,
                       padding: "0 16px 0 40px",
                       fontFamily: "'Inter', system-ui, sans-serif",
                       fontSize: 19,
@@ -652,18 +654,18 @@ export function LockedOverlay({
                       transition:
                         "border-color 0.2s, box-shadow 0.2s, background 0.2s",
                       boxShadow: phoneIsValid
-                        ? "0 0 0 4px rgba(200,149,42,0.15), 0 2px 12px rgba(0,0,0,0.2)"
-                        : "0 2px 12px rgba(0,0,0,0.2)",
-                      caretColor: "#C8952A",
+                        ? "0 0 0 4px rgba(200,149,42,0.2), 0 2px 12px rgba(0,0,0,0.3)"
+                        : "0 2px 12px rgba(0,0,0,0.3)",
+                      caretColor: "#E2B04A",
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+                      e.currentTarget.style.background = "rgba(30, 41, 59, 0.7)";
                       setTimeout(() => {
                         e.currentTarget?.scrollIntoView({ behavior: "smooth", block: "center" });
                       }, 300);
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.07)";
+                      e.currentTarget.style.background = "rgba(30, 41, 59, 0.5)";
                     }}
                   />
                   {phoneDigitCount > 0 && phoneDigitCount < 10 && (
