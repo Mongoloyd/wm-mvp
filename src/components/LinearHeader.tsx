@@ -21,9 +21,9 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
     >
       <div className="flex items-center justify-between px-4 md:px-8">
         <a href="/" className="select-none font-display font-extrabold text-xl tracking-wide">
-          <span className="text-foreground">WINDOW</span>
+          <span className="text-slate-900">WINDOW</span>
           <span className="text-wm-gold">MAN</span>
-          <sup className="text-[9px] text-muted-foreground font-normal tracking-[0.15em] ml-0.5 align-super">.PRO</sup>
+          <sup className="text-[9px] text-slate-600 font-normal tracking-[0.15em] ml-0.5 align-super">.PRO</sup>
         </a>
 
         <div className="hidden md:flex items-center gap-3">

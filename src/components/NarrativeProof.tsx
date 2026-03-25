@@ -41,7 +41,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
                 </div>
               </div>
               <div className="mt-5">
-                {story.narrative.map((p, j) => <p key={j} className="font-body text-[15px] text-muted-foreground leading-[1.7]" style={{ marginTop: j > 0 ? 12 : 0 }}>{p}</p>)}
+                {story.narrative.map((p, j) => <p key={j} className="font-body text-[15px] text-slate-700 leading-[1.7]" style={{ marginTop: j > 0 ? 12 : 0 }}>{p}</p>)}
               </div>
               <div className="flex items-center gap-3 badge-signal rounded-xl p-4 mt-5">
                 <span className="text-primary text-xl">✓</span>
