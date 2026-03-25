@@ -132,10 +132,10 @@ export function LockedOverlay({
           <div
             key={i}
             style={{
-              background: "#0A0A0A",
-              border: "1.5px solid #FECACA",
+              background: "#FFFFFF",
+              border: "1.5px solid #FCA5A5",
               borderLeft: "4px solid #DC2626",
-              borderRadius: 0,
+              borderRadius: 8,
               padding: "20px 20px 20px 24px",
             }}
           >
@@ -143,9 +143,9 @@ export function LockedOverlay({
               style={{
                 display: "inline-block",
                 background: "rgba(220,38,38,0.12)",
-                borderRadius: 0,
+                borderRadius: 4,
                 padding: "3px 10px",
-                fontFamily: "'DM Mono', monospace",
+                fontFamily: "var(--font-mono)",
                 fontSize: 10,
                 fontWeight: 700,
                 color: "#DC2626",
@@ -155,10 +155,10 @@ export function LockedOverlay({
             </span>
             <p
               style={{
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: 17,
                 fontWeight: 700,
-                color: "#FFFFFF",
+                color: "#0F172A",
                 marginTop: 8,
               }}
             >
@@ -166,9 +166,9 @@ export function LockedOverlay({
             </p>
             <p
               style={{
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: 14,
-                color: "#E5E7EB",
+                color: "#334155",
                 marginTop: 6,
               }}
             >
@@ -182,9 +182,9 @@ export function LockedOverlay({
       <div
         className="absolute inset-0 flex flex-col items-center justify-center"
         style={{
-          background: "rgba(10,10,10,0.85)",
-          borderRadius: 0,
-          backdropFilter: "blur(2px)",
+          background: "rgba(255,255,255,0.92)",
+          borderRadius: 8,
+          backdropFilter: "blur(16px)",
         }}
       >
         <motion.div
@@ -192,12 +192,12 @@ export function LockedOverlay({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            background: "#0A0A0A",
-            borderRadius: 0,
+            background: "#FFFFFF",
+            borderRadius: 16,
             padding: "28px 32px 32px",
             textAlign: "center",
             boxShadow:
-              "0 12px 48px rgba(15,31,53,0.45), 0 0 0 1px rgba(200,149,42,0.12) inset, 0 1px 0 rgba(255,255,255,0.04) inset",
+              "0 25px 50px -12px rgba(44,62,80,0.15), 0 0 0 1px rgba(8,145,178,0.12) inset, 0 1px 0 rgba(255,255,255,0.8) inset",
             width: "100%",
             maxWidth: 400,
           }}
@@ -210,9 +210,9 @@ export function LockedOverlay({
             >
               <span
                 style={{
-                  fontFamily: "'DM Mono', monospace",
+                  fontFamily: "var(--font-mono)",
                   fontSize: 10,
-                  color: "#C8952A",
+                  color: "#B45309",
                   letterSpacing: "0.1em",
                   fontWeight: 700,
                 }}
@@ -221,9 +221,9 @@ export function LockedOverlay({
               </span>
               <span
                 style={{
-                  fontFamily: "'DM Mono', monospace",
+                  fontFamily: "var(--font-mono)",
                   fontSize: 10,
-                  color: "#94A3B8",
+                  color: "#64748B",
                   letterSpacing: "0.06em",
                 }}
               >
@@ -233,8 +233,8 @@ export function LockedOverlay({
             <div
               style={{
                 height: 4,
-                borderRadius: 0,
-                background: "rgba(255,255,255,0.08)",
+                borderRadius: 4,
+                background: "#E2E8F0",
                 overflow: "hidden",
               }}
             >
@@ -243,9 +243,9 @@ export function LockedOverlay({
                 transition={{ duration: 0.4, ease: "easeOut" as const }}
                 style={{
                   height: "100%",
-                  borderRadius: 0,
-                  background: "linear-gradient(90deg, #C8952A, #E2B04A)",
-                  boxShadow: "0 0 8px rgba(200,149,42,0.4)",
+                  borderRadius: 4,
+                  background: "linear-gradient(90deg, #D97706, #F59E0B)",
+                  boxShadow: "0 0 8px rgba(217,119,6,0.4)",
                 }}
               />
             </div>
@@ -255,9 +255,9 @@ export function LockedOverlay({
           <div style={{ marginBottom: 6 }}>
             <p
               style={{
-                fontFamily: "'DM Mono', monospace",
+                fontFamily: "var(--font-mono)",
                 fontSize: 11,
-                color: "#C8952A",
+                color: "#B45309",
                 letterSpacing: "0.1em",
                 marginBottom: 8,
               }}
@@ -266,10 +266,10 @@ export function LockedOverlay({
             </p>
             <p
               style={{
-                fontFamily: "'Jost', sans-serif",
+                fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: 22,
                 fontWeight: 800,
-                color: "#FFFFFF",
+                color: "#0F172A",
                 lineHeight: 1.25,
                 marginBottom: 6,
               }}
@@ -278,9 +278,9 @@ export function LockedOverlay({
             </p>
             <p
               style={{
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: 14,
-                color: "#94A3B8",
+                color: "#64748B",
                 marginBottom: 4,
               }}
             >
@@ -288,9 +288,9 @@ export function LockedOverlay({
             </p>
             <p
               style={{
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: 14,
-                color: "#94A3B8",
+                color: "#64748B",
                 marginBottom: 20,
               }}
             >
@@ -303,7 +303,7 @@ export function LockedOverlay({
             <div style={{
               background: "rgba(220,38,38,0.08)",
               border: "1px solid rgba(220,38,38,0.25)",
-              borderRadius: 0,
+              borderRadius: 6,
               padding: "12px 16px",
               marginBottom: 12,
               textAlign: "center",
@@ -315,7 +315,7 @@ export function LockedOverlay({
                   <AlertCircle size={14} style={{ color: "#DC2626", flexShrink: 0 }} />
                 )}
                 <p style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', system-ui, sans-serif",
                   fontSize: 13,
                   fontWeight: 600,
                   color: errorType === "rate_limit" ? "#F59E0B" : "#DC2626",
@@ -337,7 +337,7 @@ export function LockedOverlay({
                     border: "1px solid rgba(200,149,42,0.3)",
                     borderRadius: 0,
                     padding: "6px 14px",
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', system-ui, sans-serif",
                     fontSize: 12,
                     fontWeight: 600,
                     color: "#E2B04A",
@@ -474,7 +474,7 @@ export function LockedOverlay({
                       otpValue.length === 6
                         ? "white"
                         : "rgba(255,255,255,0.4)",
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', system-ui, sans-serif",
                     fontSize: 17,
                     fontWeight: 800,
                     borderRadius: 0,
@@ -516,7 +516,7 @@ export function LockedOverlay({
                       background: "none",
                       border: "none",
                       cursor: resendCooldown > 0 ? "default" : "pointer",
-                      fontFamily: "'DM Sans', sans-serif",
+                      fontFamily: "'Inter', system-ui, sans-serif",
                       fontSize: 12,
                       color: "#94A3B8",
                       textDecoration: resendCooldown > 0 ? "none" : "underline",
@@ -534,7 +534,7 @@ export function LockedOverlay({
                         background: "none",
                         border: "none",
                         cursor: "pointer",
-                        fontFamily: "'DM Sans', sans-serif",
+                        fontFamily: "'Inter', system-ui, sans-serif",
                         fontSize: 12,
                         color: "#64748B",
                         textDecoration: "underline",
@@ -571,7 +571,7 @@ export function LockedOverlay({
                       "linear-gradient(135deg, #C8952A 0%, #E2B04A 50%, #C8952A 100%)",
                     backgroundSize: "200% 100%",
                     color: "white",
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', system-ui, sans-serif",
                     fontSize: 17,
                     fontWeight: 800,
                     borderRadius: 0,
@@ -642,7 +642,7 @@ export function LockedOverlay({
                           : "2px solid rgba(255,255,255,0.1)",
                       borderRadius: 0,
                       padding: "0 16px 0 40px",
-                      fontFamily: "'DM Sans', sans-serif",
+                      fontFamily: "'Inter', system-ui, sans-serif",
                       fontSize: 19,
                       fontWeight: 600,
                       color: "#FFFFFF",
@@ -722,7 +722,7 @@ export function LockedOverlay({
                   />
                   <span
                     style={{
-                      fontFamily: "'DM Sans', sans-serif",
+                      fontFamily: "'Inter', system-ui, sans-serif",
                       fontSize: 11,
                       color: "#64748B",
                       lineHeight: 1.5,
@@ -747,7 +747,7 @@ export function LockedOverlay({
                       : "rgba(200,149,42,0.2)",
                     backgroundSize: "200% 100%",
                     color: canSubmitPhone ? "white" : "rgba(255,255,255,0.4)",
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', system-ui, sans-serif",
                     fontSize: 17,
                     fontWeight: 800,
                     borderRadius: 0,
