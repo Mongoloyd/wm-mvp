@@ -87,6 +87,10 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      fontSize: {
+        'wm-label': ['18px', { lineHeight: '1.3', fontWeight: '700' }],
+        'wm-body-soft': ['15px', { lineHeight: '1.6', fontWeight: '400' }],
+      },
       borderRadius: {
         lg: "0px",
         md: "0px",
@@ -114,6 +118,19 @@ export default {
           "10%": { opacity: "1" },
           "100%": { opacity: "0" },
         },
+        "glint": {
+          "0%": { left: "-100%", opacity: "0" },
+          "40%": { opacity: "1" },
+          "100%": { left: "150%", opacity: "0" },
+        },
+        "status-pulse": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.35" },
+        },
+        "holo-pulse": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.15s ease-out",
@@ -121,6 +138,9 @@ export default {
         "header-slide-down": "header-slide-down 0.15s ease-out",
         "pulse-dot": "pulse-dot 2s infinite",
         "shutter-flash": "shutter-flash 0.3s ease-out",
+        "glint": "glint 2.5s ease-in-out infinite",
+        "status-pulse": "status-pulse 2s ease-in-out infinite",
+        "holo-pulse": "holo-pulse 4s ease infinite",
       },
     },
   },

@@ -79,36 +79,15 @@ const OptionButton = ({
 }) => (
   <button
     onClick={onClick}
-    style={{
-      background: selected ? "rgba(37, 99, 235, 0.12)" : "#111111",
-      border: `1.5px solid ${selected ? "#2563EB" : "#1A1A1A"}`,
-      borderRadius: 0,
-      padding: "18px 16px",
-      fontFamily: "'DM Sans', sans-serif",
-      fontSize: 15,
-      fontWeight: 600,
-      color: selected ? "#2563EB" : "#E5E5E5",
-      textAlign: "center",
-      cursor: "pointer",
-      transition: "all 0.15s ease",
-      boxShadow: selected ? "0 0 0 3px rgba(37,99,235,0.15)" : "none",
-    }}
-    onMouseEnter={(e) => {
-      if (!selected) {
-        e.currentTarget.style.borderColor = "#2563EB";
-        e.currentTarget.style.background = "rgba(37,99,235,0.08)";
-        e.currentTarget.style.color = "#2563EB";
-      }
-    }}
-    onMouseLeave={(e) => {
-      if (!selected) {
-        e.currentTarget.style.borderColor = "#1A1A1A";
-        e.currentTarget.style.background = "#111111";
-        e.currentTarget.style.color = "#E5E5E5";
-      }
-    }}
+    className={`flex items-center justify-between p-4 border transition-all group text-left ${
+      selected
+        ? 'border-primary bg-primary/10 text-primary'
+        : 'border-border bg-background hover:border-primary/50 hover:bg-primary/[0.03] text-foreground'
+    }`}
+    style={{ borderRadius: 0, boxShadow: selected ? '0 0 0 3px rgba(37,99,235,0.15)' : 'none' }}
   >
-    {label}
+    <span className="font-body text-wm-body-soft">{label}</span>
+    <span className={`text-base transition-colors ${selected ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`}>→</span>
   </button>
 );
 
@@ -285,7 +264,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           className="flex flex-col items-center justify-center py-12 gap-4"
         >
           <Spinner />
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 15, color: "#2563EB" }}>
+          <p className="font-mono text-wm-body-soft text-primary">
             Configuring your analysis...
           </p>
         </motion.div>
@@ -302,17 +281,17 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           exit="exit"
           transition={{ duration: 0.15 }}
         >
-          <div style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 0, padding: 20 }}>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#2563EB", letterSpacing: "0.1em" }}>
+          <div className="bg-primary/5 border border-primary/20 p-5" style={{ borderRadius: 0 }}>
+            <p className="font-mono text-[11px] text-primary uppercase tracking-widest mb-2">
               BASED ON YOUR ANSWERS
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E5E5", fontWeight: 700, marginTop: 8 }}>
+            <p className="font-body text-wm-label text-foreground mb-1">
               Quotes in {selectedCounty} in the {selectedRange} range...
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 6 }}>
+            <p className="font-body text-wm-body-soft text-muted-foreground">
               ...score between C and D on average. 67% contain at least one red flag.
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", fontStyle: "italic", marginTop: 8 }}>
+            <p className="font-body text-[13px] text-muted-foreground italic mt-3">
               Your actual grade requires your quote. But you're in a high-risk range.
             </p>
           </div>
@@ -332,19 +311,17 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           transition={{ duration: 0.15 }}
         >
           <h2
+            className="font-display font-black uppercase leading-tight"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: "clamp(26px, 4vw, 32px)",
+              fontSize: "clamp(22px, 4vw, 30px)",
               color: "#E5E5E5",
-              fontWeight: 800,
               letterSpacing: "0.02em",
-              textTransform: "uppercase",
               marginBottom: 8,
             }}
           >
             {cfg.question}
           </h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginBottom: 28 }}>
+          <p className="font-body text-wm-body-soft text-muted-foreground mb-7">
             {cfg.sub}
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -372,34 +349,24 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         transition={{ duration: 0.15 }}
       >
         <div
-          className="inline-flex items-center mb-5"
-          style={{
-            background: "rgba(37,99,235,0.1)",
-            border: "1px solid #2563EB",
-            borderRadius: 0,
-            padding: "4px 12px",
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 12,
-            color: "#2563EB",
-          }}
+          className="inline-flex items-center mb-5 px-3 py-1 bg-primary/10 border border-primary"
+          style={{ borderRadius: 0, fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#2563EB" }}
         >
           ✓ Your scan is configured
         </div>
 
         <h2
+          className="font-display font-black uppercase leading-tight"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: "clamp(28px, 4vw, 34px)",
+            fontSize: "clamp(24px, 4vw, 32px)",
             color: "#E5E5E5",
-            fontWeight: 800,
             letterSpacing: "0.02em",
-            textTransform: "uppercase",
             marginBottom: 8,
           }}
         >
           See What's In Your Quote.
         </h2>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 24 }}>
+        <p className="font-body text-wm-body-soft text-muted-foreground mb-6">
           Enter your details to run the scan.
         </p>
 
@@ -461,21 +428,12 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
             disabled={submitState === "submitting" || submitState === "success"}
             whileHover={submitState === "idle" || submitState === "error" ? { scale: 1.01 } : {}}
             whileTap={submitState === "idle" || submitState === "error" ? { scale: 0.98 } : {}}
+            className="btn-depth-primary w-full"
             style={{
-              width: "100%",
               height: 54,
-              background: submitState === "success" ? "#2563EB" : submitState === "error" ? "#F97316" : "#2563EB",
-              color: "#FFFFFF",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 17,
-              fontWeight: 700,
-              borderRadius: 0,
-              border: "none",
-              boxShadow: "0 4px 16px rgba(37, 99, 235, 0.35)",
-              cursor: submitState === "submitting" ? "not-allowed" : "pointer",
+              fontSize: 18,
+              background: submitState === "error" ? "linear-gradient(135deg,#F97316 0%,#EA580C 100%)" : undefined,
               marginTop: 4,
-              opacity: submitState === "submitting" ? 0.85 : 1,
-              transition: "background 0.15s, opacity 0.15s",
             }}
           >
             {submitState === "idle" && "Upload My Quote →"}
@@ -493,43 +451,21 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           </motion.button>
         </form>
 
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 12,
-            color: "#6B7280",
-            lineHeight: 1.8,
-            textAlign: "center",
-            marginTop: 14,
-          }}
-        >
+        <p className="font-body text-[13px] text-muted-foreground leading-relaxed text-center mt-4">
           No contractor will be contacted without your permission.
           <br />
           No sales calls. Your report is yours — we just help you read it.
         </p>
 
         <div
-          className="flex items-center gap-2"
-          style={{
-            marginTop: 12,
-            padding: "10px 14px",
-            background: "#111111",
-            borderRadius: 0,
-            border: "1px solid #1A1A1A",
-          }}
+          className="flex items-center gap-2 mt-3 px-3 py-2.5 bg-card border border-border"
+          style={{ borderRadius: 0 }}
         >
           <span
-            className="animate-pulse-dot"
-            style={{
-              width: 8,
-              height: 8,
-              backgroundColor: "#2563EB",
-              borderRadius: "50%",
-              display: "inline-block",
-              flexShrink: 0,
-            }}
+            className="animate-pulse-dot shrink-0"
+            style={{ width: 8, height: 8, backgroundColor: "#2563EB", borderRadius: "50%", display: "inline-block" }}
           />
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#6B7280" }}>
+          <span className="font-mono text-[11px] text-muted-foreground">
             {tickerToday} homeowners in {selectedCounty} found red flags today
           </span>
         </div>
@@ -560,13 +496,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         </div>
 
         <div
-          className="transform -translate-y-1"
+          className="glass-card-strong transform -translate-y-1"
           style={{
-            background: "#111111",
-            border: "2px solid rgba(255,255,255,0.08)",
-            borderRadius: 0,
-            padding: "clamp(32px, 5vw, 40px)",
-            boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 30px 20px -10px rgba(255,255,255,0.03), 0 8px 24px rgba(30,64,175,0.15)",
+            padding: "clamp(28px, 5vw, 40px)",
             minHeight: 280,
             overflow: "hidden",
           }}
