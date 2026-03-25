@@ -99,6 +99,17 @@
     0 0 0 1px rgba(249, 115, 22, 0.12),
     0 14px 34px rgba(249, 115, 22, 0.18),
     0 0 42px rgba(251, 146, 60, 0.16);
+
+  /* Legacy compatibility tokens for tailwind config */
+  --color-obsidian: #08111f;
+  --color-surface: rgba(255,255,255,0.78);
+  --color-surface-border: rgba(15,23,42,0.10);
+  --color-cobalt: #2563eb;
+  --color-cobalt-dim: #1d4ed8;
+  --color-vivid-orange: #f97316;
+  --color-gold-accent: #f59e0b;
+  --color-emerald: #22c55e;
+  --color-danger: #ef4444;
 }
 
 /* Optional dark mode retained for scanner/report pages */

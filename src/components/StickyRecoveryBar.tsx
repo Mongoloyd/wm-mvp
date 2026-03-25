@@ -19,7 +19,7 @@ const StickyRecoveryBar = ({ stepsCompleted, county, isVisible, onDismiss, flowM
 
   if (!isDevMode && flowMode === 'B' && quoteWatcherSet) return null;
 
-  const { line1, line2 } = getStatusCopy(stepsCompleted, flowMode, flowBLeadCaptured);
+  const { line1 } = getStatusCopy(stepsCompleted, flowMode, flowBLeadCaptured);
   const postReveal = gradeRevealed;
   const displayLine1 = postReveal ? "Your grade report is ready." : line1;
   const displayCta = postReveal ? "Find a Contractor →" : getCtaText(stepsCompleted, flowMode, flowBLeadCaptured);
@@ -33,15 +33,15 @@ const StickyRecoveryBar = ({ stepsCompleted, county, isVisible, onDismiss, flowM
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} transition={{ duration: 0.15 }} style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 8000 }}>
-          <div style={{ background: "#0A0A0A", borderTop: `2px solid ${isUrgent && flowMode === 'A' && !postReveal ? "#F97316" : "#2563EB"}`, boxShadow: "0 -4px 24px rgba(0, 0, 0, 0.4)" }} className="px-5 py-3.5 sm:px-8 sm:py-4">
+        <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} transition={{ duration: 0.15 }} className="fixed bottom-0 left-0 right-0 z-[8000]">
+          <div className={`glass-card backdrop-blur-md px-5 py-3.5 sm:px-8 sm:py-4 border-t-2 ${isUrgent && flowMode === 'A' && !postReveal ? 'border-t-wm-orange' : 'border-t-primary'}`} style={{ boxShadow: "var(--wm-shadow-float)" }}>
             <div className="max-w-4xl mx-auto flex flex-nowrap items-center justify-between gap-4 relative">
               <div className="hidden sm:flex items-center gap-3.5 min-w-0 flex-shrink">
-                <div className="min-w-0"><p className="whitespace-nowrap truncate" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700, color: "#E5E5E5" }}>{displayLine1}</p></div>
+                <div className="min-w-0"><p className="whitespace-nowrap truncate font-body text-sm font-bold text-foreground">{displayLine1}</p></div>
               </div>
               <div className="flex items-center gap-2.5 flex-1 sm:flex-none justify-center sm:justify-end">
-                <button onClick={handleCta} style={{ background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700, padding: "10px 16px", borderRadius: 0, border: "none", boxShadow: "0 2px 10px rgba(37,99,235,0.3)", cursor: "pointer", whiteSpace: "nowrap" }}>{displayCta}</button>
-                <button onClick={() => { if (!isDevMode) localStorage.setItem("wm_recovery_bar_dismissed", "true"); onDismiss(); }} style={{ background: "transparent", border: "none", width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#E5E7EB", fontSize: 16, cursor: "pointer" }} aria-label="Dismiss">×</button>
+                <button onClick={handleCta} className="btn-depth-primary rounded-xl font-body text-sm font-bold py-2.5 px-4 whitespace-nowrap">{displayCta}</button>
+                <button onClick={() => { if (!isDevMode) localStorage.setItem("wm_recovery_bar_dismissed", "true"); onDismiss(); }} className="bg-transparent border-none w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground text-base cursor-pointer" aria-label="Dismiss">×</button>
               </div>
             </div>
           </div>
