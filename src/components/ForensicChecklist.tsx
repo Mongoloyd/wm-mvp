@@ -36,7 +36,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
           <div className="relative z-10 flex gap-4 items-start p-5 border-b border-border">
             <div>
               <p className="display-secondary text-foreground text-xl">5 Questions Contractors Hope You Never Ask</p>
-              <p className="font-body text-[14px] text-muted-foreground mt-1.5" style={{ lineHeight: 1.65 }}>These questions expose the information asymmetry in every impact window sales pitch. Bring this checklist to your site visit.</p>
+              <p className="font-body text-[14px] text-muted-foreground mt-1.5 leading-[1.65]">These questions expose the information asymmetry in every impact window sales pitch. Bring this checklist to your site visit.</p>
             </div>
           </div>
 
@@ -57,11 +57,11 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
                 </div>
                 <div className="mt-3 bg-muted rounded-lg p-3.5">
                   <p className="font-mono text-[10px] tracking-widest mb-2" style={{ color: q.labelColor }}>{q.label}</p>
-                  <p className="font-body text-[13px] text-muted-foreground" style={{ lineHeight: 1.65 }}>{q.why}</p>
+                  <p className="font-body text-[13px] text-muted-foreground leading-[1.65]">{q.why}</p>
                 </div>
                 <div className="mt-3 bg-card rounded-lg p-3" style={{ borderLeft: `3px solid ${q.askBorder}` }}>
                   <p className="font-mono text-[10px] tracking-wider mb-1" style={{ color: q.askColor }}>{q.askLabel}</p>
-                  <p className="font-body text-[14px] text-foreground italic font-medium" style={{ lineHeight: 1.65 }}>{q.askText}</p>
+                  <p className="font-body text-[14px] text-foreground italic font-medium leading-[1.65]">{q.askText}</p>
                 </div>
               </div>
             ))}

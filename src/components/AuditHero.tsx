@@ -56,7 +56,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             <h1 className="display-hero text-foreground mb-5 tracking-[-0.02em]" style={{ fontSize: "clamp(40px, 5vw, 58px)", lineHeight: 1.05 }}>
               YOUR QUOTE LOOKS LEGITIMATE.
               <br />
-              THAT'S EXACTLY WHAT <span className="text-wm-orange" style={{ filter: "drop-shadow(0 2px 12px rgba(249, 115, 22, 0.18))" }}>THEY'RE COUNTING ON.</span>
+              THAT'S EXACTLY WHAT <span className="text-wm-orange [text-shadow:_0_2px_12px_rgba(249,115,22,0.4)]">THEY'RE COUNTING ON.</span>
             </h1>
 
             <p className="wm-copy font-body font-semibold mb-8 max-w-2xl" style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7 }}>
