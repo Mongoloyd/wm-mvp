@@ -124,8 +124,8 @@ export default {
           "100%": { left: "150%", opacity: "0" },
         },
         "status-pulse": {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.35" },
+          "0%, 100%": { opacity: "0.25" },
+          "50%": { opacity: "0.08" },
         },
         "holo-pulse": {
           "0%, 100%": { backgroundPosition: "0% 50%" },

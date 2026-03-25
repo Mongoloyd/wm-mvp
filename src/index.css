@@ -148,4 +148,10 @@
     transform: none;
     cursor: not-allowed;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-depth-primary::after {
+      animation: none;
+    }
+  }
 }

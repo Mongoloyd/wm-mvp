@@ -98,7 +98,6 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
         initial={{ width: "0%" }}
         animate={{ width: "100%" }}
         transition={{ duration: 1.8, ease: "easeOut" }}
-        style={{ opacity: 0.25 }}
       />
     </header>
   );

@@ -59,12 +59,12 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
 
             <div className="text-center">
               {/* Live viewers badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 mb-5">
-                <span className="relative flex h-2 w-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-5">
+                <span className="relative flex h-2 w-2 shrink-0">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
                 </span>
-                <span className="font-mono text-[10px] font-bold text-primary uppercase tracking-widest">
+                <span className="font-mono text-wm-body-soft font-bold text-primary">
                   {liveViewers} homeowners checking right now
                 </span>
               </div>
@@ -79,13 +79,13 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
               {/* Offer box with holographic pulse */}
               <div className="relative overflow-hidden bg-primary/5 border border-primary/10 p-6 mb-6"
                 style={{ borderRadius: 0 }}>
-                {/* Holographic sweep */}
+                {/* Holographic sweep — uses background-position animation to avoid layout distortion */}
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
                     background: 'linear-gradient(105deg, transparent 40%, rgba(37,99,235,0.06) 50%, transparent 60%)',
-                    animation: 'glint 3s ease-in-out infinite',
                     backgroundSize: '200% 100%',
+                    animation: 'holo-pulse 3s ease-in-out infinite',
                   }}
                 />
                 {/* 18px bold primary offer */}
@@ -119,7 +119,7 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
               </p>
 
               {/* Social proof */}
-              <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest mt-5">
+              <p className="font-mono text-wm-body-soft text-muted-foreground mt-5">
                 Joined by {tickerTotal.toLocaleString()}+ Florida Homeowners
               </p>
 

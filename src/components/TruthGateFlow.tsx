@@ -282,7 +282,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           transition={{ duration: 0.15 }}
         >
           <div className="bg-primary/5 border border-primary/20 p-5" style={{ borderRadius: 0 }}>
-            <p className="font-mono text-[11px] text-primary uppercase tracking-widest mb-2">
+            <p className="font-mono text-wm-body-soft text-primary uppercase tracking-widest mb-2">
               BASED ON YOUR ANSWERS
             </p>
             <p className="font-body text-wm-label text-foreground mb-1">
@@ -291,7 +291,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
             <p className="font-body text-wm-body-soft text-muted-foreground">
               ...score between C and D on average. 67% contain at least one red flag.
             </p>
-            <p className="font-body text-[13px] text-muted-foreground italic mt-3">
+            <p className="font-body text-wm-body-soft text-muted-foreground italic mt-3">
               Your actual grade requires your quote. But you're in a high-risk range.
             </p>
           </div>
@@ -455,7 +455,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           </motion.button>
         </form>
 
-        <p className="font-body text-[13px] text-muted-foreground leading-relaxed text-center mt-4">
+        <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed text-center mt-4">
           No contractor will be contacted without your permission.
           <br />
           No sales calls. Your report is yours — we just help you read it.
