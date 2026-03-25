@@ -52,7 +52,18 @@ const SampleGradeCard = () => {
 
   return (
     <motion.div ref={cardRef} animate={{ y: [-6, 0, -6] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      className="relative overflow-hidden" style={{ background: "rgba(17,17,17,0.95)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)", padding: 28, maxWidth: 420, width: "100%", border: "1px solid #1A1A1A", boxShadow: "0 40px 100px -20px rgba(37,99,235,0.15), 0 12px 32px -8px rgba(0,0,0,0.5)" }}>
+      className="relative overflow-hidden" style={{
+        background: "rgba(17,17,17,0.98)",
+        backdropFilter: "blur(40px)",
+        WebkitBackdropFilter: "blur(40px)",
+        padding: 28,
+        maxWidth: 420,
+        width: "100%",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 50px 120px -24px rgba(37,99,235,0.2), 0 20px 60px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(37,99,235,0.08) inset",
+      }}>
+      {/* Subtle light edge at top for premium feel */}
+      <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.1) 50%, transparent)" }} />
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" style={{ transform: "rotate(-12deg)" }}>
         <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 28, fontWeight: 700, letterSpacing: "0.5em", color: "rgba(255,255,255,0.03)", whiteSpace: "nowrap" }}>CONFIDENTIAL — SAMPLE</span>
       </div>

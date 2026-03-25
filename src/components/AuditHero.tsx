@@ -64,37 +64,39 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
 
             <h1 style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: "clamp(40px, 5vw, 58px)",
+              fontSize: "clamp(42px, 5.5vw, 64px)",
               fontWeight: 900,
-              letterSpacing: "0.01em",
-              color: "#E5E5E5",
-              lineHeight: 1.1,
-              marginBottom: 20,
+              letterSpacing: "-0.01em",
+              color: "#FFFFFF",
+              lineHeight: 1.05,
+              marginBottom: 24,
               textTransform: "uppercase",
+              textShadow: "0 2px 20px rgba(0,0,0,0.4)",
             }}>
               YOUR QUOTE LOOKS LEGITIMATE.
               <br />
-              THAT'S EXACTLY WHAT <span style={{ color: "#F97316" }}>THEY'RE COUNTING ON.</span>
+              THAT'S EXACTLY WHAT <span style={{ color: "#F97316", textShadow: "0 2px 24px rgba(249,115,22,0.35)" }}>THEY'RE COUNTING ON.</span>
             </h1>
 
             <p style={{
               fontFamily: "'DM Sans', sans-serif",
-              fontSize: "clamp(16px, 2vw, 18px)",
+              fontSize: "clamp(17px, 2vw, 19px)",
               fontWeight: 400,
-              color: "#E5E7EB",
-              lineHeight: 1.7,
-              marginBottom: 32,
+              color: "rgba(229,231,235,0.95)",
+              lineHeight: 1.65,
+              marginBottom: 36,
+              maxWidth: "540px",
             }}>
               The impact window industry has no pricing transparency standard.
               <br />
               WindowMan built one — and it reads your quote in{" "}
-              <strong style={{ color: "#E5E5E5" }}>under 60 seconds</strong>.
+              <strong style={{ color: "#FFFFFF", fontWeight: 700 }}>under 60 seconds</strong>.
             </p>
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98, y: 0 }}
                 onClick={() => scrollTo("truth-gate")}
                 style={{
                   background: "#2563EB",
@@ -103,10 +105,12 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                   fontSize: 16,
                   fontWeight: 700,
                   border: "none",
-                  boxShadow: "0 4px 24px rgba(37,99,235,0.35)",
+                  boxShadow: "0 4px 24px rgba(37,99,235,0.4), 0 2px 8px rgba(0,0,0,0.3)",
                   cursor: "pointer",
+                  position: "relative",
                 }}
-                className="w-full sm:w-auto whitespace-nowrap py-4 px-6 sm:px-8 hover:shadow-lg transition-shadow"
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="w-full sm:w-auto whitespace-nowrap py-4 px-6 sm:px-8 hover:shadow-[0_6px_32px_rgba(37,99,235,0.5),0_2px_12px_rgba(0,0,0,0.4)] transition-shadow"
               >
                 Scan My Quote<span className="inline md:hidden lg:inline"> — It's Free</span>
               </motion.button>
@@ -121,10 +125,11 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
 
             <div className="mt-2 w-full lg:w-auto">
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98, y: 0 }}
                 onClick={() => onFlowBClick?.()}
-                className="w-full lg:w-auto transition-colors py-3.5 px-4 lg:px-6 cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2"
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="w-full lg:w-auto transition-all py-3.5 px-4 lg:px-6 cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2 hover:shadow-[0_4px_20px_rgba(37,99,235,0.15)]"
                 style={{
                   background: "rgba(37,99,235,0.06)",
                   border: "1px solid rgba(37,99,235,0.25)",
@@ -164,15 +169,27 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
           {/* RIGHT — Floating GradeCard (5 cols) */}
           <div className="lg:col-span-5 relative flex flex-col items-center pt-4 lg:pt-16">
             <div className="hidden md:block relative z-10">
-              {/* Subtle glow behind card — emphasises the "Truth" reveal */}
+              {/* Refined ambient glow + light bloom behind card */}
               <div
-                className="absolute -inset-6 rounded-full -z-10"
-                style={{ background: "rgba(37,99,235,0.08)", filter: "blur(40px)" }}
+                className="absolute -inset-12 -z-10"
+                style={{
+                  background: "radial-gradient(ellipse at center, rgba(37,99,235,0.15) 0%, rgba(37,99,235,0.08) 40%, transparent 70%)",
+                  filter: "blur(60px)",
+                  transform: "scale(1.2)",
+                }}
+              />
+              {/* Secondary inner glow for depth */}
+              <div
+                className="absolute -inset-4 -z-10"
+                style={{
+                  background: "radial-gradient(ellipse at center, rgba(37,99,235,0.12) 0%, transparent 60%)",
+                  filter: "blur(30px)",
+                }}
               />
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.15, delay: 0.1 }}
+                transition={{ duration: 0.4, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
               >
                 <SampleGradeCard />
               </motion.div>

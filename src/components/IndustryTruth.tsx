@@ -23,16 +23,16 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
 
   return (
     <section style={{ backgroundColor: "#0A0A0A" }}>
-      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
-          <div className="mx-auto mb-6" style={{ width: 40, height: 1, backgroundColor: "#2563EB" }} />
-          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: "#2563EB", letterSpacing: "0.1em", marginBottom: 20 }}>
+      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-24 md:py-32">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }} className="text-center">
+          <div className="mx-auto mb-8" style={{ width: 50, height: 2, background: "linear-gradient(90deg, transparent, #2563EB, transparent)" }} />
+          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#2563EB", letterSpacing: "0.12em", marginBottom: 24, fontWeight: 700 }}>
             HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.
           </p>
-          <h2 className="mx-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(34px, 5vw, 48px)", color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.01em", maxWidth: 700, marginBottom: 16, lineHeight: 1.15, textTransform: "uppercase" }}>
+          <h2 className="mx-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(36px, 5.5vw, 54px)", color: "#FFFFFF", fontWeight: 800, letterSpacing: "-0.01em", maxWidth: 700, marginBottom: 20, lineHeight: 1.1, textTransform: "uppercase" }}>
             THE IMPACT WINDOW INDUSTRY HAS NO PRICING STANDARD.
           </h2>
-          <p className="mx-auto" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, color: "#E5E7EB", maxWidth: 640, lineHeight: 1.75, marginBottom: 60 }}>
+          <p className="mx-auto" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, color: "rgba(229,231,235,0.85)", maxWidth: 640, lineHeight: 1.7, marginBottom: 64 }}>
             That means the contractor who wrote your quote decided what to include, how to describe it, and whether to specify the brand.
           </p>
         </motion.div>
@@ -41,37 +41,68 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {blocks.map((block, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: i * 0.05 }}>
-              <div className="hidden md:block mb-4">
+            <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.3, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}>
+              <div className="hidden md:block mb-5">
                 <EvidenceImage src={block.image} alt={block.alt} onClick={() => setLightboxIndex(i)} />
               </div>
-              <div className="flex items-center justify-center" style={{ width: 48, height: 48, backgroundColor: "rgba(37,99,235,0.1)" }}>
-                <span style={{ fontSize: 24, lineHeight: 1 }}>{block.icon}</span>
+              <div className="flex items-center justify-center" style={{ width: 52, height: 52, backgroundColor: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.2)" }}>
+                <span style={{ fontSize: 26, lineHeight: 1 }}>{block.icon}</span>
               </div>
-              <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#E5E5E5", marginTop: 16, textTransform: "uppercase", letterSpacing: "0.02em" }}>{block.heading}</h3>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", lineHeight: 1.7, marginTop: 8 }}>{block.copy}</p>
-              <span style={{ display: "inline-block", marginTop: 12, background: "rgba(249,115,22,0.1)", color: block.badgeColor, padding: "3px 10px", fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, border: `1px solid ${block.badgeColor}33` }}>{block.badge}</span>
+              <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: "#FFFFFF", marginTop: 18, textTransform: "uppercase", letterSpacing: "0.01em" }}>{block.heading}</h3>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "rgba(229,231,235,0.85)", lineHeight: 1.7, marginTop: 10 }}>{block.copy}</p>
+              <span style={{ display: "inline-block", marginTop: 14, background: "rgba(249,115,22,0.12)", color: block.badgeColor, padding: "4px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, border: `1px solid ${block.badgeColor}40` }}>{block.badge}</span>
             </motion.div>
           ))}
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="text-center mt-16" style={{ backgroundColor: "#111111", border: "1px solid #1A1A1A", padding: "clamp(40px, 5vw, 48px) clamp(32px, 5vw, 56px)" }}>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(22px, 3vw, 30px)", color: "#E5E5E5", fontWeight: 700, letterSpacing: "0.01em", marginBottom: 16, textTransform: "uppercase" }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.3, delay: 0.25, ease: [0.16, 1, 0.3, 1] }} className="text-center mt-20" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "clamp(44px, 5vw, 52px) clamp(36px, 5vw, 60px)", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(24px, 3vw, 32px)", color: "#FFFFFF", fontWeight: 800, letterSpacing: "-0.01em", marginBottom: 18, textTransform: "uppercase" }}>
             MOST HOMEOWNERS ASSUME THE QUOTE REFLECTS THE MARKET RATE.
           </p>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(22px, 3vw, 30px)", color: "#F97316", fontWeight: 900, letterSpacing: "0.01em", textTransform: "uppercase" }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(24px, 3vw, 32px)", color: "#F97316", fontWeight: 900, letterSpacing: "-0.01em", textTransform: "uppercase", textShadow: "0 2px 20px rgba(249,115,22,0.3)" }}>
             IT USUALLY DOESN'T.
           </p>
         </motion.div>
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-12">
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleScanClick}
-            style={{ background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, padding: "16px 32px", border: "none", boxShadow: "0 4px 24px rgba(37,99,235,0.35)", cursor: "pointer" }}>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-14">
+          <motion.button
+            whileHover={{ scale: 1.02, y: -1 }}
+            whileTap={{ scale: 0.98, y: 0 }}
+            onClick={handleScanClick}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            style={{
+              background: "#2563EB",
+              color: "#FFFFFF",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 16,
+              fontWeight: 700,
+              padding: "16px 36px",
+              border: "none",
+              boxShadow: "0 4px 24px rgba(37,99,235,0.4), 0 2px 8px rgba(0,0,0,0.3)",
+              cursor: "pointer",
+            }}
+            className="hover:shadow-[0_6px_32px_rgba(37,99,235,0.5),0_2px_12px_rgba(0,0,0,0.4)] transition-shadow"
+          >
             Scan My Quote — It's Free
           </motion.button>
           {onDemoClick && (
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
-              style={{ background: "transparent", color: "#2563EB", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 28px", border: "1px solid rgba(37,99,235,0.3)", cursor: "pointer" }}>
+            <motion.button
+              whileHover={{ scale: 1.02, y: -1 }}
+              whileTap={{ scale: 0.98, y: 0 }}
+              onClick={onDemoClick}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              style={{
+                background: "transparent",
+                color: "#2563EB",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 15,
+                fontWeight: 600,
+                padding: "14px 32px",
+                border: "1px solid rgba(37,99,235,0.35)",
+                cursor: "pointer",
+              }}
+              className="hover:shadow-[0_4px_20px_rgba(37,99,235,0.15)] hover:border-[rgba(37,99,235,0.5)] transition-all"
+            >
               See the AI in Action — No Upload Needed
             </motion.button>
           )}
