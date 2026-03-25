@@ -42,10 +42,10 @@ const logSteps = [
 ];
 
 const pillars = [
-  { label: "PRICING ANALYSIS", text: "Benchmarking against {county} county market data...", color: "#2563EB", delay: 0.5 },
-  { label: "SPECIFICATION REVIEW", text: "Checking window brand, series, and glass specifications...", color: "#F97316", delay: 1.2 },
-  { label: "WARRANTY AUDIT", text: "Reviewing labor and manufacturer warranty language...", color: "#2563EB", delay: 2.0 },
-  { label: "PERMIT & FEE SCAN", text: "Verifying permit inclusion and installation fee structure...", color: "#F97316", delay: 2.8 },
+  { label: "PRICING ANALYSIS", text: "Benchmarking against {county} county market data...", color: "#0891B2", delay: 0.5 },
+  { label: "SPECIFICATION REVIEW", text: "Checking window brand, series, and glass specifications...", color: "#EA580C", delay: 1.2 },
+  { label: "WARRANTY AUDIT", text: "Reviewing labor and manufacturer warranty language...", color: "#0891B2", delay: 2.0 },
+  { label: "PERMIT & FEE SCAN", text: "Verifying permit inclusion and installation fee structure...", color: "#EA580C", delay: 2.8 },
 ];
 
 type Phase = "scanning" | "cliffhanger" | "pillars" | "reveal";
@@ -318,7 +318,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                     boxShadow: `0 0 40px ${GRADE_COLORS[gradeProp] || GRADE_COLORS.C}4D`,
                   }}
                 >
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 64, fontWeight: 900, color: GRADE_COLORS[gradeProp] || GRADE_COLORS.C }}>
+                  <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 64, fontWeight: 800, color: GRADE_COLORS[gradeProp] || GRADE_COLORS.C }}>
                     {gradeProp}
                   </span>
                 </div>
@@ -391,7 +391,7 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
   if (confidenceScore != null) {
     if (confidenceScore >= 85 && anchorCount >= 3) { label = "Excellent"; color = "#059669"; }
     else if (confidenceScore >= 70) { label = "Great"; color = "#059669"; }
-    else if (confidenceScore >= 55) { label = "Good"; color = "#2563EB"; }
+    else if (confidenceScore >= 55) { label = "Good"; color = "#0891B2"; }
     else { label = "Fair"; color = "#D97706"; }
   }
 
