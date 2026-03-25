@@ -47,7 +47,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
                 <span className="text-2xl leading-none">{block.icon}</span>
               </div>
               <h3 className="display-secondary text-foreground mt-4" style={{ fontSize: 20 }}>{block.heading}</h3>
-              <p className="wm-copy font-body text-[15px] leading-relaxed mt-2">{block.copy}</p>
+              <p className="wm-copy font-body text-[15px] mt-2 leading-[1.7]">{block.copy}</p>
               <span className="inline-block mt-3 badge-warning rounded-lg px-2.5 py-1 font-body text-[11px] font-semibold">{block.badge}</span>
             </motion.div>
           ))}
