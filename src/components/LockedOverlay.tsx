@@ -438,7 +438,7 @@ export function LockedOverlay({
                 transition={{ duration: 0.25 }}
                 className="flex flex-col items-center gap-4"
               >
-                <div className="[&_input]:!bg-transparent [&_input]:!text-[#f7f7f7]">
+                <div className="[&_input]:!bg-transparent [&_input]:!text-slate-900">
                   <InputOTP
                     maxLength={6}
                     value={otpValue}
@@ -450,7 +450,7 @@ export function LockedOverlay({
                         <InputOTPSlot
                           key={i}
                           index={i}
-                          className="!border-[#f7f7f733] !bg-[rgba(255,255,255,0.06)] !text-[#f7f7f7] !w-12 !h-14 !text-xl !font-bold"
+                          className="!border-slate-300 !bg-white !text-slate-900 !w-12 !h-14 !text-xl !font-bold"
                         />
                       ))}
                     </InputOTPGroup>

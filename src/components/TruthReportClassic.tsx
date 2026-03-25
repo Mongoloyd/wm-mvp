@@ -548,10 +548,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   disabled={isCtaLoading}
                   className="flex items-center justify-center gap-2 w-full"
                   style={{
-                    background: "rgba(255,255,255,0.04)", color: "#D1D5DB",
+                    background: "rgba(8,145,178,0.04)", color: "#334155",
                     fontFamily: "'Inter', system-ui, sans-serif", fontSize: 15, fontWeight: 600,
-                    padding: "14px 28px", borderRadius: 0,
-                    border: "1.5px solid rgba(255,255,255,0.15)",
+                    padding: "14px 28px", borderRadius: 8,
+                    border: "1.5px solid rgba(8,145,178,0.2)",
                     cursor: isCtaLoading ? "wait" : "pointer",
                   }}>
                   <Phone size={16} />
