@@ -128,7 +128,7 @@ const GradeReveal = ({
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           <motion.div {...stagger(3)}>
             <p className="font-mono text-[10px] text-muted-foreground tracking-widest mb-2">YOUR QUOTE VS. FAIR MARKET</p>
-            <p className="font-mono font-black tabular-nums" style={{ fontSize: "clamp(36px, 5vw, 44px)", color: dollarDelta! > 0 ? "#DC2626" : "#059669", textShadow: dollarDelta! > 0 ? "0 1px 4px rgba(220, 38, 38, 0.2)" : "0 1px 4px rgba(5, 150, 105, 0.2)" }}>
+            <p className="font-mono font-black" style={{ fontSize: "clamp(36px, 5vw, 44px)", color: dollarDelta! > 0 ? "#DC2626" : "#059669" }}>
               {dollarDelta! > 0 ? "+" : dollarDelta! < 0 ? "-" : ""}${counter.toLocaleString()}
             </p>
             <p className="font-body text-[13px] text-muted-foreground">
@@ -137,7 +137,7 @@ const GradeReveal = ({
           </motion.div>
           <motion.div {...stagger(3.5)}>
             <p className="font-mono text-[10px] text-muted-foreground tracking-widest mb-2">FAIR MARKET RANGE · {county.toUpperCase()} COUNTY</p>
-            <p className="font-mono text-2xl font-bold text-primary tabular-nums">${fairPriceLow!.toLocaleString()} – ${fairPriceHigh!.toLocaleString()}</p>
+            <p className="font-mono text-2xl font-bold text-primary">${fairPriceLow!.toLocaleString()} – ${fairPriceHigh!.toLocaleString()}</p>
             <div className="relative mt-3">
               <div className="h-2 bg-border rounded-full overflow-hidden">
                 <div className="h-2 rounded-full" style={{ background: "linear-gradient(90deg, hsl(var(--primary)), #059669)", width: "70%" }} />

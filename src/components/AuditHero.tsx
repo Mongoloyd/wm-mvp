@@ -53,13 +53,13 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
               <span className="eyebrow">FORENSIC QUOTE INTELLIGENCE</span>
             </div>
 
-            <h1 className="display-hero text-foreground mb-5 tracking-[-0.02em]" style={{ fontSize: "clamp(40px, 5vw, 58px)", lineHeight: 1.05 }}>
+            <h1 className="display-hero text-foreground mb-5" style={{ fontSize: "clamp(40px, 5vw, 58px)", lineHeight: 1.1 }}>
               YOUR QUOTE LOOKS LEGITIMATE.
               <br />
-              THAT'S EXACTLY WHAT <span className="text-wm-orange [text-shadow:_0_2px_12px_rgba(249,115,22,0.4)]">THEY'RE COUNTING ON.</span>
+              THAT'S EXACTLY WHAT <span className="text-wm-orange">THEY'RE COUNTING ON.</span>
             </h1>
 
-            <p className="wm-copy font-body font-semibold mb-8 max-w-2xl" style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7 }}>
+            <p className="wm-copy font-body mb-8" style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7 }}>
               The impact window industry has no pricing transparency standard.
               <br />
               WindowMan built one — and it reads your quote in{" "}
@@ -111,8 +111,8 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
           <div className="lg:col-span-5 relative flex flex-col items-center pt-4 lg:pt-16">
             <div className="hidden md:block relative z-10">
               <div
-                className="absolute -inset-12 rounded-full -z-10"
-                style={{ background: "radial-gradient(circle, rgba(37,99,235,0.12) 0%, rgba(56,189,248,0.08) 50%, transparent 100%)", filter: "blur(60px)" }}
+                className="absolute -inset-6 rounded-full -z-10"
+                style={{ background: "rgba(37,99,235,0.08)", filter: "blur(40px)" }}
               />
               <motion.div
                 initial={{ opacity: 0, x: 20 }}

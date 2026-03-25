@@ -42,7 +42,7 @@ const GradeRing = ({ percent, gradeColor, gradientStops, grade, id }: { percent:
 const AnimatedCounter = ({ target }: { target: number }) => {
   const [value, setValue] = useState(0); const startRef = useRef<number | null>(null); const rafRef = useRef<number>(0);
   useEffect(() => { startRef.current = null; const animate = (timestamp: number) => { if (!startRef.current) startRef.current = timestamp; const progress = Math.min((timestamp - startRef.current) / ANIM_DURATION, 1); const eased = 1 - Math.pow(1 - progress, 3); setValue(Math.round(eased * target)); if (progress < 1) rafRef.current = requestAnimationFrame(animate); }; rafRef.current = requestAnimationFrame(animate); return () => cancelAnimationFrame(rafRef.current); }, [target]);
-  return <span className="font-mono font-bold text-xl text-wm-orange tabular-nums [text-shadow:_0_1px_4px_rgba(249,115,22,0.2)]">${value.toLocaleString()}</span>;
+  return <span className="font-mono font-bold text-xl text-wm-orange">${value.toLocaleString()}</span>;
 };
 
 const SampleGradeCard = () => {
