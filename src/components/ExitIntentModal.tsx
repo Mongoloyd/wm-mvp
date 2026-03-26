@@ -46,7 +46,7 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 8 }}
             transition={{ duration: 0.2 }}
-            className="relative w-[92%] max-w-[520px] glass-card-strong p-8 md:p-10"
+            className="relative w-[92%] max-w-[520px] card-raised-hero p-8 md:p-10"
           >
             <button
               onClick={dismiss}

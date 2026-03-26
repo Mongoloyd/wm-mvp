@@ -105,7 +105,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
     <AnimatePresence>
       {isVisible && (
         <motion.div ref={containerRef} initial={{ opacity: 0, height: 0, y: 20 }} animate={{ opacity: 1, height: "auto", y: 0 }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} className="overflow-hidden max-w-2xl mx-auto mt-6">
-          <div className="glass-card-strong p-8 md:p-10">
+          <div className="card-raised p-8 md:p-10">
             <span className="inline-block font-mono text-[10px] text-primary tracking-[0.1em] bg-primary/10 px-3 py-1 mb-5">
               UPLOAD YOUR QUOTE
             </span>
@@ -122,8 +122,8 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleDrop}
               onClick={handleDropzoneClick}
-              className={`border-2 border-dashed text-center cursor-pointer transition-all py-12 px-8 ${
-                isDragOver ? 'border-primary bg-primary/5' : 'border-border bg-background'
+              className={`border-2 border-dashed text-center cursor-pointer transition-all py-12 px-8 input-well ${
+                isDragOver ? 'border-primary' : 'border-border/60'
               }`}
             >
               <input ref={inputRef} type="file" accept=".pdf,image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} style={{ display: "none" }} />

@@ -49,7 +49,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             className="lg:col-span-5 pt-8 lg:pt-20"
           >
             <div
-              className="inline-flex items-center gap-2 mb-5 bg-primary/5 border border-primary/20 px-3 py-1"
+              className="inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5"
             >
               <span className="text-primary text-sm">🛡</span>
               <span className="font-mono text-[10px] font-bold tracking-[0.1em] text-primary">
@@ -104,7 +104,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onFlowBClick?.()}
-                className="w-full lg:w-auto transition-colors py-3.5 px-4 lg:px-6 cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2 bg-primary/5 border border-primary/20 text-foreground"
+                className="w-full lg:w-auto btn-secondary-tactile py-3.5 px-4 lg:px-6 cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2 text-foreground"
                 style={{
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 15,
@@ -131,10 +131,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
           <div className="lg:col-span-5 relative flex flex-col items-center pt-4 lg:pt-16">
             <div className="hidden md:block relative z-10">
               {/* Subtle glow behind card */}
-              <div
-                className="absolute -inset-6 rounded-full -z-10"
-                style={{ background: "rgba(37,99,235,0.06)", filter: "blur(40px)" }}
-              />
+              {/* Physical cast shadow — no blur glow */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}

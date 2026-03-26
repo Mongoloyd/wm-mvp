@@ -25,7 +25,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {stories.map((story, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: i * 0.05 }}
-              className="glass-card-strong p-7">
+              className="card-raised p-7">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-10 h-10 bg-primary/10">
@@ -55,7 +55,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
         </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.15 }}
-          className="text-center mt-12 glass-card-strong p-8">
+          className="text-center mt-12 card-raised p-8">
           <h3 className="font-display text-[26px] text-foreground font-extrabold tracking-[0.01em] uppercase">
             YOUR QUOTE IS EITHER PRICED FAIRLY OR IT ISN'T.
           </h3>
@@ -67,7 +67,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
             Show Me My Grade →
           </motion.button>
           {onDemoClick && <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
-            className="block mx-auto mt-4 bg-transparent text-primary font-body text-sm font-semibold border border-primary/30 cursor-pointer" style={{ padding: "12px 28px" }}>
+            className="block mx-auto mt-4 btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
             See the AI in Action — No Upload Needed
           </motion.button>}
         </motion.div>

@@ -82,9 +82,12 @@ const OptionButton = ({
     className={`flex items-center justify-between p-4 border transition-all group text-left ${
       selected
         ? 'border-primary bg-primary/10 text-primary'
-        : 'border-border bg-background hover:border-primary/50 hover:bg-primary/[0.03] text-foreground'
+        : 'border-border bg-card hover:border-primary/50 text-foreground'
     }`}
-    style={{ borderRadius: 0, boxShadow: selected ? '0 0 0 3px rgba(37,99,235,0.15)' : 'none' }}
+    style={{
+      borderRadius: 'var(--radius)',
+      boxShadow: selected ? 'var(--shadow-pressed)' : 'var(--shadow-resting)',
+    }}
   >
     <span className="font-body text-wm-body-soft">{label}</span>
     <span className={`text-base transition-colors ${selected ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`}>→</span>
@@ -483,16 +486,17 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         >
           {eyebrowLabels[Math.min(currentStep - 1, 4)]}
         </p>
-        <div className="w-full h-1 bg-muted mb-8">
+        <div className="w-full h-1.5 input-well mb-8">
           <motion.div
-            className="h-1 bg-primary"
+            className="h-1.5 rounded-full"
+            style={{ background: "linear-gradient(90deg, #4DA3FF, #2563EB)", boxShadow: "0 0 8px rgba(37,99,235,0.3)" }}
             animate={{ width: progressWidth }}
             transition={{ duration: 0.15 }}
           />
         </div>
 
         <div
-          className="glass-card-strong transform -translate-y-1"
+          className="card-raised-hero"
           style={{
             padding: "clamp(28px, 5vw, 40px)",
             minHeight: 280,
@@ -518,16 +522,17 @@ const labelStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   height: 48,
-  border: "1.5px solid hsl(var(--border))",
-  borderRadius: 0,
+  border: "1px solid hsl(214 28% 78%)",
+  borderRadius: 'var(--radius)',
   padding: "0 16px",
   fontFamily: "'DM Sans', sans-serif",
   fontSize: 15,
   color: "hsl(var(--foreground))",
-  background: "hsl(var(--background))",
+  background: "linear-gradient(180deg, hsl(214 30% 91%) 0%, hsl(214 35% 95%) 100%)",
   outline: "none",
   transition: "border-color 0.15s, box-shadow 0.15s",
   boxSizing: "border-box",
+  boxShadow: "var(--shadow-sunken)",
 };
 
 const errorTextStyle: React.CSSProperties = {

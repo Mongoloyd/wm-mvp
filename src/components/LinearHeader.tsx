@@ -21,9 +21,9 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
 
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b border-border bg-card/90 backdrop-blur-xl"
+      className="sticky top-0 z-50 w-full border-b border-border bg-card"
       style={{
-        boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03)",
+        boxShadow: "var(--shadow-shelf)",
         transition: "padding 0.15s ease",
         padding: scrolled ? "6px 0" : "14px 0",
       }}

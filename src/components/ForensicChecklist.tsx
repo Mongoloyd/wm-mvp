@@ -20,7 +20,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
   return (
     <section id="forensic-checklist" className="bg-background border-t border-border">
       <div className="mx-auto max-w-3xl px-4 py-16 md:px-8 md:py-24">
-        <div className="relative overflow-hidden glass-card-strong" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+        <div className="relative overflow-hidden card-raised-hero">
           <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none select-none" style={{ zIndex: 0 }}>
             <div className="font-mono text-2xl text-foreground/[0.03] whitespace-nowrap leading-[2.5]" style={{ transform: "rotate(-35deg)" }}>
               {Array.from({ length: 12 }).map((_, i) => (<div key={i}>WINDOWMAN FORENSIC &nbsp;&nbsp;&nbsp; WINDOWMAN FORENSIC &nbsp;&nbsp;&nbsp; WINDOWMAN FORENSIC</div>))}
@@ -88,7 +88,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
           </div>
         </div>
 
-        <div className="text-center glass-card-strong mt-8" style={{ padding: "40px 28px" }}>
+        <div className="text-center card-raised mt-8" style={{ padding: "40px 28px" }}>
           <h3 className="font-display text-[26px] font-extrabold tracking-[0.02em] text-foreground uppercase">Now set the reminder.</h3>
           <p className="font-body text-[15px] text-muted-foreground mt-2">When is your contractor visiting? We'll text you 15 minutes after they leave.</p>
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onSetReminder} className="btn-depth-primary mt-5 inline-block" style={{ fontSize: 15, padding: "14px 32px" }}>
