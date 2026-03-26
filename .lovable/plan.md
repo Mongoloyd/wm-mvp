@@ -1,85 +1,240 @@
+# Reveal Page Migration — TruthReportClassic + LockedOverlay + ReportClassic Loading
 
+We are now migrating the Reveal / Audit Results experience into the locked design system.
 
-# Button 3D Depth Upgrade — Premium Tactile Polish
+This is NOT a redesign.
+This is NOT a new visual direction.
+This is a controlled system migration + hierarchy enforcement pass.
 
-## What the reference image shows vs current state
+Do not change:
+- layout structure
+- prop interfaces
+- business logic
+- copy
+- callback/state behavior
+- Framer Motion sequencing
+- routes
+- backend / Supabase / Twilio / OTP logic
 
-The reference image shows buttons with:
-- **Embossed/letterpress text** — the white text has visible depth via stronger `text-shadow` with both a dark underside shadow AND a subtle top highlight
-- **Richer gradient contrast** — the blue button has a more dramatic light-to-dark gradient with a visible gloss band at the top
-- **The orange CTA** has an almost "machined metal" quality — deep gradient, pronounced edge highlights
-- **Heavier bottom shadow** — buttons appear to physically sit on the page
+Files in scope:
+1. `src/components/TruthReportClassic.tsx`
+2. `src/components/LockedOverlay.tsx`
+3. `src/pages/ReportClassic.tsx` (loading state only)
 
-Current `.btn-depth-primary` has a single `text-shadow: 0 1px 2px rgba(0,0,0,0.25)` which gives minimal depth. The gradient is good but could be punchier. The buttons look "correct" but not "rich."
+==================================================
+GLOBAL RULES
+==================================================
 
-## The upgrade — 4 specific CSS changes
+1. Use the LOCKED design system only.
+2. Do not invent new visual styles.
+3. Do not flatten the reveal page into generic homepage styling.
+4. Preserve dominance of:
+   - grade / verdict strip
+   - locked overlay card
+   - primary unlock CTA
+   - highest-urgency findings
+   - negotiation script / leverage sections where the stakes are highest
 
-### 1. Richer text depth (biggest visual impact)
+==================================================
+COLOR ROLE RULES (CRITICAL)
+==================================================
 
-**File:** `src/index.css` — `.btn-depth-primary`
+Do NOT collapse all accents into primary blue.
 
-**Current:** `text-shadow: 0 1px 2px rgba(0,0,0,0.25);`
+Reveal page semantic color roles must remain:
 
-**New:** Multi-layer text-shadow that creates an embossed/letterpress effect:
-```css
-text-shadow:
-  0 1px 0 rgba(255,255,255,0.12),   /* top highlight — simulates light catching the top edge of letterforms */
-  0 -1px 0 rgba(0,0,0,0.08),        /* dark top edge — adds depth perception */
-  0 2px 4px rgba(0,0,0,0.35),       /* primary drop shadow — deeper than current */
-  0 4px 8px rgba(15,40,100,0.2);    /* ambient glow — makes text feel embedded in the button surface */
-```
+- blue = system structure / CTA trust / neutral controls
+- red = critical / danger / severe risk
+- amber/gold = caution / negotiation leverage / money at risk / important warning
+- green = safe / pass / verified
+- cyan = AI/system activity only where semantically correct
 
-**Why:** This is the single highest-ROI change. The reference shows text that looks physically pressed into or raised from the button surface. Multi-layer text-shadow creates that "3D letterform" effect without any DOM changes.
+Allowed:
+- structural UI accents can use primary blue
+- severity, risk, money, and caution accents must retain non-blue semantics
 
-### 2. Punchier gradient with visible gloss band
+Do NOT map:
+- gold → primary blue
+- amber → primary blue
+- danger → primary blue
+unless the element is truly structural rather than semantic
 
-**Current gradient:** `linear-gradient(180deg, #5AADFF 0%, #2563EB 40%, #1D4ED8 80%, #1a44b8 100%)`
+==================================================
+PHASE 1 — TOKEN / STYLE NORMALIZATION
+==================================================
 
-**New gradient:** Add a sharper gloss transition at the top 15% to create a "highlight shelf":
-```css
-background: linear-gradient(180deg,
-  #6BB8FF 0%,      /* brighter gloss cap */
-  #4A9BF5 12%,     /* sharp transition — creates visible "shelf" */
-  #2563EB 40%,
-  #1D4ED8 75%,
-  #162FA0 100%);   /* darker floor — increases contrast range */
-```
+Replace noir inline styling with locked system classes/tokens.
 
-**Why:** The reference buttons have a visible gloss zone at the top ~15% of the surface. The current gradient is smooth/linear. Adding a brighter cap that drops sharply into the mid-tone creates the "polished dome" effect.
+### Background surfaces
+- Replace `#0A0A0A` root/section/card backgrounds with:
+  - `bg-background`
+  - `bg-secondary`
+  - `section-recessed`
+  - `card-raised`
+  - `card-dominant`
+depending on role
 
-### 3. Stronger inner top highlight
+Do NOT use `bg-background` everywhere.
+Preserve surface hierarchy.
 
-**Current:** `inset 0 1px 0 rgba(255,255,255,0.22)`
+### Text
+Replace raw hex text colors with semantic text classes/tokens:
+- `text-foreground`
+- `text-muted-foreground`
+- `font-display`
+- `font-body`
+- `font-mono`
 
-**New:** Wider, softer top highlight that simulates a curved reflective surface:
-```css
-inset 0 1px 0 rgba(255,255,255,0.28),
-inset 0 0 8px rgba(255,255,255,0.06),  /* soft inner glow — adds volume */
-```
+Remove `Jost` entirely.
 
-**Why:** The extra soft inner glow makes the button feel rounded/convex instead of flat, matching the "dome" quality in the reference.
+### Borders
+Replace raw borders with semantic borders:
+- `border-border`
+- severity borders using semantic danger / caution / success tokens
+- keep dynamic severity mapping where required
 
-### 4. Apply same treatment to hover and secondary button
+### Shadows
+Replace inline `boxShadow` with system surfaces/shadow classes wherever possible.
+Keep inline shadow/color only when truly data-driven.
 
-- **Hover state** gets the same text-shadow and a slightly brighter gloss cap
-- **`.btn-secondary-tactile`** gets a subtler version: `text-shadow: 0 1px 0 rgba(255,255,255,0.6)` (light emboss on the white surface)
-- **Active/pressed** state keeps current flat treatment (pressed buttons lose their gloss — this is physically correct)
+### Radius
+Replace `borderRadius: 0` and one-off radii with locked system radii:
+- card radius
+- button radius
+- input radius
+- `rounded-full` for circles only
 
-## Files changed
+==================================================
+PHASE 2 — STRUCTURAL MAPPING
+==================================================
 
-1. `src/index.css` — `.btn-depth-primary` (default, hover, active), `.btn-secondary-tactile`
+Map reveal sections to the locked system intentionally:
 
-No component files change. All buttons inherit the upgrade automatically via the shared class.
+1. Root page shell → `bg-background`
+2. Report header / shell framing → structural, restrained, system-trust styling
+3. Grade / verdict strip → highest visual weight, dominant surface, strongest hierarchy on page
+4. Proof-of-read / summary strip → quieter recessed band
+5. 5-Pillar section → page field + raised pillar cards
+6. Forensic findings / evidence → quieter than verdict strip, scannable cards with severity accents preserved
+7. Negotiation / script / leverage areas → elevated enough to feel important, caution / leverage semantics preserved
+8. CTA area → primary unlock CTA uses locked primary CTA system, secondary uses locked secondary
+9. Locked overlay → dominant gate card, valuable, serious, premium — not just re-skinned
+10. Loading state → migrate out of noir into locked system
 
-## What does NOT change
+==================================================
+PHASE 3 — HIERARCHY ENFORCEMENT
+==================================================
 
-- Button sizes, padding, border-radius — all preserved
-- Glint animation — preserved
-- Component files — zero changes
-- No new button types introduced
-- Secondary button remains visually subordinate
+Ensure:
+- grade/verdict is immediately legible at a glance
+- locked overlay card is clearly dominant when shown
+- pillar cards are secondary to verdict
+- evidence/finding blocks are quieter than verdict but still easy to scan
+- CTA prominence is strong in unlock moments
 
-## Risk
+Fix with elevation, surface contrast, typography weight, spacing — NOT layout changes.
 
-Very low. Pure CSS property changes on existing classes. Every button using `btn-depth-primary` gets the upgrade simultaneously. Easily reversible.
+==================================================
+PHASE 4 — SEVERITY COLOR BRIDGE
+==================================================
 
+The following may remain as JS config objects because they are data-driven:
+- `gradeConfig`
+- `statusConfig`
+- `severityStyles`
+
+Refactor so they reference locked semantic tokens / HSL values rather than noir hex values.
+
+Important:
+- preserve red / amber / green / gold semantic meaning
+- do not collapse these into blue
+- cyan only where semantically correct for AI/system activity
+
+This is the primary acceptable exception to "no inline styles."
+
+==================================================
+PHASE 5 — LOCKED OVERLAY MIGRATION
+==================================================
+
+Apply the same system rules to `LockedOverlay.tsx`.
+
+Requirements:
+- remove noir backgrounds
+- remove Jost
+- preserve dominant gate card hierarchy
+- preserve input quality / OTP slot clarity
+- keep gate feeling valuable and high-stakes
+- use locked CTA/button system
+- preserve caution / urgency accents where semantically correct
+
+Do NOT flatten LockedOverlay into generic page styling.
+
+==================================================
+PHASE 6 — READABILITY + DENSITY CHECK
+==================================================
+
+After migration, verify:
+- grade/verdict area is immediately legible at a glance
+- findings can be scanned quickly
+- muted/support text is not too faint on light surfaces
+- dense sections remain readable without visual fatigue
+- negotiation / leverage sections still feel important
+
+==================================================
+PHASE 7 — FINAL AUDIT
+==================================================
+
+After implementation, audit and report any remaining:
+- raw hex values
+- inline `boxShadow`
+- `Jost` font references
+- `borderRadius: 0`
+- noir backgrounds
+
+List each by file, approximate line area, and reason it remains.
+
+Also report:
+1. which sections were mapped to which locked system classes
+2. which inline styles remain and why
+3. whether any severity semantics were preserved as exceptions
+4. confirmation that layout, business logic, and only presentation layer was migrated
+
+==================================================
+IMPLEMENTATION ORDER
+==================================================
+
+1. Refactor `gradeConfig` / `statusConfig` / `severityStyles` to semantic token references
+2. Migrate `TruthReportClassic.tsx` section by section
+3. Migrate `LockedOverlay.tsx`
+4. Migrate `ReportClassic.tsx` loading state
+5. Run final audit and report
+6. STOP for review
+
+==================================================
+OPEN QUESTIONS / EDGE CASES
+==================================================
+
+### Q1: Gold accent on LockedOverlay gate — keep gold or switch to primary blue?
+The gate CTA ("Unlock Your Report") is the highest-conversion moment. Gold communicates urgency/value. Blue communicates trust/system.
+**Recommendation:** Use `btn-depth-primary` (blue system) for the unlock CTA button itself (trust = conversion), but keep gold/amber semantic accents on the surrounding urgency copy, lock icons, and "flags found" teasers. This preserves the emotional tension without contradicting the button system.
+
+### Q2: Cyan accent usage
+Currently cyan (#0099BB) is used for negotiation script borders, "how to use this" labels, and some structural accents. Some of these are truly "system/AI" semantic (keep cyan). Others are just generic accents that should become `primary` blue.
+**Recommendation:** Audit each cyan usage individually. Script/leverage borders → keep as a distinct accent (map to a `--color-cyan` token). Generic structural labels → migrate to `text-primary`.
+
+### Q3: Grade circle dynamic border + glow
+The grade circle uses `border: 4px solid ${config.color}` and a matching glow shadow. This is data-driven and must stay inline. But should the glow intensity match noir (heavy, dramatic) or be toned to match the lighter system surfaces?
+**Recommendation:** Reduce glow opacity slightly (from 0.35 → 0.25) so it doesn't overpower on lighter card surfaces, but keep the color mapping intact.
+
+### Q4: Dark mode assumption
+The current locked design system defines dark-mode HSL values. The reveal page was built for dark backgrounds. If the system ever adds a light mode toggle, these semantic tokens will auto-adapt. No extra work needed now, but flagging that severity color contrast ratios should be validated against both `--background` values.
+**Recommendation:** No action now. Note for future light-mode pass.
+
+### Q5: Missing semantic tokens
+The locked system may not have dedicated tokens for every severity color. We may need to add CSS custom properties:
+- `--color-danger` (red)
+- `--color-caution` / `--color-gold-accent` (amber/gold)
+- `--color-success` / `--color-emerald` (green)
+- `--color-cyan` (AI/system accent)
+
+**Recommendation:** Add these to `index.css` as part of Phase 1 if they don't already exist. They are semantic role tokens, not new design — they codify what already exists.
