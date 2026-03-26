@@ -59,14 +59,20 @@
     /* ── LIGHTING & SHADOW SYSTEM ── */
     --shadow-resting:
       inset 0 1px 0 rgba(255,255,255,0.85),
-      1px 2px 3px rgba(10,25,55,0.07),
-      2px 4px 12px rgba(10,25,55,0.09),
-      3px 8px 24px rgba(10,25,55,0.05);
+      2px 3px 4px rgba(10,25,55,0.08),
+      3px 6px 14px rgba(10,25,55,0.1),
+      4px 10px 28px rgba(10,25,55,0.06);
     --shadow-elevated:
       inset 0 1px 0 rgba(255,255,255,0.9),
-      1px 3px 6px rgba(10,25,55,0.1),
-      3px 8px 24px rgba(10,25,55,0.14),
-      4px 16px 48px rgba(10,25,55,0.07);
+      2px 4px 8px rgba(10,25,55,0.1),
+      4px 10px 28px rgba(10,25,55,0.15),
+      6px 20px 52px rgba(10,25,55,0.08);
+    --shadow-dominant:
+      inset 0 1px 0 rgba(255,255,255,0.95),
+      2px 4px 8px rgba(10,25,55,0.12),
+      4px 12px 32px rgba(10,25,55,0.18),
+      6px 24px 64px rgba(10,25,55,0.1),
+      0 0 0 1px rgba(37,99,235,0.08);
     --shadow-sunken:
       inset 0 2px 4px rgba(10,25,55,0.08),
       inset 0 1px 2px rgba(10,25,55,0.06),
@@ -79,18 +85,18 @@
       0 0 12px rgba(37,99,235,0.1);
     --shadow-btn:
       inset 0 1px 0 rgba(255,255,255,0.25),
-      1px 2px 4px rgba(10,25,55,0.12),
-      2px 4px 12px rgba(37,99,235,0.25);
+      2px 3px 6px rgba(10,25,55,0.14),
+      3px 6px 16px rgba(37,99,235,0.28);
     --shadow-btn-hover:
       inset 0 1px 0 rgba(255,255,255,0.3),
-      2px 4px 8px rgba(10,25,55,0.15),
-      3px 8px 24px rgba(37,99,235,0.3);
+      3px 5px 10px rgba(10,25,55,0.16),
+      4px 10px 28px rgba(37,99,235,0.32);
     --shadow-shelf:
-      1px 2px 4px rgba(10,25,55,0.08),
-      2px 4px 16px rgba(10,25,55,0.1);
+      2px 3px 6px rgba(10,25,55,0.1),
+      3px 6px 20px rgba(10,25,55,0.12);
     --shadow-shelf-up:
-      -1px -2px 4px rgba(10,25,55,0.06),
-      -2px -4px 16px rgba(10,25,55,0.08);
+      -2px -3px 6px rgba(10,25,55,0.08),
+      -3px -6px 20px rgba(10,25,55,0.1);
 
     /* Sidebar */
     --sidebar-background: 214 35% 95%;
@@ -118,29 +124,50 @@
 
   /* ═══ CARD-RAISED: Physical card with top-left lighting ═══ */
   .card-raised {
-    background: linear-gradient(180deg, #FFFFFF 0%, #EFF3F8 100%);
+    background: linear-gradient(180deg, #FFFFFF 0%, #EDF1F7 100%);
     border: 1px solid hsl(214 30% 82%);
     border-radius: var(--radius);
     box-shadow: var(--shadow-resting);
     position: relative;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .card-raised:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-1px);
   }
 
   /* Hero-level elevation */
   .card-raised-hero {
-    background: linear-gradient(180deg, #FFFFFF 0%, #EFF3F8 100%);
+    background: linear-gradient(180deg, #FFFFFF 0%, #EDF1F7 100%);
     border: 1px solid hsl(214 30% 82%);
     border-radius: var(--radius);
     box-shadow: var(--shadow-elevated);
     position: relative;
   }
 
+  /* Dominant card — highest elevation on page (TruthGate) */
+  .card-dominant {
+    background: linear-gradient(180deg, #FFFFFF 0%, #EBF0F7 100%);
+    border: 1px solid hsl(214 30% 78%);
+    border-top: 2px solid hsl(var(--primary));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-dominant);
+    position: relative;
+  }
+
   /* Backward compat alias */
   .glass-card-strong {
-    background: linear-gradient(180deg, #FFFFFF 0%, #EFF3F8 100%);
+    background: linear-gradient(180deg, #FFFFFF 0%, #EDF1F7 100%);
     border: 1px solid hsl(214 30% 82%);
     border-radius: var(--radius);
     box-shadow: var(--shadow-resting);
     position: relative;
+  }
+
+  /* Section recessed panel */
+  .section-recessed {
+    box-shadow: inset 0 2px 6px rgba(10,25,55,0.04), inset 0 1px 2px rgba(10,25,55,0.03);
   }
 
   /* ═══ INPUT-WELL: Recessed sunken inputs ═══ */

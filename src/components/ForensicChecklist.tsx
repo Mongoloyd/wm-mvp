@@ -77,7 +77,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
             {checkedCount === 5 && (
               <>
                 <p className="font-body text-sm font-semibold text-primary">✓ All 5 confirmed. Upload your final contract for a full AI grade before you sign.</p>
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => onUploadQuote?.()} className="btn-depth-primary mt-3" style={{ fontSize: 15, padding: "14px 28px" }}>
+                <motion.button onClick={() => onUploadQuote?.()} className="btn-depth-primary mt-3" style={{ fontSize: 15, padding: "14px 28px" }}>
                   Upload My Quote for a Full Grade →
                 </motion.button>
               </>
@@ -91,7 +91,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
         <div className="text-center card-raised mt-8" style={{ padding: "40px 28px" }}>
           <h3 className="font-display text-[26px] font-extrabold tracking-[0.02em] text-foreground uppercase">Now set the reminder.</h3>
           <p className="font-body text-[15px] text-muted-foreground mt-2">When is your contractor visiting? We'll text you 15 minutes after they leave.</p>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onSetReminder} className="btn-depth-primary mt-5 inline-block" style={{ fontSize: 15, padding: "14px 32px" }}>
+          <motion.button onClick={onSetReminder} className="btn-depth-primary mt-5 inline-block" style={{ fontSize: 15, padding: "14px 32px" }}>
             Set My Quote Reminder →
           </motion.button>
         </div>

@@ -79,7 +79,7 @@ const OptionButton = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex items-center justify-between p-4 border transition-all group text-left ${
+    className={`flex items-center justify-between p-4 border transition-all group text-left hover:-translate-y-px ${
       selected
         ? 'border-primary bg-primary/10 text-primary'
         : 'border-border bg-card hover:border-primary/50 text-foreground'
@@ -427,7 +427,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           <motion.button
             type="submit"
             disabled={submitState === "submitting" || submitState === "success"}
-            whileHover={submitState === "idle" || submitState === "error" ? { scale: 1.01 } : {}}
+            
             className="btn-depth-primary w-full"
             style={{
               height: 54,
@@ -480,6 +480,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   return (
     <section id="truth-gate" className="bg-background">
       <div className={`mx-auto max-w-2xl px-4 md:px-8 py-16 md:py-24 transition-all duration-500 ${glowing ? 'ring-2 ring-cobalt shadow-lg shadow-cobalt/20' : ''}`}>
+        <p className="text-center mb-2 font-mono text-[10px] text-muted-foreground tracking-[0.15em] uppercase">
+          THE SCANNER
+        </p>
         <p
           className="text-center mb-3 font-mono text-[11px] text-primary tracking-[0.1em]"
         >
@@ -495,7 +498,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         </div>
 
         <div
-          className="card-raised-hero"
+          className="card-dominant"
           style={{
             padding: "clamp(28px, 5vw, 40px)",
             minHeight: 280,

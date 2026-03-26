@@ -103,7 +103,7 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: a
   const isScanning = phase === "scan";
 
   return (
-    <div className="relative w-full h-full rounded-none border border-border bg-background p-6 flex flex-col overflow-hidden shadow-inner">
+    <div className="relative w-full h-full rounded-none input-well p-6 flex flex-col overflow-hidden" style={{ borderRadius: 0 }}>
       {/* Sample badge */}
       <div className="absolute top-3 right-3 z-30">
         <span className="font-mono text-[9px] font-bold tracking-widest uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border">
@@ -260,7 +260,8 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
       </div>
 
       <div
-        className="mx-auto max-w-[520px] rounded-none border-[1.5px] border-border bg-card p-6 md:p-8 shadow-focus min-h-[480px] flex flex-col relative"
+        className="mx-auto max-w-[520px] rounded-none card-raised p-6 md:p-8 min-h-[480px] flex flex-col relative"
+        style={{ borderRadius: 0 }}
       >
         <AnimatePresence mode="wait">
           {/* ── PHASES 1 & 2: Document & Scan ───────── */}
@@ -391,10 +392,9 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                       {activeScan.hookCta}
                     </p>
                     <motion.button
-                      animate={{ scale: [1, 1.02, 1] }}
-                      transition={{ repeat: Infinity, duration: 2 }}
                       onClick={handleCtaClick}
-                      className="w-full rounded-none bg-gold px-7 py-3 font-body text-[14px] font-bold text-white shadow-[0_3px_14px_rgba(245,158,11,0.35)] cursor-pointer border-none"
+                      className="w-full rounded-none btn-depth-primary px-7 py-3 font-body text-[14px] font-bold cursor-pointer"
+                      style={{ borderRadius: 0 }}
                     >
                       Upload My Real Quote — It's Free →
                     </motion.button>
@@ -404,6 +404,17 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Persistent CTA below demo */}
+      <div className="mx-auto max-w-[520px] mt-4 text-center">
+        <button
+          onClick={handleCtaClick}
+          className="btn-depth-primary w-full py-3.5 text-[15px]"
+          style={{ borderRadius: 0 }}
+        >
+          Want to see YOUR quote graded? →
+        </button>
       </div>
     </section>
   );
