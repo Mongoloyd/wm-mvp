@@ -24,12 +24,12 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
   return (
     <section className="bg-background section-recessed">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, ease: "easeOut" }} className="text-center">
           <div className="mx-auto mb-6 w-10 h-px bg-primary" />
           <p className="wm-eyebrow text-primary mb-5">
             HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.
           </p>
-          <h2 className="wm-title-section mx-auto mb-4" style={{ fontSize: "clamp(34px, 5vw, 48px)", maxWidth: 700, lineHeight: 1.15 }}>
+          <h2 className="wm-title-section mx-auto mb-4" style={{ fontSize: "clamp(34px, 5vw, 48px)", maxWidth: 700, lineHeight: 1.12, color: "hsl(210 50% 8%)" }}>
             THE IMPACT WINDOW INDUSTRY HAS NO PRICING STANDARD.
           </h2>
           <p className="wm-body mx-auto mb-14" style={{ fontSize: 17, maxWidth: 640, lineHeight: 1.75 }}>
@@ -41,7 +41,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {blocks.map((block, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: i * 0.05 }}>
+            <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, delay: 0.1 + i * 0.08, ease: "easeOut" }}>
               <div className="hidden md:block mb-4">
                 <EvidenceImage src={block.image} alt={block.alt} onClick={() => setLightboxIndex(i)} />
               </div>

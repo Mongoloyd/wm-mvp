@@ -21,16 +21,16 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
   return (
     <section className="bg-background">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28 text-center">
-        <motion.p initial={{ opacity: 0, y: 12 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }}
+        <motion.p initial={{ opacity: 0, y: 12 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, ease: "easeOut" }}
           className="wm-eyebrow text-muted-foreground mb-10">
           WHY WINDOWMAN EXISTS
         </motion.p>
-        <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.05 }}
-          className="wm-title-section leading-[1.3] mb-6" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
+        <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, delay: 0.08, ease: "easeOut" }}
+          className="wm-title-section leading-[1.25] mb-6" style={{ fontSize: "clamp(32px, 5vw, 48px)", color: "hsl(210 50% 8%)" }}>
           THE INDUSTRY BUILT A SYSTEM WHERE YOU NEED THEIR EXPERTISE TO UNDERSTAND THEIR QUOTE.
         </motion.p>
-        <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.1 }}
-          className="font-display text-primary font-black tracking-[0.01em] uppercase leading-[1.3]" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
+        <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, delay: 0.16, ease: "easeOut" }}
+          className="font-display text-primary font-black tracking-[-0.005em] uppercase leading-[1.25]" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
           WE BUILT A SYSTEM WHERE YOU DON'T.
         </motion.p>
 

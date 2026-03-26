@@ -21,7 +21,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
   };
 
   return (
-    <section className="relative bg-background">
+    <section className="relative bg-background" style={{ background: 'linear-gradient(168deg, hsl(214 35% 95%) 0%, hsl(216 38% 93%) 40%, hsl(218 32% 94%) 100%)' }}>
 
       {/* ── MASCOT: Overlapping Trio anchor ── */}
       <div
@@ -56,23 +56,24 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             </div>
 
             <h1
-              className="font-display text-foreground uppercase leading-[1.1] mb-5"
+              className="font-display uppercase leading-[1.08] mb-5"
               style={{
                 fontSize: "clamp(40px, 5vw, 58px)",
                 fontWeight: 900,
-                letterSpacing: "0.01em",
+                letterSpacing: "-0.005em",
+                color: "hsl(210 50% 8%)",
               }}
             >
               YOUR QUOTE LOOKS LEGITIMATE.
               <br />
-              THAT'S EXACTLY WHAT <span className="text-destructive">THEY'RE COUNTING ON.</span>
+              THAT'S EXACTLY WHAT <span className="text-destructive" style={{ textShadow: '0 0 20px hsla(25, 95%, 53%, 0.15)' }}>THEY'RE COUNTING ON.</span>
             </h1>
 
-            <p className="wm-body mb-8" style={{ fontSize: "clamp(16px, 2vw, 18px)" }}>
+            <p className="font-body mb-8" style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}>
               The impact window industry has no pricing transparency standard.
               <br />
               WindowMan built one — and it reads your quote in{" "}
-              <strong className="text-foreground">under 60 seconds</strong>.
+              <strong style={{ color: "hsl(210 50% 8%)" }}>under 60 seconds</strong>.
             </p>
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">

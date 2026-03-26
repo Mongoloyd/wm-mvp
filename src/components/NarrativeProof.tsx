@@ -16,15 +16,15 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
   return (
     <section className="bg-background">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, ease: "easeOut" }} className="text-center">
           <p className="wm-eyebrow text-primary mb-4">REAL RESULTS FROM FLORIDA HOMEOWNERS</p>
-          <h2 className="wm-title-section mb-3" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
+          <h2 className="wm-title-section mb-3" style={{ fontSize: "clamp(32px, 5vw, 48px)", color: "hsl(210 50% 8%)" }}>WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
           <p className="font-body text-base text-muted-foreground mb-12">These Are Outcomes Not Reviews</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {stories.map((story, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: i * 0.05 }}
+            <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, delay: 0.1 + i * 0.08, ease: "easeOut" }}
               className="card-raised p-7">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
