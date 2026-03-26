@@ -40,7 +40,16 @@
     --input: 214 30% 82%;
     --ring: 217 91% 53%;
 
+    /* ── RADIUS SCALE ── */
     --radius: 10px;
+    --radius-card: 12px;
+    --radius-btn: 8px;
+    --radius-input: 7px;
+
+    /* ── FONT TOKENS ── */
+    --wm-font-display: 'Barlow Condensed', sans-serif;
+    --wm-font-body: 'DM Sans', 'Inter', system-ui, sans-serif;
+    --wm-font-mono: 'DM Mono', 'IBM Plex Mono', monospace;
 
     /* Palette tokens */
     --color-obsidian: 214 35% 95%;
@@ -122,11 +131,15 @@
 
 @layer components {
 
-  /* ═══ CARD-RAISED: Physical card with top-left lighting ═══ */
+  /* ═══════════════════════════════════════════════════════════
+     CARD SURFACES — Tiered elevation system
+     L0: flush (bridge strips)  L1: resting  L2: elevated  L3: dominant
+     ═══════════════════════════════════════════════════════════ */
+
   .card-raised {
-    background: linear-gradient(180deg, #FFFFFF 0%, #EDF1F7 100%);
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
     border: 1px solid hsl(214 30% 82%);
-    border-radius: var(--radius);
+    border-radius: var(--radius-card);
     box-shadow: var(--shadow-resting);
     position: relative;
     transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -137,44 +150,52 @@
     transform: translateY(-1px);
   }
 
-  /* Hero-level elevation */
+  /* L2 — Hero-level elevation (SampleGradeCard, ExitIntentModal) */
   .card-raised-hero {
-    background: linear-gradient(180deg, #FFFFFF 0%, #EDF1F7 100%);
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
     border: 1px solid hsl(214 30% 82%);
-    border-radius: var(--radius);
+    border-radius: var(--radius-card);
     box-shadow: var(--shadow-elevated);
     position: relative;
   }
 
-  /* Dominant card — highest elevation on page (TruthGate) */
+  /* L3 — Dominant card (TruthGate only) */
   .card-dominant {
     background: linear-gradient(180deg, #FFFFFF 0%, #EBF0F7 100%);
     border: 1px solid hsl(214 30% 78%);
     border-top: 2px solid hsl(var(--primary));
-    border-radius: var(--radius);
+    border-radius: var(--radius-card);
     box-shadow: var(--shadow-dominant);
     position: relative;
   }
 
   /* Backward compat alias */
   .glass-card-strong {
-    background: linear-gradient(180deg, #FFFFFF 0%, #EDF1F7 100%);
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
     border: 1px solid hsl(214 30% 82%);
-    border-radius: var(--radius);
+    border-radius: var(--radius-card);
     box-shadow: var(--shadow-resting);
     position: relative;
   }
 
-  /* Section recessed panel */
+  /* L0 — Section recessed panel */
   .section-recessed {
     box-shadow: inset 0 2px 6px rgba(10,25,55,0.04), inset 0 1px 2px rgba(10,25,55,0.03);
+  }
+
+  /* ═══ BRIDGE STRIP — Transition between sections ═══ */
+  .wm-bridge-strip {
+    background: linear-gradient(180deg, #f9fbff 0%, #f3f8ff 100%);
+    border-top: 1px solid hsl(214 30% 87%);
+    border-bottom: 1px solid hsl(214 30% 87%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -1px 0 rgba(255,255,255,0.55);
   }
 
   /* ═══ INPUT-WELL: Recessed sunken inputs ═══ */
   .input-well {
     background: linear-gradient(180deg, hsl(214 30% 91%) 0%, hsl(214 35% 95%) 100%);
     border: 1px solid hsl(214 28% 78%);
-    border-radius: var(--radius);
+    border-radius: var(--radius-input);
     box-shadow: var(--shadow-sunken);
   }
 
@@ -188,7 +209,13 @@
     box-shadow: var(--shadow-focus);
   }
 
-  /* ═══ BTN-DEPTH-PRIMARY: Convex 3D button ═══ */
+  /* ═══════════════════════════════════════════════════════════
+     CTA BUTTONS — 3-tier system
+     Hero: py-5 px-10 text-[18px]   (one instance only)
+     Full: py-4 px-8  text-[16px]   (section CTAs)
+     Compact: py-3 px-5 text-[14px] (header, sticky, inline)
+     ═══════════════════════════════════════════════════════════ */
+
   .btn-depth-primary {
     position: relative;
     display: inline-flex;
@@ -197,12 +224,12 @@
     overflow: hidden;
     background: linear-gradient(180deg, #4DA3FF 0%, #2563EB 50%, #1D4ED8 100%);
     color: #ffffff;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 18px;
+    font-family: var(--wm-font-body);
+    font-size: 16px;
     font-weight: 700;
     border: 1px solid #1a4fc0;
     cursor: pointer;
-    border-radius: var(--radius);
+    border-radius: var(--radius-btn);
     box-shadow: var(--shadow-btn);
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     transition: box-shadow 0.15s ease, transform 0.1s ease;
@@ -250,10 +277,11 @@
     justify-content: center;
     background: linear-gradient(180deg, #FFFFFF 0%, #F3F6FA 100%);
     color: hsl(217 91% 53%);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--wm-font-body);
+    font-size: 14px;
     font-weight: 600;
     border: 1px solid hsl(214 30% 82%);
-    border-radius: var(--radius);
+    border-radius: var(--radius-btn);
     box-shadow: var(--shadow-resting);
     cursor: pointer;
     transition: box-shadow 0.15s ease, transform 0.1s ease;
@@ -267,6 +295,34 @@
   .btn-secondary-tactile:active {
     transform: translateY(1px);
     box-shadow: var(--shadow-pressed);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     TYPOGRAPHY UTILITIES
+     ═══════════════════════════════════════════════════════════ */
+
+  .wm-eyebrow {
+    font-family: var(--wm-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .wm-title-section {
+    font-family: var(--wm-font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.12;
+    color: hsl(var(--foreground));
+  }
+
+  .wm-body {
+    font-family: var(--wm-font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
   }
 
   @keyframes glint {
