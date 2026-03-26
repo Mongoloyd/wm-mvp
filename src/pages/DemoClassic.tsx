@@ -63,6 +63,7 @@ const DemoClassic = () => {
   const [knownPhone, setKnownPhone] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
