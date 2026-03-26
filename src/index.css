@@ -64,6 +64,9 @@
     --color-gold-accent: 38 72% 53%;
     --color-emerald: 160 84% 39%;
     --color-danger: 0 79% 43%;
+    --color-caution: 38 92% 50%;
+    --color-cyan: 192 100% 37%;
+    --color-lime: 84 81% 44%;
 
     /* ── LIGHTING & SHADOW SYSTEM ── */
     --shadow-resting:
@@ -383,5 +386,77 @@
 
   .animate-section-rise {
     animation: section-rise 0.4s ease-out both;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     BTN-DEPTH-GOLD: High-stakes gate CTA (LockedOverlay only)
+     ═══════════════════════════════════════════════════════════ */
+  .btn-depth-gold {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(180deg, #F6D365 0%, #D4A017 40%, #B8860B 100%);
+    color: #1a1400;
+    font-family: var(--wm-font-body);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    border: 1px solid #9a7209;
+    border-top: 1px solid rgba(255,235,150,0.45);
+    cursor: pointer;
+    border-radius: var(--radius-btn);
+    box-shadow:
+      0 1px 1px rgba(0,0,0,0.25),
+      0 4px 8px rgba(0,0,0,0.18),
+      0 10px 24px rgba(0,0,0,0.08),
+      0 4px 16px rgba(180,130,10,0.22),
+      inset 0 1px 0 rgba(255,255,255,0.35),
+      inset 0 -2px 4px rgba(0,0,0,0.15);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    transition: box-shadow 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn-depth-gold::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+    animation: glint 2.5s ease-in-out infinite;
+  }
+
+  .btn-depth-gold:hover {
+    box-shadow:
+      0 2px 2px rgba(0,0,0,0.28),
+      0 6px 14px rgba(0,0,0,0.2),
+      0 16px 36px rgba(0,0,0,0.1),
+      0 6px 20px rgba(180,130,10,0.28),
+      inset 0 1px 0 rgba(255,255,255,0.4),
+      inset 0 -2px 4px rgba(0,0,0,0.12);
+    transform: translateY(-3px);
+  }
+
+  .btn-depth-gold:active {
+    transform: translateY(1px);
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,0.25),
+      inset 0 1px 2px rgba(0,0,0,0.2);
+  }
+
+  .btn-depth-gold:disabled {
+    opacity: 0.5;
+    filter: grayscale(0.4);
+    transform: none;
+    cursor: not-allowed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-depth-gold::after {
+      animation: none;
+    }
   }
 }
