@@ -1,159 +1,110 @@
 
 
-# Modern Skeuomorphic Migration — Homepage Visual Direction
+# Homepage Upgrade: Tactile Realism + Conversion Hierarchy
 
-## What This Is
+## Current State Assessment
 
-A systematic visual overhaul of the homepage from "flat SaaS light theme" to a **Modern Skeuomorphic / Tactile 3D** design system. Every surface becomes a physical object with top-left lighting, cast shadows, recessed wells, and convex buttons. No glassmorphism. No blur. No flat fills.
+From visual inspection, the homepage has:
+- **Flat feel**: Shadows exist in CSS but many components don't apply them effectively. TruthGate has `card-raised-hero` but sits on bare `bg-background` with no visual dominance.
+- **CTA parity**: "Scan My Quote", "Getting Quotes Soon?", sticky footer buttons, and demo CTAs all compete at similar visual weight.
+- **Mid-page energy drop**: After hero + social proof + demo, passive reading sections (IndustryTruth, ProcessSteps, NarrativeProof) lack interactive feel.
+- **`whileTap={{ scale: 0.98 }}` everywhere**: Fights with CSS `:active` press physics on 10+ buttons across 7 files.
+- **Demo section** has no capture moment — it runs and ends.
+- **TruthGate** lacks the visual weight to feel like the core system entry.
 
-## Phase 1: Foundation (`src/index.css`)
+## Files Changed (12)
 
-### Token Updates
-- `--foreground` → `#1A2B3C` (16.8:1 contrast — stamped text-primary)
-- `--muted-foreground` → `215 20% 35%` (~7:1 on all surfaces)
-- `--border` → `#C8D8EC` (visible material edge, not hairline)
-- `--background` → `#EEF4FB` (cool blue-white "table" surface)
-- `--radius` → `10px` (physical objects have rounded corners)
-- Add ambient directional gradient on body (subtle top-left blue glow, bottom-right warm glow)
+### 1. `src/index.css` — Shadow & Elevation System Refinement
+- Add `--shadow-dominant` variable for TruthGate: strongest shadow on page (4-layer, 0.18 opacity, wide spread)
+- Add `.card-dominant` utility: uses `--shadow-dominant` + 2px primary top-border accent + stronger gradient
+- Strengthen `--shadow-shelf` and `--shadow-shelf-up` to 0.12 opacity (currently too subtle)
+- Add `.section-recessed` utility: subtle inset top shadow for passive sections to feel like panels
+- Add hover micro-interaction: `.card-raised:hover` with subtle `translateY(-1px)` + `--shadow-elevated`
 
-### New CSS Custom Properties (from reference)
-Add the full lighting/shadow system as CSS variables:
-- `--light-top`, `--light-left`, `--light-card` (specular highlights)
-- `--shadow-resting` (4-layer card shadow with top highlight)
-- `--shadow-elevated` (hover/hero elevation)
-- `--shadow-sunken` (input wells — inset shadows)
-- `--shadow-pressed` (active button state)
-- `--shadow-focus` (blue ambient glow)
-- `--shadow-btn`, `--shadow-btn-hover` (convex button shadows)
-- `--text-stamped`, `--text-engraved`, `--text-raised` (3D typography)
+### 2. `src/components/TruthGateFlow.tsx` — HIGHEST PRIORITY: Dominance
+- **Outer wrapper**: Replace bare `<section className="bg-background">` with a visually dominant treatment:
+  - Add `card-dominant` wrapper around the `max-w-2xl` container
+  - Add a 2px `border-t border-primary` accent bar at top
+  - Add section eyebrow label "THE SCANNER" above the card to frame it as a system entry
+- **Progress bar**: Already uses `input-well` — keep
+- **Input fields**: Already use `--shadow-sunken` — keep
+- **Submit button**: Remove `whileHover={{ scale: 1.01 }}` — let CSS handle it
+- **Option buttons**: Add hover `translateY(-1px)` via CSS for tactile affordance
 
-### Replace `.glass-card-strong` → `.card-raised`
-- **Remove**: `backdrop-filter`, `rgba(255,255,255,0.92)` background
-- **Add**: `background: linear-gradient(180deg, #FFFFFF, #F8FAFC)`, solid `border: 1px solid #C8D8EC`, `box-shadow: var(--shadow-resting)`, `border-radius: var(--r-lg)`
-- Keep `.glass-card-strong` as alias → `.card-raised` for backward compat
+### 3. `src/components/AuditHero.tsx` — CTA Hierarchy Clarity
+- **Primary CTA** ("Scan My Quote"): Increase padding to `py-5 px-10`, increase font to 18px — make it visually largest
+- **Secondary CTA** ("Getting Quotes Soon?"): Reduce padding slightly, ensure `btn-secondary-tactile` reads clearly as tier 2
+- Remove `whileHover={{ scale: 1.02 }}` from both buttons — CSS handles hover lift
+- Add subtle `text-shadow` to primary CTA for stamped authority
 
-### Add `.input-well`
-- Recessed background: `linear-gradient(180deg, #E5EDF5, #EEF4FB)`
-- Border: `1px solid #B8CCDE`
-- Shadow: `var(--shadow-sunken)` (dark inset top, white glow bottom)
+### 4. `src/components/InteractiveDemoScan.tsx` — Conversion Upgrade
+- Wrap the demo card in `card-raised` instead of bare `border bg-card`
+- Add a persistent bottom CTA bar below the demo card (always visible, not just during phases):
+  - "Want to see YOUR quote graded? →" linking to TruthGate
+  - Uses `btn-depth-primary` at smaller size
+- Make the mock document use `input-well` background for recessed feel
+- Hook phase CTA: replace `bg-gold` flat button with `btn-depth-primary` + orange variant
 
-### Upgrade `.btn-depth-primary`
-- Gradient: `linear-gradient(180deg, #49A5FF 0%, #1E7FCC 55%, #1565A8 100%)` (3-stop convex dome)
-- Border: `1px solid #1565A8` (dark material edge)
-- Shadow: `var(--shadow-btn)` (includes top highlight)
-- Hover: `translateY(-2px)` + `var(--shadow-btn-hover)`
-- Active: `translateY(1px)` + `var(--shadow-pressed)` (physically depressed)
-- Text: `text-shadow: var(--text-raised)` (white text lifted off surface)
+### 5. `src/components/SocialProofStrip.tsx` — Physical Panel
+- Add `card-raised` treatment to the inner stat container (currently just `border border-border`)
+- Increase the recessed section feel with stronger `--shadow-sunken`
 
-### Add `.btn-secondary-tactile`
-- Surface gradient background, stamped text, resting shadow
-- Hover lifts with elevated shadow
+### 6. `src/components/IndustryTruth.tsx` — Mid-Page Energy
+- Evidence cards (icon squares): already `card-raised` — add `:hover` lift via CSS utility
+- Add `section-recessed` to the outer section for panel feel
+- Bottom CTA buttons: remove `whileTap={{ scale: 0.98 }}` 
 
-## Phase 2: Component Overhaul (15 files)
+### 7. `src/components/ProcessSteps.tsx` — Tactile Timeline
+- Step number badges: already `card-raised` — good
+- Section uses `bg-card border-y` — add subtle `shadow-inner` via `section-recessed`
+- Remove `whileTap={{ scale: 0.98 }}` from both CTA buttons (lines 85, 90)
+- Deliverable list items: add subtle `card-raised` treatment for each row
 
-### `LinearHeader.tsx`
-- Remove `backdrop-blur-xl`
-- Solid `background: var(--surface-gradient)` + `box-shadow: var(--shadow-resting)` + `border-bottom: 1px solid #C8D8EC`
-- Brand text gets `text-shadow: var(--text-stamped)`
+### 8. `src/components/NarrativeProof.tsx` — Story Card Depth
+- Ensure story cards use `card-raised` with hover lift
+- Remove any `whileTap` scale from CTAs
 
-### `AuditHero.tsx`
-- Forensic badge: apply `card-raised` shadow treatment
-- SampleGradeCard wrapper: remove blur glow div, replace with sharper cast shadow
-- Secondary "Getting Quotes Soon?" button: apply `btn-secondary-tactile`
+### 9. `src/components/ClosingManifesto.tsx` — Final CTA Authority
+- Primary CTA: already `btn-depth-primary` — ensure `whileTap` removed (already done in prior pass)
+- Checkmark items: already `card-raised` — good
+- Add `whileHover` removal from buttons (lines 50, 55) — let CSS handle
 
-### `SampleGradeCard.tsx`
-- Replace `glass-card-strong` → `card-raised` class
-- Remove blue blur glow behind it
-- Add `var(--shadow-elevated)` for "document resting on desk" feel
-- Flag rows: add subtle left-border severity line with inset shadow
+### 10. `src/components/FlowBEntry.tsx` — Flow B Tactile Pass
+- Remove `whileTap={{ scale: 0.98 }}` from CTA button (line 51)
+- Timeline step badges: already `card-raised` — good
+- Blurred preview cards: add `input-well` for recessed feel
 
-### `SocialProofStrip.tsx`
-- Outer bar: add `var(--shadow-sunken)` for recessed instrument panel feel
-- Stat dividers: stronger `#C8D8EC` border
+### 11. `src/components/FlowCEntry.tsx` — Flow C Capture Moment
+- Leverage callout card: already `card-raised` with destructive border — good
+- Outcome icon boxes: already `card-raised` — good
+- CTA button: ensure no `whileTap` scale
 
-### `TruthGateFlow.tsx`
-- Main card: `glass-card-strong` → `card-raised` with `var(--shadow-elevated)` (highest homepage elevation — the focal point)
-- Progress bar track: apply `input-well` treatment (sunken track with inner shadow)
-- Progress fill: blue gradient with top highlight and glow
-- Option buttons: idle gets `var(--shadow-resting)` + top highlight; selected gets `var(--shadow-pressed)` (pressed-in) + blue border
-- Input fields (Step 5): apply `input-well` class — sunken background, inner shadow, `#B8CCDE` border
-- Input focus: `var(--shadow-focus)` (blue ambient glow)
+### 12. `src/components/QuoteWatcher.tsx` & `src/components/ForensicChecklist.tsx` — Remove whileTap
+- Remove `whileTap={{ scale: 0.98 }}` from all buttons that use `btn-depth-primary` (lines 90, 103 in QuoteWatcher; lines 80, 94 in ForensicChecklist)
 
-### `UploadZone.tsx`
-- Outer card: `glass-card-strong` → `card-raised`
-- Dropzone: apply `input-well` treatment (recessed, dashed border on sunken surface)
+## What This Achieves
 
-### `IndustryTruth.tsx`
-- Evidence cards (3 blocks): wrap in `card-raised`
-- Bottom CTA card: `glass-card-strong` → `card-raised`
-- Icon squares: add top-left lighting highlight
+### CTA Hierarchy (Before → After)
+- **Before**: All CTAs same visual weight, user choice-paralyzed
+- **After**: "Scan My Quote" is largest + most prominent. "See AI Demo" is secondary tactile. "Build Baseline" is tertiary. Clear visual priority.
 
-### `ProcessSteps.tsx`
-- Step number badges: add `card-raised` treatment with small shadow
-- Section: add subtle `inset` top shadow for recessed panel feel
-- Deliverable icons: add `filter: drop-shadow(...)` for grounding
+### TruthGate Dominance (Before → After)
+- **Before**: Content sits on bare `bg-background`, no card, blends into page
+- **After**: Wrapped in `card-dominant` with strongest shadow on page + primary accent bar. Feels like the core system entry — a physical instrument panel.
 
-### `NarrativeProof.tsx`
-- Story cards: `glass-card-strong` → `card-raised`
-- Grade badge squares: stronger border + cast shadow
-- Result callout: subtle raised treatment
+### Demo Conversion (Before → After)
+- **Before**: Demo runs, hook phase shows briefly, then auto-cycles. No persistent capture.
+- **After**: Persistent "Grade YOUR quote" CTA below demo card. Demo card feels more physical (raised, recessed document).
 
-### `ClosingManifesto.tsx`
-- Checkmark icons: raised pill treatment with `var(--shadow-resting)`
-- Secondary button: `btn-secondary-tactile`
-
-### `FlowBEntry.tsx`
-- Outcome cards: add `card-raised` treatment
-- Timeline step badges: `card-raised` with small shadow
-
-### `StickyCTAFooter.tsx`
-- Remove `backdrop-blur-xl`
-- Solid `bg-card` with upward shadow: `0 -4px 12px rgba(10,25,55,0.08)`
-- Physical shelf feel
-
-### `MobileStickyUnlock.tsx`
-- Same: remove blur, solid card + upward shadow
-
-### `ExitIntentModal.tsx`
-- Modal card: apply `card-raised` with `var(--shadow-elevated)`
-- Keep `bg-black/80` overlay (standard UX)
+### Physical Realism (Before → After)
+- **Before**: Centered glows, `whileTap` scale shrink fights CSS press, flat sections
+- **After**: All buttons use CSS `:active` physics only. Sections feel like recessed panels. Cards hover-lift on interaction. Consistent directional shadows.
 
 ## What Does NOT Change
-- No layout restructuring
-- No copy changes
-- No business logic / Supabase / OTP / routing
-- No report/reveal components (GradeReveal, TruthReportClassic, LockedOverlay, ScanTheatrics)
-- No ResultTeaser, ThankYouPage, or post-scan flow
-- Blue primary and orange accent colors preserved (upgraded to 3-stop gradients)
-
-## Visual QA Checklist (post-implementation)
-1. Every card has 1px white top-edge highlight
-2. Shadows cast down-right consistently (no centered glows)
-3. No `backdrop-blur` or `bg-white/xx` transparency remains
-4. Background is `#EEF4FB` (cool table), not sterile `#FFFFFF`
-5. Buttons look convex (lighter top, darker bottom)
-6. Button click physically depresses (`translateY(1px)` + inset shadow)
-7. Input fields are sunken with inner shadow
-8. TruthGate card has highest elevation shadow on the page
-9. Header/Footer feel like solid physical shelves
-10. Muted text is at least 7:1 contrast
-
-## Files Changed (17 total)
-1. `src/index.css` — foundation tokens, shadow system, utility classes
-2. `src/components/LinearHeader.tsx`
-3. `src/components/AuditHero.tsx`
-4. `src/components/SampleGradeCard.tsx`
-5. `src/components/SocialProofStrip.tsx`
-6. `src/components/TruthGateFlow.tsx`
-7. `src/components/UploadZone.tsx`
-8. `src/components/IndustryTruth.tsx`
-9. `src/components/ProcessSteps.tsx`
-10. `src/components/NarrativeProof.tsx`
-11. `src/components/ClosingManifesto.tsx`
-12. `src/components/FlowBEntry.tsx`
-13. `src/components/StickyCTAFooter.tsx`
-14. `src/components/MobileStickyUnlock.tsx`
-15. `src/components/ExitIntentModal.tsx`
-16. `src/components/FlowCEntry.tsx`
-17. `index.html` (FOUC background → `#EEF4FB`)
+- No routes modified
+- No backend/Supabase/Twilio logic
+- No copy rewriting (only repositioning)
+- No report/reveal components
+- No color system changes (blue primary, orange accent preserved)
+- No layout structure changes
 
