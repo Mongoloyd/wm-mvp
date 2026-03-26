@@ -54,7 +54,7 @@ const SampleGradeCard = () => {
   return (
     <motion.div ref={cardRef} animate={{ y: [-6, 0, -6] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       className="relative overflow-hidden card-raised-hero"
-      style={{ padding: 28, maxWidth: 420, width: "100%" }}>
+      style={{ padding: 28, maxWidth: 420, width: "100%", boxShadow: 'var(--shadow-elevated), 0 24px 48px rgba(10,25,55,0.12), 0 0 0 1px rgba(37,99,235,0.06)' }}>
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" style={{ transform: "rotate(-12deg)" }}>
         <span className="font-mono text-[28px] font-bold tracking-[0.5em] text-foreground/[0.04] whitespace-nowrap">CONFIDENTIAL — SAMPLE</span>
       </div>

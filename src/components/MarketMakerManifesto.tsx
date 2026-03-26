@@ -28,7 +28,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
         <motion.p {...fade(0)} className="text-center wm-eyebrow text-primary mb-5">
           HOW WINDOWMAN ACTUALLY WORKS
         </motion.p>
-        <motion.h2 {...fade(0.02)} className="text-center mx-auto wm-title-section mb-4" style={{ fontSize: "clamp(36px, 5vw, 48px)", maxWidth: 680, lineHeight: 1.15 }}>
+        <motion.h2 {...fade(0.02)} className="text-center mx-auto wm-title-section mb-4" style={{ fontSize: "clamp(36px, 5vw, 48px)", maxWidth: 680, lineHeight: 1.12, color: "hsl(210 50% 8%)" }}>
           WE KEEP BOTH SIDES HONEST
         </motion.h2>
         <motion.p {...fade(0.04)} className="text-center mx-auto wm-body mb-14" style={{ fontSize: 18, maxWidth: 560, lineHeight: 1.7 }}>
