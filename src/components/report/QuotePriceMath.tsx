@@ -51,6 +51,24 @@ export interface DerivedMetrics {
     dp_coverage_pct: number | null;
     noa_coverage_pct: number | null;
   };
+  county_benchmark?: {
+    county_key: string;
+    county_label: string;
+    benchmark_available: boolean;
+    comparison_available: boolean;
+    benchmark_price_per_opening_low: number;
+    benchmark_price_per_opening_avg: number;
+    benchmark_price_per_opening_high: number;
+    source_type: "city_proxy" | "regional_blend";
+    source_label: string;
+    updated_at: string;
+    compared_metric?: "installed_price_per_opening" | "contract_price_per_opening" | null;
+    compared_value?: number | null;
+    status: "below_county_range" | "within_county_range" | "above_county_range" | "insufficient_data";
+    delta_amount: number | null;
+    delta_pct: number | null;
+    comparability: "direct_window_proxy" | "approximate_mixed_openings";
+  } | null;
   diagnostics: {
     quote_math_confidence: number;
     warnings: string[];
@@ -314,12 +332,112 @@ export default function QuotePriceMath({ metrics, county }: QuotePriceMathProps)
                   )}
                 </div>
 
-                {/* County benchmark placeholder */}
-                <div className="mt-4 px-3 py-2 rounded-md" style={{ background: "hsl(var(--color-cyan) / 0.08)", border: "1px solid hsl(var(--color-cyan) / 0.2)" }}>
-                  <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "hsl(var(--color-cyan))" }}>
-                    {county.toUpperCase()} COUNTY BENCHMARK — COMING SOON
-                  </span>
-                </div>
+                {/* County Benchmark Card */}
+                {metrics.county_benchmark && (
+                  <div className="mt-4 rounded-lg border border-border/60 p-3 space-y-3" style={{ background: "hsl(var(--secondary) / 0.6)" }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <span className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">County Benchmark</span>
+                        <p className="font-body text-xs text-foreground mt-0.5">
+                          {metrics.county_benchmark.county_label} installed avg per opening
+                        </p>
+                      </div>
+                      <span className="font-mono text-[10px] tracking-wider uppercase px-2 py-1 rounded-md whitespace-nowrap" style={{
+                        background: metrics.county_benchmark.status === "within_county_range"
+                          ? "hsl(var(--color-emerald) / 0.1)"
+                          : metrics.county_benchmark.status === "above_county_range"
+                          ? "hsl(var(--color-danger) / 0.1)"
+                          : metrics.county_benchmark.status === "below_county_range"
+                          ? "hsl(var(--color-caution) / 0.1)"
+                          : "hsl(var(--secondary))",
+                        color: metrics.county_benchmark.status === "within_county_range"
+                          ? "hsl(var(--color-emerald))"
+                          : metrics.county_benchmark.status === "above_county_range"
+                          ? "hsl(var(--color-danger))"
+                          : metrics.county_benchmark.status === "below_county_range"
+                          ? "hsl(var(--color-caution))"
+                          : "hsl(var(--muted-foreground))",
+                      }}>
+                        {metrics.county_benchmark.status === "within_county_range" ? "Within range"
+                          : metrics.county_benchmark.status === "above_county_range" ? "Above range"
+                          : metrics.county_benchmark.status === "below_county_range" ? "Below range"
+                          : "Unavailable"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-md p-2 bg-secondary/80">
+                        <span className="font-body text-[10px] text-muted-foreground">County Avg</span>
+                        <p className="font-mono text-sm font-semibold text-foreground mt-0.5">
+                          {formatCurrency(metrics.county_benchmark.benchmark_price_per_opening_avg)}
+                        </p>
+                      </div>
+                      <div className="rounded-md p-2 bg-secondary/80">
+                        <span className="font-body text-[10px] text-muted-foreground">County Range</span>
+                        <p className="font-mono text-sm font-semibold text-foreground mt-0.5">
+                          {formatCurrency(metrics.county_benchmark.benchmark_price_per_opening_low)}–{formatCurrency(metrics.county_benchmark.benchmark_price_per_opening_high)}
+                        </p>
+                      </div>
+                      {metrics.county_benchmark.comparison_available && (
+                        <>
+                          <div className="rounded-md p-2 bg-secondary/80">
+                            <span className="font-body text-[10px] text-muted-foreground">Your Quote</span>
+                            <p className="font-mono text-sm font-semibold text-foreground mt-0.5">
+                              {metrics.county_benchmark.compared_value != null
+                                ? formatCurrency(metrics.county_benchmark.compared_value)
+                                : "—"}
+                            </p>
+                          </div>
+                          <div className="rounded-md p-2 bg-secondary/80">
+                            <span className="font-body text-[10px] text-muted-foreground">Delta vs Avg</span>
+                            <p className="font-mono text-sm font-semibold mt-0.5" style={{
+                              color: metrics.county_benchmark.delta_amount === null
+                                ? "hsl(var(--muted-foreground))"
+                                : metrics.county_benchmark.delta_amount > 0
+                                ? "hsl(var(--color-danger))"
+                                : "hsl(var(--color-emerald))",
+                            }}>
+                              {metrics.county_benchmark.delta_amount === null
+                                ? "—"
+                                : `${metrics.county_benchmark.delta_amount > 0 ? "+" : ""}${formatCurrency(metrics.county_benchmark.delta_amount)}`}
+                            </p>
+                            {metrics.county_benchmark.delta_pct !== null && (
+                              <span className="font-mono text-[10px] text-muted-foreground">
+                                {metrics.county_benchmark.delta_pct > 0 ? "+" : ""}{metrics.county_benchmark.delta_pct}%
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Interpretive text */}
+                    <p className="font-body text-[11px] text-muted-foreground leading-relaxed">
+                      {metrics.county_benchmark.status === "above_county_range"
+                        ? `This quote is pricing above the typical ${metrics.county_benchmark.county_label} installed range per opening.`
+                        : metrics.county_benchmark.status === "within_county_range"
+                        ? `This quote falls inside the typical ${metrics.county_benchmark.county_label} installed range per opening.`
+                        : metrics.county_benchmark.status === "below_county_range"
+                        ? `This quote is below the typical ${metrics.county_benchmark.county_label} installed range per opening. Low pricing can be good, but it can also signal missing scope, downgraded products, or weak labor coverage.`
+                        : `Comparison unavailable — insufficient pricing data to compare against ${metrics.county_benchmark.county_label} benchmarks.`}
+                    </p>
+
+                    {/* Source + comparability */}
+                    <p className="font-mono text-[9px] text-muted-foreground/60">
+                      Source: {metrics.county_benchmark.source_label}.
+                      {metrics.county_benchmark.comparability === "approximate_mixed_openings" &&
+                        " Approximate: your estimate includes door/mixed-opening pricing, so this benchmark is directional."}
+                    </p>
+                  </div>
+                )}
+
+                {!metrics.county_benchmark && (
+                  <div className="mt-4 px-3 py-2 rounded-md" style={{ background: "hsl(var(--color-cyan) / 0.08)", border: "1px solid hsl(var(--color-cyan) / 0.2)" }}>
+                    <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "hsl(var(--color-cyan))" }}>
+                      COUNTY BENCHMARK — UNAVAILABLE
+                    </span>
+                  </div>
+                )}
               </>
             ) : (
               <NotDisclosed label="PER-OPENING DATA UNAVAILABLE" />

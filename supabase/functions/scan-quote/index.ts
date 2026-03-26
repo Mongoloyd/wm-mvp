@@ -6,6 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { getCountyBenchmark } from "../_shared/countyBenchmarks.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 1: SCHEMA (Zod-like runtime validation — manual for Deno compat)
@@ -415,7 +416,71 @@ function metricsItemExtPrice(item: LineItem): number | null {
   return null;
 }
 
-function computeDerivedMetrics(data: ExtractionResult): Record<string, unknown> {
+function compareToCountyBenchmark(
+  countyInput: string | null | undefined,
+  installedPricePerOpening: number | null,
+  contractPricePerOpening: number | null,
+  doorOpenings: number,
+) {
+  const benchmark = getCountyBenchmark(countyInput);
+  const comparablePrice = installedPricePerOpening ?? contractPricePerOpening;
+
+  if (comparablePrice === null) {
+    return {
+      county_key: benchmark.county_key,
+      county_label: benchmark.county_label,
+      benchmark_available: true,
+      comparison_available: false,
+      benchmark_price_per_opening_low: benchmark.installed_price_per_opening_low,
+      benchmark_price_per_opening_avg: benchmark.installed_price_per_opening_avg,
+      benchmark_price_per_opening_high: benchmark.installed_price_per_opening_high,
+      source_type: benchmark.source_type,
+      source_label: benchmark.source_label,
+      updated_at: benchmark.updated_at,
+      status: "insufficient_data" as const,
+      compared_metric: null,
+      compared_value: null,
+      delta_amount: null,
+      delta_pct: null,
+      comparability: doorOpenings > 0 ? "approximate_mixed_openings" as const : "direct_window_proxy" as const,
+    };
+  }
+
+  const deltaAmount = metricsRound2(comparablePrice - benchmark.installed_price_per_opening_avg);
+  const deltaPct = benchmark.installed_price_per_opening_avg > 0
+    ? metricsRound2(((deltaAmount ?? 0) / benchmark.installed_price_per_opening_avg) * 100)
+    : null;
+
+  const status =
+    comparablePrice < benchmark.installed_price_per_opening_low
+      ? "below_county_range" as const
+      : comparablePrice > benchmark.installed_price_per_opening_high
+      ? "above_county_range" as const
+      : "within_county_range" as const;
+
+  return {
+    county_key: benchmark.county_key,
+    county_label: benchmark.county_label,
+    benchmark_available: true,
+    comparison_available: true,
+    benchmark_price_per_opening_low: benchmark.installed_price_per_opening_low,
+    benchmark_price_per_opening_avg: benchmark.installed_price_per_opening_avg,
+    benchmark_price_per_opening_high: benchmark.installed_price_per_opening_high,
+    source_type: benchmark.source_type,
+    source_label: benchmark.source_label,
+    updated_at: benchmark.updated_at,
+    compared_metric: installedPricePerOpening !== null
+      ? "installed_price_per_opening"
+      : "contract_price_per_opening",
+    compared_value: comparablePrice,
+    status,
+    delta_amount: deltaAmount,
+    delta_pct: deltaPct,
+    comparability: doorOpenings > 0 ? "approximate_mixed_openings" as const : "direct_window_proxy" as const,
+  };
+}
+
+function computeDerivedMetrics(data: ExtractionResult, countyName?: string | null): Record<string, unknown> {
   const items = Array.isArray(data.line_items) ? data.line_items : [];
   const warnings: string[] = [];
 
@@ -456,6 +521,7 @@ function computeDerivedMetrics(data: ExtractionResult): Record<string, unknown> 
   const discountSubtotal = metricsRound2(Math.abs(bucketTotals.discount));
   const taxSubtotal = metricsRound2(bucketTotals.tax);
   const coreDiv = inferredCoreOpenings || totalOpenings;
+  const installedPPO = metricsSafeDiv(metricsRound2((coreProductSubtotal ?? 0) + (installLikeSubtotal ?? 0) - (discountSubtotal ?? 0)), coreDiv);
 
   if (items.length > 0 && pricedLines / items.length < 0.7) warnings.push("Low pricing coverage: many line items are missing unit_price and total_price.");
   if (contractTotal !== null && accessorySubtotal !== null && contractTotal > 0 && accessorySubtotal / contractTotal > 0.25) warnings.push("A large share of the estimate appears to be non-core/accessory cost.");
@@ -474,11 +540,12 @@ function computeDerivedMetrics(data: ExtractionResult): Record<string, unknown> 
   return {
     totals: { contract_total: metricsRound2(contractTotal), core_product_subtotal: coreProductSubtotal, install_like_subtotal: installLikeSubtotal, accessory_subtotal: accessorySubtotal, discount_subtotal: discountSubtotal, tax_subtotal: taxSubtotal },
     counts: { total_openings: totalOpenings, opening_count_source: openingCountSource, inferred_core_openings: inferredCoreOpenings || null, window_openings: bucketQty.window || null, door_openings: bucketQty.door || null, total_line_items: items.length, priced_line_items: pricedLines },
-    per_opening: { contract_price_per_opening: metricsSafeDiv(contractTotal, totalOpenings), core_product_price_per_opening: metricsSafeDiv(coreProductSubtotal, coreDiv), installed_price_per_opening: metricsSafeDiv(metricsRound2((coreProductSubtotal ?? 0) + (installLikeSubtotal ?? 0) - (discountSubtotal ?? 0)), coreDiv), non_core_cost_per_opening: metricsSafeDiv(metricsRound2((contractTotal ?? 0) - (coreProductSubtotal ?? 0)), totalOpenings) },
+    per_opening: { contract_price_per_opening: metricsSafeDiv(contractTotal, totalOpenings), core_product_price_per_opening: metricsSafeDiv(coreProductSubtotal, coreDiv), installed_price_per_opening: installedPPO, non_core_cost_per_opening: metricsSafeDiv(metricsRound2((contractTotal ?? 0) - (coreProductSubtotal ?? 0)), totalOpenings) },
     unit_pricing: { window_avg_unit_price: metricsSafeDiv(bucketTotals.window, bucketQty.window || null), door_avg_unit_price: metricsSafeDiv(bucketTotals.door, bucketQty.door || null), median_core_line_price: metricsMedian(coreLinePrices), highest_priced_opening: highestPricedOpening, lowest_priced_opening: lowestPricedOpening, price_spread_ratio: (highestPricedOpening !== null && lowestPricedOpening !== null && lowestPricedOpening > 0) ? metricsRound2(highestPricedOpening / lowestPricedOpening) : null },
     shares: { install_cost_share_pct: contractTotal ? metricsPct(installLikeSubtotal ?? 0, contractTotal) : null, accessory_cost_share_pct: contractTotal ? metricsPct(accessorySubtotal ?? 0, contractTotal) : null, permit_cost_share_pct: contractTotal ? metricsPct(bucketTotals.permit, contractTotal) : null, discount_share_pct: contractTotal ? metricsPct(discountSubtotal ?? 0, contractTotal) : null, tax_share_pct: contractTotal ? metricsPct(taxSubtotal ?? 0, contractTotal) : null },
     coverage: { priced_line_coverage_pct: items.length ? metricsPct(pricedLines, items.length) : null, brand_coverage_pct: coreLines ? metricsPct(brandKnownCore, coreLines) : null, dp_coverage_pct: coreLines ? metricsPct(dpKnownCore, coreLines) : null, noa_coverage_pct: coreLines ? metricsPct(noaKnownCore, coreLines) : null },
     trust_signals: { scope_present: Boolean(data.installation?.scope_detail), permit_stated: data.permits?.included !== undefined && data.permits?.included !== null, warranty_present: Boolean(data.warranty) },
+    county_benchmark: compareToCountyBenchmark(countyName ?? null, installedPPO, metricsSafeDiv(contractTotal, totalOpenings), bucketQty.door),
     diagnostics: { quote_math_confidence: quoteMathConfidence, warnings },
   };
 }
@@ -1065,10 +1132,25 @@ Deno.serve(async (req: Request) => {
       const gradeResult = computeGrade(extraction);
       const flags = detectFlags(extraction);
 
-      // 11b. Derive financial metrics (inline — deterministic math, no HTTP call)
+      // 11b. Non-blocking county lookup for benchmark comparison
+      let countyName: string | null = null;
+      if (session?.lead_id) {
+        try {
+          const { data: leadRow } = await supabase
+            .from("leads")
+            .select("county")
+            .eq("id", session.lead_id)
+            .maybeSingle();
+          countyName = leadRow?.county ?? null;
+        } catch (countyErr) {
+          console.warn("County lookup failed (non-fatal, using fallback):", countyErr);
+        }
+      }
+
+      // 11c. Derive financial metrics (inline — deterministic math, no HTTP call)
       let derivedMetrics: Record<string, unknown> | null = null;
       try {
-        derivedMetrics = computeDerivedMetrics(extraction);
+        derivedMetrics = computeDerivedMetrics(extraction, countyName);
       } catch (metricsErr) {
         console.error("derived metrics computation failed (non-fatal):", metricsErr);
         // Non-fatal: report still ships without financial cards
