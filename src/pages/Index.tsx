@@ -104,19 +104,32 @@ const Index = () => {
 
   const pendingScrollRef = useRef(false);
 
+  const scrollToTruthGate = useCallback(() => {
+    requestAnimationFrame(() => {
+      const el = document.getElementById("truth-gate");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
+
   const triggerTruthGate = (source: string) => {
     trackEvent({ event_name: "cta_scan_funnel", session_id: sessionId, metadata: { source } });
     if (gradeRevealed) { setGradeRevealed(false); setFileUploaded(false); }
-    if (flowMode !== 'A') setFlowMode('A');
-    pendingScrollRef.current = true;
+    if (flowMode !== 'A') {
+      setFlowMode('A');
+      pendingScrollRef.current = true;
+    } else {
+      // Already in flow A with no report — scroll immediately
+      scrollToTruthGate();
+    }
     setTruthGateHighlight(true);
   };
 
   useEffect(() => {
     if (pendingScrollRef.current && flowMode === 'A' && !gradeRevealed) {
-      requestAnimationFrame(() => { requestAnimationFrame(() => { const el = document.getElementById("truth-gate"); if (el) { el.scrollIntoView({ behavior: "smooth" }); pendingScrollRef.current = false; } }); });
+      pendingScrollRef.current = false;
+      scrollToTruthGate();
     }
-  }, [flowMode, gradeRevealed]);
+  }, [flowMode, gradeRevealed, scrollToTruthGate]);
 
   // Auto-scroll removed — CTA auto-scroll is now handled natively in TruthReportClassic
 
