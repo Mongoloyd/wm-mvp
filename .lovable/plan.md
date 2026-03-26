@@ -1,240 +1,317 @@
-# Reveal Page Migration — TruthReportClassic + LockedOverlay + ReportClassic Loading
 
-We are now migrating the Reveal / Audit Results experience into the locked design system.
 
-This is NOT a redesign.
-This is NOT a new visual direction.
-This is a controlled system migration + hierarchy enforcement pass.
+# Final Implementation Plan: Light Forensic Report Migration
 
-Do not change:
-- layout structure
-- prop interfaces
-- business logic
-- copy
-- callback/state behavior
-- Framer Motion sequencing
-- routes
-- backend / Supabase / Twilio / OTP logic
+## Assessment: User Spec vs Previous Plan
 
-Files in scope:
-1. `src/components/TruthReportClassic.tsx`
-2. `src/components/LockedOverlay.tsx`
-3. `src/pages/ReportClassic.tsx` (loading state only)
+The user's deterministic spec is **strictly stronger** in 4 areas:
 
-==================================================
-GLOBAL RULES
-==================================================
+1. **Surface hierarchy** — spec mandates `card-raised`, `card-dominant`, `section-recessed` classes (not just `bg-background`/`bg-card`). My plan under-specified this.
+2. **Typography utilities** — spec requires `.wm-eyebrow`, `.wm-title-section`, `.wm-body` classes. My plan stopped at `font-display`/`font-body`/`font-mono`.
+3. **Explicit removal list** — spec catalogs every pattern to eliminate. My plan was implicit.
+4. **Post-implementation audit** — spec requires a structured verification output.
 
-1. Use the LOCKED design system only.
-2. Do not invent new visual styles.
-3. Do not flatten the reveal page into generic homepage styling.
-4. Preserve dominance of:
-   - grade / verdict strip
-   - locked overlay card
-   - primary unlock CTA
-   - highest-urgency findings
-   - negotiation script / leverage sections where the stakes are highest
+My plan added one thing the spec didn't cover: the `gradeConfig`/`statusConfig`/`severityStyles` HSL opacity syntax fix (the `${color}1A` bug). The spec mentions it but less precisely.
 
-==================================================
-COLOR ROLE RULES (CRITICAL)
-==================================================
+**Final plan = user's spec + the HSL opacity fix + one new CSS class (`btn-depth-gold--pending`).**
 
-Do NOT collapse all accents into primary blue.
+---
 
-Reveal page semantic color roles must remain:
+## Pre-Implementation: Add `btn-depth-gold--pending` to `index.css`
 
-- blue = system structure / CTA trust / neutral controls
-- red = critical / danger / severe risk
-- amber/gold = caution / negotiation leverage / money at risk / important warning
-- green = safe / pass / verified
-- cyan = AI/system activity only where semantically correct
+```css
+.btn-depth-gold--pending {
+  /* same structural props as btn-depth-gold but muted */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg,
+    hsl(var(--color-gold-accent) / 0.15) 0%,
+    hsl(var(--color-gold-accent) / 0.08) 100%);
+  color: hsl(var(--color-gold-accent) / 0.5);
+  border: 1px solid hsl(var(--color-gold-accent) / 0.2);
+  border-radius: var(--radius-btn);
+  box-shadow: none;
+  cursor: default;
+  transform: none;
+  font-family: var(--wm-font-body);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.btn-depth-gold--pending::after { content: none; }
+```
 
-Allowed:
-- structural UI accents can use primary blue
-- severity, risk, money, and caution accents must retain non-blue semantics
+---
 
-Do NOT map:
-- gold → primary blue
-- amber → primary blue
-- danger → primary blue
-unless the element is truly structural rather than semantic
+## File 1: `TruthReportClassic.tsx` (746 lines)
 
-==================================================
-PHASE 1 — TOKEN / STYLE NORMALIZATION
-==================================================
+### A. Config objects (lines 43–70) — HSL opacity fix
 
-Replace noir inline styling with locked system classes/tokens.
+Convert all hex colors to `hsl(var(--color-*))` tokens. Fix the opacity pattern:
 
-### Background surfaces
-- Replace `#0A0A0A` root/section/card backgrounds with:
-  - `bg-background`
-  - `bg-secondary`
-  - `section-recessed`
-  - `card-raised`
-  - `card-dominant`
-depending on role
+**gradeConfig:**
+- `color: "#059669"` → `"hsl(var(--color-emerald))"`
+- `bg: "rgba(5,150,105,0.12)"` → `"hsl(var(--color-emerald) / 0.12)"`
+- B: color → `hsl(var(--color-lime))`, bg → `hsl(var(--color-lime) / 0.12)`
+- C: color → `hsl(var(--color-caution))`, bg → `hsl(var(--color-caution) / 0.12)`
+- D: color → `hsl(var(--color-danger))`, bg → `hsl(var(--color-danger) / 0.12)`
+- F: color → `hsl(var(--color-danger))` (full), bg → `hsl(var(--color-danger) / 0.12)`
 
-Do NOT use `bg-background` everywhere.
-Preserve surface hierarchy.
+**statusConfig:** Same pattern for pass/warn/fail/pending.
 
-### Text
-Replace raw hex text colors with semantic text classes/tokens:
-- `text-foreground`
-- `text-muted-foreground`
-- `font-display`
-- `font-body`
-- `font-mono`
+**severityStyles:** Same pattern. All `border`, `borderLeft`, `badgeBg`, `badgeColor` → tokenized HSL.
 
-Remove `Jost` entirely.
+**Critical fix:** Line 178 `boxShadow: \`0 0 0 6px ${config.color}1A\`` → `boxShadow: \`0 0 0 6px hsl(var(--color-*) / 0.1)\`` — but since config.color is now an hsl() string, we need a separate `glow` field in gradeConfig that stores `hsl(var(--color-emerald) / 0.1)` etc.
 
-### Borders
-Replace raw borders with semantic borders:
-- `border-border`
-- severity borders using semantic danger / caution / success tokens
-- keep dynamic severity mapping where required
+### B. Outer container (line 149)
 
-### Shadows
-Replace inline `boxShadow` with system surfaces/shadow classes wherever possible.
-Keep inline shadow/color only when truly data-driven.
+`style={{ background: "#0A0A0A" }}` → `className="bg-background min-h-screen"`
 
-### Radius
-Replace `borderRadius: 0` and one-off radii with locked system radii:
-- card radius
-- button radius
-- input radius
-- `rounded-full` for circles only
+### C. All section wrappers — surface system
 
-==================================================
-PHASE 2 — STRUCTURAL MAPPING
-==================================================
+| Line | Current | New className |
+|---|---|---|
+| 151 | `background: "#0A0A0A", borderBottom: rgba` | `bg-background border-b border-border` |
+| 187 | Grade verdict (dynamic bg) | Keep `style={{ background: config.bg }}` + `border-b-2` with dynamic border |
+| 236 | Proof-of-read `#111111` | `card-raised` (it's a trust strip — elevated) |
+| 271 | 5-pillar section `#0A0A0A` | `bg-background border-b border-border` |
+| 346 | Forensic findings `#0A0A0A` | `bg-background border-b border-border` |
+| 466 | Negotiation script `#0A0A0A` | `bg-background border-b border-border` |
+| 510 | CTA section `#0A0A0A` | `bg-background` |
+| 716 | Footer `#0A0A0A` | `bg-background border-t border-border` |
 
-Map reveal sections to the locked system intentionally:
+### D. Typography — all inline `fontFamily` → classes
 
-1. Root page shell → `bg-background`
-2. Report header / shell framing → structural, restrained, system-trust styling
-3. Grade / verdict strip → highest visual weight, dominant surface, strongest hierarchy on page
-4. Proof-of-read / summary strip → quieter recessed band
-5. 5-Pillar section → page field + raised pillar cards
-6. Forensic findings / evidence → quieter than verdict strip, scannable cards with severity accents preserved
-7. Negotiation / script / leverage areas → elevated enough to feel important, caution / leverage semantics preserved
-8. CTA area → primary unlock CTA uses locked primary CTA system, secondary uses locked secondary
-9. Locked overlay → dominant gate card, valuable, serious, premium — not just re-skinned
-10. Loading state → migrate out of noir into locked system
+~60 occurrences across the file:
+- `fontFamily: "'Jost', sans-serif"` → remove style, add `font-display` to className
+- `fontFamily: "'DM Sans', sans-serif"` → `font-body`
+- `fontFamily: "'DM Mono', monospace"` → `font-mono`
 
-==================================================
-PHASE 3 — HIERARCHY ENFORCEMENT
-==================================================
+Where an element also uses `.wm-eyebrow` pattern (11px, mono, uppercase, tracking): replace the full inline style block with `className="wm-eyebrow"` + only the color override.
 
-Ensure:
-- grade/verdict is immediately legible at a glance
-- locked overlay card is clearly dominant when shown
-- pillar cards are secondary to verdict
-- evidence/finding blocks are quieter than verdict but still easy to scan
-- CTA prominence is strong in unlock moments
+Where heading pattern matches: use `wm-title-section`.
 
-Fix with elevation, surface contrast, typography weight, spacing — NOT layout changes.
+### E. Text colors → Tailwind classes
 
-==================================================
-PHASE 4 — SEVERITY COLOR BRIDGE
-==================================================
+- `color: "#FFFFFF"` / `"white"` → `text-foreground`
+- `color: "#E5E7EB"` / `"#D1D5DB"` → `text-foreground/90`
+- `color: "#9CA3AF"` / `"#94A3B8"` → `text-muted-foreground`
+- `color: "#64748B"` → `text-muted-foreground/70`
+- Severity/semantic colors → `style={{ color: "hsl(var(--color-*))" }}`
 
-The following may remain as JS config objects because they are data-driven:
-- `gradeConfig`
-- `statusConfig`
-- `severityStyles`
+### F. Pillar cards (lines 292–338)
 
-Refactor so they reference locked semantic tokens / HSL values rather than noir hex values.
+- `background: "#0A0A0A"` → `className="card-raised"`
+- `borderRadius: 0` → remove (card-raised provides `--radius-card`)
+- `boxShadow: "none"` → remove (card-raised provides `--shadow-resting`)
+- Status badge `borderRadius: 0` → remove
+- Pillar label chip `background: sc.bg, borderRadius: 0` → remove borderRadius
 
-Important:
-- preserve red / amber / green / gold semantic meaning
-- do not collapse these into blue
-- cyan only where semantically correct for AI/system activity
+### G. Flag cards (lines 374–431)
 
-This is the primary acceptable exception to "no inline styles."
+- `background: "#0A0A0A"` → `className="card-raised"` + severity border stays via style
+- `borderRadius: 0` → remove
+- Inner chip backgrounds → tokenized
+- `#111111` pillar label bg → `bg-secondary`
+- Tip box `background: s.tipBg || "#F9FAFB"` → keep tipBg tokenized, fallback → `hsl(var(--card))`
+- Inner border `rgba(255,255,255,0.1)` → `border-border`
 
-==================================================
-PHASE 5 — LOCKED OVERLAY MIGRATION
-==================================================
+### H. County benchmark badge (line 359)
 
-Apply the same system rules to `LockedOverlay.tsx`.
+`background: "rgba(0,153,187,0.12)"` → `hsl(var(--color-cyan) / 0.12)`
+`border: "1px solid #0099BB"` → `1px solid hsl(var(--color-cyan))`
+`color: "#0099BB"` → `hsl(var(--color-cyan))`
 
-Requirements:
-- remove noir backgrounds
-- remove Jost
-- preserve dominant gate card hierarchy
-- preserve input quality / OTP slot clarity
-- keep gate feeling valuable and high-stakes
-- use locked CTA/button system
-- preserve caution / urgency accents where semantically correct
+### I. Negotiation script block (lines 478–502)
 
-Do NOT flatten LockedOverlay into generic page styling.
+- `background: "#111111"` → `className="card-raised"`
+- `borderLeft: "4px solid #0099BB"` → `border-l-4` + `style={{ borderLeftColor: "hsl(var(--color-cyan))" }}`
+- Copy button `background: "#111111"` → remove (inherits card)
+- Copy button border → `border border-border`
 
-==================================================
-PHASE 6 — READABILITY + DENSITY CHECK
-==================================================
+### J. CTA section buttons (lines 530–570)
 
-After migration, verify:
-- grade/verdict area is immediately legible at a glance
-- findings can be scanned quickly
-- muted/support text is not too faint on light surfaces
-- dense sections remain readable without visual fatigue
-- negotiation / leverage sections still feel important
+- **Gold CTA** (line 530–543): `className="btn-depth-gold w-full py-4 px-8 text-[17px]"` — removes ~10 lines of inline style
+- Loading state: add conditional `className` for `btn-depth-gold` vs inline `bg-primary` when loading
+- **Secondary CTA** (line 546–559): `className="btn-secondary-tactile w-full py-3.5 px-7 text-[15px]"` — replaces invisible ghost button
+- **"Scan Another"** link button: `text-muted-foreground hover:text-foreground` — minimal text link, no surface
 
-==================================================
-PHASE 7 — FINAL AUDIT
-==================================================
+### K. Match card + process strip (lines 582–711)
 
-After implementation, audit and report any remaining:
-- raw hex values
-- inline `boxShadow`
-- `Jost` font references
-- `borderRadius: 0`
-- noir backgrounds
+- `background: "#111111"` → `className="card-raised"`
+- `border: "1px solid rgba(200,149,42,0.3)"` → `border` + `style={{ borderColor: "hsl(var(--color-gold-accent) / 0.3)" }}`
+- `border: "1px solid #1A1A1A"` → `border border-border`
+- Confidence badge colors → tokenized HSL
+- "How WindowMan Vets" box (line 691) → `className="card-raised"` + remove borderRadius: 0
 
-List each by file, approximate line area, and reason it remains.
+### L. Summary bar (line 454)
 
-Also report:
-1. which sections were mapped to which locked system classes
-2. which inline styles remain and why
-3. whether any severity semantics were preserved as exceptions
-4. confirmation that layout, business logic, and only presentation layer was migrated
+- `background: "#0A0A0A", borderRadius: 0` → `className="card-raised"`
+- `color: "white"` → `text-foreground`
+- `color: "#f7f7f7"` → `text-foreground`
 
-==================================================
-IMPLEMENTATION ORDER
-==================================================
+### M. Radius
 
-1. Refactor `gradeConfig` / `statusConfig` / `severityStyles` to semantic token references
-2. Migrate `TruthReportClassic.tsx` section by section
-3. Migrate `LockedOverlay.tsx`
-4. Migrate `ReportClassic.tsx` loading state
-5. Run final audit and report
-6. STOP for review
+Remove ALL `borderRadius: 0`. System classes provide correct radius. Dynamic grade circle stays `borderRadius: "50%"` (circle, not a card).
 
-==================================================
-OPEN QUESTIONS / EDGE CASES
-==================================================
+---
 
-### Q1: Gold accent on LockedOverlay gate — keep gold or switch to primary blue?
-The gate CTA ("Unlock Your Report") is the highest-conversion moment. Gold communicates urgency/value. Blue communicates trust/system.
-**Recommendation:** Use `btn-depth-primary` (blue system) for the unlock CTA button itself (trust = conversion), but keep gold/amber semantic accents on the surrounding urgency copy, lock icons, and "flags found" teasers. This preserves the emotional tension without contradicting the button system.
+## File 2: `LockedOverlay.tsx` (799 lines)
 
-### Q2: Cyan accent usage
-Currently cyan (#0099BB) is used for negotiation script borders, "how to use this" labels, and some structural accents. Some of these are truly "system/AI" semantic (keep cyan). Others are just generic accents that should become `primary` blue.
-**Recommendation:** Audit each cyan usage individually. Script/leverage borders → keep as a distinct accent (map to a `--color-cyan` token). Generic structural labels → migrate to `text-primary`.
+### A. Blurred redacted cards (lines 131–178)
 
-### Q3: Grade circle dynamic border + glow
-The grade circle uses `border: 4px solid ${config.color}` and a matching glow shadow. This is data-driven and must stay inline. But should the glow intensity match noir (heavy, dramatic) or be toned to match the lighter system surfaces?
-**Recommendation:** Reduce glow opacity slightly (from 0.35 → 0.25) so it doesn't overpower on lighter card surfaces, but keep the color mapping intact.
+- `background: "#0A0A0A"` → `className="card-raised"`
+- `borderRadius: 0` → remove
+- `border: "1.5px solid #FECACA"` → keep (severity visual, acceptable exception)
+- `borderLeft: "4px solid #DC2626"` → `4px solid hsl(var(--color-danger))`
+- Badge `background: "rgba(220,38,38,0.12)"` → `hsl(var(--color-danger) / 0.12)`
+- All `fontFamily` → `font-mono`, `font-body` classes
+- `color: "#DC2626"` → `hsl(var(--color-danger))`
+- `color: "#FFFFFF"` → `text-foreground`
 
-### Q4: Dark mode assumption
-The current locked design system defines dark-mode HSL values. The reveal page was built for dark backgrounds. If the system ever adds a light mode toggle, these semantic tokens will auto-adapt. No extra work needed now, but flagging that severity color contrast ratios should be validated against both `--background` values.
-**Recommendation:** No action now. Note for future light-mode pass.
+### B. Gate overlay backdrop (lines 182–188)
 
-### Q5: Missing semantic tokens
-The locked system may not have dedicated tokens for every severity color. We may need to add CSS custom properties:
-- `--color-danger` (red)
-- `--color-caution` / `--color-gold-accent` (amber/gold)
-- `--color-success` / `--color-emerald` (green)
-- `--color-cyan` (AI/system accent)
+- `background: "rgba(10,10,10,0.85)"` → **KEEP** (dark scrim exception)
+- `borderRadius: 0` → remove
+- `backdropFilter: "blur(2px)"` → keep
 
-**Recommendation:** Add these to `index.css` as part of Phase 1 if they don't already exist. They are semantic role tokens, not new design — they codify what already exists.
+### C. Gate card (lines 190–203)
+
+- `background: "#0A0A0A"` → **light surface**: `className="card-raised-hero"` (L2 — this is the highest-stakes modal)
+- `borderRadius: 0` → remove (card-raised-hero provides `--radius-card`)
+- Gold inset shadow → `hsl(var(--color-gold-accent) / 0.12)`
+- All `fontFamily` → classes
+
+### D. Progress bar (lines 206–251)
+
+- Track `background: "rgba(255,255,255,0.08)"` → `bg-secondary` (visible on light)
+- Track `borderRadius: 0` → remove
+- Fill gradient `#C8952A, #E2B04A` → keep (gradient exception, no token)
+- Fill `borderRadius: 0` → remove
+- Fill glow → `hsl(var(--color-gold-accent) / 0.4)`
+
+### E. All gold accent colors
+
+- `#C8952A` / `#E2B04A` → `hsl(var(--color-gold-accent))` everywhere except gradient stops
+
+### F. Text colors inside gate
+
+With light gate card surface:
+- `color: "#FFFFFF"` → `text-foreground` (now dark text on light card)
+- `color: "#94A3B8"` → `text-muted-foreground`
+- `color: "#C8952A"` → `style={{ color: "hsl(var(--color-gold-accent))" }}`
+- `color: "#64748B"` → `text-muted-foreground/70`
+
+### G. Error block (lines 302–376)
+
+- `background: "rgba(220,38,38,0.08)"` → `hsl(var(--color-danger) / 0.08)`
+- `border: "1px solid rgba(220,38,38,0.25)"` → `hsl(var(--color-danger) / 0.25)`
+- `borderRadius: 0` → remove
+- `color: "#DC2626"` → `hsl(var(--color-danger))`
+- `color: "#F59E0B"` → `hsl(var(--color-caution))`
+- Recovery button `background: "rgba(200,149,42,0.15)"` → `hsl(var(--color-gold-accent) / 0.15)` + remove borderRadius: 0
+
+### H. Fetch-stalled retry button (lines 408–427)
+
+- Replace inline gold gradient button → `className="btn-depth-gold py-2.5 px-6 text-sm"`
+- Remove ~15 lines of inline style
+
+### I. OTP input slots (line 453)
+
+- `!border-[#f7f7f733]` → `!border-border`
+- `!bg-[rgba(255,255,255,0.06)]` → `!bg-secondary`
+- `!text-[#f7f7f7]` → `!text-foreground`
+- Parent wrapper `[&_input]:!bg-transparent [&_input]:!text-[#f7f7f7]` → `[&_input]:!bg-transparent [&_input]:!text-foreground`
+
+### J. OTP submit button (lines 460–508) — TWO states
+
+**Ready** (`otpValue.length === 6`): `className="btn-depth-gold w-full max-w-[320px] h-[54px] text-[17px]"`
+**Not ready** (`otpValue.length < 6`): `className="btn-depth-gold--pending w-full max-w-[320px] h-[54px] text-[17px]"`
+
+Conditional: `className={otpValue.length === 6 ? "btn-depth-gold ..." : "btn-depth-gold--pending ..."}`
+
+Removes ~40 lines of inline style.
+
+### K. Send code button (lines 561–598)
+
+Replace inline gold button → `className="btn-depth-gold w-full max-w-[320px] h-[54px] text-[17px]"`
+Removes ~30 lines of inline style.
+
+### L. Phone input (lines 628–668)
+
+- `background: "rgba(255,255,255,0.07)"` → `className="wm-input-well"` (sunken input on light surface)
+- `border: "2px solid rgba(255,255,255,0.1)"` → handled by `wm-input-well` + dynamic gold border when valid
+- `borderRadius: 0` → remove (wm-input-well provides `--radius-input`)
+- `color: "#FFFFFF"` → `text-foreground`
+- `caretColor: "#C8952A"` → `hsl(var(--color-gold-accent))`
+- onFocus/onBlur bg changes → remove (wm-input-well handles focus via `:focus` pseudo-class)
+- Valid state border: `style={{ borderColor: "hsl(var(--color-gold-accent))" }}`
+
+### M. Phone submit button (lines 736–777)
+
+Same two-state pattern as OTP:
+- **Can submit** → `className="btn-depth-gold w-full max-w-[320px] h-[54px] text-[17px]"`
+- **Cannot submit** → `className="btn-depth-gold--pending w-full max-w-[320px] h-[54px] text-[17px]"`
+
+Removes ~35 lines of inline style.
+
+### N. TCPA checkbox (lines 703–734)
+
+- `accentColor: "#C8952A"` → `hsl(var(--color-gold-accent))`
+- `color: "#64748B"` → `text-muted-foreground/70`
+- `fontFamily` → `font-body`
+
+### O. Trust micro-copy (lines 782–794)
+
+- `fontFamily` → `font-mono` class
+- `color: "#64748B"` → `text-muted-foreground/70`
+
+### P. Resend / Wrong number links (lines 512–546)
+
+- `fontFamily` → `font-body` class
+- `color: "#94A3B8"` → `text-muted-foreground`
+- `color: "#64748B"` → `text-muted-foreground/70`
+
+---
+
+## File 3: `ReportClassic.tsx` — Loading state only
+
+Already migrated (lines 283–291 use `bg-background`, `font-body`, `text-muted-foreground`). **No changes needed.**
+
+Terminal states (lines 322–370) also already use system tokens. **No changes needed.**
+
+---
+
+## What stays UNCHANGED
+
+- All props, state, callbacks, business logic
+- Framer Motion `initial`/`animate`/`transition` props
+- SVG `stroke` attributes (inline required)
+- Gate overlay `rgba(10,10,10,0.85)` dark scrim
+- Progress bar gold gradient stops
+- JSX hierarchy and layout structure
+- Supabase / Twilio / OTP logic in ReportClassic.tsx
+
+---
+
+## Implementation order
+
+1. Add `btn-depth-gold--pending` to `index.css`
+2. Migrate `TruthReportClassic.tsx` (config objects first, then top-to-bottom sections)
+3. Migrate `LockedOverlay.tsx` (gate card first, then inputs/buttons)
+4. Post-implementation audit output (files modified, remaining hex, remaining inline styles, radius confirmation, input visibility, CTA hierarchy)
+
+---
+
+## Total impact
+
+- ~120 inline style removals
+- 5 CTA buttons collapse from ~30-40 lines each to 1 className
+- All hex colors → design tokens
+- All fonts → system classes
+- All radii → system tokens
+- Zero logic changes
+- 1 new CSS class added
+
