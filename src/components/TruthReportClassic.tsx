@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Ruler, DollarSign, FileText, ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
+import { ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
+import ForensicPillarSection from "@/components/report/ForensicPillarSection";
 import { LockedOverlay } from "@/components/LockedOverlay";
 import type { LockedOverlayProps } from "@/components/LockedOverlay";
 import TopViolationSummaryStrip from "@/components/TopViolationSummaryStrip";
@@ -52,13 +53,7 @@ const gradeConfig: Record<string, { color: string; bg: string; glow: string; lab
   F: { color: "hsl(var(--color-danger))", bg: "hsl(var(--color-danger) / 0.12)", glow: "hsl(var(--color-danger) / 0.1)", label: "CRITICAL ISSUES", verdict: "This quote has critical problems. You are likely being significantly overcharged." }
 };
 
-const pillarIcons: Record<string, React.ReactNode> = {
-  safety_code: <Shield size={20} />,
-  install_scope: <Ruler size={20} />,
-  price_fairness: <DollarSign size={20} />,
-  fine_print: <FileText size={20} />,
-  warranty: <ShieldCheck size={20} />
-};
+// pillarIcons moved to ForensicPillarSection
 
 const statusConfig = {
   pass: { color: "hsl(var(--color-emerald))", bg: "hsl(var(--color-emerald) / 0.12)", border: "hsl(var(--color-emerald) / 0.3)", label: "PASS" },
@@ -290,80 +285,13 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         );
       })()}
 
-      {/* ─── 5-PILLAR ANALYSIS ─── */}
-      <section className="py-10 md:py-14 px-4 md:px-8 bg-background border-b border-border">
-        <div className="max-w-4xl mx-auto">
-          <motion.div {...stagger(1)}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="wm-eyebrow" style={{ color: "hsl(var(--color-cyan))" }}>5-PILLAR ANALYSIS</span>
-            </div>
-            <h2 className="wm-title-section text-foreground" style={{ marginBottom: 6 }}>
-              How Your Quote Scores Across 5 Key Areas
-            </h2>
-            <p className="font-body text-muted-foreground" style={{ fontSize: 14, marginBottom: 28 }}>
-              Each pillar is scored independently against {county} County standards.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {pillarScores.map((pillar, i) => {
-              const sc = statusConfig[pillar.status];
-              const icon = pillarIcons[pillar.key];
-              const pillarFlags = flags.filter((f) => f.pillar === pillar.key);
-
-              return (
-                <motion.div key={pillar.key} {...stagger(i + 1.5)}
-                className="card-raised flex flex-col items-center text-center"
-                style={{
-                  border: `1px solid ${sc.border}`,
-                  padding: "20px 16px",
-                }}>
-                  <div style={{ color: sc.color, marginBottom: 10 }}>{icon}</div>
-
-                  {isFull && pillar.score != null ?
-                  <div style={{ position: "relative", width: 56, height: 56, marginBottom: 10 }}>
-                      <svg viewBox="0 0 56 56" style={{ transform: "rotate(-90deg)" }}>
-                        <circle cx="28" cy="28" r="24" fill="none" stroke="hsl(var(--border))" strokeWidth="4" />
-                        <circle cx="28" cy="28" r="24" fill="none" stroke={sc.color} strokeWidth="4"
-                      strokeDasharray={`${pillar.score / 100 * 150.8} 150.8`}
-                      strokeLinecap="round" />
-                      </svg>
-                      <span className="font-mono" style={{
-                      position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 16, fontWeight: 700, color: sc.color
-                    }}>{pillar.score}</span>
-                    </div> :
-
-                  <div style={{
-                    width: 56, height: 56, borderRadius: "50%", background: sc.bg, border: `2px solid ${sc.border}`,
-                    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10
-                  }}>
-                      <span className="font-mono" style={{ fontSize: 11, fontWeight: 700, color: sc.color }}>{sc.label}</span>
-                    </div>
-                  }
-
-                  <p className="font-body text-foreground" style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3, marginBottom: 4 }}>
-                    {pillar.label}
-                  </p>
-                  <span className="font-mono" style={{
-                    fontSize: 9, fontWeight: 700, color: sc.color,
-                    letterSpacing: "0.08em", background: sc.bg, padding: "2px 8px",
-                    borderRadius: "var(--radius-btn)"
-                  }}>{sc.label}</span>
-
-                  {pillarFlags.length > 0 &&
-                  <p className="font-body text-muted-foreground" style={{ fontSize: 11, marginTop: 8 }}>
-                      {pillarFlags.filter((f) => f.severity === "red").length > 0 && `${pillarFlags.filter((f) => f.severity === "red").length} critical`}
-                      {pillarFlags.filter((f) => f.severity === "red").length > 0 && pillarFlags.filter((f) => f.severity === "amber").length > 0 && " · "}
-                      {pillarFlags.filter((f) => f.severity === "amber").length > 0 && `${pillarFlags.filter((f) => f.severity === "amber").length} caution`}
-                    </p>
-                  }
-                </motion.div>);
-
-            })}
-          </div>
-        </div>
-      </section>
+      {/* ─── 5-PILLAR ANALYSIS (ForensicPillarSection) ─── */}
+      <ForensicPillarSection
+        pillarScores={pillarScores}
+        flags={flags}
+        county={county}
+        isFull={isFull}
+      />
 
       {/* ─── FORENSIC FINDINGS ─── */}
       <section className="py-10 md:py-14 px-4 md:px-8 bg-background border-b border-border">
