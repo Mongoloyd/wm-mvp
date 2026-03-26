@@ -27,7 +27,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
   return (
     <section id="how-it-works" className="bg-card border-y border-border section-recessed">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, ease: "easeOut" }} className="text-center">
           <p className="wm-eyebrow text-primary mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
           <h2 className="wm-title-section mb-12" style={{ fontSize: "clamp(32px, 5vw, 48px)", color: "hsl(210 50% 8%)" }}>
             UPLOAD YOUR QUOTE. IN UNDER 60 SECONDS, YOU'LL KNOW:
@@ -39,7 +39,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           <div className="absolute top-5 left-0 right-0 h-px bg-border" />
           <div className="grid grid-cols-5 gap-6">
             {steps.map((step, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: i * 0.05 }} className="relative text-center">
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.35, delay: 0.1 + i * 0.08, ease: "easeOut" }} className="relative text-center">
                 <div className="mx-auto flex items-center justify-center relative z-10 w-10 h-10 card-raised">
                   <span className="font-mono text-[15px] font-bold text-primary">{step.num}</span>
                 </div>

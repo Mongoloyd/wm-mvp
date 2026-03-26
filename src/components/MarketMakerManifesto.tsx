@@ -19,7 +19,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
   const fade = (delay = 0) => ({
     initial: { opacity: 0, y: 16 } as const,
     animate: inView ? { opacity: 1, y: 0 } : {},
-    transition: { duration: 0.15, delay },
+    transition: { duration: 0.4, delay, ease: "easeOut" as const },
   });
 
   return (
