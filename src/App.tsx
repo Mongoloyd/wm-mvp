@@ -15,6 +15,7 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
 const AdminDashboard = lazy(() => import("./components/AdminDashboard.tsx"));
 const DevReportPreview = lazy(() => import("./pages/DevReportPreview.tsx"));
+const ShadowTest = lazy(() => import("./pages/ShadowTest.tsx"));
 
 // ── Static content pages ─────────────────────────────────────────────────────
 const About = lazy(() => import("./pages/About.tsx"));
@@ -61,6 +62,7 @@ const App = () => (
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/demo-classic" element={<DemoClassic />} />
           <Route path="/dev/report-preview" element={<DevReportPreview />} />
+          <Route path="/shadow-test" element={<ShadowTest />} />
           {/* ── Static content pages ── */}
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
