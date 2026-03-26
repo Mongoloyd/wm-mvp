@@ -4,7 +4,9 @@ import { Shield, Ruler, DollarSign, FileText, ShieldCheck, Copy, Check, ChevronD
 import { LockedOverlay } from "@/components/LockedOverlay";
 import type { LockedOverlayProps } from "@/components/LockedOverlay";
 import TopViolationSummaryStrip from "@/components/TopViolationSummaryStrip";
+import CriticalFlagCard from "@/components/CriticalFlagCard";
 import { selectTopViolation } from "@/utils/selectTopViolation";
+import { mapFlagToExhibit } from "@/utils/evidenceMapping";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 import { MATCH_REASON_HOMEOWNER, type MatchReasonKey, type MatchConfidence } from "@/shared/matchReasons";
 
@@ -387,6 +389,37 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
           {isFull ?
           <div className="flex flex-col gap-3">
+              {/* ── CRITICAL FLAG CARDS (max 2) ── */}
+              {(() => {
+                const MAX_CRITICAL = 2;
+                const criticals = flags
+                  .filter((f) => f.severity === "red")
+                  .map((f) => ({ flag: f, exhibit: mapFlagToExhibit(f) }))
+                  .filter((c) => c.exhibit && c.exhibit.hasHardEvidence)
+                  .slice(0, MAX_CRITICAL);
+
+                if (criticals.length === 0) return null;
+                return (
+                  <div className="flex flex-col gap-3 mb-4">
+                    {criticals.map((c, i) => (
+                      <CriticalFlagCard
+                        key={`critical-${c.flag.id}`}
+                        label={c.flag.label}
+                        severity="critical"
+                        pillar={c.flag.pillar ?? ""}
+                        yourQuoteText={c.exhibit!.yourQuoteText}
+                        benchmark={c.exhibit!.benchmark}
+                        interpretation={c.exhibit!.interpretation}
+                        hasHardEvidence={c.exhibit!.hasHardEvidence}
+                        index={i}
+                        isTopRanked={i === 0}
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* ── Regular flag cards ── */}
               {flags.map((flag, i) => {
               const s = severityStyles[flag.severity];
               const isExpanded = expandedFlags.has(flag.id);
