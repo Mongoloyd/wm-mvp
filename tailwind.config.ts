@@ -14,11 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        // Phase A: align global light foundation typography
-        sans: ['Barlow', 'DM Sans', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
         heading: ['Barlow Condensed', 'sans-serif'],
         display: ['Barlow Condensed', 'sans-serif'],
-        body: ['Barlow', 'DM Sans', 'Inter', 'system-ui', 'sans-serif'],
+        body: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['IBM Plex Mono', 'DM Mono', 'monospace'],
       },
       colors: {
