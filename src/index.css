@@ -2,64 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Forensic Noir Design System — All colors HSL */
+/* Premium Light Design System — HSL tokens */
 
 @layer base {
   :root {
-    /* Obsidian base */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 90%;
+    /* Cool light canvas */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 90%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 90%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
     /* Cobalt Blue — authority & action */
     --primary: 217 91% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 0 0% 10%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 42%;
 
-    --accent: 0 0% 10%;
-    --accent-foreground: 0 0% 90%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
 
-    /* Vivid Orange — danger only */
+    /* Vivid Orange — danger only (preserved) */
     --destructive: 25 95% 53%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 10%;
-    --input: 0 0% 10%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
     --ring: 217 91% 53%;
 
     --radius: 0rem;
 
-    /* Noir palette tokens */
-    --color-obsidian: 0 0% 4%;
-    --color-surface: 0 0% 7%;
-    --color-surface-border: 0 0% 10%;
+    /* Palette tokens */
+    --color-obsidian: 210 40% 98%;
+    --color-surface: 0 0% 100%;
+    --color-surface-border: 214 32% 91%;
     --color-cobalt: 217 91% 53%;
     --color-cobalt-dim: 217 91% 40%;
     --color-vivid-orange: 25 95% 53%;
-    --color-text-primary: 0 0% 100%;
-    --color-text-secondary: 0 0% 91%;
-    --color-text-muted: 220 9% 46%;
+    --color-text-primary: 222 47% 11%;
+    --color-text-secondary: 215 25% 27%;
+    --color-text-muted: 215 16% 42%;
     --color-gold-accent: 38 72% 53%;
     --color-emerald: 160 84% 39%;
     --color-danger: 0 79% 43%;
 
-    --sidebar-background: 0 0% 4%;
-    --sidebar-foreground: 0 0% 90%;
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 222 47% 11%;
     --sidebar-primary: 217 91% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 10%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
     --sidebar-ring: 217 91% 53%;
   }
 }
@@ -75,25 +75,25 @@
 }
 
 @layer components {
-  /* Glass-morphism depth surface */
+  /* Glass-morphism depth surface — light */
   .glass-card-strong {
-    background: rgba(17, 17, 17, 0.85);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     box-shadow:
-      0 20px 60px rgba(0, 0, 0, 0.6),
-      0 4px 16px rgba(37, 99, 235, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      0 4px 16px rgba(0, 0, 0, 0.06),
+      0 12px 40px rgba(37, 99, 235, 0.04);
     border-radius: 0;
   }
 
-  /* Focus glow shadow */
+  /* Focus glow shadow — light */
   .shadow-focus {
     box-shadow:
-      0 0 0 1px rgba(37, 99, 235, 0.15),
-      0 20px 60px rgba(0, 0, 0, 0.6),
-      0 4px 16px rgba(37, 99, 235, 0.12);
+      0 0 0 1px rgba(37, 99, 235, 0.12),
+      0 4px 16px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(37, 99, 235, 0.08);
   }
 
   /* Depth primary button */
@@ -112,7 +112,8 @@
     cursor: pointer;
     border-radius: 0;
     box-shadow:
-      0 4px 20px rgba(37, 99, 235, 0.4),
+      0 2px 8px rgba(37, 99, 235, 0.25),
+      0 1px 3px rgba(0, 0, 0, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.15);
     transition: box-shadow 0.15s ease, transform 0.1s ease;
   }
@@ -130,7 +131,8 @@
 
   .btn-depth-primary:hover {
     box-shadow:
-      0 6px 28px rgba(37, 99, 235, 0.55),
+      0 4px 16px rgba(37, 99, 235, 0.35),
+      0 2px 6px rgba(0, 0, 0, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
   }
@@ -138,7 +140,7 @@
   .btn-depth-primary:active {
     transform: translateY(0);
     box-shadow:
-      0 2px 10px rgba(37, 99, 235, 0.3),
+      0 1px 4px rgba(37, 99, 235, 0.2),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 
