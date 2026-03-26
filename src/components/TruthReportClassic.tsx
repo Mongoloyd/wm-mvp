@@ -4,7 +4,9 @@ import { Shield, Ruler, DollarSign, FileText, ShieldCheck, Copy, Check, ChevronD
 import { LockedOverlay } from "@/components/LockedOverlay";
 import type { LockedOverlayProps } from "@/components/LockedOverlay";
 import TopViolationSummaryStrip from "@/components/TopViolationSummaryStrip";
+import CriticalFlagCard from "@/components/CriticalFlagCard";
 import { selectTopViolation } from "@/utils/selectTopViolation";
+import { mapFlagToExhibit } from "@/utils/evidenceMapping";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 import { MATCH_REASON_HOMEOWNER, type MatchReasonKey, type MatchConfidence } from "@/shared/matchReasons";
 
