@@ -74,6 +74,7 @@ const DemoClassic = () => {
     setPhoneRaw("");
     setErrorMsg("");
     setIsLoading(false);
+    setTcpaConsent(false);
     setResendCooldown(0);
     if (cooldownRef.current) clearInterval(cooldownRef.current);
 
