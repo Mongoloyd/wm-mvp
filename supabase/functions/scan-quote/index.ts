@@ -933,6 +933,15 @@ Deno.serve(async (req: Request) => {
       const gradeResult = computeGrade(extraction);
       const flags = detectFlags(extraction);
 
+      // 11b. Derive financial metrics (inline — deterministic math, no HTTP call)
+      let derivedMetrics: Record<string, unknown> | null = null;
+      try {
+        derivedMetrics = computeDerivedMetrics(extraction);
+      } catch (metricsErr) {
+        console.error("derived metrics computation failed (non-fatal):", metricsErr);
+        // Non-fatal: report still ships without financial cards
+      }
+
       // 12. Build payloads
       const openingBucket = (extraction.opening_count || extraction.line_items.length) <= 5 ? "1-5"
         : (extraction.opening_count || extraction.line_items.length) <= 10 ? "6-10"
@@ -966,6 +975,7 @@ Deno.serve(async (req: Request) => {
         pillar_scores: gradeResult.pillarScores,
         flags: flags,
         extraction: extraction,
+        derived_metrics: derivedMetrics,
         rubric_version: RUBRIC_VERSION,
       };
 
