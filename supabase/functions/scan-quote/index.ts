@@ -416,7 +416,71 @@ function metricsItemExtPrice(item: LineItem): number | null {
   return null;
 }
 
-function computeDerivedMetrics(data: ExtractionResult): Record<string, unknown> {
+function compareToCountyBenchmark(
+  countyInput: string | null | undefined,
+  installedPricePerOpening: number | null,
+  contractPricePerOpening: number | null,
+  doorOpenings: number,
+) {
+  const benchmark = getCountyBenchmark(countyInput);
+  const comparablePrice = installedPricePerOpening ?? contractPricePerOpening;
+
+  if (comparablePrice === null) {
+    return {
+      county_key: benchmark.county_key,
+      county_label: benchmark.county_label,
+      benchmark_available: true,
+      comparison_available: false,
+      benchmark_price_per_opening_low: benchmark.installed_price_per_opening_low,
+      benchmark_price_per_opening_avg: benchmark.installed_price_per_opening_avg,
+      benchmark_price_per_opening_high: benchmark.installed_price_per_opening_high,
+      source_type: benchmark.source_type,
+      source_label: benchmark.source_label,
+      updated_at: benchmark.updated_at,
+      status: "insufficient_data" as const,
+      compared_metric: null,
+      compared_value: null,
+      delta_amount: null,
+      delta_pct: null,
+      comparability: doorOpenings > 0 ? "approximate_mixed_openings" as const : "direct_window_proxy" as const,
+    };
+  }
+
+  const deltaAmount = metricsRound2(comparablePrice - benchmark.installed_price_per_opening_avg);
+  const deltaPct = benchmark.installed_price_per_opening_avg > 0
+    ? metricsRound2(((deltaAmount ?? 0) / benchmark.installed_price_per_opening_avg) * 100)
+    : null;
+
+  const status =
+    comparablePrice < benchmark.installed_price_per_opening_low
+      ? "below_county_range" as const
+      : comparablePrice > benchmark.installed_price_per_opening_high
+      ? "above_county_range" as const
+      : "within_county_range" as const;
+
+  return {
+    county_key: benchmark.county_key,
+    county_label: benchmark.county_label,
+    benchmark_available: true,
+    comparison_available: true,
+    benchmark_price_per_opening_low: benchmark.installed_price_per_opening_low,
+    benchmark_price_per_opening_avg: benchmark.installed_price_per_opening_avg,
+    benchmark_price_per_opening_high: benchmark.installed_price_per_opening_high,
+    source_type: benchmark.source_type,
+    source_label: benchmark.source_label,
+    updated_at: benchmark.updated_at,
+    compared_metric: installedPricePerOpening !== null
+      ? "installed_price_per_opening"
+      : "contract_price_per_opening",
+    compared_value: comparablePrice,
+    status,
+    delta_amount: deltaAmount,
+    delta_pct: deltaPct,
+    comparability: doorOpenings > 0 ? "approximate_mixed_openings" as const : "direct_window_proxy" as const,
+  };
+}
+
+function computeDerivedMetrics(data: ExtractionResult, countyName?: string | null): Record<string, unknown> {
   const items = Array.isArray(data.line_items) ? data.line_items : [];
   const warnings: string[] = [];
 
