@@ -60,7 +60,6 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       const { error: uploadError } = await supabase.storage.from("quotes").upload(filePath, file);
       if (uploadError) { console.error("Storage upload failed:", uploadError); toast.error("Upload failed. Please try again."); setUploading(false); return; }
 
-      // ── Resolve lead — already created by TruthGateFlow ──
       let leadId: string | null = null;
       if (sessionId) {
         const { data: leads } = await supabase.rpc("get_lead_by_session", { p_session_id: sessionId });
@@ -79,7 +78,6 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
           return;
         }
         leadId = fallbackLeadId;
-        // fallback lead created
       }
 
       const quoteFileId = crypto.randomUUID();
@@ -92,7 +90,6 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       onScanStart?.(file.name, scanSessionId);
       const { data: fnData, error: fnError } = await supabase.functions.invoke("scan-quote", { body: { scan_session_id: scanSessionId } });
       if (fnError) {
-        // Check if the response body indicates rate limiting
         const isRateLimited = fnData?.error === "rate_limit_exceeded";
         if (isRateLimited) {
           toast.error(fnData?.message || "You've reached the limit for free scans this hour. Please try again in a bit or contact us for a bulk review.");
@@ -108,14 +105,14 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
     <AnimatePresence>
       {isVisible && (
         <motion.div ref={containerRef} initial={{ opacity: 0, height: 0, y: 20 }} animate={{ opacity: 1, height: "auto", y: 0 }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} className="overflow-hidden max-w-2xl mx-auto mt-6">
-          <div style={{ background: "#111111", border: "1px solid #1A1A1A", borderRadius: 0, padding: "40px 32px", boxShadow: "0 4px 24px rgba(0, 0, 0, 0.4)" }}>
-            <span style={{ display: "inline-block", fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#2563EB", letterSpacing: "0.1em", background: "rgba(37,99,235,0.1)", borderRadius: 0, padding: "4px 12px", marginBottom: 20 }}>
+          <div className="glass-card-strong p-8 md:p-10">
+            <span className="inline-block font-mono text-[10px] text-primary tracking-[0.1em] bg-primary/10 px-3 py-1 mb-5">
               UPLOAD YOUR QUOTE
             </span>
-            <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.02em", textTransform: "uppercase", marginBottom: 8 }}>
+            <h2 className="font-display text-[26px] text-foreground font-extrabold tracking-[0.02em] uppercase mb-2">
               Drop your quote to start the scan.
             </h2>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 28 }}>
+            <p className="font-body text-[15px] text-muted-foreground mb-7">
               Upload your contractor's quote and we'll analyze it in under 60 seconds.
             </p>
 
@@ -125,60 +122,55 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleDrop}
               onClick={handleDropzoneClick}
-              style={{
-                border: `2px dashed ${isDragOver ? "#2563EB" : "#1A1A1A"}`,
-                borderRadius: 0,
-                padding: "48px 32px",
-                background: isDragOver ? "rgba(37,99,235,0.06)" : "#0A0A0A",
-                textAlign: "center",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
+              className={`border-2 border-dashed text-center cursor-pointer transition-all py-12 px-8 ${
+                isDragOver ? 'border-primary bg-primary/5' : 'border-border bg-background'
+              }`}
             >
               <input ref={inputRef} type="file" accept=".pdf,image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} style={{ display: "none" }} />
 
               {!file ? (
                 <>
-                  <Upload size={48} style={{ color: "#E5E7EB", margin: "0 auto 12px" }} />
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E5E5", fontWeight: 600 }}>
+                  <Upload size={48} className="text-muted-foreground mx-auto mb-3" />
+                  <p className="font-body text-[15px] text-foreground font-semibold">
                     Drag your quote here
                   </p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", marginTop: 4 }}>
+                  <p className="font-body text-[13px] text-muted-foreground mt-1">
                     or click to browse files
                   </p>
                 </>
               ) : (
                 <div onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-center mx-auto" style={{ width: 48, height: 48, borderRadius: 0, background: "rgba(37,99,235,0.1)", marginBottom: 12 }}>
-                    <span style={{ color: "#2563EB", fontSize: 24, fontWeight: 700 }}>✓</span>
+                  <div className="flex items-center justify-center mx-auto w-12 h-12 bg-primary/10 mb-3">
+                    <span className="text-primary text-2xl font-bold">✓</span>
                   </div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E5E5", fontWeight: 600 }}>{file.name}</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", marginTop: 2 }}>{formatSize(file.size)}</p>
+                  <p className="font-body text-[15px] text-foreground font-semibold">{file.name}</p>
+                  <p className="font-body text-xs text-muted-foreground mt-0.5">{formatSize(file.size)}</p>
                   <button onClick={(e) => { e.stopPropagation(); setFile(null); if (inputRef.current) inputRef.current.value = ""; }}
-                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#2563EB", background: "none", border: "none", textDecoration: "underline", cursor: "pointer", marginTop: 8 }}>
+                    className="font-body text-xs text-primary bg-transparent border-none underline cursor-pointer mt-2">
                     Change file
                   </button>
                 </div>
               )}
             </div>
 
-            {fileError && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#F97316", textAlign: "center", marginTop: 12, fontWeight: 500 }}>{fileError}</p>}
+            {fileError && <p className="font-body text-[13px] text-destructive text-center mt-3 font-medium">{fileError}</p>}
 
             {file && (
               <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                 onClick={handleScan} disabled={uploading}
-                style={{ width: "100%", height: 54, background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, borderRadius: 0, border: "none", boxShadow: "0 4px 16px rgba(37, 99, 235, 0.3)", cursor: uploading ? "not-allowed" : "pointer", marginTop: 20, opacity: uploading ? 0.7 : 1 }}>
+                className="btn-depth-primary w-full mt-5"
+                style={{ height: 54, fontSize: 17, opacity: uploading ? 0.7 : 1, cursor: uploading ? "not-allowed" : "pointer" }}>
                 {uploading ? "Uploading..." : "Start My AI Scan →"}
               </motion.button>
             )}
 
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", textAlign: "center", marginTop: 16 }}>
+            <p className="font-body text-[13px] text-muted-foreground text-center mt-4">
               Don't have a digital copy?{" "}
-              <button onClick={() => trackEvent({ event_name: "photo_option_clicked" })} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#2563EB", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}>
+              <button onClick={() => trackEvent({ event_name: "photo_option_clicked" })} className="font-body text-[13px] text-primary bg-transparent border-none underline cursor-pointer">
                 Take a photo with your phone →
               </button>
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#E5E7EB", textAlign: "center", marginTop: 16 }}>
+            <p className="font-body text-[11px] text-muted-foreground text-center mt-4">
               Accepted: PDF, JPG, PNG, HEIC · Max file size: 10MB
             </p>
           </div>

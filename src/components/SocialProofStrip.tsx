@@ -33,28 +33,26 @@ const SocialProofStrip = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.15, delay: 0.1 }}
-      className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-center"
-      style={{ backgroundColor: "#0A0A0A", borderTop: "1px solid #1A1A1A", borderBottom: "1px solid #1A1A1A" }}
+      className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-center border-y border-border bg-card"
     >
       <div
-        className="inline-flex items-center divide-x overflow-hidden"
-        style={{ borderColor: "#1A1A1A", border: "1px solid #1A1A1A" }}
+        className="inline-flex items-center divide-x divide-border overflow-hidden border border-border"
       >
         <div className="flex items-center gap-2 px-4 py-2">
-          <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#2563EB" }} />
-          <span className="font-bold tabular-nums" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, color: "#2563EB" }}>
+          <Shield className="w-4 h-4 flex-shrink-0 text-primary" />
+          <span className="font-bold tabular-nums font-mono text-base text-primary">
             {totalCount.toLocaleString()}
           </span>
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB", whiteSpace: "nowrap" }}>
+          <span className="font-body text-xs text-muted-foreground whitespace-nowrap">
             quotes scanned
           </span>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2" style={{ backgroundColor: "rgba(37,99,235,0.05)" }}>
+        <div className="flex items-center gap-2 px-4 py-2 bg-primary/5">
           <div className="relative flex h-2 w-2 flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full opacity-75" style={{ backgroundColor: "#2563EB", borderRadius: "50%", animationIterationCount: 3 }} />
-            <span className="relative inline-flex h-2 w-2" style={{ backgroundColor: "#2563EB", borderRadius: "50%" }} />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" style={{ animationIterationCount: 3 }} />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
           </div>
-          <span className="font-semibold tabular-nums" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 14, color: "#E5E5E5", whiteSpace: "nowrap" }}>
+          <span className="font-semibold tabular-nums font-mono text-sm text-foreground whitespace-nowrap">
             +{todayCount} today
           </span>
         </div>
