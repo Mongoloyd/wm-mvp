@@ -6,6 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { getCountyBenchmark } from "../_shared/countyBenchmarks.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 1: SCHEMA (Zod-like runtime validation — manual for Deno compat)
