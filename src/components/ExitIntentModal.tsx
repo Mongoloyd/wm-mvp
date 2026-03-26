@@ -38,7 +38,7 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-[9500] flex items-center justify-center"
-          style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(6px)' }}
+          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}
           onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
         >
           <motion.div
@@ -48,7 +48,6 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
             transition={{ duration: 0.2 }}
             className="relative w-[92%] max-w-[520px] glass-card-strong p-8 md:p-10"
           >
-            {/* Close button */}
             <button
               onClick={dismiss}
               className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
@@ -58,7 +57,6 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
             </button>
 
             <div className="text-center">
-              {/* Live viewers badge */}
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-5">
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
@@ -69,17 +67,11 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                 </span>
               </div>
 
-              <h2
-                className="font-display font-black uppercase leading-tight tracking-wide mb-4"
-                style={{ fontSize: 'clamp(22px, 4vw, 28px)', color: '#E5E5E5', letterSpacing: '0.02em' }}
-              >
+              <h2 className="font-display font-black uppercase leading-tight tracking-wide text-foreground mb-4" style={{ fontSize: 'clamp(22px, 4vw, 28px)' }}>
                 Before you go — one question.
               </h2>
 
-              {/* Offer box with holographic pulse */}
-              <div className="relative overflow-hidden bg-primary/5 border border-primary/10 p-6 mb-6"
-                style={{ borderRadius: 0 }}>
-                {/* Holographic sweep — uses background-position animation to avoid layout distortion */}
+              <div className="relative overflow-hidden bg-primary/5 border border-primary/10 p-6 mb-6">
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
@@ -88,21 +80,18 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                     animation: 'holo-pulse 3s ease-in-out infinite',
                   }}
                 />
-                {/* 18px bold primary offer */}
                 <p className="font-body text-wm-label text-foreground mb-2">
                   Your county baseline is ready.
                 </p>
-                {/* 15px secondary */}
                 <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed">
                   Homeowners {locationLabel} saved an average of{' '}
-                  <span className="font-mono font-bold" style={{ color: '#F97316' }}>
+                  <span className="font-mono font-bold text-destructive">
                     ${stats.savings.toLocaleString()}
                   </span>{' '}
                   after scanning. Yours takes 60 seconds.
                 </p>
               </div>
 
-              {/* Depth CTA button */}
               <button
                 onClick={handleCTA}
                 className="btn-depth-primary w-full py-4"
@@ -110,7 +99,6 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                 Check My Quote — It's Free
               </button>
 
-              {/* Dismiss microcopy — 13px is acceptable here as secondary disclaimer */}
               <p
                 className="font-body text-[13px] text-muted-foreground mt-4 cursor-pointer hover:text-foreground transition-colors"
                 onClick={dismiss}
@@ -118,12 +106,10 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                 I'll risk overpaying →
               </p>
 
-              {/* Social proof */}
               <p className="font-mono text-wm-body-soft text-muted-foreground mt-5">
                 Joined by {tickerTotal.toLocaleString()}+ Florida Homeowners
               </p>
 
-              {/* Trust footer */}
               <div className="flex items-start gap-3 mt-5 pt-5 border-t border-border/50 text-left">
                 <ShieldCheck size={16} className="text-emerald-500 shrink-0 mt-0.5" />
                 <p className="font-body text-[13px] text-muted-foreground leading-snug">

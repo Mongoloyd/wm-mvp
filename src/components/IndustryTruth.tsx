@@ -22,17 +22,17 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
   const handleScanClick = () => { onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" }); };
 
   return (
-    <section style={{ backgroundColor: "#0A0A0A" }}>
+    <section className="bg-background">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
-          <div className="mx-auto mb-6" style={{ width: 40, height: 1, backgroundColor: "#2563EB" }} />
-          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: "#2563EB", letterSpacing: "0.1em", marginBottom: 20 }}>
+          <div className="mx-auto mb-6 w-10 h-px bg-primary" />
+          <p className="font-mono text-xs text-primary tracking-[0.1em] mb-5">
             HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.
           </p>
-          <h2 className="mx-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(34px, 5vw, 48px)", color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.01em", maxWidth: 700, marginBottom: 16, lineHeight: 1.15, textTransform: "uppercase" }}>
+          <h2 className="font-display text-foreground font-extrabold tracking-[0.01em] uppercase leading-[1.15] mx-auto mb-4" style={{ fontSize: "clamp(34px, 5vw, 48px)", maxWidth: 700 }}>
             THE IMPACT WINDOW INDUSTRY HAS NO PRICING STANDARD.
           </h2>
-          <p className="mx-auto" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, color: "#E5E7EB", maxWidth: 640, lineHeight: 1.75, marginBottom: 60 }}>
+          <p className="font-body text-muted-foreground mx-auto leading-[1.75] mb-14" style={{ fontSize: 17, maxWidth: 640 }}>
             That means the contractor who wrote your quote decided what to include, how to describe it, and whether to specify the brand.
           </p>
         </motion.div>
@@ -45,33 +45,33 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
               <div className="hidden md:block mb-4">
                 <EvidenceImage src={block.image} alt={block.alt} onClick={() => setLightboxIndex(i)} />
               </div>
-              <div className="flex items-center justify-center" style={{ width: 48, height: 48, backgroundColor: "rgba(37,99,235,0.1)" }}>
-                <span style={{ fontSize: 24, lineHeight: 1 }}>{block.icon}</span>
+              <div className="flex items-center justify-center w-12 h-12 bg-primary/10">
+                <span className="text-2xl leading-none">{block.icon}</span>
               </div>
-              <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 700, color: "#E5E5E5", marginTop: 16, textTransform: "uppercase", letterSpacing: "0.02em" }}>{block.heading}</h3>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", lineHeight: 1.7, marginTop: 8 }}>{block.copy}</p>
-              <span style={{ display: "inline-block", marginTop: 12, background: "rgba(249,115,22,0.1)", color: block.badgeColor, padding: "3px 10px", fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, border: `1px solid ${block.badgeColor}33` }}>{block.badge}</span>
+              <h3 className="font-display text-xl font-bold text-foreground mt-4 uppercase tracking-[0.02em]">{block.heading}</h3>
+              <p className="font-body text-[15px] text-muted-foreground leading-[1.7] mt-2">{block.copy}</p>
+              <span className="inline-block mt-3 bg-destructive/10 px-2.5 py-0.5 font-body text-[11px] font-semibold" style={{ color: block.badgeColor, border: `1px solid ${block.badgeColor}33` }}>{block.badge}</span>
             </motion.div>
           ))}
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="text-center mt-16" style={{ backgroundColor: "#111111", border: "1px solid #1A1A1A", padding: "clamp(40px, 5vw, 48px) clamp(32px, 5vw, 56px)" }}>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(22px, 3vw, 30px)", color: "#E5E5E5", fontWeight: 700, letterSpacing: "0.01em", marginBottom: 16, textTransform: "uppercase" }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="text-center mt-16 glass-card-strong" style={{ padding: "clamp(40px, 5vw, 48px) clamp(32px, 5vw, 56px)" }}>
+          <p className="font-display text-foreground font-bold tracking-[0.01em] uppercase mb-4" style={{ fontSize: "clamp(22px, 3vw, 30px)" }}>
             MOST HOMEOWNERS ASSUME THE QUOTE REFLECTS THE MARKET RATE.
           </p>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(22px, 3vw, 30px)", color: "#F97316", fontWeight: 900, letterSpacing: "0.01em", textTransform: "uppercase" }}>
+          <p className="font-display text-destructive font-black tracking-[0.01em] uppercase" style={{ fontSize: "clamp(22px, 3vw, 30px)" }}>
             IT USUALLY DOESN'T.
           </p>
         </motion.div>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-12">
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleScanClick}
-            style={{ background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, padding: "16px 32px", border: "none", boxShadow: "0 4px 24px rgba(37,99,235,0.35)", cursor: "pointer" }}>
+            className="btn-depth-primary" style={{ fontSize: 16, padding: "16px 32px" }}>
             Scan My Quote — It's Free
           </motion.button>
           {onDemoClick && (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
-              style={{ background: "transparent", color: "#2563EB", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 28px", border: "1px solid rgba(37,99,235,0.3)", cursor: "pointer" }}>
+              className="bg-transparent text-primary font-body text-sm font-semibold border border-primary/30 cursor-pointer" style={{ padding: "12px 28px" }}>
               See the AI in Action — No Upload Needed
             </motion.button>
           )}
