@@ -18,7 +18,7 @@ export default {
         heading: ['Barlow Condensed', 'sans-serif'],
         display: ['Barlow Condensed', 'sans-serif'],
         body: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'DM Mono', 'monospace'],
+        mono: ['DM Mono', 'IBM Plex Mono', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -92,9 +92,9 @@ export default {
         'wm-body-soft': ['15px', { lineHeight: '1.6', fontWeight: '400' }],
       },
       borderRadius: {
-        lg: "0px",
-        md: "0px",
-        sm: "0px",
+        lg: "var(--radius-card)",
+        md: "var(--radius-btn)",
+        sm: "var(--radius-input)",
       },
       keyframes: {
         "header-slide-down": {

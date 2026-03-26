@@ -26,13 +26,13 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
           <div className="mx-auto mb-6 w-10 h-px bg-primary" />
-          <p className="font-mono text-xs text-primary tracking-[0.1em] mb-5">
+          <p className="wm-eyebrow text-primary mb-5">
             HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.
           </p>
-          <h2 className="font-display text-foreground font-extrabold tracking-[0.01em] uppercase leading-[1.15] mx-auto mb-4" style={{ fontSize: "clamp(34px, 5vw, 48px)", maxWidth: 700 }}>
+          <h2 className="wm-title-section mx-auto mb-4" style={{ fontSize: "clamp(34px, 5vw, 48px)", maxWidth: 700, lineHeight: 1.15 }}>
             THE IMPACT WINDOW INDUSTRY HAS NO PRICING STANDARD.
           </h2>
-          <p className="font-body text-muted-foreground mx-auto leading-[1.75] mb-14" style={{ fontSize: 17, maxWidth: 640 }}>
+          <p className="wm-body mx-auto mb-14" style={{ fontSize: 17, maxWidth: 640, lineHeight: 1.75 }}>
             That means the contractor who wrote your quote decided what to include, how to describe it, and whether to specify the brand.
           </p>
         </motion.div>
@@ -49,13 +49,13 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
                 <span className="text-2xl leading-none">{block.icon}</span>
               </div>
               <h3 className="font-display text-xl font-bold text-foreground mt-4 uppercase tracking-[0.02em]">{block.heading}</h3>
-              <p className="font-body text-[15px] text-muted-foreground leading-[1.7] mt-2">{block.copy}</p>
+              <p className="wm-body mt-2">{block.copy}</p>
               <span className="inline-block mt-3 bg-destructive/10 px-2.5 py-0.5 font-body text-[11px] font-semibold" style={{ color: block.badgeColor, border: `1px solid ${block.badgeColor}33` }}>{block.badge}</span>
             </motion.div>
           ))}
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="text-center mt-16 card-raised" style={{ padding: "clamp(40px, 5vw, 48px) clamp(32px, 5vw, 56px)" }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="text-center mt-16 card-raised p-7 md:p-8">
           <p className="font-display text-foreground font-bold tracking-[0.01em] uppercase mb-4" style={{ fontSize: "clamp(22px, 3vw, 30px)" }}>
             MOST HOMEOWNERS ASSUME THE QUOTE REFLECTS THE MARKET RATE.
           </p>
@@ -64,16 +64,16 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           </p>
         </motion.div>
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-12">
-          <motion.button onClick={handleScanClick}
-            className="btn-depth-primary" style={{ fontSize: 16, padding: "16px 32px" }}>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-8">
+          <button onClick={handleScanClick}
+            className="btn-depth-primary" style={{ padding: "16px 32px" }}>
             Scan My Quote — It's Free
-          </motion.button>
+          </button>
           {onDemoClick && (
-            <motion.button onClick={onDemoClick}
-              className="btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
+            <button onClick={onDemoClick}
+              className="btn-secondary-tactile" style={{ padding: "12px 24px" }}>
               See the AI in Action — No Upload Needed
-            </motion.button>
+            </button>
           )}
         </div>
       </div>

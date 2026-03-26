@@ -35,60 +35,46 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
           className="select-none group relative inline-flex items-center gap-2"
           aria-label="WindowMan.PRO home"
         >
-          {/* Shield icon with glint on hover */}
           <span className="relative overflow-hidden inline-flex">
             <ShieldCheck
               size={20}
               className="text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_6px_rgba(37,99,235,0.7)]"
             />
           </span>
-          <span
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 800,
-              fontSize: 20,
-              letterSpacing: "0.02em",
-            }}
-          >
+          <span className="font-display" style={{ fontWeight: 800, fontSize: 20, letterSpacing: "0.02em" }}>
             <span className="text-foreground">WINDOW</span>
             <span style={{ color: "#C8952A" }}>MAN</span>
             <sup
               className="text-muted-foreground"
-              style={{
-                fontSize: 9,
-                fontWeight: 400,
-                letterSpacing: "0.15em",
-                marginLeft: 2,
-                verticalAlign: "super",
-              }}
+              style={{ fontSize: 9, fontWeight: 400, letterSpacing: "0.15em", marginLeft: 2, verticalAlign: "super" }}
             >
               .PRO
             </sup>
           </span>
         </a>
 
-        {/* Desktop nav */}
+        {/* Desktop nav — compact CTA */}
         <div className="hidden md:flex items-center gap-3">
           <button
-            className="btn-depth-primary px-5"
-            style={{ fontSize: 14, padding: "10px 20px" }}
+            className="btn-depth-primary"
+            style={{ padding: "10px 20px", fontSize: 14 }}
             onClick={onCtaClick}
           >
             {ctaText}
           </button>
         </div>
 
-        {/* Mobile CTA */}
+        {/* Mobile CTA — compact */}
         <button
           className="btn-depth-primary md:hidden"
-          style={{ fontSize: 13, padding: "6px 14px" }}
+          style={{ padding: "6px 14px", fontSize: 13 }}
           onClick={onCtaClick}
         >
           {ctaText}
         </button>
       </div>
 
-      {/* Animated status bar — "live intelligence" pulse line */}
+      {/* Animated status bar */}
       <motion.div
         className="absolute bottom-0 left-0 h-[1px] bg-primary/30"
         initial={{ width: "0%" }}

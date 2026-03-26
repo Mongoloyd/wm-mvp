@@ -20,13 +20,13 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
 
   return (
     <section className="bg-background">
-      <div ref={ref} className="mx-auto max-w-4xl px-4 md:px-8 py-24 md:py-32 text-center">
+      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28 text-center">
         <motion.p initial={{ opacity: 0, y: 12 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }}
-          className="font-display text-[13px] text-muted-foreground tracking-[0.15em] uppercase mb-10">
+          className="wm-eyebrow text-muted-foreground mb-10">
           WHY WINDOWMAN EXISTS
         </motion.p>
         <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.05 }}
-          className="font-display text-foreground font-extrabold tracking-[0.01em] uppercase leading-[1.3] mb-6" style={{ fontSize: "clamp(28px, 4vw, 40px)" }}>
+          className="wm-title-section leading-[1.3] mb-6" style={{ fontSize: "clamp(28px, 4vw, 40px)" }}>
           THE INDUSTRY BUILT A SYSTEM WHERE YOU NEED THEIR EXPERTISE TO UNDERSTAND THEIR QUOTE.
         </motion.p>
         <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.1 }}
@@ -46,16 +46,16 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           ))}
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="mt-14">
-          <motion.button onClick={handleScanClick}
-            className="btn-depth-primary" style={{ fontSize: 18, padding: "18px 48px" }}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="mt-8">
+          <button onClick={handleScanClick}
+            className="btn-depth-primary" style={{ padding: "16px 32px" }}>
             Scan My Quote — It's Free
-          </motion.button>
+          </button>
           {onDemoClick && (
-            <motion.button onClick={onDemoClick}
-              className="block mx-auto mt-4 btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
+            <button onClick={onDemoClick}
+              className="block mx-auto mt-4 btn-secondary-tactile" style={{ padding: "12px 24px" }}>
               See the AI in Action — No Upload Needed
-            </motion.button>
+            </button>
           )}
         </motion.div>
 

@@ -85,7 +85,7 @@ const OptionButton = ({
         : 'border-border bg-card hover:border-primary/50 text-foreground'
     }`}
     style={{
-      borderRadius: 'var(--radius)',
+      borderRadius: 'var(--radius-btn)',
       boxShadow: selected ? 'var(--shadow-pressed)' : 'var(--shadow-resting)',
     }}
   >
@@ -352,9 +352,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
       >
         <div
           className="inline-flex items-center mb-5 px-3 py-1 bg-primary/10 border border-primary"
-          style={{ borderRadius: 0, fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#2563EB" }}
+          style={{ borderRadius: 0 }}
         >
-          ✓ Your scan is configured
+          <span className="wm-eyebrow text-primary">✓ Your scan is configured</span>
         </div>
 
         <h2
@@ -480,12 +480,10 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   return (
     <section id="truth-gate" className="bg-background">
       <div className={`mx-auto max-w-2xl px-4 md:px-8 py-16 md:py-24 transition-all duration-500 ${glowing ? 'ring-2 ring-cobalt shadow-lg shadow-cobalt/20' : ''}`}>
-        <p className="text-center mb-2 font-mono text-[10px] text-muted-foreground tracking-[0.15em] uppercase">
+        <p className="text-center mb-2 wm-eyebrow text-muted-foreground">
           THE SCANNER
         </p>
-        <p
-          className="text-center mb-3 font-mono text-[11px] text-primary tracking-[0.1em]"
-        >
+        <p className="text-center mb-3 wm-eyebrow text-primary" style={{ fontSize: 11 }}>
           {eyebrowLabels[Math.min(currentStep - 1, 4)]}
         </p>
         <div className="w-full h-1.5 input-well mb-8">
@@ -514,10 +512,11 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
 const labelStyle: React.CSSProperties = {
   display: "block",
-  fontFamily: "'DM Mono', monospace",
+  fontFamily: "var(--wm-font-mono)",
   fontSize: 10,
   color: "hsl(var(--muted-foreground))",
-  letterSpacing: "0.08em",
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
   marginBottom: 6,
 };
 
@@ -525,9 +524,9 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   height: 48,
   border: "1px solid hsl(214 28% 78%)",
-  borderRadius: 'var(--radius)',
+  borderRadius: 'var(--radius-input)',
   padding: "0 16px",
-  fontFamily: "'DM Sans', sans-serif",
+  fontFamily: "var(--wm-font-body)",
   fontSize: 15,
   color: "hsl(var(--foreground))",
   background: "linear-gradient(180deg, hsl(214 30% 91%) 0%, hsl(214 35% 95%) 100%)",
@@ -538,7 +537,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 const errorTextStyle: React.CSSProperties = {
-  fontFamily: "'DM Sans', sans-serif",
+  fontFamily: "var(--wm-font-body)",
   fontSize: 12,
   color: "#F97316",
   marginTop: 4,

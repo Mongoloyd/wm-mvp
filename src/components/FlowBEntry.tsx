@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import "@fontsource/dm-mono/500.css";
 import { useTickerStats } from "@/hooks/useTickerStats";
 
 const outcomes = [
@@ -24,15 +23,15 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
         <div className="mx-auto max-w-5xl px-4 pt-14 pb-16 md:px-8 md:pt-20 md:pb-24">
           <div className="inline-flex items-center gap-2 mb-5 border border-primary bg-primary/5 px-3.5 py-1.5">
             <span className="text-primary text-sm">★</span>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }} className="text-primary">YOU'RE EARLY — THAT'S THE BEST POSITION TO BE IN</span>
+            <span className="wm-eyebrow text-primary">YOU'RE EARLY — THAT'S THE BEST POSITION TO BE IN</span>
           </div>
-          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(42px, 5.5vw, 58px)", fontWeight: 800, letterSpacing: "0.02em", lineHeight: 1.15, marginBottom: 20, textTransform: "uppercase" }} className="text-foreground">
+          <h1 className="font-display text-foreground uppercase leading-[1.15] mb-5" style={{ fontSize: "clamp(42px, 5.5vw, 58px)", fontWeight: 800, letterSpacing: "0.02em" }}>
             You Don't Have a Quote Yet.<br /><span className="text-primary">Perfect. You Still Have All The Power.</span>
           </h1>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(19px, 2vw, 21px)", lineHeight: 1.75, marginBottom: 12, maxWidth: 640 }} className="text-foreground">
+          <p className="font-body text-foreground leading-[1.75] mb-3" style={{ fontSize: "clamp(19px, 2vw, 21px)", maxWidth: 640 }}>
             Contractors walk in knowing the market price.<br />Most homeowners don't. WindowMan flips that.
           </p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, lineHeight: 1.7, marginBottom: 36, maxWidth: 580 }} className="text-muted-foreground">
+          <p className="wm-body mb-8" style={{ maxWidth: 580 }}>
             In 2 minutes, we'll generate your county-specific fair-market baseline. So when the contractor opens their briefcase, you already know the number they're hoping you don't.
           </p>
           <div className="flex flex-col md:flex-row gap-5 mb-10" style={{ maxWidth: 680 }}>
@@ -42,27 +41,27 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
                   <span className="text-primary text-base">{item.icon}</span>
                 </div>
                 <div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700 }} className="text-foreground">{item.title}</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, marginTop: 2 }} className="text-muted-foreground">{item.sub}</p>
+                  <p className="font-body text-[15px] font-bold text-foreground">{item.title}</p>
+                  <p className="font-body text-[13px] text-muted-foreground mt-0.5">{item.sub}</p>
                 </div>
               </div>
             ))}
           </div>
-          <motion.button onClick={onContinueToTool}
-            className="btn-depth-primary" style={{ padding: "16px 36px", fontSize: 17 }}>
+          <button onClick={onContinueToTool}
+            className="btn-depth-primary" style={{ padding: "16px 32px" }}>
             Build My Baseline — It's Free →
-          </motion.button>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, marginTop: 14 }} className="text-muted-foreground">
+          </button>
+          <p className="font-body text-[13px] text-muted-foreground mt-8">
             Actually, I do have a quote —{" "}
-            <button onClick={onSwitchToFlowA} className="text-primary underline cursor-pointer bg-transparent border-none p-0" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>Scan it instead →</button>
+            <button onClick={onSwitchToFlowA} className="text-primary underline cursor-pointer bg-transparent border-none p-0 font-body text-[13px]">Scan it instead →</button>
           </p>
         </div>
       </section>
 
-      <section className="bg-card border-t border-border">
-        <div className="mx-auto max-w-4xl px-4 py-14 md:px-8 md:py-20">
-          <p className="text-center mb-4 text-primary" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.1em" }}>WHAT FLOW B GIVES YOU</p>
-          <h2 className="text-center text-foreground" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(30px, 4vw, 38px)", fontWeight: 800, letterSpacing: "0.02em", marginBottom: 48, textTransform: "uppercase" }}>
+      <section className="bg-card border-t border-border section-recessed">
+        <div className="mx-auto max-w-5xl px-4 py-20 md:px-8 md:py-28">
+          <p className="text-center wm-eyebrow text-primary mb-4">WHAT FLOW B GIVES YOU</p>
+          <h2 className="text-center wm-title-section mb-12" style={{ fontSize: "clamp(30px, 4vw, 38px)" }}>
             The Contractor Will Arrive Armed With Information.<br className="hidden md:block" /> Now you will too.
           </h2>
           <div className="relative">
@@ -71,22 +70,22 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
               <div className="md:hidden absolute border-l border-border" style={{ left: 19, top: 40, bottom: 40 }} />
               {timelineSteps.map((step, i) => (
                 <div key={i} className="relative flex md:flex-col items-start md:items-center gap-4 md:gap-0">
-                  <div className="shrink-0 flex items-center justify-center relative z-10 w-10 h-10 card-raised border-2 border-primary text-primary" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700 }}>{step.num}</div>
+                  <div className="shrink-0 flex items-center justify-center relative z-10 w-10 h-10 card-raised border-2 border-primary text-primary font-body text-base font-bold">{step.num}</div>
                   <div className="md:mt-4 md:text-center">
-                    <span className="inline-block mb-2 text-primary bg-primary/5 border border-primary/20" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 500, padding: "3px 10px" }}>{step.badgeText}</span>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, marginBottom: 6 }} className="text-foreground">{step.title}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: 1.6 }} className="text-muted-foreground">{step.copy}</p>
+                    <span className="inline-block mb-2 wm-eyebrow text-primary bg-primary/5 border border-primary/20" style={{ padding: "3px 10px", fontSize: 10 }}>{step.badgeText}</span>
+                    <p className="font-body text-base font-bold text-foreground mb-1.5">{step.title}</p>
+                    <p className="font-body text-[13px] text-muted-foreground leading-[1.6]">{step.copy}</p>
                     {step.preview === "price" && (
-                      <div className="relative mt-3 md:mx-auto bg-muted border border-border p-3" style={{ maxWidth: 280 }}>
-                        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, marginBottom: 6 }} className="text-muted-foreground">FAIR MARKET RANGE · BROWARD CO.</p>
-                        <p className="text-primary" style={{ fontFamily: "'DM Mono', monospace", fontSize: 18, fontWeight: 700, filter: "blur(5px)", userSelect: "none" }}>$12,400 – $14,800</p>
-                        <p className="absolute inset-0 flex items-center justify-center text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, fontStyle: "italic", paddingTop: 16 }}>Unlock after step 3</p>
+                      <div className="relative mt-3 md:mx-auto card-raised p-3" style={{ maxWidth: 280 }}>
+                        <p className="wm-eyebrow text-muted-foreground mb-1.5" style={{ fontSize: 10 }}>FAIR MARKET RANGE · BROWARD CO.</p>
+                        <p className="text-primary font-mono text-lg font-bold" style={{ filter: "blur(5px)", userSelect: "none" }}>$12,400 – $14,800</p>
+                        <p className="absolute inset-0 flex items-center justify-center wm-eyebrow text-muted-foreground italic" style={{ fontSize: 10, paddingTop: 16 }}>Unlock after step 3</p>
                       </div>
                     )}
                     {step.preview === "grade" && (
-                      <div className="relative mt-3 md:mx-auto bg-muted border border-border p-3" style={{ maxWidth: 280 }}>
-                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 40, fontWeight: 800, color: "hsl(var(--color-vivid-orange))", filter: "blur(5px)", userSelect: "none", lineHeight: 1, textAlign: "center" }}>C</p>
-                        <p className="absolute inset-0 flex items-center justify-center text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, fontStyle: "italic" }}>Your Grade Waits Here</p>
+                      <div className="relative mt-3 md:mx-auto card-raised p-3" style={{ maxWidth: 280 }}>
+                        <p className="font-display text-[40px] font-extrabold text-center leading-none text-vivid-orange" style={{ filter: "blur(5px)", userSelect: "none" }}>C</p>
+                        <p className="absolute inset-0 flex items-center justify-center wm-eyebrow text-muted-foreground italic" style={{ fontSize: 10 }}>Your Grade Waits Here</p>
                       </div>
                     )}
                   </div>
@@ -95,8 +94,8 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
             </div>
           </div>
           <div className="text-center mt-10">
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontStyle: "italic" }} className="text-foreground">Most contractors budget on the assumption you won't check.<br className="hidden md:block" /> You're about to become the unexpected.</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, marginTop: 8 }} className="text-muted-foreground">{tickerTotal.toLocaleString()} Florida homeowners did this before their last window project.</p>
+            <p className="font-body text-base italic text-foreground">Most contractors budget on the assumption you won't check.<br className="hidden md:block" /> You're about to become the unexpected.</p>
+            <p className="font-body text-sm text-muted-foreground mt-2">{tickerTotal.toLocaleString()} Florida homeowners did this before their last window project.</p>
           </div>
         </div>
       </section>

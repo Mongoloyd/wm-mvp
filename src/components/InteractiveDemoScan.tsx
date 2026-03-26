@@ -252,11 +252,11 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
   const counter = useCounter(activeScan.delta, 1200, phase === "reveal" || phase === "hook");
 
   return (
-    <section className="border-t border-b border-border bg-background py-14 px-4 md:py-20 md:px-8">
+    <section className="border-t border-b border-border bg-background py-20 px-4 md:py-28 md:px-8">
       <div className="text-center mb-9">
-        <p className="font-mono text-[13px] text-cobalt tracking-[0.1em] mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
-        <h2 className="font-display text-[28px] md:text-[34px] font-bold text-foreground mb-1.5">See the AI at work.</h2>
-        <p className="font-body text-[15px] text-muted-foreground">This runs automatically. No upload required.</p>
+        <p className="wm-eyebrow text-cobalt mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
+        <h2 className="wm-title-section mb-1.5" style={{ fontSize: "clamp(28px, 4vw, 34px)" }}>See the AI at work.</h2>
+        <p className="wm-body">This runs automatically. No upload required.</p>
       </div>
 
       <div
@@ -410,8 +410,8 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
       <div className="mx-auto max-w-[520px] mt-4 text-center">
         <button
           onClick={handleCtaClick}
-          className="btn-depth-primary w-full py-3.5 text-[15px]"
-          style={{ borderRadius: 0 }}
+          className="btn-depth-primary w-full"
+          style={{ padding: "14px 24px" }}
         >
           Want to see YOUR quote graded? →
         </button>
