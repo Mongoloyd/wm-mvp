@@ -1,73 +1,85 @@
 
 
-# Bridge Strips + TruthGateFlow Inline Style Refactor
+# Button 3D Depth Upgrade — Premium Tactile Polish
 
-## Part A — Bridge Strips Between Mid-Page Sections
+## What the reference image shows vs current state
 
-### Problem
-The section sequence `IndustryTruth → MarketMakerManifesto → ProcessSteps → NarrativeProof` currently has hard cuts between each module. SocialProofStrip and ScamConcernImage already use `.wm-bridge-strip` (subtle gradient background, double border, inner highlight) to create visual continuity. The mid-page modules lack this treatment, making them feel like stacked islands rather than a connected system.
+The reference image shows buttons with:
+- **Embossed/letterpress text** — the white text has visible depth via stronger `text-shadow` with both a dark underside shadow AND a subtle top highlight
+- **Richer gradient contrast** — the blue button has a more dramatic light-to-dark gradient with a visible gloss band at the top
+- **The orange CTA** has an almost "machined metal" quality — deep gradient, pronounced edge highlights
+- **Heavier bottom shadow** — buttons appear to physically sit on the page
 
-### Changes
+Current `.btn-depth-primary` has a single `text-shadow: 0 1px 2px rgba(0,0,0,0.25)` which gives minimal depth. The gradient is good but could be punchier. The buttons look "correct" but not "rich."
 
-**File: `src/pages/Index.tsx`**
+## The upgrade — 4 specific CSS changes
 
-Insert two `<div className="wm-bridge-strip py-3" />` elements:
-1. Between `ProcessSteps` and `NarrativeProof` (line ~326)
-2. Between `IndustryTruth` and `MarketMakerManifesto` (line ~324)
+### 1. Richer text depth (biggest visual impact)
 
-These are empty connector divs — no content, just the `.wm-bridge-strip` class providing: a `#f9fbff → #f3f8ff` gradient, `border-top` + `border-bottom` with `#d5e1f1`, and inset white highlights. They act as visual mortar between section blocks.
+**File:** `src/index.css` — `.btn-depth-primary`
 
-### Why this is an upgrade
-- Eliminates the "flat gap" between mid-page sections scored 7/10 in the continuity audit
-- Matches the existing bridge strip pattern already used above the fold (SocialProofStrip, ScamConcernImage)
-- Creates the feeling of a continuous instrument panel rather than stacked cards
-- Zero risk — purely additive visual connectors with no logic or layout changes
+**Current:** `text-shadow: 0 1px 2px rgba(0,0,0,0.25);`
 
----
+**New:** Multi-layer text-shadow that creates an embossed/letterpress effect:
+```css
+text-shadow:
+  0 1px 0 rgba(255,255,255,0.12),   /* top highlight — simulates light catching the top edge of letterforms */
+  0 -1px 0 rgba(0,0,0,0.08),        /* dark top edge — adds depth perception */
+  0 2px 4px rgba(0,0,0,0.35),       /* primary drop shadow — deeper than current */
+  0 4px 8px rgba(15,40,100,0.2);    /* ambient glow — makes text feel embedded in the button surface */
+```
 
-## Part B — TruthGateFlow Inline Style Refactor
+**Why:** This is the single highest-ROI change. The reference shows text that looks physically pressed into or raised from the button surface. Multi-layer text-shadow creates that "3D letterform" effect without any DOM changes.
 
-### Problem
-`TruthGateFlow.tsx` has 3 `React.CSSProperties` objects declared at module scope (`labelStyle`, `inputStyle`, `errorTextStyle`) plus 2 imperative event handlers (`handleInputFocus`, `handleInputBlur`) that manually mutate `style` properties. This bypasses the shared design system classes (`.wm-eyebrow`, `.wm-input-well`) that already exist in `index.css`.
+### 2. Punchier gradient with visible gloss band
 
-### Changes
+**Current gradient:** `linear-gradient(180deg, #5AADFF 0%, #2563EB 40%, #1D4ED8 80%, #1a44b8 100%)`
 
-**File: `src/components/TruthGateFlow.tsx`**
+**New gradient:** Add a sharper gloss transition at the top 15% to create a "highlight shelf":
+```css
+background: linear-gradient(180deg,
+  #6BB8FF 0%,      /* brighter gloss cap */
+  #4A9BF5 12%,     /* sharp transition — creates visible "shelf" */
+  #2563EB 40%,
+  #1D4ED8 75%,
+  #162FA0 100%);   /* darker floor — increases contrast range */
+```
 
-1. **Labels** — Replace `style={labelStyle}` with `className="wm-eyebrow mb-1.5"` and add `text-muted-foreground` for color. Delete the `labelStyle` const entirely.
+**Why:** The reference buttons have a visible gloss zone at the top ~15% of the surface. The current gradient is smooth/linear. Adding a brighter cap that drops sharply into the mid-tone creates the "polished dome" effect.
 
-2. **Inputs** — Replace `style={{...inputStyle, borderColor: ...}}` with `className="wm-input-well"` plus conditional border classes:
-   - Default: inherits `.wm-input-well` border (`#b0c4d8`)
-   - Valid: `border-primary` (via className toggle)
-   - Invalid: `border-orange-500` (via className toggle)
-   - Validation icon padding: add `pr-10` class when status is not "untouched"
-   - Delete the `inputStyle` const entirely
+### 3. Stronger inner top highlight
 
-3. **Focus/blur handlers** — Delete `handleInputFocus` and `handleInputBlur` entirely. The `.wm-input-well:focus` rule in `index.css` already handles focus ring (`border-color: rgba(30,127,204,0.55)` + `box-shadow: sunken + 3px blue ring`). No JS needed.
+**Current:** `inset 0 1px 0 rgba(255,255,255,0.22)`
 
-4. **Error text** — Replace `style={errorTextStyle}` with `className="font-body text-xs text-orange-500 mt-1"`. Delete the `errorTextStyle` const.
+**New:** Wider, softer top highlight that simulates a curved reflective surface:
+```css
+inset 0 1px 0 rgba(255,255,255,0.28),
+inset 0 0 8px rgba(255,255,255,0.06),  /* soft inner glow — adds volume */
+```
 
-5. **ValidationIcon** — Replace inline `style` with Tailwind: `className="absolute right-3 top-1/2 -translate-y-1/2 text-base leading-none"` with `text-primary` or `text-orange-500` conditional.
+**Why:** The extra soft inner glow makes the button feel rounded/convex instead of flat, matching the "dome" quality in the reference.
 
-### Why this is an upgrade
-- Removes ~60 lines of imperative inline styling from the most important conversion component
-- Inputs now use the same `.wm-input-well` class used across the system — same gradient, same shadow, same focus ring
-- Labels now use `.wm-eyebrow` — same font, size, tracking as every other eyebrow in the system
-- Focus behavior is CSS-only (`:focus` pseudo-class) instead of JS `onFocus`/`onBlur` handlers that manually set `style` properties — more reliable, less code, better perf
-- Error text uses Tailwind utilities instead of a one-off CSSProperties object
-- Net result: TruthGateFlow's form inputs become indistinguishable from system inputs, eliminating the last major pocket of inline style drift
+### 4. Apply same treatment to hover and secondary button
 
-### Risk
-Low. The `.wm-input-well` and `.wm-input-well:focus` rules already match the exact visual spec of the deleted inline styles (same gradient, same border, same shadow). The only behavioral change is that focus/blur is now CSS-driven instead of JS-driven, which is strictly better.
-
----
+- **Hover state** gets the same text-shadow and a slightly brighter gloss cap
+- **`.btn-secondary-tactile`** gets a subtler version: `text-shadow: 0 1px 0 rgba(255,255,255,0.6)` (light emboss on the white surface)
+- **Active/pressed** state keeps current flat treatment (pressed buttons lose their gloss — this is physically correct)
 
 ## Files changed
-1. `src/pages/Index.tsx` — 2 bridge strip divs added
-2. `src/components/TruthGateFlow.tsx` — delete `labelStyle`, `inputStyle`, `errorTextStyle`, `handleInputFocus`, `handleInputBlur`; replace with system classes
+
+1. `src/index.css` — `.btn-depth-primary` (default, hover, active), `.btn-secondary-tactile`
+
+No component files change. All buttons inherit the upgrade automatically via the shared class.
 
 ## What does NOT change
-- No routes, backend, Supabase, copy, colors, or layout structure
-- TruthGate card-dominant elevation preserved
-- Hero/Demo dominance untouched
+
+- Button sizes, padding, border-radius — all preserved
+- Glint animation — preserved
+- Component files — zero changes
+- No new button types introduced
+- Secondary button remains visually subordinate
+
+## Risk
+
+Very low. Pure CSS property changes on existing classes. Every button using `btn-depth-primary` gets the upgrade simultaneously. Easily reversible.
 
