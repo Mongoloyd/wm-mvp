@@ -479,7 +479,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
   return (
     <section id="truth-gate" className="bg-background">
-      <div className={`mx-auto max-w-2xl px-4 md:px-8 py-16 md:py-24 transition-all duration-500 ${glowing ? 'ring-2 ring-cobalt shadow-lg shadow-cobalt/20' : ''}`}>
+      <div className={`mx-auto max-w-2xl px-4 md:px-8 py-20 md:py-28 transition-all duration-500 ${glowing ? 'ring-2 ring-cobalt shadow-lg shadow-cobalt/20' : ''}`}>
         <p className="text-center mb-2 wm-eyebrow text-muted-foreground">
           THE SCANNER
         </p>
@@ -496,9 +496,8 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         </div>
 
         <div
-          className="card-dominant"
+          className="card-dominant p-7 md:p-8"
           style={{
-            padding: "clamp(28px, 5vw, 40px)",
             minHeight: 280,
             overflow: "hidden",
           }}

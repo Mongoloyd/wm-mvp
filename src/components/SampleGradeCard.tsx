@@ -60,7 +60,7 @@ const SampleGradeCard = () => {
       </div>
       <div className="flex items-center justify-between mb-5 relative">
         <p className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">SAMPLE GRADE REPORT</p>
-        <span className="inline-flex items-center font-mono text-[9px] font-bold tracking-[0.08em] text-primary bg-primary/10 border border-primary/20 px-2 py-0.5">SAMPLE</span>
+        <span className="inline-flex items-center font-mono text-[9px] font-bold tracking-[0.08em] text-primary bg-primary/10 border border-primary/20 px-2 py-0.5" style={{ borderRadius: 'var(--radius-input)' }}>SAMPLE</span>
       </div>
       <AnimatePresence mode="wait">
         <motion.div key={currentIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
@@ -68,7 +68,7 @@ const SampleGradeCard = () => {
             <GradeRing key={currentIndex} percent={report.percent} gradeColor={report.gradeColor} gradientStops={report.gradientStops} grade={report.grade} id={currentIndex} />
             <p className="font-mono text-[11px] text-muted-foreground mt-2">{report.subtitle}</p>
           </div>
-          <div className="relative mb-5 bg-destructive/5 border border-destructive/15 p-3.5">
+          <div className="relative mb-5 bg-destructive/5 border border-destructive/15 p-3.5" style={{ borderRadius: 'var(--radius-input)' }}>
             <div className="flex items-baseline gap-2">
               <AnimatedCounter key={currentIndex} target={report.delta} />
               <span className="font-body text-[13px] font-semibold text-destructive/80">Above Fair Market</span>
@@ -79,7 +79,7 @@ const SampleGradeCard = () => {
             {report.flags.map((flag, i) => {
               const Icon = flag.icon;
               return (
-                <div key={i} className="flex overflow-hidden bg-muted/50 border border-border">
+                <div key={i} className="flex overflow-hidden bg-muted/50 border border-border" style={{ borderRadius: 'var(--radius-input)' }}>
                   <div style={{ width: 3, backgroundColor: flag.stripe, flexShrink: 0 }} />
                   <div className="flex items-start gap-2.5 p-2.5">
                     <Icon size={15} color={flag.color} strokeWidth={2.5} className="mt-0.5 flex-shrink-0" />

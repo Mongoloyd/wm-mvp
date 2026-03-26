@@ -26,11 +26,11 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           WHY WINDOWMAN EXISTS
         </motion.p>
         <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.05 }}
-          className="wm-title-section leading-[1.3] mb-6" style={{ fontSize: "clamp(28px, 4vw, 40px)" }}>
+          className="wm-title-section leading-[1.3] mb-6" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
           THE INDUSTRY BUILT A SYSTEM WHERE YOU NEED THEIR EXPERTISE TO UNDERSTAND THEIR QUOTE.
         </motion.p>
         <motion.p initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.1 }}
-          className="font-display text-primary font-black tracking-[0.01em] uppercase leading-[1.3]" style={{ fontSize: "clamp(28px, 4vw, 40px)" }}>
+          className="font-display text-primary font-black tracking-[0.01em] uppercase leading-[1.3]" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
           WE BUILT A SYSTEM WHERE YOU DON'T.
         </motion.p>
 

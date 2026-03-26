@@ -252,7 +252,8 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
   const counter = useCounter(activeScan.delta, 1200, phase === "reveal" || phase === "hook");
 
   return (
-    <section className="border-t border-b border-border bg-background py-20 px-4 md:py-28 md:px-8">
+    <section className="border-t border-b border-border bg-background py-20 md:py-28">
+      <div className="mx-auto max-w-5xl px-4 md:px-8">
       <div className="text-center mb-9">
         <p className="wm-eyebrow text-cobalt mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
         <h2 className="wm-title-section mb-1.5" style={{ fontSize: "clamp(28px, 4vw, 34px)" }}>See the AI at work.</h2>
@@ -362,14 +363,15 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 </div>
               </motion.div>
 
-              {/* Persistent mini-CTA during reveal phase */}
+              {/* Persistent mini-CTA during reveal phase — tertiary style */}
               {phase === "reveal" && (
                 <motion.button
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.8 }}
                   onClick={handleCtaClick}
-                  className="mt-4 w-full rounded-none border border-border bg-muted px-5 py-2.5 font-body text-[13px] font-semibold text-foreground cursor-pointer hover:bg-accent transition-colors"
+                  className="mt-4 w-full rounded-none btn-secondary-tactile"
+                  style={{ padding: "10px 20px", fontSize: 13, borderRadius: 0 }}
                 >
                   Scan My Quote — It's Free →
                 </motion.button>
@@ -407,14 +409,15 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
       </div>
 
       {/* Persistent CTA below demo */}
-      <div className="mx-auto max-w-[520px] mt-4 text-center">
+      <div className="mx-auto max-w-[520px] mt-6 text-center">
         <button
           onClick={handleCtaClick}
           className="btn-depth-primary w-full"
-          style={{ padding: "14px 24px" }}
+          style={{ padding: "16px 32px" }}
         >
           Want to see YOUR quote graded? →
         </button>
+      </div>
       </div>
     </section>
   );
