@@ -33,8 +33,8 @@ export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClic
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t border-border bg-card/95 p-3 px-4 transition-opacity duration-150 ${isScrolling ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}
-      style={{ boxShadow: "0 -2px 12px rgba(0,0,0,0.04)" }}
+      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card p-3 px-4 transition-opacity duration-150 ${isScrolling ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}
+      style={{ boxShadow: "var(--shadow-shelf-up)" }}
     >
       <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-between w-full">
         {conversionType ? (
@@ -63,8 +63,8 @@ export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClic
               </button>
               <button
                 onClick={onDemoClick}
-                className="flex-1 md:flex-none w-full max-w-[200px] border border-primary/30 bg-transparent text-primary font-bold cursor-pointer"
-                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, padding: "12px 16px" }}
+                className="flex-1 md:flex-none w-full max-w-[200px] btn-secondary-tactile"
+                style={{ fontSize: 14, padding: "12px 16px" }}
               >
                 Watch Live Demo
               </button>

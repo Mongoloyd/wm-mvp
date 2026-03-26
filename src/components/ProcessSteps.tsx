@@ -40,7 +40,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           <div className="grid grid-cols-5 gap-6">
             {steps.map((step, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: i * 0.05 }} className="relative text-center">
-                <div className="mx-auto flex items-center justify-center relative z-10 w-10 h-10 bg-card border border-border">
+                <div className="mx-auto flex items-center justify-center relative z-10 w-10 h-10 card-raised">
                   <span className="font-mono text-[15px] font-bold text-primary">{step.num}</span>
                 </div>
                 <h3 className="font-body text-base font-bold text-foreground mt-3">{step.title}</h3>
@@ -88,7 +88,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           </motion.button>
           {onDemoClick && (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
-              className="block mx-auto mt-4 bg-transparent text-primary font-body text-sm font-semibold border border-primary/30 cursor-pointer" style={{ padding: "12px 28px" }}>
+              className="block mx-auto mt-4 btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
               See the AI in Action — No Upload Needed
             </motion.button>
           )}

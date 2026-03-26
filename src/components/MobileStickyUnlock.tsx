@@ -38,7 +38,7 @@ export function MobileStickyUnlock({
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="h-6 bg-gradient-to-t from-background to-transparent" />
-      <div className="bg-card/95 backdrop-blur-md border-t border-border px-4 py-3">
+      <div className="bg-card border-t border-border px-4 py-3" style={{ boxShadow: "var(--shadow-shelf-up)" }}>
         <button
           onClick={onUnlock}
           className="w-full flex items-center justify-between btn-depth-primary px-5 py-3.5 active:scale-[0.98] transition-transform"

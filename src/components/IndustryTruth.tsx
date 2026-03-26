@@ -45,7 +45,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
               <div className="hidden md:block mb-4">
                 <EvidenceImage src={block.image} alt={block.alt} onClick={() => setLightboxIndex(i)} />
               </div>
-              <div className="flex items-center justify-center w-12 h-12 bg-primary/10">
+              <div className="flex items-center justify-center w-12 h-12 card-raised">
                 <span className="text-2xl leading-none">{block.icon}</span>
               </div>
               <h3 className="font-display text-xl font-bold text-foreground mt-4 uppercase tracking-[0.02em]">{block.heading}</h3>
@@ -55,7 +55,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           ))}
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="text-center mt-16 glass-card-strong" style={{ padding: "clamp(40px, 5vw, 48px) clamp(32px, 5vw, 56px)" }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="text-center mt-16 card-raised" style={{ padding: "clamp(40px, 5vw, 48px) clamp(32px, 5vw, 56px)" }}>
           <p className="font-display text-foreground font-bold tracking-[0.01em] uppercase mb-4" style={{ fontSize: "clamp(22px, 3vw, 30px)" }}>
             MOST HOMEOWNERS ASSUME THE QUOTE REFLECTS THE MARKET RATE.
           </p>
@@ -71,7 +71,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           </motion.button>
           {onDemoClick && (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
-              className="bg-transparent text-primary font-body text-sm font-semibold border border-primary/30 cursor-pointer" style={{ padding: "12px 28px" }}>
+              className="btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
               See the AI in Action — No Upload Needed
             </motion.button>
           )}

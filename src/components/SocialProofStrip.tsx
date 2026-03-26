@@ -33,7 +33,8 @@ const SocialProofStrip = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.15, delay: 0.1 }}
-      className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-center border-y border-border bg-card"
+      className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-center border-y border-border"
+      style={{ background: "linear-gradient(180deg, hsl(214 30% 91%) 0%, hsl(214 35% 95%) 100%)", boxShadow: "var(--shadow-sunken)" }}
     >
       <div
         className="inline-flex items-center divide-x divide-border overflow-hidden border border-border"

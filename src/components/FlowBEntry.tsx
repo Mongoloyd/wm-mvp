@@ -38,7 +38,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
           <div className="flex flex-col md:flex-row gap-5 mb-10" style={{ maxWidth: 680 }}>
             {outcomes.map((item, i) => (
               <div key={i} className="flex items-start gap-3">
-                <div className="flex items-center justify-center shrink-0 w-9 h-9 bg-card border border-border">
+                <div className="flex items-center justify-center shrink-0 w-9 h-9 card-raised">
                   <span className="text-primary text-base">{item.icon}</span>
                 </div>
                 <div>
@@ -71,7 +71,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
               <div className="md:hidden absolute border-l border-border" style={{ left: 19, top: 40, bottom: 40 }} />
               {timelineSteps.map((step, i) => (
                 <div key={i} className="relative flex md:flex-col items-start md:items-center gap-4 md:gap-0">
-                  <div className="shrink-0 flex items-center justify-center relative z-10 w-10 h-10 bg-background border-2 border-primary text-primary" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700 }}>{step.num}</div>
+                  <div className="shrink-0 flex items-center justify-center relative z-10 w-10 h-10 card-raised border-2 border-primary text-primary" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700 }}>{step.num}</div>
                   <div className="md:mt-4 md:text-center">
                     <span className="inline-block mb-2 text-primary bg-primary/5 border border-primary/20" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 500, padding: "3px 10px" }}>{step.badgeText}</span>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, marginBottom: 6 }} className="text-foreground">{step.title}</p>

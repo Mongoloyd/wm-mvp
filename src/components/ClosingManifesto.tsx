@@ -53,7 +53,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           </motion.button>
           {onDemoClick && (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
-              className="block mx-auto mt-4 bg-transparent text-primary font-body text-sm font-semibold border border-primary/30 cursor-pointer" style={{ padding: "12px 28px" }}>
+              className="block mx-auto mt-4 btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
               See the AI in Action — No Upload Needed
             </motion.button>
           )}
