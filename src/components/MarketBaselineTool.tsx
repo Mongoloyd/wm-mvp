@@ -1,21 +1,5 @@
 /**
  * MarketBaselineTool.tsx — Flow B Interactive Baseline Builder
- *
- * THE ENDOWMENT EFFECT IN CODE:
- * The homeowner BUILDS their ideal price by selecting:
- *   - Their county
- *   - Window brand (PGT vs CGI vs generic)
- *   - Window count
- *   - Installation method (fin vs full-frame)
- *   - Project type
- *
- * By configuring the tool themselves, they now feel like they OWN the
- * resulting number. When a contractor arrives and quotes higher, it's
- * not "the market says X" — it's "MY baseline says X."
- *
- * The baseline is saved to localStorage so it persists for their contractor visit.
- * A print/share button lets them send it to the contractor BEFORE the appointment.
- * This is how WindowMan owns the first-impression anchor.
  */
 
 import { useState, useEffect } from 'react';
@@ -33,12 +17,12 @@ interface BaselineConfig {
 }
 
 interface BaselineResult {
-  fairFloor:     number;   // p25 per window × count
-  fairCeiling:   number;   // p75 per window × count
-  fairMid:       number;   // avg per window × count
-  perWindow:     number;   // fair per window
-  brandPremium:  number;   // premium over generic
-  installAdder:  number;   // full-frame vs fin adder
+  fairFloor:     number;
+  fairCeiling:   number;
+  fairMid:       number;
+  perWindow:     number;
+  brandPremium:  number;
+  installAdder:  number;
   warningFlag:   string | null;
   countyData:    CountyMarketData | null;
   brandData:     BrandData | null;
@@ -85,20 +69,12 @@ function calculateBaseline(config: BaselineConfig): BaselineResult {
 // ── SAVED BASELINE ALERT ────────────────────────────────────────────────────
 
 function SavedBaselineAlert({ savedAt }: { savedAt: string }) {
-  const monoFont = "'JetBrains Mono',monospace";
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      padding: '8px 12px',
-      background: 'rgba(16,185,129,0.07)',
-      border: '1px solid rgba(16,185,129,0.22)',
-      borderLeft: '2px solid #10B981',
-      marginBottom: 12,
-    }}>
-      <span style={{ fontFamily: monoFont, fontSize: 10, color: '#34D399', letterSpacing: '0.1em' }}>
+    <div className="flex items-center gap-2 p-2 px-3 mb-3 border border-emerald-200 bg-emerald-50" style={{ borderLeft: '2px solid hsl(var(--color-emerald))' }}>
+      <span className="text-emerald-600" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: '0.1em' }}>
         ✓ BASELINE SAVED — Returns when you visit again
       </span>
-      <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginLeft: 'auto' }}>
+      <span className="text-muted-foreground ml-auto" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9 }}>
         {new Date(savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
       </span>
     </div>
@@ -130,7 +106,6 @@ export default function MarketBaselineTool() {
   const bodyFont = "'DM Sans',sans-serif";
   const dispFont = "'Barlow Condensed',sans-serif";
 
-  // Recalculate on any config change
   useEffect(() => {
     const newResult = calculateBaseline(config);
     setResult(newResult);
@@ -183,28 +158,27 @@ export default function MarketBaselineTool() {
     setConfig(prev => ({ ...prev, [key]: value }));
 
   return (
-    <div id="market-baseline" style={{
-      background: '#0A0A0A', minHeight: '100vh',
+    <div id="market-baseline" className="bg-background text-foreground" style={{
+      minHeight: '100vh',
       padding: '40px 20px', fontFamily: bodyFont,
-      color: '#FFFFFF',
     }}>
       {/* Header */}
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
-        <div style={{ fontFamily: monoFont, fontSize: 9, color: '#00D9FF', letterSpacing: '0.16em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 18, height: 1, background: '#00D9FF' }} />
+        <div className="text-primary" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.16em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="bg-primary" style={{ width: 18, height: 1 }} />
           MARKET BASELINE TOOL — FLOW B
         </div>
         <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 'clamp(26px,5vw,42px)', textTransform: 'uppercase', lineHeight: 1, marginBottom: 8 }}>
           BUILD YOUR FAIR-MARKET BASELINE
         </div>
-        <div style={{ fontSize: 14, color: '#A0B8D8', lineHeight: 1.65, marginBottom: 24, maxWidth: 540 }}>
+        <div className="text-muted-foreground" style={{ fontSize: 14, lineHeight: 1.65, marginBottom: 24, maxWidth: 540 }}>
           Configure your project below. The moment your contractor opens their briefcase, you'll already know the number they're hoping you don't.
         </div>
 
         {justSaved && <SavedBaselineAlert savedAt={result.savedAt} />}
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderBottom: '1px solid #2E3A50' }}>
+        <div className="border-b border-border" style={{ display: 'flex', gap: 0, marginBottom: 20 }}>
           {(['build','compare','checklist'] as const).map(tab => (
             <button
               key={tab}
@@ -212,8 +186,8 @@ export default function MarketBaselineTool() {
               style={{
                 fontFamily: monoFont, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
                 padding: '10px 18px', border: 'none', background: 'transparent', cursor: 'pointer',
-                color: activeTab === tab ? '#00D9FF' : '#7D9DBB',
-                borderBottom: activeTab === tab ? '2px solid #00D9FF' : '2px solid transparent',
+                color: activeTab === tab ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                borderBottom: activeTab === tab ? '2px solid hsl(var(--primary))' : '2px solid transparent',
                 transition: 'all 0.12s ease',
               }}
             >
@@ -231,18 +205,18 @@ export default function MarketBaselineTool() {
 
               {/* County */}
               <div>
-                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 6 }}>COUNTY</div>
+                <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', marginBottom: 6 }}>COUNTY</div>
                 <select
                   value={config.county}
                   onChange={e => update('county', e.target.value)}
+                  className="text-foreground bg-card border border-border outline-none"
                   style={{
-                    fontFamily: bodyFont, fontSize: 13, color: '#FFFFFF',
-                    background: '#161C28', border: '1px solid #2E3A50',
-                    padding: '10px 12px', width: '100%', borderRadius: 0, outline: 'none',
+                    fontFamily: bodyFont, fontSize: 13,
+                    padding: '10px 12px', width: '100%', borderRadius: 0,
                   }}
                 >
                   {FLORIDA_COUNTIES
-                    .filter(c => c.avgScansMonth > 10) // only show counties with data
+                    .filter(c => c.avgScansMonth > 10)
                     .sort((a, b) => b.avgScansMonth - a.avgScansMonth)
                     .map(c => <option key={c.slug} value={c.county}>{c.county}</option>)
                   }
@@ -251,19 +225,21 @@ export default function MarketBaselineTool() {
 
               {/* Brand */}
               <div>
-                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 6 }}>WINDOW BRAND</div>
+                <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', marginBottom: 6 }}>WINDOW BRAND</div>
                 {IMPACT_WINDOW_BRANDS.map(brand => (
                   <button
                     key={brand.name}
                     onClick={() => update('brand', brand.name)}
+                    className={`w-full text-left border transition-all ${
+                      config.brand === brand.name
+                        ? 'bg-primary/5 border-primary text-primary'
+                        : 'bg-card border-border text-foreground'
+                    }`}
                     style={{
-                      width: '100%', textAlign: 'left', padding: '10px 12px',
-                      background: config.brand === brand.name ? 'rgba(0,217,255,0.07)' : '#161C28',
-                      border: `1px solid ${config.brand === brand.name ? '#00D9FF' : '#2E3A50'}`,
-                      color: config.brand === brand.name ? '#00D9FF' : '#C8DEFF',
+                      padding: '10px 12px',
                       fontFamily: bodyFont, fontSize: 13, cursor: 'pointer',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      marginBottom: 4, borderRadius: 0, transition: 'all 0.12s ease',
+                      marginBottom: 4, borderRadius: 0,
                     }}
                   >
                     <span style={{ fontWeight: config.brand === brand.name ? 600 : 400 }}>
@@ -271,8 +247,8 @@ export default function MarketBaselineTool() {
                     </span>
                     <span style={{
                       fontFamily: monoFont, fontSize: 9,
-                      color: brand.tier === 'premium' ? '#10B981' :
-                             brand.tier === 'mid'     ? '#F59E0B' : '#F97316',
+                      color: brand.tier === 'premium' ? 'hsl(var(--color-emerald))' :
+                             brand.tier === 'mid'     ? 'hsl(var(--color-gold-accent))' : 'hsl(var(--color-vivid-orange))',
                       letterSpacing: '0.08em',
                     }}>
                       ${brand.avgPerWindow}/win · {brand.tier.toUpperCase()}
@@ -284,39 +260,40 @@ export default function MarketBaselineTool() {
               {/* Window count slider */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em' }}>WINDOW COUNT</div>
-                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 20, color: '#FFFFFF' }}>{config.windowCount}</div>
+                  <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em' }}>WINDOW COUNT</div>
+                  <div className="text-foreground" style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 20 }}>{config.windowCount}</div>
                 </div>
                 <input
                   type="range" min={1} max={40} step={1}
                   value={config.windowCount}
                   onChange={e => update('windowCount', parseInt(e.target.value))}
-                  style={{ width: '100%', accentColor: '#1D4ED8' }}
+                  style={{ width: '100%', accentColor: 'hsl(var(--primary))' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 2 }}>
+                <div className="text-muted-foreground" style={{ display: 'flex', justifyContent: 'space-between', fontFamily: monoFont, fontSize: 9, marginTop: 2 }}>
                   <span>1</span><span>20</span><span>40</span>
                 </div>
               </div>
 
               {/* Install method */}
               <div>
-                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 6 }}>INSTALLATION METHOD</div>
+                <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', marginBottom: 6 }}>INSTALLATION METHOD</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                   {(['fin', 'full-frame'] as const).map(method => (
                     <button
                       key={method}
                       onClick={() => update('installMethod', method)}
+                      className={`border transition-all ${
+                        config.installMethod === method
+                          ? 'bg-primary/10 border-primary text-primary'
+                          : 'bg-card border-border text-foreground'
+                      }`}
                       style={{
                         padding: '10px', fontFamily: bodyFont, fontSize: 12, cursor: 'pointer', borderRadius: 0,
-                        background: config.installMethod === method ? 'rgba(29,78,216,0.15)' : '#161C28',
-                        border: `1px solid ${config.installMethod === method ? '#1D4ED8' : '#2E3A50'}`,
-                        color: config.installMethod === method ? '#60A5FA' : '#C8DEFF',
                         fontWeight: config.installMethod === method ? 600 : 400,
-                        transition: 'all 0.12s ease',
                       }}
                     >
                       <div>{method === 'fin' ? 'Fin Installation' : 'Full Frame'}</div>
-                      <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 3 }}>
+                      <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, marginTop: 3 }}>
                         {method === 'fin' ? 'Standard · Lower cost' : '+12% · More thorough'}
                       </div>
                     </button>
@@ -327,50 +304,49 @@ export default function MarketBaselineTool() {
 
             {/* RIGHT: Live result */}
             <div>
-              <div style={{
-                background: '#111418', border: '1px solid #2E3A50',
-                borderTop: '2px solid #1D4ED8', padding: 20, marginBottom: 12,
+              <div className="glass-card-strong" style={{
+                borderTop: '2px solid hsl(var(--primary))', padding: 20, marginBottom: 12,
               }}>
-                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 16 }}>
+                <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', marginBottom: 16 }}>
                   YOUR FAIR-MARKET RANGE
                 </div>
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB', marginBottom: 4 }}>FAIR FLOOR (25th pct)</div>
-                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: '#10B981' }}>
+                  <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 10, marginBottom: 4 }}>FAIR FLOOR (25th pct)</div>
+                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: 'hsl(var(--color-emerald))' }}>
                     ${result.fairFloor.toLocaleString()}
                   </div>
                 </div>
-                <div style={{ height: 1, background: '#2E3A50', margin: '12px 0' }} />
+                <div className="border-b border-border my-3" />
                 <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontFamily: monoFont, fontSize: 10, color: '#00D9FF', marginBottom: 4 }}>YOUR FAIR MIDPOINT</div>
-                  <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 40, color: '#FFFFFF' }}>
+                  <div className="text-primary" style={{ fontFamily: monoFont, fontSize: 10, marginBottom: 4 }}>YOUR FAIR MIDPOINT</div>
+                  <div className="text-foreground" style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 40 }}>
                     ${result.fairMid.toLocaleString()}
                   </div>
-                  <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 2 }}>
+                  <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, marginTop: 2 }}>
                     ${result.perWindow.toLocaleString()}/window · {config.windowCount} windows
                   </div>
                 </div>
-                <div style={{ height: 1, background: '#2E3A50', margin: '12px 0' }} />
+                <div className="border-b border-border my-3" />
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB', marginBottom: 4 }}>FAIR CEILING (75th pct)</div>
-                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: '#F59E0B' }}>
+                  <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 10, marginBottom: 4 }}>FAIR CEILING (75th pct)</div>
+                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: 'hsl(var(--color-gold-accent))' }}>
                     ${result.fairCeiling.toLocaleString()}
                   </div>
                 </div>
 
                 {result.installAdder > 0 && (
-                  <div style={{ fontSize: 12, color: '#A0B8D8', marginBottom: 6 }}>
-                    Full-frame install adds ~<span style={{ color: '#F59E0B' }}>${result.installAdder.toLocaleString()}</span>
+                  <div className="text-muted-foreground" style={{ fontSize: 12, marginBottom: 6 }}>
+                    Full-frame install adds ~<span style={{ color: 'hsl(var(--color-gold-accent))' }}>${result.installAdder.toLocaleString()}</span>
                   </div>
                 )}
 
                 {result.warningFlag && (
                   <div style={{
-                    background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.25)',
-                    borderLeft: '2px solid #F97316', padding: '10px 12px', marginTop: 12,
+                    background: 'hsl(var(--color-vivid-orange) / 0.06)', border: '1px solid hsl(var(--color-vivid-orange) / 0.2)',
+                    borderLeft: '2px solid hsl(var(--color-vivid-orange))', padding: '10px 12px', marginTop: 12,
                   }}>
-                    <div style={{ fontFamily: monoFont, fontSize: 9, color: '#F97316', letterSpacing: '0.1em', marginBottom: 4 }}>▲ FLAG</div>
-                    <div style={{ fontSize: 12, color: '#A0B8D8' }}>{result.warningFlag}</div>
+                    <div style={{ fontFamily: monoFont, fontSize: 9, color: 'hsl(var(--color-vivid-orange))', letterSpacing: '0.1em', marginBottom: 4 }}>▲ FLAG</div>
+                    <div className="text-muted-foreground" style={{ fontSize: 12 }}>{result.warningFlag}</div>
                   </div>
                 )}
               </div>
@@ -379,19 +355,20 @@ export default function MarketBaselineTool() {
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   onClick={saveBaseline}
+                  className="btn-depth-primary flex-1"
                   style={{
-                    flex: 1, fontFamily: bodyFont, fontWeight: 700, fontSize: 13, color: '#FFFFFF',
-                    background: justSaved ? '#065F46' : '#0B60C5', border: 'none',
-                    padding: '11px', borderRadius: 2, cursor: 'pointer', transition: 'background 0.2s',
+                    fontFamily: bodyFont, fontWeight: 700, fontSize: 13,
+                    padding: '11px', borderRadius: 2,
+                    background: justSaved ? 'hsl(var(--color-emerald))' : undefined,
                   }}
                 >
                   {justSaved ? '✓ SAVED' : 'SAVE BASELINE'}
                 </button>
                 <button
                   onClick={printBaseline}
+                  className="text-muted-foreground bg-transparent border border-border hover:bg-muted transition-colors"
                   style={{
-                    fontFamily: bodyFont, fontWeight: 600, fontSize: 12, color: '#A0B8D8',
-                    background: 'transparent', border: '1px solid #2E3A50',
+                    fontFamily: bodyFont, fontWeight: 600, fontSize: 12,
                     padding: '11px 14px', borderRadius: 2, cursor: 'pointer',
                     whiteSpace: 'nowrap',
                   }}
@@ -399,7 +376,7 @@ export default function MarketBaselineTool() {
                   ⬇ DOWNLOAD
                 </button>
               </div>
-              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 8, textAlign: 'center', letterSpacing: '0.06em' }}>
+              <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, marginTop: 8, textAlign: 'center', letterSpacing: '0.06em' }}>
                 Share this baseline with your contractor before they quote
               </div>
             </div>
@@ -409,7 +386,7 @@ export default function MarketBaselineTool() {
         {/* ── BRAND COMPARE TAB ─────────────────────────────────────────── */}
         {activeTab === 'compare' && (
           <div>
-            <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 16 }}>
+            <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 10, letterSpacing: '0.1em', marginBottom: 16 }}>
               BRAND COMPARISON FOR {config.windowCount} WINDOWS · {config.county.toUpperCase()}
             </div>
             {IMPACT_WINDOW_BRANDS.map(brand => {
@@ -419,34 +396,35 @@ export default function MarketBaselineTool() {
                 <div
                   key={brand.name}
                   onClick={() => update('brand', brand.name)}
+                  className={`border transition-all cursor-pointer ${
+                    isSelected ? 'bg-primary/5 border-primary' : 'bg-card border-border'
+                  }`}
                   style={{
                     display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px 60px',
-                    gap: 0, background: isSelected ? 'rgba(0,217,255,0.05)' : '#111418',
-                    border: `1px solid ${isSelected ? '#00D9FF' : '#2E3A50'}`,
-                    padding: '12px 14px', marginBottom: 4, cursor: 'pointer',
-                    alignItems: 'center', transition: 'all 0.12s ease',
+                    gap: 0, padding: '12px 14px', marginBottom: 4,
+                    alignItems: 'center',
                   }}
                 >
                   <div>
-                    <div style={{ fontFamily: bodyFont, fontSize: 13, fontWeight: 600, color: isSelected ? '#00D9FF' : '#FFFFFF' }}>
+                    <div className={isSelected ? 'text-primary' : 'text-foreground'} style={{ fontFamily: bodyFont, fontSize: 13, fontWeight: 600 }}>
                       {brand.name}
                     </div>
-                    <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 2 }}>
+                    <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, marginTop: 2 }}>
                       {brand.warranty}yr warranty · NOA: {brand.noaStatus}
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', fontFamily: dispFont, fontWeight: 800, fontSize: 16,
-                    color: brand.tier === 'premium' ? '#10B981' : brand.tier === 'mid' ? '#F59E0B' : '#F97316' }}>
+                    color: brand.tier === 'premium' ? 'hsl(var(--color-emerald))' : brand.tier === 'mid' ? 'hsl(var(--color-gold-accent))' : 'hsl(var(--color-vivid-orange))' }}>
                     ${brandResult.perWindow.toLocaleString()}
                   </div>
-                  <div style={{ textAlign: 'right', fontFamily: dispFont, fontWeight: 700, fontSize: 14, color: '#C8DEFF' }}>
+                  <div className="text-foreground" style={{ textAlign: 'right', fontFamily: dispFont, fontWeight: 700, fontSize: 14 }}>
                     ${brandResult.fairMid.toLocaleString()}
                   </div>
-                  <div style={{ textAlign: 'right', fontFamily: monoFont, fontSize: 9, color: '#7D9DBB' }}>
+                  <div className="text-muted-foreground" style={{ textAlign: 'right', fontFamily: monoFont, fontSize: 9 }}>
                     {brand.tier.toUpperCase()}
                   </div>
                   {isSelected && (
-                    <div style={{ fontFamily: monoFont, fontSize: 9, color: '#00D9FF', textAlign: 'right' }}>
+                    <div className="text-primary" style={{ fontFamily: monoFont, fontSize: 9, textAlign: 'right' }}>
                       ◈ SELECTED
                     </div>
                   )}
@@ -459,63 +437,64 @@ export default function MarketBaselineTool() {
         {/* ── CONTRACTOR CHECKLIST TAB ───────────────────────────────────── */}
         {activeTab === 'checklist' && (
           <div>
-            <div style={{ fontSize: 14, color: '#A0B8D8', lineHeight: 1.7, marginBottom: 20 }}>
+            <div className="text-muted-foreground" style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 20 }}>
               Print or save this. When the contractor arrives, ask these five questions before accepting any quote.
             </div>
             {[
               {
-                badge: '▲ CRITICAL',   badgeColor: '#F87171',
+                badge: '▲ CRITICAL',   badgeColor: 'hsl(var(--color-danger))',
                 q: 'What specific brand AND model number are you installing?',
                 why: 'Without a named brand, your contractor can install any quality after signing. The brand is the product you\'re actually buying.',
                 script: '"Please add the brand, model, and NOA number to the contract before I sign."',
               },
               {
-                badge: '▲ CRITICAL',   badgeColor: '#F87171',
+                badge: '▲ CRITICAL',   badgeColor: 'hsl(var(--color-danger))',
                 q: 'Is the permit listed as a separate line item with a dollar amount?',
                 why: '"Permit included" is one of the most expensive phrases in a window contract. Without a dollar amount, they control whether a permit is pulled.',
                 script: '"Can you show me the permit as a separate line item? I\'d like to confirm it\'s being pulled before work begins."',
               },
               {
-                badge: '⚡ IMPORTANT', badgeColor: '#F59E0B',
+                badge: '⚡ IMPORTANT', badgeColor: 'hsl(var(--color-gold-accent))',
                 q: 'What is the labor warranty period?',
                 why: 'Florida state minimum is 3 years for full replacement. Many contractors quote 1 year. That gap is not an accident.',
                 script: '"What is the labor warranty and does it remain valid if I file a manufacturer warranty claim?"',
               },
               {
-                badge: '⚡ IMPORTANT', badgeColor: '#F59E0B',
+                badge: '⚡ IMPORTANT', badgeColor: 'hsl(var(--color-gold-accent))',
                 q: 'Is this a fin installation, full frame replacement, or something else?',
                 why: 'Installation method affects energy efficiency, water intrusion risk, and cost. If not specified, they choose the cheapest method after signing.',
                 script: '"Please add the installation method to the contract language."',
               },
               {
-                badge: '◎ TECHNICAL', badgeColor: '#60A5FA',
+                badge: '◎ TECHNICAL', badgeColor: 'hsl(var(--primary))',
                 q: 'Is the installation crew licensed and insured in Florida?',
                 why: 'Unlicensed subcontractors void your homeowner\'s insurance in Florida if damage occurs during installation.',
                 script: '"Can you provide the license number and COI for the crew installing the windows?"',
               },
             ].map((item, i) => (
-              <div key={i} style={{
-                background: '#111418', border: '1px solid #2E3A50', borderLeft: '2px solid #2E3A50',
+              <div key={i} className="glass-card-strong" style={{
+                borderLeft: '2px solid hsl(var(--border))',
                 padding: '16px', marginBottom: 8,
               }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
                   <span style={{
                     fontFamily: monoFont, fontSize: 9, color: item.badgeColor,
-                    background: `${item.badgeColor}20`, border: `1px solid ${item.badgeColor}40`,
+                    background: `color-mix(in srgb, ${item.badgeColor} 8%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${item.badgeColor} 25%, transparent)`,
                     padding: '2px 7px', borderRadius: 2, letterSpacing: '0.1em',
                   }}>
                     {item.badge}
                   </span>
                 </div>
-                <div style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF', marginBottom: 8 }}>
+                <div className="text-foreground" style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
                   {item.q}
                 </div>
-                <div style={{ fontFamily: bodyFont, fontSize: 13, color: '#7D9DBB', lineHeight: 1.65, marginBottom: 10 }}>
+                <div className="text-muted-foreground" style={{ fontFamily: bodyFont, fontSize: 13, lineHeight: 1.65, marginBottom: 10 }}>
                   {item.why}
                 </div>
-                <div style={{
-                  fontFamily: bodyFont, fontSize: 12, fontStyle: 'italic', color: '#A0B8D8',
-                  background: '#0D1B35', padding: '8px 12px', borderLeft: '2px solid #1D4ED8',
+                <div className="text-secondary-foreground bg-muted" style={{
+                  fontFamily: bodyFont, fontSize: 12, fontStyle: 'italic',
+                  padding: '8px 12px', borderLeft: '2px solid hsl(var(--primary))',
                 }}>
                   "{item.script}"
                 </div>
