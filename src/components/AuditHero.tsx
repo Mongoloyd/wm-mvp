@@ -95,7 +95,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => scrollTo("truth-gate")}
+                onClick={() => onUploadQuote?.()}
                 style={{
                   background: "#2563EB",
                   color: "#FFFFFF",
