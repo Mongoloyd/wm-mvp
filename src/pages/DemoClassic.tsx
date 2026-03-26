@@ -194,11 +194,13 @@ const DemoClassic = () => {
           phoneDigitCount,
           onPhoneChange: handlePhoneChange,
           onPhoneSubmit: handlePhoneSubmit,
-          isLoading,
-          errorMsg,
-          resendCooldown,
-          onResend: handleResend,
-        }
+           isLoading,
+           errorMsg,
+           resendCooldown,
+           onResend: handleResend,
+           tcpaConsent,
+           onTcpaChange: setTcpaConsent,
+         }
       : undefined;
 
   return (
