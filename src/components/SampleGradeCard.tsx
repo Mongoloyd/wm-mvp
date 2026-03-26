@@ -33,7 +33,7 @@ const GradeRing = ({ percent, gradeColor, gradientStops, grade, id }: { percent:
       </svg>
       <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.15, delay: 0.1 }}
         className="font-display leading-none"
-        style={{ fontSize: 64, fontWeight: 900, color: gradeColor, textShadow: `0 0 40px ${gradeColor}66` }}>
+        style={{ fontSize: 64, fontWeight: 900, color: gradeColor, textShadow: `2px 2px 0px rgba(0,0,0,0.15), 3px 3px 6px ${gradeColor}44` }}>
         {grade}
       </motion.span>
     </div>
