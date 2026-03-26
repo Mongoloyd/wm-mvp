@@ -72,12 +72,10 @@ const Index = () => {
   useEffect(() => {
     if (resumeCheckedRef.current) return;
     resumeCheckedRef.current = true;
-
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('resume') !== '1') return;
     const record = getVerifiedAccess();
     if (!record) return;
-
-    // Resume record found — restoring scan state
-    // Restore enough state to render the report view
     setScanSessionId(record.scan_session_id);
     setFileUploaded(true);
     setGradeRevealed(true);
@@ -87,10 +85,10 @@ const Index = () => {
   // After scanSessionId is set from resume, try auto-fetching full data
   useEffect(() => {
     if (!scanSessionId || isFullLoaded || isResuming) return;
-    // Only auto-resume if we restored from localStorage (gradeRevealed is true on mount)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('resume') !== '1') return;
     const record = getVerifiedAccess(scanSessionId);
     if (!record) return;
-
     tryResume();
   }, [scanSessionId, isFullLoaded, isResuming, tryResume]);
 
