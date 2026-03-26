@@ -38,7 +38,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           className="grid grid-cols-2 gap-4 mx-auto mt-12" style={{ maxWidth: 560 }}>
           {dynamicChecks.map((text, i) => (
             <div key={i} className="flex items-start gap-2.5 text-left">
-              <div className="flex items-center justify-center flex-shrink-0 w-6 h-6 bg-primary/10">
+              <div className="flex items-center justify-center flex-shrink-0 w-6 h-6 card-raised">
                 <span className="text-primary text-xs font-bold">✓</span>
               </div>
               <span className="font-body text-sm text-muted-foreground">{text}</span>
