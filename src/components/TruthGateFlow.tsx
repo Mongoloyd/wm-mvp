@@ -373,54 +373,52 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label style={labelStyle}>FIRST NAME</label>
-            <div style={{ position: "relative" }}>
+            <label className="wm-eyebrow mb-1.5 text-muted-foreground block">FIRST NAME</label>
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Your first name"
                 autoComplete="given-name"
                 value={answers.firstName}
                 onChange={(e) => setAnswers((p) => ({ ...p, firstName: e.target.value }))}
-                style={{
-                  ...inputStyle,
-                  borderColor: fieldStatus.firstName === "invalid" ? "#F97316" : fieldStatus.firstName === "valid" ? "hsl(var(--primary))" : "hsl(var(--border))",
-                  paddingRight: fieldStatus.firstName !== "untouched" ? 40 : 16,
-                }}
-                onFocus={handleInputFocus}
-                onBlur={(e) => { handleInputBlur(e); handleFieldBlur("firstName", answers.firstName); }}
+                className={`wm-input-well w-full h-12 px-4 font-body text-[15px] text-foreground outline-none ${
+                  fieldStatus.firstName !== "untouched" ? "pr-10" : ""
+                } ${
+                  fieldStatus.firstName === "invalid" ? "border-orange-500" : fieldStatus.firstName === "valid" ? "border-primary" : ""
+                }`}
+                onBlur={() => handleFieldBlur("firstName", answers.firstName)}
               />
               {fieldStatus.firstName === "valid" && <ValidationIcon valid />}
               {fieldStatus.firstName === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.firstName === "invalid" && (
-              <p style={errorTextStyle}>Please enter your first name (2+ characters)</p>
+              <p className="font-body text-xs text-orange-500 mt-1">Please enter your first name (2+ characters)</p>
             )}
           </div>
 
           <div>
-            <label style={labelStyle}>
+            <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
               EMAIL ADDRESS <span className="text-muted-foreground font-normal">(your grade report is sent here)</span>
             </label>
-            <div style={{ position: "relative" }}>
+            <div className="relative">
               <input
                 type="email"
                 placeholder="your@email.com"
                 autoComplete="email"
                 value={answers.email}
                 onChange={(e) => setAnswers((p) => ({ ...p, email: e.target.value }))}
-                style={{
-                  ...inputStyle,
-                  borderColor: fieldStatus.email === "invalid" ? "#F97316" : fieldStatus.email === "valid" ? "hsl(var(--primary))" : "hsl(var(--border))",
-                  paddingRight: fieldStatus.email !== "untouched" ? 40 : 16,
-                }}
-                onFocus={handleInputFocus}
-                onBlur={(e) => { handleInputBlur(e); handleFieldBlur("email", answers.email); }}
+                className={`wm-input-well w-full h-12 px-4 font-body text-[15px] text-foreground outline-none ${
+                  fieldStatus.email !== "untouched" ? "pr-10" : ""
+                } ${
+                  fieldStatus.email === "invalid" ? "border-orange-500" : fieldStatus.email === "valid" ? "border-primary" : ""
+                }`}
+                onBlur={() => handleFieldBlur("email", answers.email)}
               />
               {fieldStatus.email === "valid" && <ValidationIcon valid />}
               {fieldStatus.email === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.email === "invalid" && (
-              <p style={errorTextStyle}>Please enter a valid email address</p>
+              <p className="font-body text-xs text-orange-500 mt-1">Please enter a valid email address</p>
             )}
           </div>
 
@@ -509,60 +507,8 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   );
 };
 
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontFamily: "var(--wm-font-mono)",
-  fontSize: 10,
-  color: "hsl(var(--muted-foreground))",
-  letterSpacing: "0.12em",
-  textTransform: "uppercase",
-  marginBottom: 6,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  height: 48,
-  border: "1px solid hsl(214 28% 78%)",
-  borderRadius: 'var(--radius-input)',
-  padding: "0 16px",
-  fontFamily: "var(--wm-font-body)",
-  fontSize: 15,
-  color: "hsl(var(--foreground))",
-  background: "linear-gradient(180deg, hsl(214 30% 91%) 0%, hsl(214 35% 95%) 100%)",
-  outline: "none",
-  transition: "border-color 0.15s, box-shadow 0.15s",
-  boxSizing: "border-box",
-  boxShadow: "var(--shadow-sunken)",
-};
-
-const errorTextStyle: React.CSSProperties = {
-  fontFamily: "var(--wm-font-body)",
-  fontSize: 12,
-  color: "#F97316",
-  marginTop: 4,
-};
-
-const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.boxShadow = "var(--shadow-sunken), var(--shadow-focus)";
-  e.currentTarget.style.borderColor = "hsl(217 91% 53%)";
-};
-
-const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.boxShadow = "var(--shadow-sunken)";
-};
-
 const ValidationIcon = ({ valid }: { valid: boolean }) => (
-  <span
-    style={{
-      position: "absolute",
-      right: 12,
-      top: "50%",
-      transform: "translateY(-50%)",
-      fontSize: 16,
-      lineHeight: 1,
-      color: valid ? "#2563EB" : "#F97316",
-    }}
-  >
+  <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-base leading-none ${valid ? "text-primary" : "text-orange-500"}`}>
     {valid ? "✓" : "✗"}
   </span>
 );
