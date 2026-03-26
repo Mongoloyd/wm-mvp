@@ -17,14 +17,13 @@ export default function ShadowTest() {
         Shadow System Comparison
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-        {/* ── OLD (hardcoded) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        {/* ── OLD (hardcoded directional) ── */}
         <div className="space-y-8">
           <h2 className="text-lg font-semibold text-muted-foreground text-center uppercase tracking-wider">
-            Previous (directional)
+            A — Original (directional)
           </h2>
 
-          {/* Old primary button */}
           <div className="flex flex-col items-center gap-4">
             <p className="text-xs text-muted-foreground font-mono">btn-depth-primary</p>
             <button
@@ -44,7 +43,6 @@ export default function ShadowTest() {
             </button>
           </div>
 
-          {/* Old card */}
           <div className="flex flex-col items-center gap-4">
             <p className="text-xs text-muted-foreground font-mono">card-raised</p>
             <div
@@ -62,13 +60,12 @@ export default function ShadowTest() {
           </div>
         </div>
 
-        {/* ── NEW (live design system) ── */}
+        {/* ── B — Current design system ── */}
         <div className="space-y-8">
           <h2 className="text-lg font-semibold text-muted-foreground text-center uppercase tracking-wider">
-            Current (centered, 5-layer)
+            B — Current (centered, 5-layer)
           </h2>
 
-          {/* New primary button */}
           <div className="flex flex-col items-center gap-4">
             <p className="text-xs text-muted-foreground font-mono">btn-depth-primary</p>
             <button className="btn-depth-primary px-8 py-4">
@@ -76,12 +73,63 @@ export default function ShadowTest() {
             </button>
           </div>
 
-          {/* New card */}
           <div className="flex flex-col items-center gap-4">
             <p className="text-xs text-muted-foreground font-mono">card-raised</p>
             <div className="card-raised p-6 w-full max-w-sm">
               <p className="text-sm text-foreground font-semibold">Sample Grade Card</p>
               <p className="text-xs text-muted-foreground mt-2">New centered shadow system — coherent lighting.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── C — Proposed tactile (user spec) ── */}
+        <div className="space-y-8">
+          <h2 className="text-lg font-semibold text-muted-foreground text-center uppercase tracking-wider">
+            C — Proposed (6-layer tactile)
+          </h2>
+
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-xs text-muted-foreground font-mono">btn-depth-primary (proposed)</p>
+            <button
+              className="inline-flex items-center justify-center overflow-hidden text-white font-bold text-base px-8 py-4 cursor-pointer transition-transform"
+              style={{
+                background: 'linear-gradient(180deg, #6BB8FF 0%, #3B82F6 40%, #1D4ED8 100%)',
+                border: '1px solid #1a4fc0',
+                borderTop: '1px solid rgba(255,255,255,0.35)',
+                borderRadius: 'var(--radius-btn)',
+                boxShadow: '0 1px 1px rgba(0,0,0,0.25), 0 4px 8px rgba(0,0,0,0.18), 0 10px 24px rgba(0,0,0,0.08), 0 4px 16px rgba(37,99,235,0.18), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.15)',
+                textShadow: '0 1px 2px rgba(0,0,0,0.25)',
+              }}
+              onMouseEnter={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.transform = 'translateY(-3px)';
+                btn.style.boxShadow = '0 2px 2px rgba(0,0,0,0.28), 0 6px 14px rgba(0,0,0,0.2), 0 16px 36px rgba(0,0,0,0.1), 0 6px 20px rgba(37,99,235,0.22), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.12)';
+              }}
+              onMouseLeave={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.transform = 'none';
+                btn.style.boxShadow = '0 1px 1px rgba(0,0,0,0.25), 0 4px 8px rgba(0,0,0,0.18), 0 10px 24px rgba(0,0,0,0.08), 0 4px 16px rgba(37,99,235,0.18), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.15)';
+              }}
+              onMouseDown={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.transform = 'translateY(1px)';
+                btn.style.boxShadow = 'inset 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 2px rgba(0,0,0,0.2)';
+              }}
+              onMouseUp={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.transform = 'translateY(-3px)';
+                btn.style.boxShadow = '0 2px 2px rgba(0,0,0,0.28), 0 6px 14px rgba(0,0,0,0.2), 0 16px 36px rgba(0,0,0,0.1), 0 6px 20px rgba(37,99,235,0.22), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.12)';
+              }}
+            >
+              Scan My Quote — It's Free
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-xs text-muted-foreground font-mono">card-raised (same as B)</p>
+            <div className="card-raised p-6 w-full max-w-sm">
+              <p className="text-sm text-foreground font-semibold">Sample Grade Card</p>
+              <p className="text-xs text-muted-foreground mt-2">Card unchanged — comparing buttons only.</p>
             </div>
           </div>
         </div>
