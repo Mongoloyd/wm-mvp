@@ -9,9 +9,9 @@
 
 @layer base {
   :root {
-    /* Cool blue-white "desk" surface */
+    /* Cool blue-white "desk" surface with subtle warm-cool tension */
     --background: 214 35% 95%;
-    --foreground: 210 40% 14%;
+    --foreground: 210 45% 11%;
 
     --card: 0 0% 100%;
     --card-foreground: 210 40% 14%;
@@ -27,7 +27,7 @@
     --secondary-foreground: 210 40% 14%;
 
     --muted: 210 30% 93%;
-    --muted-foreground: 215 20% 35%;
+    --muted-foreground: 215 20% 32%;
 
     --accent: 210 30% 93%;
     --accent-foreground: 210 40% 14%;
