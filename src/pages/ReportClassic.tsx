@@ -420,6 +420,7 @@ export default function ReportClassic() {
       reportCallRequested={reportCallRequested}
       isCtaLoading={isCtaLoading}
       suggestedMatch={suggestedMatch}
+      derivedMetrics={analysisData.derivedMetrics as any}
     />
   );
 }

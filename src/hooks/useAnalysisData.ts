@@ -54,6 +54,8 @@ export interface AnalysisData {
   hasWarranty: boolean | null;
   hasPermits: boolean | null;
   analysisStatus: string | null;
+  /** Financial metrics from calculate-estimate-metrics (full only) */
+  derivedMetrics?: Record<string, unknown> | null;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -304,9 +306,13 @@ export function useAnalysisData(
 
       const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
       const previewJson = row.preview_json as Record<string, unknown> | null;
+      const fullJsonRaw = row.full_json as Record<string, unknown> | null;
       const flags = mapFlags(row.flags);
       const qualityBandRaw = previewJson?.quality_band as string | undefined;
       const validBands = new Set(["good", "fair", "poor"]);
+
+      // Extract derived_metrics from full_json (computed by scan-quote)
+      const derivedMetrics = (fullJsonRaw?.derived_metrics as Record<string, unknown>) || null;
 
       setData({
         grade: row.grade,
@@ -325,6 +331,7 @@ export function useAnalysisData(
         hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
         hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
         analysisStatus: "complete",
+        derivedMetrics,
       });
       setIsFullLoaded(true);
       // Save resume record for returning users
@@ -373,9 +380,12 @@ export function useAnalysisData(
 
       const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
       const previewJson = row.preview_json as Record<string, unknown> | null;
+      const fullJsonRaw = row.full_json as Record<string, unknown> | null;
       const flags = mapFlags(row.flags);
       const qualityBandRaw = previewJson?.quality_band as string | undefined;
       const validBands = new Set(["good", "fair", "poor"]);
+
+      const derivedMetrics = (fullJsonRaw?.derived_metrics as Record<string, unknown>) || null;
 
       setData({
         grade: row.grade,
@@ -394,6 +404,7 @@ export function useAnalysisData(
         hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
         hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
         analysisStatus: "complete",
+        derivedMetrics,
       });
       previewFetchedRef.current = scanSessionId;
       setIsFullLoaded(true);
