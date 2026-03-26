@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Ruler, DollarSign, FileText, ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
 import { LockedOverlay } from "@/components/LockedOverlay";
 import type { LockedOverlayProps } from "@/components/LockedOverlay";
+import TopViolationSummaryStrip from "@/components/TopViolationSummaryStrip";
+import { selectTopViolation } from "@/utils/selectTopViolation";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 import { MATCH_REASON_HOMEOWNER, type MatchReasonKey, type MatchConfidence } from "@/shared/matchReasons";
 
@@ -266,6 +268,25 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           </div>
         </motion.section>
       )}
+
+      {/* ─── TOP VIOLATION SUMMARY STRIP ─── */}
+      {(() => {
+        const topViolation = selectTopViolation(flags, grade);
+        if (!topViolation) return null;
+        return (
+          <section className="py-4 px-4 md:px-8 bg-background">
+            <div className="max-w-4xl mx-auto">
+              <TopViolationSummaryStrip
+                title={topViolation.title}
+                consequence={topViolation.consequence}
+                impactLabel={topViolation.impactLabel}
+                severity={topViolation.severity}
+                locked={!isFull}
+              />
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ─── 5-PILLAR ANALYSIS ─── */}
       <section className="py-10 md:py-14 px-4 md:px-8 bg-background border-b border-border">
