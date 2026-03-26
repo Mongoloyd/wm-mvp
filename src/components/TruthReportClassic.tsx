@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Ruler, DollarSign, FileText, ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
+import { Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
+import ForensicPillarSection from "@/components/report/ForensicPillarSection";
 import { LockedOverlay } from "@/components/LockedOverlay";
 import type { LockedOverlayProps } from "@/components/LockedOverlay";
 import TopViolationSummaryStrip from "@/components/TopViolationSummaryStrip";
