@@ -211,7 +211,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
     }
   }, [onScanClick]);
 
-  // Phase machine — always auto-advances
+  // Phase machine
   useEffect(() => {
     const set = (p: Phase, ms: number) => {
       timerRef.current = setTimeout(() => {
@@ -255,12 +255,12 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
     <section className="border-t border-b border-border bg-background py-14 px-4 md:py-20 md:px-8">
       <div className="text-center mb-9">
         <p className="font-mono text-[13px] text-cobalt tracking-[0.1em] mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
-        <h2 className="font-display text-[28px] md:text-[34px] font-bold text-white mb-1.5">See the AI at work.</h2>
-        <p className="font-body text-[15px] text-foreground">This runs automatically. No upload required.</p>
+        <h2 className="font-display text-[28px] md:text-[34px] font-bold text-foreground mb-1.5">See the AI at work.</h2>
+        <p className="font-body text-[15px] text-muted-foreground">This runs automatically. No upload required.</p>
       </div>
 
       <div
-        className="mx-auto max-w-[520px] rounded-none border-[1.5px] border-border bg-card p-6 md:p-8 shadow-[0_4px_24px_rgba(0,242,255,0.12),0_16px_48px_rgba(0,242,255,0.06),0_2px_8px_rgba(0,0,0,0.08)] min-h-[480px] flex flex-col relative"
+        className="mx-auto max-w-[520px] rounded-none border-[1.5px] border-border bg-card p-6 md:p-8 shadow-focus min-h-[480px] flex flex-col relative"
       >
         <AnimatePresence mode="wait">
           {/* ── PHASES 1 & 2: Document & Scan ───────── */}
@@ -329,7 +329,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 <p className={`font-mono text-[10px] font-bold tracking-wider ${activeScan.flag1Color}`}>
                   {activeScan.flag1Label}
                 </p>
-                <p className="font-body text-[14px] font-semibold text-white mt-1.5">{activeScan.flag1Title}</p>
+                <p className="font-body text-[14px] font-semibold text-foreground mt-1.5">{activeScan.flag1Title}</p>
                 <p className="font-body text-[13px] text-muted-foreground mt-1">{activeScan.flag1Desc}</p>
               </motion.div>
 
@@ -350,7 +350,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 <p className={`font-mono text-[10px] font-bold tracking-wider ${activeScan.flag2Color}`}>
                   {activeScan.flag2Label}
                 </p>
-                <p className="font-body text-[14px] font-semibold text-white mt-1.5">{activeScan.flag2Title}</p>
+                <p className="font-body text-[14px] font-semibold text-foreground mt-1.5">{activeScan.flag2Title}</p>
                 <div className="flex items-center gap-1 mt-1.5">
                   {Array.from({ length: 12 }).map((_, i) => (
                     <div key={i} className="h-2 w-2 rounded-[1px] bg-muted-foreground/30" />
@@ -387,7 +387,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                     transition={{ duration: 0.4 }}
                     className="w-full pt-4 border-t border-border mt-4"
                   >
-                    <p className="font-display text-[15px] italic text-white text-center mb-3">
+                    <p className="font-display text-[15px] italic text-foreground text-center mb-3">
                       {activeScan.hookCta}
                     </p>
                     <motion.button
