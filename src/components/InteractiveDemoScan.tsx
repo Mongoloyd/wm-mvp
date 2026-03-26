@@ -103,10 +103,10 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: a
   const isScanning = phase === "scan";
 
   return (
-    <div className="relative w-full h-full rounded-none border border-border bg-background p-6 flex flex-col overflow-hidden shadow-inner">
+    <div className="relative w-full h-full border border-border bg-background p-6 flex flex-col overflow-hidden shadow-inner wm-surface-card">
       {/* Sample badge */}
       <div className="absolute top-3 right-3 z-30">
-        <span className="font-mono text-[9px] font-bold tracking-widest uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border">
+        <span className="wm-eyebrow bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border" style={{ fontSize: 9 }}>
           Sample
         </span>
       </div>
@@ -115,31 +115,31 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: a
       <div className="flex items-start justify-between border-b border-border pb-4 mb-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="bg-cobalt/10 text-cobalt px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider">
+            <span className="wm-eyebrow wm-scan-cyan bg-cobalt/10 px-2 py-0.5 rounded" style={{ fontSize: 10 }}>
               PDF
             </span>
-            <p className="font-mono text-xs font-semibold text-foreground truncate max-w-[200px] sm:max-w-[300px]">
+            <p className="wm-type-mono text-xs font-semibold text-foreground truncate max-w-[200px] sm:max-w-[300px]" style={{ fontSize: 12 }}>
               {activeScan.filename}
             </p>
           </div>
-          <p className="font-body text-[11px] text-muted-foreground">{activeScan.meta}</p>
+          <p className="wm-body-muted text-[11px]">{activeScan.meta}</p>
         </div>
       </div>
 
       {/* Contract Skeletons */}
       <div className="flex-1 flex flex-col gap-3">
-        <div className="h-2.5 w-[85%] bg-muted rounded-none" />
-        <div className="h-2.5 w-[92%] bg-muted rounded-none" />
-        <div className="h-2.5 w-[78%] bg-muted rounded-none" />
-        <div className="h-2.5 w-[88%] bg-muted rounded-none" />
-        <div className="mt-4 border border-border rounded-none overflow-hidden">
+        <div className="h-2.5 w-[85%] bg-muted" />
+        <div className="h-2.5 w-[92%] bg-muted" />
+        <div className="h-2.5 w-[78%] bg-muted" />
+        <div className="h-2.5 w-[88%] bg-muted" />
+        <div className="mt-4 border border-border overflow-hidden">
           <div className="h-8 bg-muted/30 border-b border-border" />
           <div className="h-8 border-b border-border" />
           <div className="h-8 bg-muted/30 border-b border-border" />
           <div className="h-8" />
         </div>
-        <div className="mt-4 h-2.5 w-[40%] bg-muted rounded-none" />
-        <div className="h-2.5 w-[60%] bg-muted rounded-none" />
+        <div className="mt-4 h-2.5 w-[40%] bg-muted" />
+        <div className="h-2.5 w-[60%] bg-muted" />
       </div>
 
       {/* Scanning Overlays */}
@@ -148,30 +148,33 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: a
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-cobalt/5 mix-blend-multiply"
+            className="absolute inset-0 mix-blend-multiply"
+            style={{ background: "rgba(0, 188, 212, 0.08)" }}
           />
           <motion.div
             initial={{ top: "-10%" }}
             animate={{ top: "110%" }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" as const }}
-            className={`absolute left-0 right-0 h-[2px] ${isDanger ? 'bg-destructive shadow-[0_0_20px_4px_rgba(249,115,22,0.4)]' : 'bg-cobalt shadow-[0_0_20px_4px_rgba(56,130,246,0.4)]'} z-10 transition-colors duration-300`}
+            className={`absolute left-0 right-0 h-[2px] ${isDanger ? 'bg-destructive shadow-[0_0_20px_4px_rgba(249,115,22,0.4)]' : 'shadow-[0_0_20px_4px_rgba(0,200,240,0.4)]'} z-10 transition-colors duration-300`}
+            style={isDanger ? undefined : { backgroundColor: "#00B7D6" }}
           />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="absolute bottom-6 left-6 right-6 bg-card/95 backdrop-blur-md border border-cobalt/30 shadow-2xl rounded-none p-4 z-20"
+            className="absolute bottom-6 left-6 right-6 bg-card/95 border shadow-2xl rounded-none p-4 z-20 wm-surface-focus"
+            style={{ borderColor: "rgba(0, 164, 196, 0.34)" }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className={`font-mono text-[10px] font-bold tracking-widest uppercase animate-pulse ${isDanger ? 'text-destructive' : 'text-cobalt'} transition-colors duration-300`}>
+              <span className={`wm-eyebrow animate-pulse ${isDanger ? 'text-destructive' : 'wm-scan-cyan'} transition-colors duration-300`} style={{ fontSize: 10 }}>
                 AI Engine Active
               </span>
-              <span className="font-mono text-[10px] text-muted-foreground font-bold">{scanProgress}%</span>
+              <span className="wm-type-mono font-bold" style={{ fontSize: 10 }}>{scanProgress}%</span>
             </div>
-            <p className="font-mono text-[11px] text-foreground mb-3 h-4">{scanText}</p>
+            <p className="wm-type-mono text-foreground mb-3 h-4" style={{ fontSize: 11 }}>{scanText}</p>
             <div className="h-1 w-full bg-muted rounded-none overflow-hidden">
               <div
-                className={`h-full ${isDanger ? 'bg-destructive' : 'bg-cobalt'} ease-linear transition-all duration-300`}
+                className={`h-full ${isDanger ? 'bg-destructive' : 'bg-[#00A4C4]'} ease-linear transition-all duration-300`}
                 style={{ width: `${scanProgress}%`, transitionProperty: "width, background-color", transitionDuration: "1200ms, 300ms" }}
               />
             </div>
@@ -254,13 +257,13 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
   return (
     <section className="border-t border-b border-border bg-background py-14 px-4 md:py-20 md:px-8">
       <div className="text-center mb-9">
-        <p className="font-mono text-[13px] text-cobalt tracking-[0.1em] mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
-        <h2 className="font-display text-[28px] md:text-[34px] font-bold text-foreground mb-1.5">See the AI at work.</h2>
-        <p className="font-body text-[15px] text-muted-foreground">This runs automatically. No upload required.</p>
+        <p className="wm-eyebrow wm-scan-cyan text-[13px] mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
+        <h2 className="wm-title-lg text-[28px] md:text-[34px] mb-1.5">See the AI at work.</h2>
+        <p className="wm-body-muted text-[15px]">This runs automatically. No upload required.</p>
       </div>
 
       <div
-        className="mx-auto max-w-[520px] rounded-none border-[1.5px] border-border bg-card p-6 md:p-8 shadow-focus min-h-[480px] flex flex-col relative"
+        className="mx-auto max-w-[520px] border-[1.5px] border-border bg-card p-6 md:p-8 min-h-[480px] flex flex-col relative wm-surface-hero"
       >
         <AnimatePresence mode="wait">
           {/* ── PHASES 1 & 2: Document & Scan ───────── */}
@@ -295,7 +298,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
             >
               {/* Sample badge */}
               <div className="absolute top-4 right-4 z-30">
-                <span className="font-mono text-[9px] font-bold tracking-widest uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border">
+                <span className="wm-eyebrow bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border" style={{ fontSize: 9 }}>
                   Sample
                 </span>
               </div>
@@ -305,17 +308,17 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.15, ease: "easeInOut" as const }}
-                  className={`flex h-16 w-16 items-center justify-center rounded-none border-[2.5px] ${activeScan.gradeBorder} ${activeScan.gradeBg}`}
+                  className={`flex h-16 w-16 items-center justify-center border-[2.5px] ${activeScan.gradeBorder} ${activeScan.gradeBg}`}
                 >
-                  <span className={`font-display text-[36px] font-black leading-none ${activeScan.gradeColor}`}>
+                  <span className={`wm-type-display text-[36px] font-black leading-none ${activeScan.gradeColor}`}>
                     {activeScan.grade}
                   </span>
                 </motion.div>
                 <div className="text-right">
-                  <p className={`font-mono text-[26px] font-black ${activeScan.gradeColor}`}>
+                  <p className={`wm-type-mono text-[26px] font-black ${activeScan.gradeColor}`}>
                     +${counter.toLocaleString()}
                   </p>
-                  <p className="font-body text-[11px] text-muted-foreground mt-0.5">above fair market</p>
+                  <p className="wm-body-muted text-[11px] mt-0.5">above fair market</p>
                 </div>
               </div>
 
@@ -324,13 +327,13 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
-                className={`mt-2 w-full rounded-none border-l-[3px] ${activeScan.flag1Border} ${activeScan.flag1Bg} p-4 text-left shadow-sm`}
+                className={`mt-2 w-full border-l-[3px] ${activeScan.flag1Border} ${activeScan.flag1Bg} p-4 text-left wm-elev-l1`}
               >
-                <p className={`font-mono text-[10px] font-bold tracking-wider ${activeScan.flag1Color}`}>
+                <p className={`wm-eyebrow ${activeScan.flag1Color}`} style={{ fontSize: 10 }}>
                   {activeScan.flag1Label}
                 </p>
-                <p className="font-body text-[14px] font-semibold text-foreground mt-1.5">{activeScan.flag1Title}</p>
-                <p className="font-body text-[13px] text-muted-foreground mt-1">{activeScan.flag1Desc}</p>
+                <p className="wm-body-strong text-[14px] mt-1.5">{activeScan.flag1Title}</p>
+                <p className="wm-body-muted text-[13px] mt-1">{activeScan.flag1Desc}</p>
               </motion.div>
 
               {/* Flag 2 (Masked — clickable) */}
@@ -338,7 +341,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.4 }}
-                className={`mt-4 w-full rounded-none border-l-[3px] ${activeScan.flag2Border} ${activeScan.flag2Bg} p-4 text-left shadow-sm cursor-pointer hover:shadow-md transition-shadow`}
+                className={`mt-4 w-full border-l-[3px] ${activeScan.flag2Border} ${activeScan.flag2Bg} p-4 text-left wm-elev-l1 cursor-pointer hover:shadow-md transition-shadow`}
                 onClick={() => {
                   track("wm_demo_unlock_clicked");
                   handleCtaClick();
@@ -347,15 +350,15 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === "Enter") handleCtaClick(); }}
               >
-                <p className={`font-mono text-[10px] font-bold tracking-wider ${activeScan.flag2Color}`}>
+                <p className={`wm-eyebrow ${activeScan.flag2Color}`} style={{ fontSize: 10 }}>
                   {activeScan.flag2Label}
                 </p>
-                <p className="font-body text-[14px] font-semibold text-foreground mt-1.5">{activeScan.flag2Title}</p>
+                <p className="wm-body-strong text-[14px] mt-1.5">{activeScan.flag2Title}</p>
                 <div className="flex items-center gap-1 mt-1.5">
                   {Array.from({ length: 12 }).map((_, i) => (
                     <div key={i} className="h-2 w-2 rounded-[1px] bg-muted-foreground/30" />
                   ))}
-                  <span className="font-body text-[11px] text-cobalt ml-2 underline underline-offset-2">
+                  <span className="wm-body-muted text-[11px] text-cobalt ml-2 underline underline-offset-2">
                     Upload yours to unlock →
                   </span>
                 </div>
@@ -368,7 +371,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.8 }}
                   onClick={handleCtaClick}
-                  className="mt-4 w-full rounded-none border border-border bg-muted px-5 py-2.5 font-body text-[13px] font-semibold text-foreground cursor-pointer hover:bg-accent transition-colors"
+                  className="mt-4 w-full wm-surface-card wm-body-strong text-[13px] px-5 py-2.5 cursor-pointer hover:bg-accent transition-colors"
                 >
                   Scan My Quote — It's Free →
                 </motion.button>
@@ -387,14 +390,15 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                     transition={{ duration: 0.4 }}
                     className="w-full pt-4 border-t border-border mt-4"
                   >
-                    <p className="font-display text-[15px] italic text-foreground text-center mb-3">
+                    <p className="wm-body-strong text-[15px] italic text-center mb-3">
                       {activeScan.hookCta}
                     </p>
                     <motion.button
                       animate={{ scale: [1, 1.02, 1] }}
                       transition={{ repeat: Infinity, duration: 2 }}
                       onClick={handleCtaClick}
-                      className="w-full rounded-none bg-gold px-7 py-3 font-body text-[14px] font-bold text-white shadow-[0_3px_14px_rgba(245,158,11,0.35)] cursor-pointer border-none"
+                      className="w-full wm-btn wm-btn-orange"
+                      style={{ fontSize: 14 }}
                     >
                       Upload My Real Quote — It's Free →
                     </motion.button>
