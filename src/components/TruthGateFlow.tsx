@@ -311,10 +311,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           transition={{ duration: 0.15 }}
         >
           <h2
-            className="font-display font-black uppercase leading-tight"
+            className="font-display font-black uppercase leading-tight text-foreground"
             style={{
               fontSize: "clamp(22px, 4vw, 30px)",
-              color: "#E5E5E5",
               letterSpacing: "0.02em",
               marginBottom: 8,
             }}
@@ -356,10 +355,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         </div>
 
         <h2
-          className="font-display font-black uppercase leading-tight"
+          className="font-display font-black uppercase leading-tight text-foreground"
           style={{
             fontSize: "clamp(24px, 4vw, 32px)",
-            color: "#E5E5E5",
             letterSpacing: "0.02em",
             marginBottom: 8,
           }}
@@ -382,7 +380,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
                 onChange={(e) => setAnswers((p) => ({ ...p, firstName: e.target.value }))}
                 style={{
                   ...inputStyle,
-                  borderColor: fieldStatus.firstName === "invalid" ? "#F97316" : fieldStatus.firstName === "valid" ? "#2563EB" : "#1A1A1A",
+                  borderColor: fieldStatus.firstName === "invalid" ? "#F97316" : fieldStatus.firstName === "valid" ? "hsl(var(--primary))" : "hsl(var(--border))",
                   paddingRight: fieldStatus.firstName !== "untouched" ? 40 : 16,
                 }}
                 onFocus={handleInputFocus}
@@ -398,7 +396,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
           <div>
             <label style={labelStyle}>
-              EMAIL ADDRESS <span style={{ color: "#6B7280", fontWeight: 400 }}>(your grade report is sent here)</span>
+              EMAIL ADDRESS <span className="text-muted-foreground font-normal">(your grade report is sent here)</span>
             </label>
             <div style={{ position: "relative" }}>
               <input
@@ -409,7 +407,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
                 onChange={(e) => setAnswers((p) => ({ ...p, email: e.target.value }))}
                 style={{
                   ...inputStyle,
-                  borderColor: fieldStatus.email === "invalid" ? "#F97316" : fieldStatus.email === "valid" ? "#2563EB" : "#1A1A1A",
+                  borderColor: fieldStatus.email === "invalid" ? "#F97316" : fieldStatus.email === "valid" ? "hsl(var(--primary))" : "hsl(var(--border))",
                   paddingRight: fieldStatus.email !== "untouched" ? 40 : 16,
                 }}
                 onFocus={handleInputFocus}
@@ -478,22 +476,16 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   };
 
   return (
-    <section id="truth-gate" style={{ backgroundColor: "#0A0A0A" }}>
+    <section id="truth-gate" className="bg-background">
       <div className={`mx-auto max-w-2xl px-4 md:px-8 py-16 md:py-24 transition-all duration-500 ${glowing ? 'ring-2 ring-cobalt shadow-lg shadow-cobalt/20' : ''}`}>
         <p
-          className="text-center mb-3"
-          style={{
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 11,
-            color: "#2563EB",
-            letterSpacing: "0.1em",
-          }}
+          className="text-center mb-3 font-mono text-[11px] text-primary tracking-[0.1em]"
         >
           {eyebrowLabels[Math.min(currentStep - 1, 4)]}
         </p>
-        <div style={{ width: "100%", height: 4, backgroundColor: "#1A1A1A", borderRadius: 0, marginBottom: 32 }}>
+        <div className="w-full h-1 bg-muted mb-8">
           <motion.div
-            style={{ height: 4, backgroundColor: "#2563EB", borderRadius: 0 }}
+            className="h-1 bg-primary"
             animate={{ width: progressWidth }}
             transition={{ duration: 0.15 }}
           />
@@ -518,7 +510,7 @@ const labelStyle: React.CSSProperties = {
   display: "block",
   fontFamily: "'DM Mono', monospace",
   fontSize: 10,
-  color: "#6B7280",
+  color: "hsl(var(--muted-foreground))",
   letterSpacing: "0.08em",
   marginBottom: 6,
 };
@@ -526,13 +518,13 @@ const labelStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   height: 48,
-  border: "1.5px solid #1A1A1A",
+  border: "1.5px solid hsl(var(--border))",
   borderRadius: 0,
   padding: "0 16px",
   fontFamily: "'DM Sans', sans-serif",
   fontSize: 15,
-  color: "#E5E5E5",
-  background: "#0A0A0A",
+  color: "hsl(var(--foreground))",
+  background: "hsl(var(--background))",
   outline: "none",
   transition: "border-color 0.15s, box-shadow 0.15s",
   boxSizing: "border-box",
