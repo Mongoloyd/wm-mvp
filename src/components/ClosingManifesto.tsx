@@ -47,12 +47,12 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="mt-14">
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleScanClick}
+          <motion.button whileHover={{ scale: 1.03 }} onClick={handleScanClick}
             className="btn-depth-primary" style={{ fontSize: 18, padding: "18px 48px" }}>
             Scan My Quote — It's Free
           </motion.button>
           {onDemoClick && (
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
+            <motion.button whileHover={{ scale: 1.02 }} onClick={onDemoClick}
               className="block mx-auto mt-4 btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
               See the AI in Action — No Upload Needed
             </motion.button>

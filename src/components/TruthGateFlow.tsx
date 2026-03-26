@@ -428,7 +428,6 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
             type="submit"
             disabled={submitState === "submitting" || submitState === "success"}
             whileHover={submitState === "idle" || submitState === "error" ? { scale: 1.01 } : {}}
-            whileTap={submitState === "idle" || submitState === "error" ? { scale: 0.98 } : {}}
             className="btn-depth-primary w-full"
             style={{
               height: 54,
@@ -543,12 +542,12 @@ const errorTextStyle: React.CSSProperties = {
 };
 
 const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.15)";
-  e.currentTarget.style.borderColor = "#2563EB";
+  e.currentTarget.style.boxShadow = "var(--shadow-sunken), var(--shadow-focus)";
+  e.currentTarget.style.borderColor = "hsl(217 91% 53%)";
 };
 
 const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.boxShadow = "none";
+  e.currentTarget.style.boxShadow = "var(--shadow-sunken)";
 };
 
 const ValidationIcon = ({ valid }: { valid: boolean }) => (

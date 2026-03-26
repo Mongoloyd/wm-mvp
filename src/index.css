@@ -136,7 +136,7 @@
 
   /* Backward compat alias */
   .glass-card-strong {
-    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+    background: linear-gradient(180deg, #FFFFFF 0%, #EFF3F8 100%);
     border: 1px solid hsl(214 30% 82%);
     border-radius: var(--radius);
     box-shadow: var(--shadow-resting);
