@@ -21,14 +21,14 @@ const EvidenceCarousel = ({ slides, inView, onImageClick }: EvidenceCarouselProp
           {slides.map((slide, i) => (
             <div key={i} className="min-w-0 shrink-0 grow-0 basis-full relative" role="group" aria-roledescription="slide" aria-label={`Slide ${i + 1} of ${slides.length}`}>
               <div className="relative" style={{ zIndex: 0 }}><EvidenceImage src={slide.image} alt={slide.alt} className="rounded-xl" onClick={() => onImageClick(i)} /></div>
-              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent rounded-b-xl pointer-events-none" style={{ zIndex: 10 }} />
-              <p className="absolute bottom-3 left-3 right-3 text-white" style={{ zIndex: 20, fontFamily: "'DM Sans', sans-serif", fontSize: 13, textShadow: "0 1px 4px rgba(0,0,0,0.6)", position: "absolute" }}>{slide.caption}</p>
+              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent rounded-b-xl pointer-events-none" style={{ zIndex: 10 }} />
+              <p className="absolute bottom-3 left-3 right-3 text-white font-body text-[13px]" style={{ zIndex: 20, textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}>{slide.caption}</p>
             </div>
           ))}
         </div>
       </div>
       <div className="flex justify-center gap-2 mt-3" role="tablist" aria-label="Slide navigation">
-        {slides.map((_, i) => <button key={i} role="tab" aria-selected={selectedIndex === i} aria-label={`Go to slide ${i + 1} of ${slides.length}`} onClick={() => scrollTo(i)} className="rounded-full transition-all duration-200" style={{ width: selectedIndex === i ? 20 : 8, height: 8, backgroundColor: selectedIndex === i ? "#0099BB" : "#D1D5DB", border: "none", cursor: "pointer" }} />)}
+        {slides.map((_, i) => <button key={i} role="tab" aria-selected={selectedIndex === i} aria-label={`Go to slide ${i + 1} of ${slides.length}`} onClick={() => scrollTo(i)} className="rounded-full transition-all duration-200 border-none cursor-pointer" style={{ width: selectedIndex === i ? 20 : 8, height: 8, backgroundColor: selectedIndex === i ? "hsl(var(--primary))" : "hsl(var(--border))" }} />)}
       </div>
     </motion.div>
   );

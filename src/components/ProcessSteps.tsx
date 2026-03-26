@@ -25,26 +25,26 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
   const handleScanClick = () => { onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" }); };
 
   return (
-    <section id="how-it-works" style={{ backgroundColor: "#111111", borderTop: "1px solid #1A1A1A", borderBottom: "1px solid #1A1A1A" }}>
+    <section id="how-it-works" className="bg-card border-y border-border">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
-          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: "#2563EB", letterSpacing: "0.1em", marginBottom: 16 }}>WHAT HAPPENS WHEN YOU SCAN</p>
-          <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(32px, 5vw, 48px)", color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.01em", marginBottom: 48, textTransform: "uppercase" }}>
+          <p className="font-mono text-xs text-primary tracking-[0.1em] mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
+          <h2 className="font-display text-foreground font-extrabold tracking-[0.01em] uppercase mb-12" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
             UPLOAD YOUR QUOTE. IN UNDER 60 SECONDS, YOU'LL KNOW:
           </h2>
         </motion.div>
 
         {/* Desktop */}
         <div className="hidden md:block relative">
-          <div className="absolute top-5 left-0 right-0 h-[1px]" style={{ backgroundColor: "#1A1A1A" }} />
+          <div className="absolute top-5 left-0 right-0 h-px bg-border" />
           <div className="grid grid-cols-5 gap-6">
             {steps.map((step, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: i * 0.05 }} className="relative text-center">
-                <div className="mx-auto flex items-center justify-center relative z-10" style={{ width: 40, height: 40, background: "#0A0A0A", border: "1px solid #1A1A1A" }}>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 15, fontWeight: 700, color: "#2563EB" }}>{step.num}</span>
+                <div className="mx-auto flex items-center justify-center relative z-10 w-10 h-10 bg-card border border-border">
+                  <span className="font-mono text-[15px] font-bold text-primary">{step.num}</span>
                 </div>
-                <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "#E5E5E5", marginTop: 12 }}>{step.title}</h3>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 1.6, marginTop: 4 }}>{step.copy}</p>
+                <h3 className="font-body text-base font-bold text-foreground mt-3">{step.title}</h3>
+                <p className="font-body text-[13px] text-muted-foreground leading-relaxed mt-1">{step.copy}</p>
               </motion.div>
             ))}
           </div>
@@ -54,28 +54,28 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
         <div className="md:hidden flex flex-col gap-6">
           {steps.map((step, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: i * 0.05 }} className="flex items-start gap-4">
-              <div className="flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36, backgroundColor: "#2563EB" }}>
-                <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, color: "#FFFFFF" }}>{step.num}</span>
+              <div className="flex items-center justify-center flex-shrink-0 w-9 h-9 bg-primary">
+                <span className="font-mono text-[13px] font-bold text-primary-foreground">{step.num}</span>
               </div>
               <div>
-                <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "#E5E5E5" }}>{step.title}</h3>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 1.6, marginTop: 4 }}>{step.copy}</p>
+                <h3 className="font-body text-base font-bold text-foreground">{step.title}</h3>
+                <p className="font-body text-[13px] text-muted-foreground leading-relaxed mt-1">{step.copy}</p>
               </div>
             </motion.div>
           ))}
         </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="mt-14">
-          <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 700, color: "#E5E5E5", marginBottom: 24, textTransform: "uppercase", letterSpacing: "0.02em" }}>
+          <h3 className="font-display text-[22px] font-bold text-foreground uppercase tracking-[0.02em] mb-6">
             YOU'LL WALK AWAY KNOWING:
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {deliverables.map((d, i) => (
               <div key={i} className="flex items-start gap-3">
-                <div className="flex items-center justify-center flex-shrink-0" style={{ width: 28, height: 28, backgroundColor: `${d.color}15` }}>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 14, color: d.color, fontWeight: 700 }}>{d.icon}</span>
+                <div className="flex items-center justify-center flex-shrink-0 w-7 h-7" style={{ backgroundColor: `${d.color}15` }}>
+                  <span className="font-mono text-sm font-bold" style={{ color: d.color }}>{d.icon}</span>
                 </div>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", lineHeight: 1.6 }}>{d.text}</p>
+                <p className="font-body text-sm text-muted-foreground leading-relaxed">{d.text}</p>
               </div>
             ))}
           </div>
@@ -83,12 +83,12 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
 
         <div className="text-center mt-12">
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleScanClick}
-            style={{ background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, padding: "16px 32px", border: "none", boxShadow: "0 4px 24px rgba(37,99,235,0.35)", cursor: "pointer" }}>
+            className="btn-depth-primary" style={{ fontSize: 16, padding: "16px 32px" }}>
             Scan My Quote — It's Free
           </motion.button>
           {onDemoClick && (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
-              style={{ marginTop: 16, background: "transparent", color: "#2563EB", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 28px", border: "1px solid rgba(37,99,235,0.3)", cursor: "pointer" }}>
+              className="block mx-auto mt-4 bg-transparent text-primary font-body text-sm font-semibold border border-primary/30 cursor-pointer" style={{ padding: "12px 28px" }}>
               See the AI in Action — No Upload Needed
             </motion.button>
           )}

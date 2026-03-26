@@ -14,60 +14,60 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
   const handleScanClick = () => { onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" }); };
 
   return (
-    <section style={{ backgroundColor: "#0A0A0A" }}>
+    <section className="bg-background">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
-          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#2563EB", letterSpacing: "0.1em", marginBottom: 16 }}>REAL RESULTS FROM FLORIDA HOMEOWNERS</p>
-          <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(32px, 5vw, 48px)", color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.01em", marginBottom: 12, textTransform: "uppercase" }}>WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "#E5E7EB", marginBottom: 48 }}>These Are Outcomes Not Reviews</p>
+          <p className="font-mono text-[11px] text-primary tracking-[0.1em] mb-4">REAL RESULTS FROM FLORIDA HOMEOWNERS</p>
+          <h2 className="font-display text-foreground font-extrabold tracking-[0.01em] uppercase mb-3" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
+          <p className="font-body text-base text-muted-foreground mb-12">These Are Outcomes Not Reviews</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {stories.map((story, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: i * 0.05 }}
-              style={{ background: "#111111", border: "1px solid #1A1A1A", padding: "32px 28px" }}>
+              className="glass-card-strong p-7">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center" style={{ width: 40, height: 40, backgroundColor: "rgba(37,99,235,0.1)" }}>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "#2563EB" }}>{story.initial}</span>
+                  <div className="flex items-center justify-center w-10 h-10 bg-primary/10">
+                    <span className="font-body text-base font-bold text-primary">{story.initial}</span>
                   </div>
                   <div>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "#E5E5E5" }}>{story.name}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#6B7280" }}>{story.location}</p>
+                    <p className="font-body text-base font-bold text-foreground">{story.name}</p>
+                    <p className="font-body text-[13px] text-muted-foreground">{story.location}</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-center" style={{ width: 44, height: 44, border: `2px solid ${story.gradeColor}`, background: `${story.gradeColor}15` }}>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, fontWeight: 700, color: story.gradeColor }}>{story.grade}</span>
+                <div className="flex items-center justify-center w-11 h-11" style={{ border: `2px solid ${story.gradeColor}`, background: `${story.gradeColor}15` }}>
+                  <span className="font-mono text-xl font-bold" style={{ color: story.gradeColor }}>{story.grade}</span>
                 </div>
               </div>
-              <div style={{ marginTop: 20 }}>
-                {story.narrative.map((p, j) => <p key={j} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", lineHeight: 1.8, marginTop: j > 0 ? 12 : 0 }}>{p}</p>)}
+              <div className="mt-5">
+                {story.narrative.map((p, j) => <p key={j} className="font-body text-[15px] text-muted-foreground leading-[1.8]" style={{ marginTop: j > 0 ? 12 : 0 }}>{p}</p>)}
               </div>
-              <div className="flex items-center gap-3" style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", padding: "16px 20px", marginTop: 20 }}>
-                <span style={{ color: "#2563EB", fontSize: 20 }}>✓</span>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#2563EB", fontWeight: 600 }}>{story.result}</p>
+              <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 p-4 mt-5">
+                <span className="text-primary text-xl">✓</span>
+                <p className="font-body text-sm text-primary font-semibold">{story.result}</p>
               </div>
-              <div style={{ marginTop: 12 }}>
-                <span style={{ display: "inline-flex", background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", padding: "4px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#F97316", fontWeight: 600 }}>{story.flag}</span>
+              <div className="mt-3">
+                <span className="inline-flex bg-destructive/10 border border-destructive/20 px-3 py-1 font-body text-xs text-destructive font-semibold">{story.flag}</span>
               </div>
             </motion.div>
           ))}
         </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.15 }}
-          className="text-center mt-12" style={{ backgroundColor: "#111111", border: "1px solid #1A1A1A", padding: 32 }}>
-          <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, color: "#E5E5E5", fontWeight: 800, letterSpacing: "0.01em", textTransform: "uppercase" }}>
+          className="text-center mt-12 glass-card-strong p-8">
+          <h3 className="font-display text-[26px] text-foreground font-extrabold tracking-[0.01em] uppercase">
             YOUR QUOTE IS EITHER PRICED FAIRLY OR IT ISN'T.
           </h3>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, color: "#E5E7EB", fontStyle: "italic", marginTop: 12 }}>
+          <p className="font-body text-lg text-muted-foreground italic mt-3">
             Right Now, The Contractor Knows Which One. You Don't.
           </p>
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleScanClick}
-            style={{ marginTop: 24, background: "#2563EB", color: "#FFFFFF", fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, padding: "16px 32px", border: "none", boxShadow: "0 4px 24px rgba(37,99,235,0.35)", cursor: "pointer" }}>
+            className="btn-depth-primary mt-6" style={{ fontSize: 16, padding: "16px 32px" }}>
             Show Me My Grade →
           </motion.button>
           {onDemoClick && <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
-            style={{ marginTop: 16, background: "transparent", color: "#2563EB", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 28px", border: "1px solid rgba(37,99,235,0.3)", cursor: "pointer" }}>
+            className="block mx-auto mt-4 bg-transparent text-primary font-body text-sm font-semibold border border-primary/30 cursor-pointer" style={{ padding: "12px 28px" }}>
             See the AI in Action — No Upload Needed
           </motion.button>}
         </motion.div>
