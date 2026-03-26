@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
 import ForensicPillarSection from "@/components/report/ForensicPillarSection";
+import QuotePriceMath from "@/components/report/QuotePriceMath";
+import type { DerivedMetrics } from "@/components/report/QuotePriceMath";
 import { LockedOverlay } from "@/components/LockedOverlay";
 import type { LockedOverlayProps } from "@/components/LockedOverlay";
 import TopViolationSummaryStrip from "@/components/TopViolationSummaryStrip";
@@ -43,6 +45,7 @@ interface TruthReportProps {
   reportCallRequested?: boolean;
   isCtaLoading?: boolean;
   suggestedMatch?: SuggestedMatch | null;
+  derivedMetrics?: DerivedMetrics;
 }
 
 const gradeConfig: Record<string, { color: string; bg: string; glow: string; label: string; verdict: string }> = {
@@ -99,6 +102,7 @@ const TruthReportClassic = ({
   reportCallRequested = false,
   isCtaLoading = false,
   suggestedMatch = null,
+  derivedMetrics,
 }: TruthReportProps) => {
   const config = gradeConfig[grade] || gradeConfig.C;
   const isFull = accessLevel === "full";
@@ -292,6 +296,11 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         county={county}
         isFull={isFull}
       />
+
+      {/* ─── QUOTE PRICE MATH (full only) ─── */}
+      {isFull && derivedMetrics && (
+        <QuotePriceMath metrics={derivedMetrics} county={county} />
+      )}
 
       {/* ─── FORENSIC FINDINGS ─── */}
       <section className="py-10 md:py-14 px-4 md:px-8 bg-background border-b border-border">
