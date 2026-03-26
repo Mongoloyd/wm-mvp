@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Ruler, DollarSign, FileText, ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
 import { LockedOverlay } from "@/components/LockedOverlay";
 import type { LockedOverlayProps } from "@/components/LockedOverlay";
+import TopViolationSummaryStrip from "@/components/TopViolationSummaryStrip";
+import { selectTopViolation } from "@/utils/selectTopViolation";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 import { MATCH_REASON_HOMEOWNER, type MatchReasonKey, type MatchConfidence } from "@/shared/matchReasons";
 
