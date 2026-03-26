@@ -282,19 +282,10 @@ export default function ReportClassic() {
 
   if (isLoading) {
     return (
-      <div style={{ background: "#0A0A0A", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{
-            width: 48, height: 48, margin: "0 auto 16px",
-            borderRadius: "50%",
-            border: "2px solid rgba(200,149,42,0.3)",
-            borderTopColor: "#C8952A",
-            animation: "spin 1s linear infinite",
-          }} />
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#9CA3AF" }}>
-            Loading your report...
-          </p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="bg-background min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+          <p className="font-body text-sm text-muted-foreground">Loading your report...</p>
         </div>
       </div>
     );

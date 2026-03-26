@@ -73,6 +73,9 @@ export default {
         danger: {
           DEFAULT: "hsl(var(--color-danger))",
         },
+        caution: {
+          DEFAULT: "hsl(var(--color-caution))",
+        },
         navy: {
           DEFAULT: "hsl(var(--color-obsidian))",
         },
