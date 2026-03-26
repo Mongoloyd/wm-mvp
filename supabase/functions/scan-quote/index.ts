@@ -521,6 +521,7 @@ function computeDerivedMetrics(data: ExtractionResult, countyName?: string | nul
   const discountSubtotal = metricsRound2(Math.abs(bucketTotals.discount));
   const taxSubtotal = metricsRound2(bucketTotals.tax);
   const coreDiv = inferredCoreOpenings || totalOpenings;
+  const installedPPO = metricsSafeDiv(metricsRound2((coreProductSubtotal ?? 0) + (installLikeSubtotal ?? 0) - (discountSubtotal ?? 0)), coreDiv);
 
   if (items.length > 0 && pricedLines / items.length < 0.7) warnings.push("Low pricing coverage: many line items are missing unit_price and total_price.");
   if (contractTotal !== null && accessorySubtotal !== null && contractTotal > 0 && accessorySubtotal / contractTotal > 0.25) warnings.push("A large share of the estimate appears to be non-core/accessory cost.");
