@@ -102,6 +102,7 @@ const TruthReportClassic = ({
   reportCallRequested = false,
   isCtaLoading = false,
   suggestedMatch = null,
+  derivedMetrics,
 }: TruthReportProps) => {
   const config = gradeConfig[grade] || gradeConfig.C;
   const isFull = accessLevel === "full";
@@ -297,8 +298,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       />
 
       {/* ─── QUOTE PRICE MATH (full only) ─── */}
-      {isFull && props.derivedMetrics && (
-        <QuotePriceMath metrics={props.derivedMetrics} county={county} />
+      {isFull && derivedMetrics && (
+        <QuotePriceMath metrics={derivedMetrics} county={county} />
       )}
 
       {/* ─── FORENSIC FINDINGS ─── */}
