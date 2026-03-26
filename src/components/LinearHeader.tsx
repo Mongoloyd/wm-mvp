@@ -21,13 +21,9 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
 
   return (
     <header
-      className="sticky top-0 z-50 w-full"
+      className="sticky top-0 z-50 w-full border-b border-border bg-card/90 backdrop-blur-xl"
       style={{
-        backgroundColor: "rgba(10,10,10,0.92)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        boxShadow: "0 1px 0 rgba(255,255,255,0.03), 0 4px 20px rgba(0,0,0,0.4)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03)",
         transition: "padding 0.15s ease",
         padding: scrolled ? "6px 0" : "14px 0",
       }}
@@ -54,12 +50,12 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
               letterSpacing: "0.02em",
             }}
           >
-            <span style={{ color: "#E5E5E5" }}>WINDOW</span>
+            <span className="text-foreground">WINDOW</span>
             <span style={{ color: "#C8952A" }}>MAN</span>
             <sup
+              className="text-muted-foreground"
               style={{
                 fontSize: 9,
-                color: "#6B7280",
                 fontWeight: 400,
                 letterSpacing: "0.15em",
                 marginLeft: 2,
@@ -94,7 +90,7 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
 
       {/* Animated status bar — "live intelligence" pulse line */}
       <motion.div
-        className="absolute bottom-0 left-0 h-[1px] bg-primary animate-status-pulse"
+        className="absolute bottom-0 left-0 h-[1px] bg-primary/30"
         initial={{ width: "0%" }}
         animate={{ width: "100%" }}
         transition={{ duration: 1.8, ease: "easeOut" }}
