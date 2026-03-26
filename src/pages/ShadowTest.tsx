@@ -136,9 +136,9 @@ export default function ShadowTest() {
       </div>
 
       {/* Secondary button comparison */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto mt-12">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto mt-12">
         <div className="flex flex-col items-center gap-4">
-          <p className="text-xs text-muted-foreground font-mono">btn-secondary (old)</p>
+          <p className="text-xs text-muted-foreground font-mono">btn-secondary (A)</p>
           <button
             className="inline-flex items-center justify-center font-semibold text-sm px-6 py-3 cursor-pointer"
             style={{
@@ -153,7 +153,13 @@ export default function ShadowTest() {
           </button>
         </div>
         <div className="flex flex-col items-center gap-4">
-          <p className="text-xs text-muted-foreground font-mono">btn-secondary (new)</p>
+          <p className="text-xs text-muted-foreground font-mono">btn-secondary (B)</p>
+          <button className="btn-secondary-tactile px-6 py-3">
+            Watch Live Demo
+          </button>
+        </div>
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-xs text-muted-foreground font-mono">btn-secondary (C — same as B)</p>
           <button className="btn-secondary-tactile px-6 py-3">
             Watch Live Demo
           </button>
