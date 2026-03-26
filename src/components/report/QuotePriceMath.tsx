@@ -51,6 +51,24 @@ export interface DerivedMetrics {
     dp_coverage_pct: number | null;
     noa_coverage_pct: number | null;
   };
+  county_benchmark?: {
+    county_key: string;
+    county_label: string;
+    benchmark_available: boolean;
+    comparison_available: boolean;
+    benchmark_price_per_opening_low: number;
+    benchmark_price_per_opening_avg: number;
+    benchmark_price_per_opening_high: number;
+    source_type: "city_proxy" | "regional_blend";
+    source_label: string;
+    updated_at: string;
+    compared_metric?: "installed_price_per_opening" | "contract_price_per_opening" | null;
+    compared_value?: number | null;
+    status: "below_county_range" | "within_county_range" | "above_county_range" | "insufficient_data";
+    delta_amount: number | null;
+    delta_pct: number | null;
+    comparability: "direct_window_proxy" | "approximate_mixed_openings";
+  } | null;
   diagnostics: {
     quote_math_confidence: number;
     warnings: string[];
