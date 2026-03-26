@@ -459,4 +459,28 @@
       animation: none;
     }
   }
+
+  /* ═══════════════════════════════════════════════════════════
+     BTN-DEPTH-GOLD--PENDING: Anticipatory "not yet valid" state
+     ═══════════════════════════════════════════════════════════ */
+  .btn-depth-gold--pending {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg,
+      hsl(var(--color-gold-accent) / 0.15) 0%,
+      hsl(var(--color-gold-accent) / 0.08) 100%);
+    color: hsl(var(--color-gold-accent) / 0.5);
+    border: 1px solid hsl(var(--color-gold-accent) / 0.2);
+    border-radius: var(--radius-btn);
+    box-shadow: none;
+    cursor: default;
+    transform: none;
+    font-family: var(--wm-font-body);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .btn-depth-gold--pending::after { content: none; }
 }
