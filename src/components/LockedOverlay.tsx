@@ -131,44 +131,41 @@ export function LockedOverlay({
         {[1, 2, 3].map((i) => (
           <div
             key={i}
+            className="card-raised"
             style={{
-              background: "#0A0A0A",
               border: "1.5px solid #FECACA",
-              borderLeft: "4px solid #DC2626",
-              borderRadius: 0,
+              borderLeft: "4px solid hsl(var(--color-danger))",
               padding: "20px 20px 20px 24px",
             }}
           >
             <span
+              className="font-mono"
               style={{
                 display: "inline-block",
-                background: "rgba(220,38,38,0.12)",
-                borderRadius: 0,
+                background: "hsl(var(--color-danger) / 0.12)",
+                borderRadius: "var(--radius-btn)",
                 padding: "3px 10px",
-                fontFamily: "'DM Mono', monospace",
                 fontSize: 10,
                 fontWeight: 700,
-                color: "#DC2626",
+                color: "hsl(var(--color-danger))",
               }}
             >
               ⚠ CRITICAL
             </span>
             <p
+              className="font-body text-foreground"
               style={{
-                fontFamily: "'DM Sans', sans-serif",
                 fontSize: 17,
                 fontWeight: 700,
-                color: "#FFFFFF",
                 marginTop: 8,
               }}
             >
               ██████████ ██████
             </p>
             <p
+              className="font-body text-foreground/90"
               style={{
-                fontFamily: "'DM Sans', sans-serif",
                 fontSize: 14,
-                color: "#E5E7EB",
                 marginTop: 6,
               }}
             >
@@ -183,7 +180,6 @@ export function LockedOverlay({
         className="absolute inset-0 flex flex-col items-center justify-center"
         style={{
           background: "rgba(10,10,10,0.85)",
-          borderRadius: 0,
           backdropFilter: "blur(2px)",
         }}
       >
@@ -191,13 +187,12 @@ export function LockedOverlay({
           initial={{ opacity: 0, y: 16, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="card-dominant"
           style={{
-            background: "#0A0A0A",
-            borderRadius: 0,
             padding: "28px 32px 32px",
             textAlign: "center",
             boxShadow:
-              "0 12px 48px rgba(15,31,53,0.45), 0 0 0 1px rgba(200,149,42,0.12) inset, 0 1px 0 rgba(255,255,255,0.04) inset",
+              "0 12px 48px rgba(15,31,53,0.45), 0 0 0 1px hsl(var(--color-gold-accent) / 0.12) inset, 0 1px 0 rgba(255,255,255,0.04) inset",
             width: "100%",
             maxWidth: 400,
           }}
@@ -209,10 +204,10 @@ export function LockedOverlay({
               style={{ marginBottom: 6 }}
             >
               <span
+                className="font-mono"
                 style={{
-                  fontFamily: "'DM Mono', monospace",
                   fontSize: 10,
-                  color: "#C8952A",
+                  color: "hsl(var(--color-gold-accent))",
                   letterSpacing: "0.1em",
                   fontWeight: 700,
                 }}
@@ -220,10 +215,9 @@ export function LockedOverlay({
                 {stepLabel}
               </span>
               <span
+                className="font-mono text-muted-foreground"
                 style={{
-                  fontFamily: "'DM Mono', monospace",
                   fontSize: 10,
-                  color: "#94A3B8",
                   letterSpacing: "0.06em",
                 }}
               >
@@ -231,11 +225,10 @@ export function LockedOverlay({
               </span>
             </div>
             <div
+              className="bg-secondary overflow-hidden"
               style={{
                 height: 4,
-                borderRadius: 0,
-                background: "rgba(255,255,255,0.08)",
-                overflow: "hidden",
+                borderRadius: "var(--radius-input)",
               }}
             >
               <motion.div
@@ -243,9 +236,9 @@ export function LockedOverlay({
                 transition={{ duration: 0.4, ease: "easeOut" as const }}
                 style={{
                   height: "100%",
-                  borderRadius: 0,
+                  borderRadius: "var(--radius-input)",
                   background: "linear-gradient(90deg, #C8952A, #E2B04A)",
-                  boxShadow: "0 0 8px rgba(200,149,42,0.4)",
+                  boxShadow: "0 0 8px hsl(var(--color-gold-accent) / 0.4)",
                 }}
               />
             </div>
@@ -254,10 +247,10 @@ export function LockedOverlay({
           {/* ─── Lock icon + headline ─── */}
           <div style={{ marginBottom: 6 }}>
             <p
+              className="font-mono"
               style={{
-                fontFamily: "'DM Mono', monospace",
                 fontSize: 11,
-                color: "#C8952A",
+                color: "hsl(var(--color-gold-accent))",
                 letterSpacing: "0.1em",
                 marginBottom: 8,
               }}
@@ -265,11 +258,10 @@ export function LockedOverlay({
               🔒 VERIFICATION REQUIRED
             </p>
             <p
+              className="font-display text-foreground"
               style={{
-                fontFamily: "'Jost', sans-serif",
                 fontSize: 22,
                 fontWeight: 800,
-                color: "#FFFFFF",
                 lineHeight: 1.25,
                 marginBottom: 6,
               }}
@@ -277,20 +269,18 @@ export function LockedOverlay({
               {header}
             </p>
             <p
+              className="font-body text-muted-foreground"
               style={{
-                fontFamily: "'DM Sans', sans-serif",
                 fontSize: 14,
-                color: "#94A3B8",
                 marginBottom: 4,
               }}
             >
               {subtext[0]}
             </p>
             <p
+              className="font-body text-muted-foreground"
               style={{
-                fontFamily: "'DM Sans', sans-serif",
                 fontSize: 14,
-                color: "#94A3B8",
                 marginBottom: 20,
               }}
             >
@@ -301,24 +291,23 @@ export function LockedOverlay({
           {/* ─── Error message with contextual recovery ─── */}
           {errorMsg && (
             <div style={{
-              background: "rgba(220,38,38,0.08)",
-              border: "1px solid rgba(220,38,38,0.25)",
-              borderRadius: 0,
+              background: "hsl(var(--color-danger) / 0.08)",
+              border: "1px solid hsl(var(--color-danger) / 0.25)",
+              borderRadius: "var(--radius-card)",
               padding: "12px 16px",
               marginBottom: 12,
               textAlign: "center",
             }}>
               <div className="flex items-center justify-center gap-2" style={{ marginBottom: 4 }}>
                 {errorType === "rate_limit" ? (
-                  <Clock size={14} style={{ color: "#F59E0B", flexShrink: 0 }} />
+                  <Clock size={14} style={{ color: "hsl(var(--color-caution))", flexShrink: 0 }} />
                 ) : (
-                  <AlertCircle size={14} style={{ color: "#DC2626", flexShrink: 0 }} />
+                  <AlertCircle size={14} style={{ color: "hsl(var(--color-danger))", flexShrink: 0 }} />
                 )}
-                <p style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                <p className="font-body" style={{
                   fontSize: 13,
                   fontWeight: 600,
-                  color: errorType === "rate_limit" ? "#F59E0B" : "#DC2626",
+                  color: errorType === "rate_limit" ? "hsl(var(--color-caution))" : "hsl(var(--color-danger))",
                   margin: 0,
                 }}>
                   {errorMsg}
@@ -330,17 +319,16 @@ export function LockedOverlay({
                 <button
                   onClick={onResend}
                   disabled={resendCooldown > 0}
-                  className="flex items-center gap-1.5 mx-auto"
+                  className="flex items-center gap-1.5 mx-auto font-body"
                   style={{
                     marginTop: 8,
-                    background: "rgba(200,149,42,0.15)",
-                    border: "1px solid rgba(200,149,42,0.3)",
-                    borderRadius: 0,
+                    background: "hsl(var(--color-gold-accent) / 0.15)",
+                    border: "1px solid hsl(var(--color-gold-accent) / 0.3)",
+                    borderRadius: "var(--radius-btn)",
                     padding: "6px 14px",
-                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: 12,
                     fontWeight: 600,
-                    color: "#E2B04A",
+                    color: "hsl(var(--color-gold-accent))",
                     cursor: resendCooldown > 0 ? "not-allowed" : "pointer",
                   }}
                 >
@@ -350,10 +338,8 @@ export function LockedOverlay({
               )}
 
               {errorType === "network" && (
-                <p style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                <p className="font-body text-muted-foreground" style={{
                   fontSize: 11,
-                  color: "#94A3B8",
                   marginTop: 6,
                   margin: 0,
                 }}>
@@ -362,10 +348,8 @@ export function LockedOverlay({
               )}
 
               {errorType === "rate_limit" && (
-                <p style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                <p className="font-body text-muted-foreground" style={{
                   fontSize: 11,
-                  color: "#94A3B8",
                   marginTop: 6,
                   margin: 0,
                 }}>
@@ -378,48 +362,33 @@ export function LockedOverlay({
           {/* ─── Full-fetch stall recovery ─── */}
           {fetchStalled && (
             <div style={{
-              background: "rgba(220,38,38,0.08)",
-              border: "1px solid rgba(220,38,38,0.25)",
-              borderRadius: 0,
+              background: "hsl(var(--color-danger) / 0.08)",
+              border: "1px solid hsl(var(--color-danger) / 0.25)",
+              borderRadius: "var(--radius-card)",
               padding: "16px 20px",
               marginBottom: 12,
               textAlign: "center",
             }}>
               <div className="flex items-center justify-center gap-2" style={{ marginBottom: 8 }}>
-                <AlertCircle size={14} style={{ color: "#DC2626", flexShrink: 0 }} />
-                <p style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                <AlertCircle size={14} style={{ color: "hsl(var(--color-danger))", flexShrink: 0 }} />
+                <p className="font-body" style={{
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#DC2626",
+                  color: "hsl(var(--color-danger))",
                   margin: 0,
                 }}>
                   Report loading failed
                 </p>
               </div>
-              <p style={{
-                fontFamily: "'DM Sans', sans-serif",
+              <p className="font-body text-muted-foreground" style={{
                 fontSize: 12,
-                color: "#94A3B8",
                 margin: "0 0 12px 0",
               }}>
                 Your identity was verified, but the full report didn't load. Tap below to retry.
               </p>
               <button
                 onClick={onRetryFetchFull}
-                className="flex items-center gap-1.5 mx-auto"
-                style={{
-                  background: "linear-gradient(135deg, #C8952A, #E2B04A)",
-                  border: "none",
-                  borderRadius: 0,
-                  padding: "10px 24px",
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "white",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 16px rgba(200,149,42,0.3)",
-                }}
+                className="btn-depth-gold flex items-center gap-1.5 mx-auto py-2.5 px-6 text-sm"
               >
                 <RefreshCw size={14} />
                 Tap to Retry
@@ -438,7 +407,7 @@ export function LockedOverlay({
                 transition={{ duration: 0.25 }}
                 className="flex flex-col items-center gap-4"
               >
-                <div className="[&_input]:!bg-transparent [&_input]:!text-[#f7f7f7]">
+                <div className="[&_input]:!bg-transparent [&_input]:!text-foreground">
                   <InputOTP
                     maxLength={6}
                     value={otpValue}
@@ -450,7 +419,7 @@ export function LockedOverlay({
                         <InputOTPSlot
                           key={i}
                           index={i}
-                          className="!border-[#f7f7f733] !bg-[rgba(255,255,255,0.06)] !text-[#f7f7f7] !w-12 !h-14 !text-xl !font-bold"
+                          className="!border-border !bg-secondary !text-foreground !w-12 !h-14 !text-xl !font-bold"
                         />
                       ))}
                     </InputOTPGroup>
@@ -462,40 +431,9 @@ export function LockedOverlay({
                   whileTap={otpValue.length === 6 ? { scale: 0.97 } : {}}
                   onClick={onOtpSubmit}
                   disabled={otpValue.length < 6 || isLoading}
-                  style={{
-                    width: "100%",
-                    maxWidth: 320,
-                    height: 54,
-                    background:
-                      otpValue.length === 6
-                        ? "linear-gradient(135deg, #C8952A, #E2B04A)"
-                        : "rgba(200,149,42,0.2)",
-                    color:
-                      otpValue.length === 6
-                        ? "white"
-                        : "rgba(255,255,255,0.4)",
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 17,
-                    fontWeight: 800,
-                    borderRadius: 0,
-                    border:
-                      otpValue.length === 6
-                        ? "1px solid rgba(226,176,74,0.3)"
-                        : "1px solid transparent",
-                    cursor:
-                      otpValue.length === 6 && !isLoading
-                        ? "pointer"
-                        : "not-allowed",
-                    boxShadow:
-                      otpValue.length === 6
-                        ? "0 6px 24px rgba(200,149,42,0.4)"
-                        : "none",
-                    transition: "all 0.3s",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                  }}
+                  className={`w-full max-w-[320px] h-[54px] text-[17px] font-extrabold flex items-center justify-center gap-2 ${
+                    otpValue.length === 6 ? "btn-depth-gold" : "btn-depth-gold--pending"
+                  }`}
                 >
                   {isLoading ? (
                     <>
@@ -512,13 +450,12 @@ export function LockedOverlay({
                   <button
                     onClick={onResend}
                     disabled={resendCooldown > 0}
+                    className="font-body text-muted-foreground"
                     style={{
                       background: "none",
                       border: "none",
                       cursor: resendCooldown > 0 ? "default" : "pointer",
-                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: 12,
-                      color: "#94A3B8",
                       textDecoration: resendCooldown > 0 ? "none" : "underline",
                       textUnderlineOffset: 2,
                     }}
@@ -530,13 +467,12 @@ export function LockedOverlay({
                   {onChangePhone && (
                     <button
                       onClick={onChangePhone}
+                      className="font-body text-muted-foreground/70"
                       style={{
                         background: "none",
                         border: "none",
                         cursor: "pointer",
-                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: 12,
-                        color: "#64748B",
                         textDecoration: "underline",
                         textUnderlineOffset: 2,
                       }}
@@ -563,29 +499,7 @@ export function LockedOverlay({
                   whileTap={{ scale: 0.97 }}
                   onClick={onSendCode}
                   disabled={isLoading}
-                  style={{
-                    width: "100%",
-                    maxWidth: 320,
-                    height: 54,
-                    background:
-                      "linear-gradient(135deg, #C8952A 0%, #E2B04A 50%, #C8952A 100%)",
-                    backgroundSize: "200% 100%",
-                    color: "white",
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 17,
-                    fontWeight: 800,
-                    borderRadius: 0,
-                    border: "1px solid rgba(226,176,74,0.3)",
-                    cursor: isLoading ? "not-allowed" : "pointer",
-                    boxShadow:
-                      "0 6px 24px rgba(200,149,42,0.4), 0 2px 8px rgba(200,149,42,0.2)",
-                    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    letterSpacing: "0.01em",
-                  }}
+                  className="btn-depth-gold w-full max-w-[320px] h-[54px] text-[17px] font-extrabold flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -611,14 +525,13 @@ export function LockedOverlay({
               >
                 <div style={{ width: "100%", maxWidth: 320, position: "relative" }}>
                   <div
+                    className="font-mono text-muted-foreground"
                     style={{
                       position: "absolute",
                       left: 14,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      fontFamily: "'DM Mono', monospace",
                       fontSize: 14,
-                      color: "#94A3B8",
                       fontWeight: 600,
                       pointerEvents: "none",
                     }}
@@ -631,51 +544,38 @@ export function LockedOverlay({
                     onChange={onPhoneChange}
                     placeholder="(555) 555-5555"
                     autoFocus
+                    className="font-body text-foreground wm-input-well"
                     style={{
                       width: "100%",
                       height: 54,
-                      background: "rgba(255,255,255,0.07)",
                       border: phoneIsValid
-                        ? "2px solid #C8952A"
+                        ? "2px solid hsl(var(--color-gold-accent))"
                         : phoneDigitCount > 0
-                          ? "2px solid rgba(255,255,255,0.2)"
-                          : "2px solid rgba(255,255,255,0.1)",
-                      borderRadius: 0,
+                          ? "2px solid hsl(var(--border))"
+                          : "2px solid hsl(var(--border))",
                       padding: "0 16px 0 40px",
-                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: 19,
                       fontWeight: 600,
-                      color: "#FFFFFF",
                       textAlign: "center",
                       letterSpacing: "0.03em",
                       outline: "none",
                       transition:
                         "border-color 0.2s, box-shadow 0.2s, background 0.2s",
                       boxShadow: phoneIsValid
-                        ? "0 0 0 4px rgba(200,149,42,0.15), 0 2px 12px rgba(0,0,0,0.2)"
-                        : "0 2px 12px rgba(0,0,0,0.2)",
-                      caretColor: "#C8952A",
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-                      setTimeout(() => {
-                        e.currentTarget?.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }, 300);
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.07)";
+                        ? "0 0 0 4px hsl(var(--color-gold-accent) / 0.15), 0 2px 12px rgba(0,0,0,0.1)"
+                        : "0 2px 12px rgba(0,0,0,0.1)",
+                      caretColor: "hsl(var(--color-gold-accent))",
                     }}
                   />
                   {phoneDigitCount > 0 && phoneDigitCount < 10 && (
                     <span
+                      className="font-mono text-muted-foreground/70"
                       style={{
                         position: "absolute",
                         right: 14,
                         top: "50%",
                         transform: "translateY(-50%)",
-                        fontFamily: "'DM Mono', monospace",
                         fontSize: 11,
-                        color: "#64748B",
                       }}
                     >
                       {phoneDigitCount}/10
@@ -690,7 +590,7 @@ export function LockedOverlay({
                         right: 14,
                         top: "50%",
                         transform: "translateY(-50%)",
-                        color: "#C8952A",
+                        color: "hsl(var(--color-gold-accent))",
                         fontSize: 16,
                       }}
                     >
@@ -714,17 +614,16 @@ export function LockedOverlay({
                     onChange={(e) => onTcpaChange?.(e.target.checked)}
                     style={{
                       marginTop: 3,
-                      accentColor: "#C8952A",
+                      accentColor: "hsl(var(--color-gold-accent))",
                       width: 16,
                       height: 16,
                       flexShrink: 0,
                     }}
                   />
                   <span
+                    className="font-body text-muted-foreground/70"
                     style={{
-                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: 11,
-                      color: "#64748B",
                       lineHeight: 1.5,
                     }}
                   >
@@ -738,33 +637,9 @@ export function LockedOverlay({
                   whileTap={canSubmitPhone ? { scale: 0.97 } : {}}
                   onClick={onPhoneSubmit}
                   disabled={!canSubmitPhone}
-                  style={{
-                    width: "100%",
-                    maxWidth: 320,
-                    height: 54,
-                    background: canSubmitPhone
-                      ? "linear-gradient(135deg, #C8952A 0%, #E2B04A 50%, #C8952A 100%)"
-                      : "rgba(200,149,42,0.2)",
-                    backgroundSize: "200% 100%",
-                    color: canSubmitPhone ? "white" : "rgba(255,255,255,0.4)",
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 17,
-                    fontWeight: 800,
-                    borderRadius: 0,
-                    border: canSubmitPhone
-                      ? "1px solid rgba(226,176,74,0.3)"
-                      : "1px solid transparent",
-                    cursor: canSubmitPhone ? "pointer" : "not-allowed",
-                    boxShadow: canSubmitPhone
-                      ? "0 6px 24px rgba(200,149,42,0.4), 0 2px 8px rgba(200,149,42,0.2)"
-                      : "none",
-                    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    letterSpacing: "0.01em",
-                  }}
+                  className={`w-full max-w-[320px] h-[54px] text-[17px] font-extrabold flex items-center justify-center gap-2 ${
+                    canSubmitPhone ? "btn-depth-gold" : "btn-depth-gold--pending"
+                  }`}
                 >
                   {isLoading ? (
                     <>
@@ -781,10 +656,9 @@ export function LockedOverlay({
 
           {/* ─── Trust micro-copy ─── */}
           <p
+            className="font-mono text-muted-foreground/70"
             style={{
-              fontFamily: "'DM Mono', monospace",
               fontSize: 11,
-              color: "#64748B",
               marginTop: 16,
               letterSpacing: "0.04em",
               lineHeight: 1.5,
