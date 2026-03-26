@@ -1132,10 +1132,25 @@ Deno.serve(async (req: Request) => {
       const gradeResult = computeGrade(extraction);
       const flags = detectFlags(extraction);
 
-      // 11b. Derive financial metrics (inline — deterministic math, no HTTP call)
+      // 11b. Non-blocking county lookup for benchmark comparison
+      let countyName: string | null = null;
+      if (session?.lead_id) {
+        try {
+          const { data: leadRow } = await supabase
+            .from("leads")
+            .select("county")
+            .eq("id", session.lead_id)
+            .maybeSingle();
+          countyName = leadRow?.county ?? null;
+        } catch (countyErr) {
+          console.warn("County lookup failed (non-fatal, using fallback):", countyErr);
+        }
+      }
+
+      // 11c. Derive financial metrics (inline — deterministic math, no HTTP call)
       let derivedMetrics: Record<string, unknown> | null = null;
       try {
-        derivedMetrics = computeDerivedMetrics(extraction);
+        derivedMetrics = computeDerivedMetrics(extraction, countyName);
       } catch (metricsErr) {
         console.error("derived metrics computation failed (non-fatal):", metricsErr);
         // Non-fatal: report still ships without financial cards
