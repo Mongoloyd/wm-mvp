@@ -50,7 +50,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
               </div>
               <h3 className="font-display text-xl font-bold text-foreground mt-4 uppercase tracking-[0.02em]">{block.heading}</h3>
               <p className="wm-body mt-2">{block.copy}</p>
-              <span className="inline-block mt-3 bg-destructive/10 px-2.5 py-0.5 font-body text-[11px] font-semibold" style={{ color: block.badgeColor, border: `1px solid ${block.badgeColor}33` }}>{block.badge}</span>
+              <span className={`inline-block mt-3 px-2.5 py-0.5 font-body text-[11px] font-semibold ${block.badgeColor === '#2563EB' ? 'text-primary bg-primary/10 border border-primary/20' : 'text-destructive bg-destructive/10 border border-destructive/20'}`} style={{ borderRadius: 'var(--radius-input)' }}>{block.badge}</span>
             </motion.div>
           ))}
         </div>
