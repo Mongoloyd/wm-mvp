@@ -36,13 +36,13 @@ export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClic
       className={`fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card p-3 px-4 transition-opacity duration-150 ${isScrolling ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}
       style={{ boxShadow: "var(--shadow-shelf-up)" }}
     >
-      <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-between w-full">
+      <div className="max-w-5xl mx-auto flex items-center justify-center md:justify-between w-full">
         {conversionType ? (
           <div className="flex justify-center w-full">
             <button
               onClick={onPostConversionClick}
               className="w-full max-w-[280px] flex items-center justify-center gap-2 btn-depth-primary"
-              style={{ fontSize: 15, padding: "12px 24px" }}
+              style={{ padding: "12px 20px", fontSize: 14 }}
             >
               <Phone size={18} />
               {postConversionText}
@@ -57,14 +57,14 @@ export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClic
               <button
                 onClick={onScanClick}
                 className="flex-1 md:flex-none w-full max-w-[200px] btn-depth-primary"
-                style={{ fontSize: 14, padding: "12px 16px" }}
+                style={{ padding: "12px 20px", fontSize: 14 }}
               >
                 Scan My Quote
               </button>
               <button
                 onClick={onDemoClick}
                 className="flex-1 md:flex-none w-full max-w-[200px] btn-secondary-tactile"
-                style={{ fontSize: 14, padding: "12px 16px" }}
+                style={{ padding: "12px 20px" }}
               >
                 Watch Live Demo
               </button>

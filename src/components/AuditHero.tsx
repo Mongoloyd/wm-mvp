@@ -48,11 +48,9 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             transition={{ duration: 0.15 }}
             className="lg:col-span-5 pt-8 lg:pt-20"
           >
-            <div
-              className="inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5"
-            >
+            <div className="inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
               <span className="text-primary text-sm">🛡</span>
-              <span className="font-mono text-[10px] font-bold tracking-[0.1em] text-primary">
+              <span className="wm-eyebrow text-primary">
                 FORENSIC QUOTE INTELLIGENCE
               </span>
             </div>
@@ -70,10 +68,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
               THAT'S EXACTLY WHAT <span className="text-destructive">THEY'RE COUNTING ON.</span>
             </h1>
 
-            <p
-              className="font-body text-muted-foreground leading-[1.7] mb-8"
-              style={{ fontSize: "clamp(16px, 2vw, 18px)" }}
-            >
+            <p className="wm-body mb-8" style={{ fontSize: "clamp(16px, 2vw, 18px)" }}>
               The impact window industry has no pricing transparency standard.
               <br />
               WindowMan built one — and it reads your quote in{" "}
@@ -81,13 +76,14 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             </p>
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">
-              <motion.button
+              {/* Hero CTA — largest on page */}
+              <button
                 onClick={() => onUploadQuote?.()}
-                className="btn-depth-primary w-full sm:w-auto whitespace-nowrap py-5 px-8 sm:px-10 hover:shadow-lg transition-shadow"
-                style={{ fontSize: 18, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
+                className="btn-depth-primary w-full sm:w-auto whitespace-nowrap"
+                style={{ fontSize: 18, padding: "20px 40px" }}
               >
                 Scan My Quote<span className="inline md:hidden lg:inline"> — It's Free</span>
-              </motion.button>
+              </button>
               <React.Suspense fallback={<div className="h-[54px]" />}>
                 <PowerToolFlow
                   onUploadQuote={onUploadQuote}
@@ -98,14 +94,10 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             </div>
 
             <div className="mt-2 w-full lg:w-auto">
-              <motion.button
+              <button
                 onClick={() => onFlowBClick?.()}
-                className="w-full lg:w-auto btn-secondary-tactile py-3 px-4 lg:px-5 cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2 text-foreground"
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 15,
-                  fontWeight: 500,
-                }}
+                className="w-full lg:w-auto btn-secondary-tactile cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2 text-foreground"
+                style={{ padding: "12px 20px" }}
               >
                 <span className="flex items-center gap-2">
                   <span className="inline-flex items-center justify-center bg-primary text-primary-foreground font-mono text-[9px] font-bold tracking-[0.05em] px-1.5 py-0.5">
@@ -114,7 +106,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                   <span>Getting Quotes Soon?</span>
                 </span>
                 <span className="ml-[4.5ch] lg:ml-0">We Can Arm You 1st →</span>
-              </motion.button>
+              </button>
             </div>
 
             <TrustBullets />
@@ -126,8 +118,6 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
           {/* RIGHT — Floating GradeCard (5 cols) */}
           <div className="lg:col-span-5 relative flex flex-col items-center pt-4 lg:pt-16">
             <div className="hidden md:block relative z-10">
-              {/* Subtle glow behind card */}
-              {/* Physical cast shadow — no blur glow */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}

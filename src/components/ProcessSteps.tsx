@@ -28,8 +28,8 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
     <section id="how-it-works" className="bg-card border-y border-border section-recessed">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
-          <p className="font-mono text-xs text-primary tracking-[0.1em] mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
-          <h2 className="font-display text-foreground font-extrabold tracking-[0.01em] uppercase mb-12" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
+          <p className="wm-eyebrow text-primary mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
+          <h2 className="wm-title-section mb-12" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
             UPLOAD YOUR QUOTE. IN UNDER 60 SECONDS, YOU'LL KNOW:
           </h2>
         </motion.div>
@@ -71,7 +71,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {deliverables.map((d, i) => (
-              <div key={i} className="flex items-start gap-3">
+              <div key={i} className="flex items-start gap-3 card-raised p-3">
                 <div className="flex items-center justify-center flex-shrink-0 w-7 h-7" style={{ backgroundColor: `${d.color}15` }}>
                   <span className="font-mono text-sm font-bold" style={{ color: d.color }}>{d.icon}</span>
                 </div>
@@ -81,16 +81,16 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           </div>
         </motion.div>
 
-        <div className="text-center mt-12">
-          <motion.button onClick={handleScanClick}
-            className="btn-depth-primary" style={{ fontSize: 16, padding: "16px 32px" }}>
+        <div className="text-center mt-8">
+          <button onClick={handleScanClick}
+            className="btn-depth-primary" style={{ padding: "16px 32px" }}>
             Scan My Quote — It's Free
-          </motion.button>
+          </button>
           {onDemoClick && (
-            <motion.button onClick={onDemoClick}
-              className="block mx-auto mt-4 btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
+            <button onClick={onDemoClick}
+              className="block mx-auto mt-4 btn-secondary-tactile" style={{ padding: "12px 24px" }}>
               See the AI in Action — No Upload Needed
-            </motion.button>
+            </button>
           )}
         </div>
       </div>

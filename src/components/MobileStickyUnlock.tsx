@@ -41,11 +41,11 @@ export function MobileStickyUnlock({
       <div className="bg-card border-t border-border px-4 py-3" style={{ boxShadow: "var(--shadow-shelf-up)" }}>
         <button
           onClick={onUnlock}
-          className="w-full flex items-center justify-between btn-depth-primary px-5 py-3.5 active:scale-[0.98] transition-transform"
+          className="w-full flex items-center justify-between btn-depth-primary px-5 py-3.5 active:translate-y-px transition-transform"
           style={{ minHeight: "48px" }}
         >
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-foreground/10">
+            <div className="flex h-8 w-8 items-center justify-center bg-primary-foreground/10" style={{ borderRadius: 'var(--radius-btn)' }}>
               <Lock className="h-4 w-4 text-primary-foreground" />
             </div>
             <div className="text-left">

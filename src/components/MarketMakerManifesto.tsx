@@ -23,27 +23,27 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
   });
 
   return (
-    <section className="bg-card border-t border-border">
-      <div ref={ref} className="mx-auto px-4 md:px-8 py-20 md:py-28" style={{ maxWidth: 1080 }}>
-        <motion.p {...fade(0)} className="text-center font-mono text-xs text-primary tracking-[0.12em] mb-5">
+    <section className="bg-card border-t border-border section-recessed">
+      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
+        <motion.p {...fade(0)} className="text-center wm-eyebrow text-primary mb-5">
           HOW WINDOWMAN ACTUALLY WORKS
         </motion.p>
-        <motion.h2 {...fade(0.02)} className="text-center mx-auto font-display text-foreground font-extrabold uppercase tracking-[0.01em] leading-[1.15] mb-4" style={{ fontSize: "clamp(36px, 5vw, 48px)", maxWidth: 680 }}>
+        <motion.h2 {...fade(0.02)} className="text-center mx-auto wm-title-section mb-4" style={{ fontSize: "clamp(36px, 5vw, 48px)", maxWidth: 680, lineHeight: 1.15 }}>
           WE KEEP BOTH SIDES HONEST
         </motion.h2>
-        <motion.p {...fade(0.04)} className="text-center mx-auto font-body text-lg text-muted-foreground leading-[1.7] mb-14" style={{ maxWidth: 560 }}>
+        <motion.p {...fade(0.04)} className="text-center mx-auto wm-body mb-14" style={{ fontSize: 18, maxWidth: 560, lineHeight: 1.7 }}>
           Most services profit from information asymmetry.<br />WindowMan profits from eliminating it.
         </motion.p>
 
         <motion.div {...fade(0.06)} className="mx-auto flex flex-col md:flex-row items-center justify-between mb-14" style={{ maxWidth: 800 }}>
           <div className="flex flex-col items-center" style={{ minWidth: 110 }}>
-            <div className="flex items-center justify-center w-20 h-20 bg-primary/5 border border-primary/20">
+            <div className="flex items-center justify-center w-20 h-20 card-raised">
               <Home size={32} className="text-primary" />
             </div>
             <span className="font-body text-[15px] font-bold text-foreground mt-3">You</span>
           </div>
           <div className="flex flex-col items-center py-3 md:py-0 md:flex-1 md:px-3">
-            <span className="font-mono text-[10px] text-primary mb-1 text-center">quote + intent</span>
+            <span className="wm-eyebrow text-primary mb-1 text-center">quote + intent</span>
             <ArrowRight size={32} className="text-primary hidden md:block" />
             <ArrowDown size={24} className="text-primary md:hidden" />
           </div>
@@ -52,12 +52,12 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
             <span className="font-body text-[15px] font-bold text-foreground mt-2">WindowMan</span>
           </div>
           <div className="flex flex-col items-center py-3 md:py-0 md:flex-1 md:px-3">
-            <span className="font-mono text-[10px] text-primary mb-1 text-center">warm lead + intel</span>
+            <span className="wm-eyebrow text-primary mb-1 text-center">warm lead + intel</span>
             <ArrowRight size={32} className="text-primary hidden md:block" />
             <ArrowDown size={24} className="text-primary md:hidden" />
           </div>
           <div className="flex flex-col items-center" style={{ minWidth: 110 }}>
-            <div className="flex items-center justify-center w-20 h-20 bg-primary/5 border border-primary/20">
+            <div className="flex items-center justify-center w-20 h-20 card-raised">
               <Wrench size={32} className="text-primary" />
             </div>
             <span className="font-body text-[15px] font-bold text-foreground mt-3">The Contractor</span>
@@ -66,17 +66,17 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
 
         <motion.div {...fade(0.1)} className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
-            { icon: <Check size={16} className="text-primary" strokeWidth={3} />, title: "What Do You Get — Free", borderColor: "border-primary/20", bgColor: "bg-primary/[0.03]", content: listItems.map((item, i) => (
+            { icon: <Check size={16} className="text-primary" strokeWidth={3} />, title: "What Do You Get — Free", borderColor: "border-primary/20", content: listItems.map((item, i) => (
               <div key={i} className="flex gap-2 items-start font-body text-[13px] text-muted-foreground leading-[2.0]">
                 <span className="text-primary flex-shrink-0">→</span><span>{item}</span>
               </div>
             ))},
-            { icon: <Scale size={16} className="text-gold" strokeWidth={2.5} />, title: "​So How Do I Make Money", borderColor: "border-gold/20", bgColor: "bg-gold/[0.03]", content: <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">WindowMan earns a percentage of the sale — only when you choose to work with one of our contractors and your project is completed. We never charge homeowners.</p> },
-            { icon: <BarChart3 size={16} className="text-primary" strokeWidth={2.5} />, title: "Why Work With Me", borderColor: "border-primary/20", bgColor: "bg-primary/[0.03]", content: <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">Every homeowner we introduce already understands fair-market pricing. Our contractors walk into conversations that are already halfway won.</p> },
+            { icon: <Scale size={16} className="text-gold" strokeWidth={2.5} />, title: "​So How Do I Make Money", borderColor: "border-gold/20", content: <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">WindowMan earns a percentage of the sale — only when you choose to work with one of our contractors and your project is completed. We never charge homeowners.</p> },
+            { icon: <BarChart3 size={16} className="text-primary" strokeWidth={2.5} />, title: "Why Work With Me", borderColor: "border-primary/20", content: <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">Every homeowner we introduce already understands fair-market pricing. Our contractors walk into conversations that are already halfway won.</p> },
           ].map((card, i) => (
-            <div key={i} className={`${card.bgColor} border ${card.borderColor} p-6`}>
+            <div key={i} className={`card-raised p-7 border ${card.borderColor}`}>
               <div className="flex items-center gap-2.5 mb-3.5">
-                <div className={`flex items-center justify-center w-9 h-9 border ${card.borderColor} ${card.bgColor}`}>
+                <div className={`flex items-center justify-center w-9 h-9 border ${card.borderColor} bg-card`} style={{ borderRadius: 'var(--radius-btn)' }}>
                   {card.icon}
                 </div>
                 <span className="font-body text-base font-bold text-foreground">{card.title}</span>

@@ -105,14 +105,14 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
     <AnimatePresence>
       {isVisible && (
         <motion.div ref={containerRef} initial={{ opacity: 0, height: 0, y: 20 }} animate={{ opacity: 1, height: "auto", y: 0 }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} className="overflow-hidden max-w-2xl mx-auto mt-6">
-          <div className="card-raised p-8 md:p-10">
-            <span className="inline-block font-mono text-[10px] text-primary tracking-[0.1em] bg-primary/10 px-3 py-1 mb-5">
+          <div className="card-raised p-7 md:p-8">
+            <span className="inline-block wm-eyebrow text-primary bg-primary/10 px-3 py-1 mb-5">
               UPLOAD YOUR QUOTE
             </span>
             <h2 className="font-display text-[26px] text-foreground font-extrabold tracking-[0.02em] uppercase mb-2">
               Drop your quote to start the scan.
             </h2>
-            <p className="font-body text-[15px] text-muted-foreground mb-7">
+            <p className="wm-body mb-7">
               Upload your contractor's quote and we'll analyze it in under 60 seconds.
             </p>
 
@@ -140,7 +140,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
                 </>
               ) : (
                 <div onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-center mx-auto w-12 h-12 bg-primary/10 mb-3">
+                  <div className="flex items-center justify-center mx-auto w-12 h-12 bg-primary/10 mb-3" style={{ borderRadius: 'var(--radius-btn)' }}>
                     <span className="text-primary text-2xl font-bold">✓</span>
                   </div>
                   <p className="font-body text-[15px] text-foreground font-semibold">{file.name}</p>
@@ -156,7 +156,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
             {fileError && <p className="font-body text-[13px] text-destructive text-center mt-3 font-medium">{fileError}</p>}
 
             {file && (
-              <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
+              <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}
                 onClick={handleScan} disabled={uploading}
                 className="btn-depth-primary w-full mt-5"
                 style={{ height: 54, fontSize: 17, opacity: uploading ? 0.7 : 1, cursor: uploading ? "not-allowed" : "pointer" }}>
