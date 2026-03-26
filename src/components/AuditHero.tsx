@@ -82,10 +82,9 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">
               <motion.button
-                whileHover={{ scale: 1.02 }}
                 onClick={() => onUploadQuote?.()}
-                className="btn-depth-primary w-full sm:w-auto whitespace-nowrap py-4 px-6 sm:px-8 hover:shadow-lg transition-shadow"
-                style={{ fontSize: 16 }}
+                className="btn-depth-primary w-full sm:w-auto whitespace-nowrap py-5 px-8 sm:px-10 hover:shadow-lg transition-shadow"
+                style={{ fontSize: 18, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
               >
                 Scan My Quote<span className="inline md:hidden lg:inline"> — It's Free</span>
               </motion.button>
@@ -100,9 +99,8 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
 
             <div className="mt-2 w-full lg:w-auto">
               <motion.button
-                whileHover={{ scale: 1.02 }}
                 onClick={() => onFlowBClick?.()}
-                className="w-full lg:w-auto btn-secondary-tactile py-3.5 px-4 lg:px-6 cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2 text-foreground"
+                className="w-full lg:w-auto btn-secondary-tactile py-3 px-4 lg:px-5 cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2 text-foreground"
                 style={{
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 15,

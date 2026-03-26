@@ -37,7 +37,8 @@ const SocialProofStrip = () => {
       style={{ background: "linear-gradient(180deg, hsl(214 30% 91%) 0%, hsl(214 35% 95%) 100%)", boxShadow: "var(--shadow-sunken)" }}
     >
       <div
-        className="inline-flex items-center divide-x divide-border overflow-hidden border border-border"
+        className="inline-flex items-center divide-x divide-border overflow-hidden card-raised"
+        style={{ borderRadius: 'var(--radius)' }}
       >
         <div className="flex items-center gap-2 px-4 py-2">
           <Shield className="w-4 h-4 flex-shrink-0 text-primary" />

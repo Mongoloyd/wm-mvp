@@ -22,7 +22,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
   const handleScanClick = () => { onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" }); };
 
   return (
-    <section className="bg-background">
+    <section className="bg-background section-recessed">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
           <div className="mx-auto mb-6 w-10 h-px bg-primary" />
@@ -65,12 +65,12 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
         </motion.div>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-12">
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleScanClick}
+          <motion.button onClick={handleScanClick}
             className="btn-depth-primary" style={{ fontSize: 16, padding: "16px 32px" }}>
             Scan My Quote — It's Free
           </motion.button>
           {onDemoClick && (
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
+            <motion.button onClick={onDemoClick}
               className="btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
               See the AI in Action — No Upload Needed
             </motion.button>

@@ -87,7 +87,7 @@ const QuoteWatcher = ({ onSwitchToFlowA, onViewChecklist, onReminderSet }: Quote
                     </motion.div>
                   )}
                 </AnimatePresence>
-                <motion.button whileHover={bothFilled ? { scale: 1.01 } : {}} whileTap={bothFilled ? { scale: 0.98 } : {}} onClick={handleSubmit} disabled={!bothFilled}
+                <motion.button onClick={handleSubmit} disabled={!bothFilled}
                   className={bothFilled ? "btn-depth-primary w-full" : "w-full bg-muted text-muted-foreground cursor-not-allowed border-none"}
                   style={{ height: 52, fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700 }}>
                   Set My Quote Reminder →
@@ -100,7 +100,7 @@ const QuoteWatcher = ({ onSwitchToFlowA, onViewChecklist, onReminderSet }: Quote
                 </div>
                 <h3 className="text-foreground" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700 }}>Reminder set. We'll be there.</h3>
                 <p className="text-muted-foreground" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.75, marginTop: 12 }}>We'll text your mobile on {formatDateDisplay(appointmentDate)} at {reminderTime}.</p>
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onViewChecklist} className="mt-6 inline-block btn-depth-primary"
+                <motion.button onClick={onViewChecklist} className="mt-6 inline-block btn-depth-primary"
                   style={{ fontSize: 15, padding: "14px 28px" }}>
                   View My Forensic Checklist →
                 </motion.button>

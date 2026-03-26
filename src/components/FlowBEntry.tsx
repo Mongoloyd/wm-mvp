@@ -48,7 +48,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
               </div>
             ))}
           </div>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onContinueToTool}
+          <motion.button onClick={onContinueToTool}
             className="btn-depth-primary" style={{ padding: "16px 36px", fontSize: 17 }}>
             Build My Baseline — It's Free →
           </motion.button>

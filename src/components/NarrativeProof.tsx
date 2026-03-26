@@ -62,11 +62,11 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
           <p className="font-body text-lg text-muted-foreground italic mt-3">
             Right Now, The Contractor Knows Which One. You Don't.
           </p>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleScanClick}
+          <motion.button onClick={handleScanClick}
             className="btn-depth-primary mt-6" style={{ fontSize: 16, padding: "16px 32px" }}>
             Show Me My Grade →
           </motion.button>
-          {onDemoClick && <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
+          {onDemoClick && <motion.button onClick={onDemoClick}
             className="block mx-auto mt-4 btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
             See the AI in Action — No Upload Needed
           </motion.button>}

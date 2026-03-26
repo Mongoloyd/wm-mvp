@@ -25,7 +25,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
   const handleScanClick = () => { onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" }); };
 
   return (
-    <section id="how-it-works" className="bg-card border-y border-border">
+    <section id="how-it-works" className="bg-card border-y border-border section-recessed">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15 }} className="text-center">
           <p className="font-mono text-xs text-primary tracking-[0.1em] mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
@@ -82,12 +82,12 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
         </motion.div>
 
         <div className="text-center mt-12">
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleScanClick}
+          <motion.button onClick={handleScanClick}
             className="btn-depth-primary" style={{ fontSize: 16, padding: "16px 32px" }}>
             Scan My Quote — It's Free
           </motion.button>
           {onDemoClick && (
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onDemoClick}
+            <motion.button onClick={onDemoClick}
               className="block mx-auto mt-4 btn-secondary-tactile text-sm" style={{ padding: "12px 28px" }}>
               See the AI in Action — No Upload Needed
             </motion.button>
