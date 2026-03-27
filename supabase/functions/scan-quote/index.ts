@@ -1156,6 +1156,14 @@ Deno.serve(async (req: Request) => {
         // Non-fatal: report still ships without financial cards
       }
 
+      // 11d. Structured trace log for derived metrics (debugging & audit)
+      console.log("[WM_DERIVED_METRICS_TRACE]", JSON.stringify({
+        timestamp: new Date().toISOString(),
+        lead_id: session?.lead_id ?? null,
+        county: countyName ?? null,
+        derived_metrics: derivedMetrics,
+      }, null, 2));
+
       // 12. Build payloads
       const openingBucket = (extraction.opening_count || extraction.line_items.length) <= 5 ? "1-5"
         : (extraction.opening_count || extraction.line_items.length) <= 10 ? "6-10"
