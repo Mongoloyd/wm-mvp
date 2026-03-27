@@ -48,7 +48,7 @@
 
     /* ── FONT TOKENS ── */
     --wm-font-display: 'Barlow Condensed', sans-serif;
-    --wm-font-body: 'DM Sans', 'Inter', system-ui, sans-serif;
+    --wm-font-body: 'Barlow', sans-serif;
     --wm-font-mono: 'DM Mono', 'IBM Plex Mono', monospace;
 
     /* Palette tokens */
