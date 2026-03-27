@@ -79,12 +79,15 @@ const OptionButton = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex items-center justify-between p-4 border transition-all group text-left ${
+    className={`flex items-center justify-between p-4 border transition-all group text-left hover:-translate-y-px ${
       selected
         ? 'border-primary bg-primary/10 text-primary'
-        : 'border-border bg-background hover:border-primary/50 hover:bg-primary/[0.03] text-foreground'
+        : 'border-border bg-card hover:border-primary/50 text-foreground'
     }`}
-    style={{ borderRadius: 0, boxShadow: selected ? '0 0 0 3px rgba(37,99,235,0.15)' : 'none' }}
+    style={{
+      borderRadius: 'var(--radius-btn)',
+      boxShadow: selected ? 'var(--shadow-pressed)' : 'var(--shadow-resting)',
+    }}
   >
     <span className="font-body text-wm-body-soft">{label}</span>
     <span className={`text-base transition-colors ${selected ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`}>→</span>
@@ -311,10 +314,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           transition={{ duration: 0.15 }}
         >
           <h2
-            className="font-display font-black uppercase leading-tight"
+            className="font-display font-black uppercase leading-tight text-foreground"
             style={{
               fontSize: "clamp(22px, 4vw, 30px)",
-              color: "#E5E5E5",
               letterSpacing: "0.02em",
               marginBottom: 8,
             }}
@@ -350,16 +352,15 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
       >
         <div
           className="inline-flex items-center mb-5 px-3 py-1 bg-primary/10 border border-primary"
-          style={{ borderRadius: 0, fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#2563EB" }}
+          style={{ borderRadius: 0 }}
         >
-          ✓ Your scan is configured
+          <span className="wm-eyebrow text-primary">✓ Your scan is configured</span>
         </div>
 
         <h2
-          className="font-display font-black uppercase leading-tight"
+          className="font-display font-black uppercase leading-tight text-foreground"
           style={{
             fontSize: "clamp(24px, 4vw, 32px)",
-            color: "#E5E5E5",
             letterSpacing: "0.02em",
             marginBottom: 8,
           }}
@@ -372,62 +373,59 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label style={labelStyle}>FIRST NAME</label>
-            <div style={{ position: "relative" }}>
+            <label className="wm-eyebrow mb-1.5 text-muted-foreground block">FIRST NAME</label>
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Your first name"
                 autoComplete="given-name"
                 value={answers.firstName}
                 onChange={(e) => setAnswers((p) => ({ ...p, firstName: e.target.value }))}
-                style={{
-                  ...inputStyle,
-                  borderColor: fieldStatus.firstName === "invalid" ? "#F97316" : fieldStatus.firstName === "valid" ? "#2563EB" : "#1A1A1A",
-                  paddingRight: fieldStatus.firstName !== "untouched" ? 40 : 16,
-                }}
-                onFocus={handleInputFocus}
-                onBlur={(e) => { handleInputBlur(e); handleFieldBlur("firstName", answers.firstName); }}
+                className={`wm-input-well w-full h-12 px-4 font-body text-[15px] text-foreground outline-none ${
+                  fieldStatus.firstName !== "untouched" ? "pr-10" : ""
+                } ${
+                  fieldStatus.firstName === "invalid" ? "border-orange-500" : fieldStatus.firstName === "valid" ? "border-primary" : ""
+                }`}
+                onBlur={() => handleFieldBlur("firstName", answers.firstName)}
               />
               {fieldStatus.firstName === "valid" && <ValidationIcon valid />}
               {fieldStatus.firstName === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.firstName === "invalid" && (
-              <p style={errorTextStyle}>Please enter your first name (2+ characters)</p>
+              <p className="font-body text-xs text-orange-500 mt-1">Please enter your first name (2+ characters)</p>
             )}
           </div>
 
           <div>
-            <label style={labelStyle}>
-              EMAIL ADDRESS <span style={{ color: "#6B7280", fontWeight: 400 }}>(your grade report is sent here)</span>
+            <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
+              EMAIL ADDRESS <span className="text-muted-foreground font-normal">(your grade report is sent here)</span>
             </label>
-            <div style={{ position: "relative" }}>
+            <div className="relative">
               <input
                 type="email"
                 placeholder="your@email.com"
                 autoComplete="email"
                 value={answers.email}
                 onChange={(e) => setAnswers((p) => ({ ...p, email: e.target.value }))}
-                style={{
-                  ...inputStyle,
-                  borderColor: fieldStatus.email === "invalid" ? "#F97316" : fieldStatus.email === "valid" ? "#2563EB" : "#1A1A1A",
-                  paddingRight: fieldStatus.email !== "untouched" ? 40 : 16,
-                }}
-                onFocus={handleInputFocus}
-                onBlur={(e) => { handleInputBlur(e); handleFieldBlur("email", answers.email); }}
+                className={`wm-input-well w-full h-12 px-4 font-body text-[15px] text-foreground outline-none ${
+                  fieldStatus.email !== "untouched" ? "pr-10" : ""
+                } ${
+                  fieldStatus.email === "invalid" ? "border-orange-500" : fieldStatus.email === "valid" ? "border-primary" : ""
+                }`}
+                onBlur={() => handleFieldBlur("email", answers.email)}
               />
               {fieldStatus.email === "valid" && <ValidationIcon valid />}
               {fieldStatus.email === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.email === "invalid" && (
-              <p style={errorTextStyle}>Please enter a valid email address</p>
+              <p className="font-body text-xs text-orange-500 mt-1">Please enter a valid email address</p>
             )}
           </div>
 
           <motion.button
             type="submit"
             disabled={submitState === "submitting" || submitState === "success"}
-            whileHover={submitState === "idle" || submitState === "error" ? { scale: 1.01 } : {}}
-            whileTap={submitState === "idle" || submitState === "error" ? { scale: 0.98 } : {}}
+            
             className="btn-depth-primary w-full"
             style={{
               height: 54,
@@ -478,31 +476,26 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   };
 
   return (
-    <section id="truth-gate" style={{ backgroundColor: "#0A0A0A" }}>
-      <div className={`mx-auto max-w-2xl px-4 md:px-8 py-16 md:py-24 transition-all duration-500 ${glowing ? 'ring-2 ring-cobalt shadow-lg shadow-cobalt/20' : ''}`}>
-        <p
-          className="text-center mb-3"
-          style={{
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 11,
-            color: "#2563EB",
-            letterSpacing: "0.1em",
-          }}
-        >
+    <section id="truth-gate" className="bg-background">
+      <div className={`mx-auto max-w-2xl px-4 md:px-8 py-20 md:py-28 transition-all duration-500 ${glowing ? 'ring-2 ring-cobalt shadow-lg shadow-cobalt/20' : ''}`}>
+        <p className="text-center mb-2 wm-eyebrow text-muted-foreground">
+          THE SCANNER
+        </p>
+        <p className="text-center mb-3 wm-eyebrow text-primary" style={{ fontSize: 11 }}>
           {eyebrowLabels[Math.min(currentStep - 1, 4)]}
         </p>
-        <div style={{ width: "100%", height: 4, backgroundColor: "#1A1A1A", borderRadius: 0, marginBottom: 32 }}>
+        <div className="w-full h-1.5 input-well mb-8">
           <motion.div
-            style={{ height: 4, backgroundColor: "#2563EB", borderRadius: 0 }}
+            className="h-1.5 rounded-full"
+            style={{ background: "linear-gradient(90deg, #4DA3FF, #2563EB)", boxShadow: "0 0 8px rgba(37,99,235,0.3)" }}
             animate={{ width: progressWidth }}
             transition={{ duration: 0.15 }}
           />
         </div>
 
         <div
-          className="glass-card-strong transform -translate-y-1"
+          className="card-dominant p-7 md:p-8"
           style={{
-            padding: "clamp(28px, 5vw, 40px)",
             minHeight: 280,
             overflow: "hidden",
           }}
@@ -514,58 +507,8 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
   );
 };
 
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontFamily: "'DM Mono', monospace",
-  fontSize: 10,
-  color: "#6B7280",
-  letterSpacing: "0.08em",
-  marginBottom: 6,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  height: 48,
-  border: "1.5px solid #1A1A1A",
-  borderRadius: 0,
-  padding: "0 16px",
-  fontFamily: "'DM Sans', sans-serif",
-  fontSize: 15,
-  color: "#E5E5E5",
-  background: "#0A0A0A",
-  outline: "none",
-  transition: "border-color 0.15s, box-shadow 0.15s",
-  boxSizing: "border-box",
-};
-
-const errorTextStyle: React.CSSProperties = {
-  fontFamily: "'DM Sans', sans-serif",
-  fontSize: 12,
-  color: "#F97316",
-  marginTop: 4,
-};
-
-const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.15)";
-  e.currentTarget.style.borderColor = "#2563EB";
-};
-
-const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.boxShadow = "none";
-};
-
 const ValidationIcon = ({ valid }: { valid: boolean }) => (
-  <span
-    style={{
-      position: "absolute",
-      right: 12,
-      top: "50%",
-      transform: "translateY(-50%)",
-      fontSize: 16,
-      lineHeight: 1,
-      color: valid ? "#2563EB" : "#F97316",
-    }}
-  >
+  <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-base leading-none ${valid ? "text-primary" : "text-orange-500"}`}>
     {valid ? "✓" : "✗"}
   </span>
 );

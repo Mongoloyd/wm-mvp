@@ -103,7 +103,7 @@ const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: a
   const isScanning = phase === "scan";
 
   return (
-    <div className="relative w-full h-full rounded-none border border-border bg-background p-6 flex flex-col overflow-hidden shadow-inner">
+    <div className="relative w-full h-full rounded-none input-well p-6 flex flex-col overflow-hidden" style={{ borderRadius: 0 }}>
       {/* Sample badge */}
       <div className="absolute top-3 right-3 z-30">
         <span className="font-mono text-[9px] font-bold tracking-widest uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border">
@@ -211,7 +211,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
     }
   }, [onScanClick]);
 
-  // Phase machine — always auto-advances
+  // Phase machine
   useEffect(() => {
     const set = (p: Phase, ms: number) => {
       timerRef.current = setTimeout(() => {
@@ -252,15 +252,17 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
   const counter = useCounter(activeScan.delta, 1200, phase === "reveal" || phase === "hook");
 
   return (
-    <section className="border-t border-b border-border bg-background py-14 px-4 md:py-20 md:px-8">
+    <section className="border-t border-b border-border bg-background py-20 md:py-28">
+      <div className="mx-auto max-w-5xl px-4 md:px-8">
       <div className="text-center mb-9">
-        <p className="font-mono text-[13px] text-cobalt tracking-[0.1em] mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
-        <h2 className="font-display text-[28px] md:text-[34px] font-bold text-white mb-1.5">See the AI at work.</h2>
-        <p className="font-body text-[15px] text-foreground">This runs automatically. No upload required.</p>
+        <p className="wm-eyebrow text-cobalt mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
+        <h2 className="wm-title-section mb-1.5" style={{ fontSize: "clamp(28px, 4vw, 34px)" }}>See the AI at work.</h2>
+        <p className="wm-body">This runs automatically. No upload required.</p>
       </div>
 
       <div
-        className="mx-auto max-w-[520px] rounded-none border-[1.5px] border-border bg-card p-6 md:p-8 shadow-[0_4px_24px_rgba(0,242,255,0.12),0_16px_48px_rgba(0,242,255,0.06),0_2px_8px_rgba(0,0,0,0.08)] min-h-[480px] flex flex-col relative"
+        className="mx-auto max-w-[520px] rounded-none card-raised p-6 md:p-8 min-h-[480px] flex flex-col relative"
+        style={{ borderRadius: 0 }}
       >
         <AnimatePresence mode="wait">
           {/* ── PHASES 1 & 2: Document & Scan ───────── */}
@@ -329,7 +331,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 <p className={`font-mono text-[10px] font-bold tracking-wider ${activeScan.flag1Color}`}>
                   {activeScan.flag1Label}
                 </p>
-                <p className="font-body text-[14px] font-semibold text-white mt-1.5">{activeScan.flag1Title}</p>
+                <p className="font-body text-[14px] font-semibold text-foreground mt-1.5">{activeScan.flag1Title}</p>
                 <p className="font-body text-[13px] text-muted-foreground mt-1">{activeScan.flag1Desc}</p>
               </motion.div>
 
@@ -350,7 +352,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 <p className={`font-mono text-[10px] font-bold tracking-wider ${activeScan.flag2Color}`}>
                   {activeScan.flag2Label}
                 </p>
-                <p className="font-body text-[14px] font-semibold text-white mt-1.5">{activeScan.flag2Title}</p>
+                <p className="font-body text-[14px] font-semibold text-foreground mt-1.5">{activeScan.flag2Title}</p>
                 <div className="flex items-center gap-1 mt-1.5">
                   {Array.from({ length: 12 }).map((_, i) => (
                     <div key={i} className="h-2 w-2 rounded-[1px] bg-muted-foreground/30" />
@@ -361,14 +363,15 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                 </div>
               </motion.div>
 
-              {/* Persistent mini-CTA during reveal phase */}
+              {/* Persistent mini-CTA during reveal phase — tertiary style */}
               {phase === "reveal" && (
                 <motion.button
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.8 }}
                   onClick={handleCtaClick}
-                  className="mt-4 w-full rounded-none border border-border bg-muted px-5 py-2.5 font-body text-[13px] font-semibold text-foreground cursor-pointer hover:bg-accent transition-colors"
+                  className="mt-4 w-full rounded-none btn-secondary-tactile"
+                  style={{ padding: "10px 20px", fontSize: 13, borderRadius: 0 }}
                 >
                   Scan My Quote — It's Free →
                 </motion.button>
@@ -387,14 +390,13 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                     transition={{ duration: 0.4 }}
                     className="w-full pt-4 border-t border-border mt-4"
                   >
-                    <p className="font-display text-[15px] italic text-white text-center mb-3">
+                    <p className="font-display text-[15px] italic text-foreground text-center mb-3">
                       {activeScan.hookCta}
                     </p>
                     <motion.button
-                      animate={{ scale: [1, 1.02, 1] }}
-                      transition={{ repeat: Infinity, duration: 2 }}
                       onClick={handleCtaClick}
-                      className="w-full rounded-none bg-gold px-7 py-3 font-body text-[14px] font-bold text-white shadow-[0_3px_14px_rgba(245,158,11,0.35)] cursor-pointer border-none"
+                      className="w-full rounded-none btn-depth-primary px-7 py-3 font-body text-[14px] font-bold cursor-pointer"
+                      style={{ borderRadius: 0 }}
                     >
                       Upload My Real Quote — It's Free →
                     </motion.button>
@@ -404,6 +406,18 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Persistent CTA below demo */}
+      <div className="mx-auto max-w-[520px] mt-6 text-center">
+        <button
+          onClick={handleCtaClick}
+          className="btn-depth-primary w-full"
+          style={{ padding: "16px 32px" }}
+        >
+          Want to see YOUR quote graded? →
+        </button>
+      </div>
       </div>
     </section>
   );

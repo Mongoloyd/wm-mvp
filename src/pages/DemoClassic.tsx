@@ -63,6 +63,7 @@ const DemoClassic = () => {
   const [knownPhone, setKnownPhone] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -73,6 +74,7 @@ const DemoClassic = () => {
     setPhoneRaw("");
     setErrorMsg("");
     setIsLoading(false);
+    setTcpaConsent(false);
     setResendCooldown(0);
     if (cooldownRef.current) clearInterval(cooldownRef.current);
 
@@ -192,11 +194,13 @@ const DemoClassic = () => {
           phoneDigitCount,
           onPhoneChange: handlePhoneChange,
           onPhoneSubmit: handlePhoneSubmit,
-          isLoading,
-          errorMsg,
-          resendCooldown,
-          onResend: handleResend,
-        }
+           isLoading,
+           errorMsg,
+           resendCooldown,
+           onResend: handleResend,
+           tcpaConsent,
+           onTcpaChange: setTcpaConsent,
+         }
       : undefined;
 
   return (

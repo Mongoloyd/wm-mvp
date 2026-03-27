@@ -21,13 +21,9 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
   };
 
   return (
-    <section className="relative" style={{ backgroundColor: "#0A0A0A" }}>
+    <section className="relative bg-background" style={{ background: 'linear-gradient(168deg, hsl(214 35% 95%) 0%, hsl(216 38% 93%) 40%, hsl(218 32% 94%) 100%)' }}>
 
-      {/* ── MASCOT: Overlapping Trio anchor ──────────────────────────────
-          Negative bottom margin pulls the grid up underneath him.
-          z-20 keeps his phone arm on top of the GradeCard.
-          pointer-events-none lets clicks pass through to buttons below.
-      ─────────────────────────────────────────────────────────────────── */}
+      {/* ── MASCOT: Overlapping Trio anchor ── */}
       <div
         className="relative z-20 flex justify-center pt-8 pointer-events-none
                    -mb-16 sm:-mb-20 lg:-mb-32"
@@ -41,7 +37,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
         />
       </div>
 
-      {/* ── HERO GRID: widened to max-w-7xl, 12-col with center void ──── */}
+      {/* ── HERO GRID ── */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pb-16 md:pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
@@ -52,64 +48,43 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             transition={{ duration: 0.15 }}
             className="lg:col-span-5 pt-8 lg:pt-20"
           >
-            <div
-              className="inline-flex items-center gap-2 mb-5"
-              style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.3)", padding: "4px 12px" }}
-            >
-              <span style={{ color: "#2563EB", fontSize: 14 }}>🛡</span>
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#2563EB" }}>
+            <div className="inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
+              <span className="text-primary text-sm">🛡</span>
+              <span className="wm-eyebrow text-primary">
                 FORENSIC QUOTE INTELLIGENCE
               </span>
             </div>
 
-            <h1 style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: "clamp(40px, 5vw, 58px)",
-              fontWeight: 900,
-              letterSpacing: "0.01em",
-              color: "#E5E5E5",
-              lineHeight: 1.1,
-              marginBottom: 20,
-              textTransform: "uppercase",
-            }}>
+            <h1
+              className="font-display uppercase leading-[1.08] mb-5"
+              style={{
+                fontSize: "clamp(40px, 5vw, 58px)",
+                fontWeight: 900,
+                letterSpacing: "-0.005em",
+                color: "hsl(210 50% 8%)",
+              }}
+            >
               YOUR QUOTE LOOKS LEGITIMATE.
               <br />
-              THAT'S EXACTLY WHAT <span style={{ color: "#F97316" }}>THEY'RE COUNTING ON.</span>
+              THAT'S EXACTLY WHAT <span className="text-destructive" style={{ textShadow: '0 0 20px hsla(25, 95%, 53%, 0.15)' }}>THEY'RE COUNTING ON.</span>
             </h1>
 
-            <p style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: "clamp(16px, 2vw, 18px)",
-              fontWeight: 400,
-              color: "#E5E7EB",
-              lineHeight: 1.7,
-              marginBottom: 32,
-            }}>
+            <p className="font-body mb-8" style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}>
               The impact window industry has no pricing transparency standard.
               <br />
               WindowMan built one — and it reads your quote in{" "}
-              <strong style={{ color: "#E5E5E5" }}>under 60 seconds</strong>.
+              <strong style={{ color: "hsl(210 50% 8%)" }}>under 60 seconds</strong>.
             </p>
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              {/* Hero CTA — largest on page */}
+              <button
                 onClick={() => onUploadQuote?.()}
-                style={{
-                  background: "#2563EB",
-                  color: "#FFFFFF",
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  border: "none",
-                  boxShadow: "0 4px 24px rgba(37,99,235,0.35)",
-                  cursor: "pointer",
-                }}
-                className="w-full sm:w-auto whitespace-nowrap py-4 px-6 sm:px-8 hover:shadow-lg transition-shadow"
+                className="btn-depth-primary w-full sm:w-auto whitespace-nowrap"
+                style={{ fontSize: 18, padding: "20px 40px" }}
               >
                 Scan My Quote<span className="inline md:hidden lg:inline"> — It's Free</span>
-              </motion.button>
+              </button>
               <React.Suspense fallback={<div className="h-[54px]" />}>
                 <PowerToolFlow
                   onUploadQuote={onUploadQuote}
@@ -120,39 +95,19 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             </div>
 
             <div className="mt-2 w-full lg:w-auto">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={() => onFlowBClick?.()}
-                className="w-full lg:w-auto transition-colors py-3.5 px-4 lg:px-6 cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2"
-                style={{
-                  background: "rgba(37,99,235,0.06)",
-                  border: "1px solid rgba(37,99,235,0.25)",
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 15,
-                  fontWeight: 500,
-                  color: "#E5E5E5",
-                }}
+                className="w-full lg:w-auto btn-secondary-tactile cursor-pointer relative flex flex-col lg:flex-row lg:items-center lg:gap-2 text-foreground"
+                style={{ padding: "12px 20px" }}
               >
                 <span className="flex items-center gap-2">
-                  <span style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "#2563EB",
-                    color: "#FFFFFF",
-                    fontFamily: "'IBM Plex Mono', monospace",
-                    fontSize: 9,
-                    fontWeight: 700,
-                    letterSpacing: "0.05em",
-                    padding: "2px 6px",
-                  }}>
+                  <span className="inline-flex items-center justify-center bg-primary text-primary-foreground font-mono text-[9px] font-bold tracking-[0.05em] px-1.5 py-0.5">
                     NEW
                   </span>
                   <span>Getting Quotes Soon?</span>
                 </span>
                 <span className="ml-[4.5ch] lg:ml-0">We Can Arm You 1st →</span>
-              </motion.button>
+              </button>
             </div>
 
             <TrustBullets />
@@ -164,11 +119,6 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
           {/* RIGHT — Floating GradeCard (5 cols) */}
           <div className="lg:col-span-5 relative flex flex-col items-center pt-4 lg:pt-16">
             <div className="hidden md:block relative z-10">
-              {/* Subtle glow behind card — emphasises the "Truth" reveal */}
-              <div
-                className="absolute -inset-6 rounded-full -z-10"
-                style={{ background: "rgba(37,99,235,0.08)", filter: "blur(40px)" }}
-              />
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}

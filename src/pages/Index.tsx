@@ -321,8 +321,10 @@ const Index = () => {
       {!shouldShowReport && !isDevPreview && (
         <>
           <IndustryTruth onScanClick={() => triggerTruthGate('industry_truth')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+          <div className="wm-bridge-strip py-3" />
           <MarketMakerManifesto onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <ProcessSteps onScanClick={() => triggerTruthGate('process_steps')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+          <div className="wm-bridge-strip py-3" />
           <NarrativeProof onScanClick={() => triggerTruthGate('narrative_proof')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <ClosingManifesto onScanClick={() => triggerTruthGate('closing_manifesto')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
         </>

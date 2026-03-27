@@ -21,13 +21,9 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
 
   return (
     <header
-      className="sticky top-0 z-50 w-full"
+      className="sticky top-0 z-50 w-full border-b border-border bg-card"
       style={{
-        backgroundColor: "rgba(10,10,10,0.92)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        boxShadow: "0 1px 0 rgba(255,255,255,0.03), 0 4px 20px rgba(0,0,0,0.4)",
+        boxShadow: "var(--shadow-shelf)",
         transition: "padding 0.15s ease",
         padding: scrolled ? "6px 0" : "14px 0",
       }}
@@ -39,62 +35,48 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
           className="select-none group relative inline-flex items-center gap-2"
           aria-label="WindowMan.PRO home"
         >
-          {/* Shield icon with glint on hover */}
           <span className="relative overflow-hidden inline-flex">
             <ShieldCheck
               size={20}
               className="text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_6px_rgba(37,99,235,0.7)]"
             />
           </span>
-          <span
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 800,
-              fontSize: 20,
-              letterSpacing: "0.02em",
-            }}
-          >
-            <span style={{ color: "#E5E5E5" }}>WINDOW</span>
+          <span className="font-display" style={{ fontWeight: 800, fontSize: 20, letterSpacing: "0.02em" }}>
+            <span className="text-foreground">WINDOW</span>
             <span style={{ color: "#C8952A" }}>MAN</span>
             <sup
-              style={{
-                fontSize: 9,
-                color: "#6B7280",
-                fontWeight: 400,
-                letterSpacing: "0.15em",
-                marginLeft: 2,
-                verticalAlign: "super",
-              }}
+              className="text-muted-foreground"
+              style={{ fontSize: 9, fontWeight: 400, letterSpacing: "0.15em", marginLeft: 2, verticalAlign: "super" }}
             >
               .PRO
             </sup>
           </span>
         </a>
 
-        {/* Desktop nav */}
+        {/* Desktop nav — compact CTA */}
         <div className="hidden md:flex items-center gap-3">
           <button
-            className="btn-depth-primary px-5"
-            style={{ fontSize: 14, padding: "10px 20px" }}
+            className="btn-depth-primary"
+            style={{ padding: "10px 20px", fontSize: 14 }}
             onClick={onCtaClick}
           >
             {ctaText}
           </button>
         </div>
 
-        {/* Mobile CTA */}
+        {/* Mobile CTA — compact */}
         <button
           className="btn-depth-primary md:hidden"
-          style={{ fontSize: 13, padding: "6px 14px" }}
+          style={{ padding: "6px 14px", fontSize: 13 }}
           onClick={onCtaClick}
         >
           {ctaText}
         </button>
       </div>
 
-      {/* Animated status bar — "live intelligence" pulse line */}
+      {/* Animated status bar */}
       <motion.div
-        className="absolute bottom-0 left-0 h-[1px] bg-primary animate-status-pulse"
+        className="absolute bottom-0 left-0 h-[1px] bg-primary/30"
         initial={{ width: "0%" }}
         animate={{ width: "100%" }}
         transition={{ duration: 1.8, ease: "easeOut" }}
