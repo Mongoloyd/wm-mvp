@@ -11,6 +11,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ROUTE_STATUS, RELEASE_STATUS, BILLING_STATUS, BILLING_MODEL, EVENTS, APPOINTMENT_STATUS, QUOTE_STATUS, DEAL_STATUS } from '@/lib/statusConstants';
+import VoiceFollowupsPanel from './admin/VoiceFollowupsPanel';
 
 // Helper to call admin-data edge function (uses service_role server-side)
 async function adminFetch(action: string, payload: Record<string, unknown> = {}) {
@@ -850,6 +851,10 @@ export default function AdminDashboard() {
   const [releaseModel, setReleaseModel] = useState('flat_fee');
   const [releaseFee, setReleaseFee] = useState('');
 
+  // ── Voice AI State ────
+  const [adminPassword, setAdminPassword] = useState<string>('');
+  const [showVoicePanel, setShowVoicePanel] = useState(false);
+
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // ── Fetch functions ────
@@ -1061,6 +1066,71 @@ export default function AdminDashboard() {
           {loading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING...</div> :
             filteredLeads.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>NO LEADS MATCH FILTER</div> :
             filteredLeads.map(lead => <LeadRow key={lead.id} lead={lead} onStatusChange={handleStatusChange} onCallNow={handleCallNow} onSMS={handleSMS} />)}
+
+          {/* ── VOICE AI SECTION ────────────────────────────── */}
+          <div style={{ marginTop: 32, borderTop: '1px solid #2E3A50', paddingTop: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div>
+                <div style={{
+                  fontFamily: "'Barlow Condensed',sans-serif",
+                  fontWeight: 800, fontSize: 20, color: '#FFFFFF',
+                  textTransform: 'uppercase', letterSpacing: '-0.01em',
+                }}>
+                  VOICE AI ACTIVITY
+                </div>
+                <div style={{
+                  fontFamily: "'JetBrains Mono',monospace",
+                  fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginTop: 2,
+                }}>
+                  AUTOMATED CALL LOGS · MANUAL TRIGGERS
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  fontFamily: "'JetBrains Mono',monospace",
+                  fontSize: 9, color: '#10B981', letterSpacing: '0.08em',
+                  background: 'rgba(16,185,129,0.1)',
+                  padding: '3px 8px', borderRadius: 2,
+                }}>
+                  LIVE LOGS
+                </span>
+                <button
+                  onClick={() => setShowVoicePanel(!showVoicePanel)}
+                  style={{
+                    fontFamily: "'JetBrains Mono',monospace",
+                    fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
+                    padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer',
+                    background: showVoicePanel ? '#1D4ED8' : '#161C28',
+                    color: showVoicePanel ? '#FFFFFF' : '#7D9DBB',
+                  }}
+                >
+                  {showVoicePanel ? 'HIDE PANEL' : 'SHOW PANEL'}
+                </button>
+              </div>
+            </div>
+
+            {showVoicePanel && (
+              <>
+                {!adminPassword ? (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input
+                      type="password"
+                      placeholder="Admin password for voice functions..."
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      style={{
+                        fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#FFFFFF',
+                        background: '#161C28', border: '1px solid #2E3A50',
+                        padding: '6px 12px', borderRadius: 0, outline: 'none', width: 280,
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <VoiceFollowupsPanel adminPassword={adminPassword} />
+                )}
+              </>
+            )}
+          </div>
         </>
       )}
 
