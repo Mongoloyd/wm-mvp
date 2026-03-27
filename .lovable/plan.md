@@ -41,10 +41,22 @@ CREATE POLICY "otp_failures_delete_internal"
 - Edge functions (which write to this table via service role) are unaffected — service role bypasses RLS
 - Anonymous and regular authenticated users get zero access
 - Internal operators retain full access
-- No code changes needed
+
+## Additional changes in this PR
+Beyond the RLS migration, this PR also includes:
+- **Light theme design system** — Tailwind token-based light styling across many UI components, new card/button primitives, refreshed color palette, shadows, and spacing system
+- **Derived financial metrics** — `scan-quote` edge function now computes estimate metrics (cost breakdown, transparency score) and county-based pricing benchmarks
+- **`calculate-estimate-metrics` edge function** — standalone edge function for estimate metrics computation
+- **Forensic analysis UI** — `CriticalFlagCard`, ranked pillar insights, `ViolationSummaryTeaser`, and updated `ForensicAnalysisDisplay`
 
 ## Files
 | File | Action |
 |---|---|
-| `supabase/migrations/…` | New migration |
+| `supabase/migrations/…` | New migration (RLS) |
+| `src/components/CriticalFlagCard.tsx` | New component |
+| `src/components/ViolationSummaryTeaser.tsx` | New component |
+| `src/components/ForensicAnalysisDisplay.tsx` | Updated |
+| `supabase/functions/scan-quote/index.ts` | Estimate metrics + county benchmarks |
+| `supabase/functions/calculate-estimate-metrics/…` | New edge function |
+| `src/**` | Light theme design system rollout |
 

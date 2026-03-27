@@ -10,7 +10,6 @@
  */
 
 import { motion } from "framer-motion";
-import type { EvidenceExhibit } from "@/utils/evidenceMapping";
 
 export type CriticalFlagCardProps = {
   label: string;
@@ -37,6 +36,14 @@ const PILLAR_LABELS: Record<string, string> = {
   warranty: "Warranty",
 };
 
+const SEVERITY_STYLES: Record<
+  "critical" | "high",
+  { label: string; cssVar: string; pulseRgb: string }
+> = {
+  critical: { label: "CRITICAL FLAG", cssVar: "--color-danger", pulseRgb: "196, 48, 48" },
+  high: { label: "HIGH FLAG", cssVar: "--color-caution", pulseRgb: "230, 154, 15" },
+};
+
 export default function CriticalFlagCard({
   label,
   severity,
@@ -48,6 +55,8 @@ export default function CriticalFlagCard({
   index = 0,
   isTopRanked = false,
 }: CriticalFlagCardProps) {
+  const { label: badgeLabel, cssVar, pulseRgb } = SEVERITY_STYLES[severity];
+
   const isAbsence = yourQuoteText.toLowerCase().includes("not found") ||
     yourQuoteText.toLowerCase().includes("missing") ||
     yourQuoteText.toLowerCase().includes("no ");
@@ -62,9 +71,9 @@ export default function CriticalFlagCard({
         ...(isTopRanked
           ? {
               boxShadow: [
-                "0 0 0 rgba(196, 48, 48, 0)",
-                "0 0 12px rgba(196, 48, 48, 0.25)",
-                "0 0 0 rgba(196, 48, 48, 0)",
+                `0 0 0 rgba(${pulseRgb}, 0)`,
+                `0 0 12px rgba(${pulseRgb}, 0.25)`,
+                `0 0 0 rgba(${pulseRgb}, 0)`,
               ],
             }
           : {}),
@@ -86,7 +95,7 @@ export default function CriticalFlagCard({
       }}
       className="card-raised relative overflow-hidden"
       style={{
-        border: "1px solid hsl(var(--color-danger) / 0.35)",
+        border: `1px solid hsl(var(${cssVar}) / 0.35)`,
         padding: "16px 16px 16px 20px",
       }}
     >
@@ -98,8 +107,8 @@ export default function CriticalFlagCard({
         className="absolute left-0 top-0"
         style={{
           width: 3,
-          background: "hsl(var(--color-danger))",
-          boxShadow: "0 0 12px hsl(var(--color-danger) / 0.5)",
+          background: `hsl(var(${cssVar}))`,
+          boxShadow: `0 0 12px hsl(var(${cssVar}) / 0.5)`,
           borderRadius: "0 2px 2px 0",
         }}
       />
@@ -114,14 +123,14 @@ export default function CriticalFlagCard({
               fontWeight: 700,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: "hsl(var(--color-danger))",
-              background: "hsl(var(--color-danger) / 0.08)",
-              border: "1px solid hsl(var(--color-danger) / 0.35)",
+              color: `hsl(var(${cssVar}))`,
+              background: `hsl(var(${cssVar}) / 0.08)`,
+              border: `1px solid hsl(var(${cssVar}) / 0.35)`,
               padding: "2px 6px",
               borderRadius: 4,
             }}
           >
-            CRITICAL FLAG
+            {badgeLabel}
           </span>
           {PILLAR_LABELS[pillar] && (
             <span
