@@ -5,14 +5,16 @@
  * The dashboard's client-side password gate provides access control.
  *
  * Actions:
- *   fetch_leads          — today's leads
- *   fetch_opportunities  — all contractor_opportunities
- *   fetch_contractors    — active contractors
- *   fetch_routes         — routes (optionally filtered by opportunity_id)
- *   fetch_billable       — billable_intros + contractor_outcomes
- *   route_opportunity    — insert route + update opportunity status
- *   mark_dead            — set opportunity status to dead
- *   update_lead_status   — update lead status field
+ *   fetch_leads             — today's leads
+ *   fetch_opportunities     — all contractor_opportunities
+ *   fetch_contractors       — active contractors
+ *   fetch_routes            — routes (optionally filtered by opportunity_id)
+ *   fetch_billable          — billable_intros + contractor_outcomes
+ *   route_opportunity       — insert route + update opportunity status
+ *   mark_dead               — set opportunity status to dead
+ *   update_lead_status      — update lead status field
+ *   fetch_voice_followups   — recent automated voice AI call logs
+ *   trigger_voice_followup  — manually trigger a voice AI call for a specific lead
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -176,6 +178,63 @@ Deno.serve(async (req) => {
       if (error) return json({ error: error.message }, 500);
 
       return json({ success: true });
+    }
+
+    if (action === "fetch_voice_followups" || action === "trigger_voice_followup") {
+      const adminSecret = Deno.env.get("ADMIN_SECRET");
+      if (!adminSecret || body.password !== adminSecret) {
+        return json({ error: "Unauthorized" }, 401);
+      }
+    }
+
+    if (action === "fetch_voice_followups") {
+      const { data, error } = await supabase
+        .from("voice_followups")
+        .select(`
+          id,
+          created_at,
+          phone_e164,
+          lead_id,
+          scan_session_id,
+          opportunity_id
+        `)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) {
+        console.error("[admin-data] error fetching voice followups:", error);
+        return json({ error: error.message }, 500);
+      }
+
+      return json({ data });
+    }
+
+    if (action === "trigger_voice_followup") {
+      const { scan_session_id, phone_e164, opportunity_id } = body;
+
+      if (!phone_e164 || !scan_session_id) {
+        return json({ error: "phone_e164 and scan_session_id are required" }, 400);
+      }
+
+      const { data, error } = await supabase.functions.invoke("voice-followup", {
+        body: {
+          scan_session_id,
+          phone_e164,
+          opportunity_id,
+          call_intent: "manual_admin_trigger",
+        },
+      });
+
+      if (error) {
+        console.error("[admin-data] trigger call error:", error);
+        const status =
+          (error as any)?.context?.status && typeof (error as any).context.status === "number"
+            ? (error as any).context.status
+            : 500;
+        return json({ error: "Failed to trigger voice AI" }, status);
+      }
+
+      return json({ success: true, data });
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);
