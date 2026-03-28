@@ -240,7 +240,7 @@ const Index = () => {
 
       {fileUploaded && !gradeRevealed && !isDevPreview && (
         <ScanTheatrics isActive={true} selectedCounty={selectedCounty} scanSessionId={scanSessionId} grade={analysisData?.grade} analysisData={analysisData}
-          onRevealComplete={() => { setGradeRevealed(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          onRevealComplete={() => { setGradeRevealed(true); setTimeout(() => { document.getElementById("truth-report-top")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 100); }}
           onInvalidDocument={() => { setFileUploaded(false); setScanSessionId(null); }}
           onNeedsBetterUpload={() => { setFileUploaded(false); setScanSessionId(null); }}
         />
@@ -249,7 +249,7 @@ const Index = () => {
       {/* ─── Report view (real or dev fixture) ─── */}
       {shouldShowReport && (
         <>
-           <div className="max-w-4xl mx-auto px-4 pt-4 flex justify-end">
+           <div id="truth-report-top" className="max-w-4xl mx-auto px-4 pt-4 flex justify-end">
             <button
               onClick={() => {
                 clearVerifiedAccess();
