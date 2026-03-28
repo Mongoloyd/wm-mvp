@@ -180,6 +180,13 @@ Deno.serve(async (req) => {
       return json({ success: true });
     }
 
+    if (action === "fetch_voice_followups" || action === "trigger_voice_followup") {
+      const adminSecret = Deno.env.get("ADMIN_SECRET");
+      if (!adminSecret || body.password !== adminSecret) {
+        return json({ error: "Unauthorized" }, 401);
+      }
+    }
+
     if (action === "fetch_voice_followups") {
       const { data, error } = await supabase
         .from("voice_followups")
@@ -196,22 +203,22 @@ Deno.serve(async (req) => {
 
       if (error) {
         console.error("[admin-data] error fetching voice followups:", error);
-        return json({ error: error.message }, 400);
+        return json({ error: error.message }, 500);
       }
 
       return json({ data });
     }
 
     if (action === "trigger_voice_followup") {
-      const { lead_id, phone_e164, opportunity_id } = body;
+      const { scan_session_id, phone_e164, opportunity_id } = body;
 
-      if (!phone_e164 || !lead_id) {
-        return json({ error: "phone_e164 and lead_id are required" }, 400);
+      if (!phone_e164 || !scan_session_id) {
+        return json({ error: "phone_e164 and scan_session_id are required" }, 400);
       }
 
       const { data, error } = await supabase.functions.invoke("voice-followup", {
         body: {
-          lead_id,
+          scan_session_id,
           phone_e164,
           opportunity_id,
           call_intent: "manual_admin_trigger",
@@ -220,7 +227,7 @@ Deno.serve(async (req) => {
 
       if (error) {
         console.error("[admin-data] trigger call error:", error);
-        return json({ error: "Failed to trigger voice AI" }, 400);
+        return json({ error: "Failed to trigger voice AI" }, 500);
       }
 
       return json({ success: true, data });

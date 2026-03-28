@@ -1092,7 +1092,7 @@ export default function AdminDashboard() {
                   background: 'rgba(16,185,129,0.1)',
                   padding: '3px 8px', borderRadius: 2,
                 }}>
-                  LIVE LOGS
+                  CALL LOG
                 </span>
                 <button
                   onClick={() => setShowVoicePanel(!showVoicePanel)}

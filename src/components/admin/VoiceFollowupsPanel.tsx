@@ -6,8 +6,8 @@ interface VoiceFollowup {
   created_at: string;
   phone_e164: string;
   lead_id: string;
-  scan_session_id: string;
-  opportunity_id: string;
+  scan_session_id: string | null;
+  opportunity_id: string | null;
 }
 
 interface Props {
@@ -51,18 +51,27 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
 
   const handleManualCall = async (log: VoiceFollowup) => {
     setCallingId(log.id);
-    const { error } = await supabase.functions.invoke('admin-data', {
-      body: {
-        action: 'trigger_voice_followup',
-        password: adminPassword,
-        lead_id: log.lead_id,
-        phone_e164: log.phone_e164,
-        opportunity_id: log.opportunity_id,
-      },
-    });
-    if (error) alert("Call failed: " + error.message);
-    else alert("Voice AI Call Triggered!");
-    setCallingId(null);
+    setError(null);
+    try {
+      const { error } = await supabase.functions.invoke('admin-data', {
+        body: {
+          action: 'trigger_voice_followup',
+          password: adminPassword,
+          scan_session_id: log.scan_session_id,
+          phone_e164: log.phone_e164,
+          opportunity_id: log.opportunity_id,
+        },
+      });
+      if (error) {
+        setError("Call failed: " + error.message);
+      } else {
+        alert("Voice AI Call Triggered!");
+      }
+    } catch (err: unknown) {
+      setError("Call failed: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setCallingId(null);
+    }
   };
 
   if (loading) {
@@ -129,7 +138,8 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
               <td style={{ padding: '10px 12px' }}>
                 <button
                   onClick={() => handleManualCall(log)}
-                  disabled={callingId === log.id}
+                  disabled={callingId === log.id || !log.scan_session_id}
+                  title={!log.scan_session_id ? 'No scan session — cannot trigger call' : callingId === log.id ? 'Call in progress…' : undefined}
                   style={{
                     fontFamily: monoFont,
                     fontSize: 10,
@@ -138,9 +148,9 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
                     padding: '5px 10px',
                     border: 'none',
                     borderRadius: 0,
-                    cursor: callingId === log.id ? 'not-allowed' : 'pointer',
-                    background: callingId === log.id ? '#2E3A50' : '#1D4ED8',
-                    color: '#FFFFFF',
+                    cursor: (callingId === log.id || !log.scan_session_id) ? 'not-allowed' : 'pointer',
+                    background: (callingId === log.id || !log.scan_session_id) ? '#2E3A50' : '#1D4ED8',
+                    color: !log.scan_session_id ? '#7D9DBB' : '#FFFFFF',
                   }}
                 >
                   {callingId === log.id ? 'Dialing…' : 'Call Now'}
