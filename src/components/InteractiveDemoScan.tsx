@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { trackEvent } from "@/lib/trackEvent";
 
 type Phase = "doc" | "scan" | "reveal" | "hook";
 
@@ -78,7 +79,7 @@ const SCANS = [
 ];
 
 const track = (event: string) => {
-  console.log({ event, timestamp: new Date().toISOString() });
+  trackEvent({ event_name: event });
 };
 
 /* ── Animated counter hook ─────────────────────────────────── */
