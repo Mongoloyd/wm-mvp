@@ -31,7 +31,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
         <img
           src={MASCOT_URL}
           alt="WindowMan holding a Truth Report"
-          fetchPriority="high"
+          fetchpriority="high"
           decoding="async"
           className="w-32 sm:w-48 md:w-64 lg:w-96 h-auto object-contain"
         />

@@ -78,7 +78,7 @@ const SCANS = [
 ];
 
 const track = (event: string) => {
-  console.log({ event, timestamp: new Date().toISOString() });
+  console.log(JSON.stringify({ event, timestamp: new Date().toISOString() }, null, 2));
 };
 
 /* ── Animated counter hook ─────────────────────────────────── */
