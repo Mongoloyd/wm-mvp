@@ -6,8 +6,8 @@ interface VoiceFollowup {
   created_at: string;
   phone_e164: string;
   lead_id: string;
-  scan_session_id: string;
-  opportunity_id: string;
+  scan_session_id: string | null;
+  opportunity_id: string | null;
 }
 
 interface Props {
@@ -51,18 +51,26 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
 
   const handleManualCall = async (log: VoiceFollowup) => {
     setCallingId(log.id);
-    const { error } = await supabase.functions.invoke('admin-data', {
-      body: {
-        action: 'trigger_voice_followup',
-        password: adminPassword,
-        lead_id: log.lead_id,
-        phone_e164: log.phone_e164,
-        opportunity_id: log.opportunity_id,
-      },
-    });
-    if (error) alert("Call failed: " + error.message);
-    else alert("Voice AI Call Triggered!");
-    setCallingId(null);
+    try {
+      const { error } = await supabase.functions.invoke('admin-data', {
+        body: {
+          action: 'trigger_voice_followup',
+          password: adminPassword,
+          lead_id: log.lead_id,
+          phone_e164: log.phone_e164,
+          opportunity_id: log.opportunity_id,
+        },
+      });
+      if (error) {
+        setError("Call failed: " + error.message);
+      } else {
+        alert("Voice AI Call Triggered!");
+      }
+    } catch (err: any) {
+      setError("Call failed: " + (err?.message || String(err)));
+    } finally {
+      setCallingId(null);
+    }
   };
 
   if (loading) {

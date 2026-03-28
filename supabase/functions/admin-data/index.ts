@@ -196,7 +196,7 @@ Deno.serve(async (req) => {
 
       if (error) {
         console.error("[admin-data] error fetching voice followups:", error);
-        return json({ error: error.message }, 400);
+        return json({ error: error.message }, 500);
       }
 
       return json({ data });
@@ -220,7 +220,11 @@ Deno.serve(async (req) => {
 
       if (error) {
         console.error("[admin-data] trigger call error:", error);
-        return json({ error: "Failed to trigger voice AI" }, 400);
+        const status =
+          (error as any)?.context?.status && typeof (error as any).context.status === "number"
+            ? (error as any).context.status
+            : 500;
+        return json({ error: "Failed to trigger voice AI" }, status);
       }
 
       return json({ success: true, data });
