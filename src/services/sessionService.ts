@@ -879,7 +879,7 @@ export function revealGrade(results: GradeResults): SessionData {
     grade: session.grade,
     grade_score: session.gradeScore,
     flag_count: session.flagCount,
-    forensic_flags: results.forensicFlags.join(','),
+    forensic_flags: session.forensicFlags!.join(','),
     county: session.county,
     quote_amount: session.quoteAmount,
     window_count: session.windowCount,
