@@ -43,15 +43,17 @@
 --     voice_followups has transcript_text (text) and transcript_url (text),
 --     but no transcript_id column. Mapping is ambiguous — skipped for safety.
 --
+-- PREREQUISITES (handled in 20260327080000_create_voice_followups_and_leads_updated_at.sql)
+--   • public.leads.updated_at column and its BEFORE UPDATE trigger.
+--   • public.voice_followups table (with its updated_at trigger).
+--
 -- ASSUMPTIONS
---   • public.voice_followups already exists in the database (reflected in
---     src/integrations/supabase/types.ts but has no prior migration file).
---   • The last_call_* columns listed below may already exist on the live DB
+--   • The last_call_* columns added below may already exist on the live DB
 --     (reflected in types.ts). ADD COLUMN IF NOT EXISTS makes this idempotent.
 --   • Trigger alphabetical ordering on shared INSERT events is intentional:
 --     'set_appointment' < 'set_called' means Trigger B fires before A on INSERT.
 --     If booking_intent_detected = TRUE on INSERT, B sets status → 'appointment';
---     A then sees 'appointment' and preserves it (not 'new') — correct.
+--     A then sees 'appointment' (not 'new') and preserves it — correct.
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 
