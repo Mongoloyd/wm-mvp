@@ -85,22 +85,56 @@ const track = (event: string) => {
 /* ── Animated counter hook ─────────────────────────────────── */
 function useCounter(target: number, duration: number, active: boolean) {
   const [val, setVal] = useState(0);
+  const frameRef = useRef<number | null>(null);
+
   useEffect(() => {
-    if (!active) { setVal(0); return; }
+    let cancelled = false;
+
+    if (!active) {
+      setVal(0);
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+      return;
+    }
+
     const start = Date.now();
     const tick = () => {
+      if (cancelled) return;
       const elapsed = Date.now() - start;
       const progress = Math.min(elapsed / duration, 1);
       setVal(Math.round(progress * target));
-      if (progress < 1) requestAnimationFrame(tick);
+      if (progress < 1) {
+        frameRef.current = requestAnimationFrame(tick);
+      }
     };
-    requestAnimationFrame(tick);
+
+    frameRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      cancelled = true;
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+    };
   }, [active, target, duration]);
   return val;
 }
 
+type ScanItem = (typeof SCANS)[number];
+
+interface MockDocumentProps {
+  activeScan: ScanItem;
+  phase: Phase;
+  scanText: string;
+  scanProgress: number;
+  isDanger: boolean;
+}
+
 /* ── Mock Document ─────────────────────────────────────────── */
-const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: any) => {
+const MockDocument = ({ activeScan, phase, scanText, scanProgress, isDanger }: MockDocumentProps) => {
   const isScanning = phase === "scan";
 
   return (
@@ -199,12 +233,12 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
   const activeScan = SCANS[currentScanIndex];
 
   useEffect(() => {
-    track("wm_demo_scan_viewed");
+    track("demo_scan_viewed");
     return () => { mountedRef.current = false; };
   }, []);
 
   const handleCtaClick = useCallback(() => {
-    track("wm_demo_cta_clicked");
+    track("demo_cta_clicked");
     if (onScanClick) {
       onScanClick();
     } else {
@@ -227,7 +261,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
       requestAnimationFrame(() => setScanProgress(85));
       set("reveal", 3500);
     } else if (phase === "reveal") {
-      track("wm_demo_reveal_seen");
+      track("demo_reveal_seen");
       requestAnimationFrame(() => setScanProgress(100));
       set("hook", 3500);
     } else if (phase === "hook") {
@@ -337,18 +371,16 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
               </motion.div>
 
               {/* Flag 2 (Masked — clickable) */}
-              <motion.div
+              <motion.button
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.4 }}
                 className={`mt-4 w-full rounded-none border-l-[3px] ${activeScan.flag2Border} ${activeScan.flag2Bg} p-4 text-left shadow-sm cursor-pointer hover:shadow-md transition-shadow`}
                 onClick={() => {
-                  track("wm_demo_unlock_clicked");
+                  track("demo_unlock_clicked");
                   handleCtaClick();
                 }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === "Enter") handleCtaClick(); }}
+                aria-label="Unlock full report analysis"
               >
                 <p className={`font-mono text-[10px] font-bold tracking-wider ${activeScan.flag2Color}`}>
                   {activeScan.flag2Label}
@@ -362,7 +394,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                     Upload yours to unlock →
                   </span>
                 </div>
-              </motion.div>
+              </motion.button>
 
               {/* Persistent mini-CTA during reveal phase — tertiary style */}
               {phase === "reveal" && (
