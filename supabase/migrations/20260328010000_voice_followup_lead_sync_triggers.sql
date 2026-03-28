@@ -1,30 +1,29 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
--- MIGRATION: voice_followups → leads sync triggers
+-- MIGRATION: voice_followups → leads sync trigger (unified)
 -- Date: 2026-03-28
--- Purpose: Keep public.leads in sync with public.voice_followups via two triggers.
+-- Purpose: Keep public.leads in sync with public.voice_followups via a single
+--          AFTER INSERT OR UPDATE trigger.
 --
---   Trigger A  trg_voice_followup_set_called
---     • AFTER INSERT on public.voice_followups
---     • Always writes last_call_* snapshot fields onto the matched lead.
---     • Advances leads.status to 'called' ONLY when current status = 'new'.
---     • Stronger states (called, appointment, closed, dead) are never touched.
---
---   Trigger B  trg_voice_followup_set_appointment
+--   trg_voice_followup_sync_lead
 --     • AFTER INSERT OR UPDATE on public.voice_followups
---     • Only acts when NEW.booking_intent_detected IS TRUE.
---     • On UPDATE, only acts when booking_intent_detected changed false → true.
---     • Writes last_call_* snapshot fields onto the matched lead.
---     • Advances leads.status to 'appointment' ONLY when current status
---       is 'new' or 'called' (terminal states closed/dead are never reopened).
+--     • Always refreshes last_call_* snapshot fields on the matched lead so
+--       that webhook-driven updates (queued → completed, recording_url added,
+--       summary written, etc.) are reflected immediately without a second trigger.
+--     • Status transitions (evaluated once per row, in priority order):
+--         1. booking_intent just became TRUE (INSERT with true, or UPDATE
+--            false/null → true) AND lead status is 'new' or 'called'
+--            → advance to 'appointment'
+--         2. plain INSERT AND lead status is 'new'
+--            → advance to 'called'
+--         3. all other cases → preserve current status
 --
 -- STATUS TRANSITION RULES (derived from AdminDashboard.tsx:53,305)
 --   Canonical status order: new < called < appointment < {closed, dead}
 --   Source: src/components/AdminDashboard.tsx — dropdown ['new','called','appointment','closed','dead']
 --
 --   'called'      valid only from  'new'
---     (strictest safe rule — do not overwrite called/appointment/closed/dead)
 --   'appointment' valid only from  'new' OR 'called'
---     (do not reopen closed or dead; do not re-apply when already appointment)
+--     Terminal states closed/dead are never reopened.
 --
 -- FIELD MAPPING  voice_followups → leads.last_call_*
 --   voice_followups.status              → leads.last_call_status
@@ -44,16 +43,14 @@
 --     but no transcript_id column. Mapping is ambiguous — skipped for safety.
 --
 -- PREREQUISITES (handled in 20260327080000_create_voice_followups_and_leads_updated_at.sql)
---   • public.leads.updated_at column and its BEFORE UPDATE trigger.
+--   • public.leads.updated_at column and its BEFORE UPDATE trigger
+--     (update_updated_at) — updated_at is maintained automatically and must
+--     NOT be set explicitly here.
 --   • public.voice_followups table (with its updated_at trigger).
 --
 -- ASSUMPTIONS
 --   • The last_call_* columns added below may already exist on the live DB
 --     (reflected in types.ts). ADD COLUMN IF NOT EXISTS makes this idempotent.
---   • Trigger alphabetical ordering on shared INSERT events is intentional:
---     'set_appointment' < 'set_called' means Trigger B fires before A on INSERT.
---     If booking_intent_detected = TRUE on INSERT, B sets status → 'appointment';
---     A then sees 'appointment' (not 'new') and preserves it — correct.
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -77,29 +74,48 @@ ALTER TABLE public.leads
   ADD COLUMN IF NOT EXISTS last_call_transcript_id     text;
 
 
--- ── 1. Trigger A function: set status = 'called' on INSERT ──────────────────
--- Fires after every new row in voice_followups.
--- Always writes the last_call_* snapshot so metadata is fresh.
--- Advances status to 'called' only when the lead is still in state 'new'.
+-- ── 1. Drop legacy trigger functions if they exist from a previous version ───
+-- Guard using a DO block so the DROPs are safe when voice_followups does not
+-- yet exist in a fresh-schema deploy (migration order protection).
+-- Only undefined_table is swallowed; all other errors are re-raised so the
+-- migration fails loudly rather than continuing silently.
+DO $$
+BEGIN
+  DROP TRIGGER IF EXISTS trg_voice_followup_set_called      ON public.voice_followups;
+  DROP TRIGGER IF EXISTS trg_voice_followup_set_appointment ON public.voice_followups;
+EXCEPTION
+  WHEN undefined_table THEN NULL;  -- table not yet created; nothing to drop
+  WHEN OTHERS THEN RAISE;          -- re-raise unexpected errors
+END;
+$$;
+
+DROP FUNCTION IF EXISTS public.trg_fn_voice_followup_set_called();
+DROP FUNCTION IF EXISTS public.trg_fn_voice_followup_set_appointment();
+
+
+-- ── 2. Unified trigger function ──────────────────────────────────────────────
+-- Fires after every INSERT or UPDATE on voice_followups.
+-- Always refreshes last_call_* so webhook-driven field updates (status,
+-- summary, recording_url, call_outcome, etc.) are never left stale.
+-- Status transitions are evaluated in a single CASE expression (priority order).
 --
--- Security note: SECURITY DEFINER + SET search_path TO 'public' is required
--- by this project's migration spec. All table references inside this function
--- are fully-qualified (public.leads) to prevent search_path-based injection.
+-- Security note: SECURITY DEFINER + SET search_path TO 'public' prevents
+-- search_path-based injection. All table references are fully-qualified.
 --
 -- Referential integrity note: voice_followups.lead_id has a FK constraint to
--- leads.id (voice_followups_lead_id_fkey, confirmed in types.ts), so a
--- matching lead row is always present when this trigger fires. No explicit
--- existence check is required.
-CREATE OR REPLACE FUNCTION public.trg_fn_voice_followup_set_called()
+-- leads.id so a matching lead row is always present when this trigger fires.
+CREATE OR REPLACE FUNCTION public.trg_fn_voice_followup_sync_lead()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO 'public'
 AS $$
 BEGIN
+  -- updated_at is intentionally omitted: public.leads has a BEFORE UPDATE
+  -- trigger (trg_leads_updated_at → update_updated_at()) that maintains it
+  -- automatically. Setting it explicitly here would be redundant.
   UPDATE public.leads
   SET
-    updated_at                  = NOW(),
     last_call_status            = NEW.status,
     last_call_booking_intent    = NEW.booking_intent_detected,
     last_call_outcome           = NEW.call_outcome,
@@ -112,8 +128,20 @@ BEGIN
     last_call_recording_url     = NEW.recording_url,
     last_call_failure_reason    = NEW.failure_reason,
     status = CASE
-               WHEN status = 'new' THEN 'called'
-               ELSE status            -- preserve called/appointment/closed/dead
+               -- booking intent just activated → advance to appointment.
+               -- `IS NOT TRUE` intentionally treats NULL the same as FALSE:
+               -- voice_followups.booking_intent_detected has NOT NULL DEFAULT false,
+               -- but defending against NULL here ensures correctness if that
+               -- constraint is ever relaxed.
+               WHEN NEW.booking_intent_detected IS TRUE
+                    AND (TG_OP = 'INSERT' OR OLD.booking_intent_detected IS NOT TRUE)
+                    AND status IN ('new', 'called')
+               THEN 'appointment'
+               -- plain INSERT → advance from new to called
+               WHEN TG_OP = 'INSERT' AND status = 'new'
+               THEN 'called'
+               -- all other cases: preserve current status
+               ELSE status
              END
   WHERE id = NEW.lead_id;
 
@@ -122,73 +150,13 @@ END;
 $$;
 
 
--- ── 2. Drop + recreate Trigger A ────────────────────────────────────────────
-DROP TRIGGER IF EXISTS trg_voice_followup_set_called ON public.voice_followups;
+-- ── 3. Create unified trigger ────────────────────────────────────────────────
+DROP TRIGGER IF EXISTS trg_voice_followup_sync_lead ON public.voice_followups;
 
-CREATE TRIGGER trg_voice_followup_set_called
-  AFTER INSERT ON public.voice_followups
-  FOR EACH ROW
-  EXECUTE FUNCTION public.trg_fn_voice_followup_set_called();
-
-
--- ── 3. Trigger B function: set status = 'appointment' on booking_intent ──────
--- Fires after every INSERT or UPDATE on voice_followups.
--- Only acts when booking_intent_detected is TRUE.
--- On UPDATE, only acts when it *changed* to TRUE (false/null → true).
--- Advances status to 'appointment' only from 'new' or 'called';
--- never reopens 'closed' or 'dead', never re-applies to 'appointment'.
---
--- Security note: same rationale as trg_fn_voice_followup_set_called above.
--- All table references are fully-qualified; FK guarantees lead existence.
-CREATE OR REPLACE FUNCTION public.trg_fn_voice_followup_set_appointment()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-BEGIN
-  -- Guard: only proceed when booking_intent is now TRUE.
-  IF NEW.booking_intent_detected IS NOT TRUE THEN
-    RETURN NEW;
-  END IF;
-
-  -- Guard: on UPDATE, skip if booking_intent was already TRUE (no change).
-  IF TG_OP = 'UPDATE' AND OLD.booking_intent_detected IS TRUE THEN
-    RETURN NEW;
-  END IF;
-
-  UPDATE public.leads
-  SET
-    updated_at                  = NOW(),
-    last_call_status            = NEW.status,
-    last_call_booking_intent    = NEW.booking_intent_detected,
-    last_call_outcome           = NEW.call_outcome,
-    last_call_intent            = NEW.call_intent,
-    last_call_queued_at         = NEW.queued_at,
-    last_call_completed_at      = NEW.completed_at,
-    last_call_answered_at       = NEW.answered_at,
-    last_call_duration_seconds  = NEW.duration_seconds,
-    last_call_summary           = NEW.summary,
-    last_call_recording_url     = NEW.recording_url,
-    last_call_failure_reason    = NEW.failure_reason,
-    status = CASE
-               WHEN status IN ('new', 'called') THEN 'appointment'
-               ELSE status   -- preserve appointment/closed/dead
-             END
-  WHERE id = NEW.lead_id;
-
-  RETURN NEW;
-END;
-$$;
-
-
--- ── 4. Drop + recreate Trigger B ────────────────────────────────────────────
-DROP TRIGGER IF EXISTS trg_voice_followup_set_appointment ON public.voice_followups;
-
-CREATE TRIGGER trg_voice_followup_set_appointment
+CREATE TRIGGER trg_voice_followup_sync_lead
   AFTER INSERT OR UPDATE ON public.voice_followups
   FOR EACH ROW
-  EXECUTE FUNCTION public.trg_fn_voice_followup_set_appointment();
+  EXECUTE FUNCTION public.trg_fn_voice_followup_sync_lead();
 
 
 -- ═══════════════════════════════════════════════════════════════════════════════
