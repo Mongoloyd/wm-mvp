@@ -33,6 +33,15 @@ const monoFont = "'JetBrains Mono',monospace";
 const bodyFont = "'DM Sans',sans-serif";
 const dispFont = "'Barlow Condensed',sans-serif";
 
+// Shared color tokens for consistent styling
+const COLOR_MUTED = '#A0B8D8';      // Brightened muted text
+const COLOR_SECONDARY = '#C8DEFF';  // Brightened secondary text
+
+// Common font sizes (all increased by 2px for legibility)
+const FONT_SIZE_SMALL = 11;   // was 9
+const FONT_SIZE_MEDIUM = 12;  // was 10
+const FONT_SIZE_LARGE = 13;   // was 11
+
 interface Lead {
   id: string; first_name: string; phone: string; email: string;
   county_name: string; window_count: string | null; project_type: string | null;
@@ -442,7 +451,7 @@ function OpportunityDetail({
               <span style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.08em' }}>PRIORITY: {opp.priority_score}</span>
             </div>
           </div>
-          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 14, color: '#A0B8D8', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>✕</button>
+          <button onClick={onClose} aria-label="Close" title="Close" style={{ fontFamily: monoFont, fontSize: 14, color: COLOR_MUTED, background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>✕</button>
         </div>
 
         {/* Brief — contractor-safe data only */}
@@ -724,8 +733,8 @@ function OutcomeEditor({
     </div>
   );
 
-  const selectStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: 12, background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '4px 8px', borderRadius: 0 };
-  const inputStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: 12, background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '4px 8px', borderRadius: 0, width: 160 };
+  const selectStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: FONT_SIZE_MEDIUM, background: '#161C28', border: '1px solid #2E3A50', color: COLOR_SECONDARY, padding: '4px 8px', borderRadius: 0 };
+  const inputStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: FONT_SIZE_MEDIUM, background: '#161C28', border: '1px solid #2E3A50', color: COLOR_SECONDARY, padding: '4px 8px', borderRadius: 0, width: 160 };
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -737,7 +746,14 @@ function OutcomeEditor({
               Contractor: {contractor?.company_name || '—'} · Intro: {intro.id.slice(0, 8)}…
             </div>
           </div>
-          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 14, color: '#A0B8D8', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          <button
+            onClick={onClose}
+            aria-label="Close outcome tracking modal"
+            title="Close"
+            style={{ fontFamily: monoFont, fontSize: 14, color: COLOR_MUTED, background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            ✕
+          </button>
         </div>
 
         {fieldRow('APPOINTMENT', (
