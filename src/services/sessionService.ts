@@ -730,7 +730,6 @@ export function captureMidFunnelData(data: MidFunnelData): SessionData {
   pushToDataLayer('county_identified', {
     county: data.county,
     anonymous_id: session.anonymousId,
-    state: 'FL',
   });
 
   pushToDataLayer('quote_entered', {
@@ -877,9 +876,9 @@ export function revealGrade(results: GradeResults): SessionData {
   // Fire GTM event
   pushToDataLayer('grade_revealed', {
     lead_id: session.leadId,
-    grade: results.grade,
-    grade_score: results.gradeScore,
-    flag_count: results.forensicFlags.length,
+    grade: session.grade,
+    grade_score: session.gradeScore,
+    flag_count: session.flagCount,
     forensic_flags: results.forensicFlags.join(','),
     county: session.county,
     quote_amount: session.quoteAmount,
