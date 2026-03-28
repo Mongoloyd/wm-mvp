@@ -227,7 +227,11 @@ Deno.serve(async (req) => {
 
       if (error) {
         console.error("[admin-data] trigger call error:", error);
-        return json({ error: "Failed to trigger voice AI" }, 500);
+        const status =
+          (error as any)?.context?.status && typeof (error as any).context.status === "number"
+            ? (error as any).context.status
+            : 500;
+        return json({ error: "Failed to trigger voice AI" }, status);
       }
 
       return json({ success: true, data });
