@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
-import { trackConversion } from "@/lib/trackConversion";
+import { trackGtmEvent } from "@/lib/trackConversion";
 import { toast } from "sonner";
 
 interface UploadZoneProps {
@@ -89,9 +89,8 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       if (ssError) { console.error("scan_sessions insert failed:", ssError); toast.error("Failed to start scan session. Please try again."); setUploading(false); return; }
       trackEvent({ event_name: "upload_completed", session_id: sessionId, metadata: { scan_session_id: scanSessionId, file_name: file.name, file_size: file.size } });
       onScanStart?.(file.name, scanSessionId);
-      trackConversion("quote_uploaded", {
+      trackGtmEvent("quote_uploaded", {
         scan_session_id: scanSessionId,
-        file_name: file.name,
         file_size: file.size,
         file_type: file.type,
         lead_id: leadId || undefined,

@@ -11,7 +11,7 @@ import { X, Loader2, Lock } from "lucide-react";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
-import { trackConversion } from "@/lib/trackConversion";
+import { trackGtmEvent } from "@/lib/trackConversion";
 
 interface PhoneVerifyModalProps {
   open: boolean;
@@ -81,12 +81,12 @@ export function PhoneVerifyModal({
         setStep("otp");
         return;
       }
-      trackConversion("otp_verified", {
+      trackGtmEvent("otp_verified", {
         scan_session_id: scanSessionId || undefined,
         phone_e164_last4: e164 ? e164.slice(-4) : undefined,
         source: "modal",
       });
-      trackConversion("report_revealed", {
+      trackGtmEvent("report_revealed", {
         scan_session_id: scanSessionId || undefined,
         source: "modal",
       });

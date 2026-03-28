@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trackConversion } from "@/lib/trackConversion";
+import { trackGtmEvent } from "@/lib/trackConversion";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
 import ForensicPillarSection from "@/components/report/ForensicPillarSection";
@@ -519,10 +519,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 {/* Gold CTA — Counter-Quote / Introduction */}
                 <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                   onClick={() => {
-                    trackConversion("contractor_match_requested", {
+                    trackGtmEvent("contractor_match_requested", {
                       grade,
                       county,
-                      issue_count: flags.filter(f => f.severity === "red" || f.severity === "amber").length,
+                      issue_count: issueCount,
                     });
                     onContractorMatchClick();
                   }}

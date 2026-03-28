@@ -22,9 +22,10 @@ export const ALL_VARIANTS: Record<string, HomepageVariant> = {
   accusation: {
     id: "accusation",
     badgeText: "FORENSIC QUOTE INTELLIGENCE",
-    headline: "YOUR QUOTE LOOKS LEGITIMATE. THAT'S EXACTLY WHAT THEY'RE COUNTING ON.",
-    subheadline:
-      "The impact window industry has no pricing transparency standard. WindowMan built one — and it reads your quote in under 60 seconds.",
+    // Empty strings trigger AuditHero's JSX fallback, preserving the original
+    // orange-glow "THEY'RE COUNTING ON." span and the "under 60 seconds" bold.
+    headline: "",
+    subheadline: "",
     weight: 1,
   },
   direct_action: {

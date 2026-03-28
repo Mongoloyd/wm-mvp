@@ -4,7 +4,7 @@ import {
   ACTIVE_VARIANTS,
   type HomepageVariant,
 } from "@/config/homepageVariants";
-import { trackConversion } from "@/lib/trackConversion";
+import { trackGtmEvent } from "@/lib/trackConversion";
 
 const STORAGE_KEY = "wm_hp_variant";
 const SESSION_FIRED_KEY = "wm_hp_variant_fired";
@@ -53,12 +53,12 @@ function resolveVariant(): { id: string; isUrlOverride: boolean } {
  * Analytics fires once per browser session via sessionStorage debounce.
  */
 export function useHomepageVariant(): HomepageVariant {
-  const [variantId] = useState<string>(() => resolveVariant().id);
+  // Resolve once on mount — same object drives both UI and analytics, eliminating
+  // any chance of a re-resolve returning a different variant between renders.
+  const [resolved] = useState<{ id: string; isUrlOverride: boolean }>(() => resolveVariant());
   const hasFired = useRef(false);
 
   useEffect(() => {
-    const resolved = resolveVariant();
-
     // Persist to localStorage ONLY if organically assigned (not URL override)
     if (!resolved.isUrlOverride) {
       try { localStorage.setItem(STORAGE_KEY, resolved.id); } catch { /* silent */ }
@@ -68,7 +68,7 @@ export function useHomepageVariant(): HomepageVariant {
     if (!hasFired.current) {
       try {
         if (sessionStorage.getItem(SESSION_FIRED_KEY) !== resolved.id) {
-          trackConversion("homepage_variant_viewed", {
+          trackGtmEvent("homepage_variant_viewed", {
             variant_id: resolved.id,
             is_url_override: resolved.isUrlOverride,
           });
@@ -76,14 +76,14 @@ export function useHomepageVariant(): HomepageVariant {
         }
       } catch {
         // sessionStorage blocked — fire anyway
-        trackConversion("homepage_variant_viewed", {
+        trackGtmEvent("homepage_variant_viewed", {
           variant_id: resolved.id,
           is_url_override: resolved.isUrlOverride,
         });
       }
       hasFired.current = true;
     }
-  }, [variantId]);
+  }, [resolved]);
 
-  return ALL_VARIANTS[variantId] || ALL_VARIANTS["accusation"];
+  return ALL_VARIANTS[resolved.id] || ALL_VARIANTS["accusation"];
 }
