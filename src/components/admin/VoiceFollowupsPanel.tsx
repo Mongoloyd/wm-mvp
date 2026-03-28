@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { trackGtmEvent } from '@/lib/trackConversion';
 
 interface VoiceFollowup {
   id: string;
@@ -66,6 +67,10 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
         setError("Call failed: " + error.message);
       } else {
         alert("Voice AI Call Triggered!");
+        trackGtmEvent("voice_call_triggered", {
+          lead_id: log.lead_id,
+          trigger: "manual_admin",
+        });
       }
     } catch (err: unknown) {
       setError("Call failed: " + (err instanceof Error ? err.message : String(err)));

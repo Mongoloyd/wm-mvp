@@ -24,6 +24,7 @@ import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
 import Footer from "@/components/Footer";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
+import { useHomepageVariant } from "@/hooks/useHomepageVariant";
 import { ScanFunnelProvider } from "@/state/scanFunnel";
 import { getVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
@@ -39,6 +40,8 @@ import { AlertTriangle, RotateCcw, FileX } from "lucide-react";
 const Index = () => {
   // ═══ DEV MODE: Uses Vite's built-in dev/prod flag ═══
   const IS_DEV_MODE = import.meta.env.DEV;
+
+  const variant = useHomepageVariant();
 
   const [devState, setDevState] = useState<DevPreviewState>("none");
 
@@ -204,6 +207,9 @@ const Index = () => {
                   onUploadQuote={() => triggerTruthGate('hero_scan_cta')}
                   triggerPowerTool={powerToolTriggered}
                   onPowerToolClose={() => setPowerToolTriggered(false)}
+                  variantHeadline={variant.headline}
+                  variantSubheadline={variant.subheadline}
+                  variantBadgeText={variant.badgeText}
                 />
               </motion.div>
             ) : (

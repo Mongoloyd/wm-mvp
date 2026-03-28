@@ -13,9 +13,12 @@ interface AuditHeroProps {
   onUploadQuote?: () => void;
   triggerPowerTool?: boolean;
   onPowerToolClose?: () => void;
+  variantHeadline?: string;
+  variantSubheadline?: string;
+  variantBadgeText?: string;
 }
 
-const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolClose }: AuditHeroProps) => {
+const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolClose, variantHeadline, variantSubheadline, variantBadgeText }: AuditHeroProps) => {
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
@@ -51,7 +54,7 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
             <div className="inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
               <span className="text-primary text-sm">🛡</span>
               <span className="wm-eyebrow text-primary">
-                FORENSIC QUOTE INTELLIGENCE
+                {variantBadgeText || "FORENSIC QUOTE INTELLIGENCE"}
               </span>
             </div>
 
@@ -64,16 +67,28 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 color: "hsl(210 50% 8%)",
               }}
             >
-              YOUR QUOTE LOOKS LEGITIMATE.
-              <br />
-              THAT'S EXACTLY WHAT <span className="text-destructive" style={{ textShadow: '0 0 20px hsla(25, 95%, 53%, 0.15)' }}>THEY'RE COUNTING ON.</span>
+              {variantHeadline ? (
+                variantHeadline
+              ) : (
+                <>
+                  YOUR QUOTE LOOKS LEGITIMATE.
+                  <br />
+                  THAT'S EXACTLY WHAT <span className="text-destructive" style={{ textShadow: '0 0 20px hsla(25, 95%, 53%, 0.15)' }}>THEY'RE COUNTING ON.</span>
+                </>
+              )}
             </h1>
 
             <p className="font-body mb-8" style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}>
-              The impact window industry has no pricing transparency standard.
-              <br />
-              WindowMan built one — and it reads your quote in{" "}
-              <strong style={{ color: "hsl(210 50% 8%)" }}>under 60 seconds</strong>.
+              {variantSubheadline ? (
+                variantSubheadline
+              ) : (
+                <>
+                  The impact window industry has no pricing transparency standard.
+                  <br />
+                  WindowMan built one — and it reads your quote in{" "}
+                  <strong style={{ color: "hsl(210 50% 8%)" }}>under 60 seconds</strong>.
+                </>
+              )}
             </p>
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">
