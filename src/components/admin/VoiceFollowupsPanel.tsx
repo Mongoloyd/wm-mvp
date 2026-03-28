@@ -76,7 +76,7 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
 
   if (loading) {
     return (
-      <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>
+      <div style={{ fontFamily: monoFont, fontSize: 13, color: '#A0B8D8', padding: 20 }}>
         Loading voice logs…
       </div>
     );
@@ -84,7 +84,7 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
 
   if (error) {
     return (
-      <div style={{ fontFamily: monoFont, fontSize: 11, color: '#DC2626', padding: 20 }}>
+      <div style={{ fontFamily: monoFont, fontSize: 13, color: '#DC2626', padding: 20 }}>
         {error}
       </div>
     );
@@ -92,7 +92,7 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
 
   if (followups.length === 0) {
     return (
-      <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 40, textAlign: 'center' }}>
+      <div style={{ fontFamily: monoFont, fontSize: 13, color: '#A0B8D8', padding: 40, textAlign: 'center' }}>
         No recent voice follow-ups found.
       </div>
     );
@@ -106,8 +106,8 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
             {['Date & Time', 'Phone Number', 'Lead ID', 'Opportunity ID', 'Actions'].map(col => (
               <th key={col} style={{
                 fontFamily: monoFont,
-                fontSize: 9,
-                color: '#7D9DBB',
+                fontSize: 11,
+                color: '#A0B8D8',
                 letterSpacing: '0.12em',
                 textAlign: 'left',
                 padding: '8px 12px',
@@ -123,16 +123,16 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
         <tbody>
           {followups.map(log => (
             <tr key={log.id} style={{ borderBottom: '1px solid #1C1C1C' }}>
-              <td style={{ padding: '10px 12px', color: '#A0B8D8', fontFamily: monoFont, fontSize: 11 }}>
+              <td style={{ padding: '10px 12px', color: '#C8DEFF', fontFamily: monoFont, fontSize: 13 }}>
                 {new Date(log.created_at).toLocaleString()}
               </td>
-              <td style={{ padding: '10px 12px', color: '#00D9FF', fontFamily: monoFont, fontSize: 11 }}>
+              <td style={{ padding: '10px 12px', color: '#00D9FF', fontFamily: monoFont, fontSize: 13 }}>
                 {log.phone_e164}
               </td>
-              <td style={{ padding: '10px 12px', color: '#A0B8D8', fontFamily: monoFont, fontSize: 11 }}>
+              <td style={{ padding: '10px 12px', color: '#C8DEFF', fontFamily: monoFont, fontSize: 13 }}>
                 {log.lead_id ? log.lead_id.slice(0, 8) + '…' : '—'}
               </td>
-              <td style={{ padding: '10px 12px', color: '#A0B8D8', fontFamily: monoFont, fontSize: 11 }}>
+              <td style={{ padding: '10px 12px', color: '#C8DEFF', fontFamily: monoFont, fontSize: 13 }}>
                 {log.opportunity_id ? log.opportunity_id.slice(0, 8) + '…' : '—'}
               </td>
               <td style={{ padding: '10px 12px' }}>
@@ -142,7 +142,7 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
                   title={!log.scan_session_id ? 'No scan session — cannot trigger call' : callingId === log.id ? 'Call in progress…' : undefined}
                   style={{
                     fontFamily: monoFont,
-                    fontSize: 10,
+                    fontSize: 12,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
                     padding: '5px 10px',
@@ -150,7 +150,7 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
                     borderRadius: 0,
                     cursor: (callingId === log.id || !log.scan_session_id) ? 'not-allowed' : 'pointer',
                     background: (callingId === log.id || !log.scan_session_id) ? '#2E3A50' : '#1D4ED8',
-                    color: !log.scan_session_id ? '#7D9DBB' : '#FFFFFF',
+                    color: !log.scan_session_id ? '#A0B8D8' : '#FFFFFF',
                   }}
                 >
                   {callingId === log.id ? 'Dialing…' : 'Call Now'}
