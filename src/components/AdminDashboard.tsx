@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { trackConversion } from '@/lib/trackConversion';
 import { supabase } from '@/integrations/supabase/client';
 import { ROUTE_STATUS, RELEASE_STATUS, BILLING_STATUS, BILLING_MODEL, EVENTS, APPOINTMENT_STATUS, QUOTE_STATUS, DEAL_STATUS } from '@/lib/statusConstants';
 import VoiceFollowupsPanel from './admin/VoiceFollowupsPanel';
@@ -941,6 +942,16 @@ export default function AdminDashboard() {
   const handleStatusChange = async (id: string, status: Lead['status']) => {
     await adminFetch('update_lead_status', { lead_id: id, status });
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+
+    if (status === 'appointment') {
+      const lead = leads.find(l => l.id === id);
+      trackConversion("appointment_booked", {
+        lead_id: id,
+        lead_tier: lead?.lead_tier,
+        county: lead?.county_name,
+        flow: lead?.active_flow,
+      });
+    }
   };
   const handleCallNow = (lead: Lead) => { window.open(`tel:${lead.phone}`, '_self'); handleStatusChange(lead.id, 'called'); };
   const handleSMS = (lead: Lead) => { window.open(`sms:${lead.phone}?body=${encodeURIComponent(buildSMSScript(lead))}`, '_self'); };

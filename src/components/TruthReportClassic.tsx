@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { trackConversion } from "@/lib/trackConversion";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
 import ForensicPillarSection from "@/components/report/ForensicPillarSection";
@@ -517,7 +518,14 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <motion.div {...stagger(9)} className="flex flex-col items-center gap-3" style={{ maxWidth: 520, margin: "0 auto" }}>
                 {/* Gold CTA — Counter-Quote / Introduction */}
                 <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                  onClick={onContractorMatchClick}
+                  onClick={() => {
+                    trackConversion("contractor_match_requested", {
+                      grade,
+                      county,
+                      issue_count: flags.filter(f => f.severity === "red" || f.severity === "amber").length,
+                    });
+                    onContractorMatchClick();
+                  }}
                   disabled={isCtaLoading}
                   className={`flex items-center justify-center gap-2 w-full py-4 px-8 text-[17px] ${isCtaLoading ? "btn-depth-gold--pending" : "btn-depth-gold"}`}>
                   {isCtaLoading ? <Loader2 size={18} className="animate-spin" /> : <Users size={20} />}

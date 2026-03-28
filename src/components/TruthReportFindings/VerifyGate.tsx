@@ -11,6 +11,7 @@ import { Lock, Loader2 } from "lucide-react";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
+import { trackConversion } from "@/lib/trackConversion";
 
 interface VerifyGateProps {
   issueCount: number;
@@ -117,6 +118,13 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
         setStep("otp");
         return;
       }
+      trackConversion("otp_verified", {
+        scan_session_id: scanSessionId || undefined,
+        phone_e164_last4: e164 ? e164.slice(-4) : undefined,
+      });
+      trackConversion("report_revealed", {
+        scan_session_id: scanSessionId || undefined,
+      });
       onVerified();
     } catch {
       setErrorMsg("Network error. Try again.");
