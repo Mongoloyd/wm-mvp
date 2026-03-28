@@ -9,7 +9,7 @@
 
 BEGIN;
 
-SELECT plan(62);
+SELECT plan(68);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- SECTION 1: Schema — voice_followups table (migration 20260327080000)
@@ -575,6 +575,84 @@ SELECT isnt(
    LIMIT 1),
   NULL,
   'voice_followups.updated_at is not NULL after UPDATE (trg_voice_followups_updated_at fires)'
+);
+
+-- ── REGRESSION (data-integrity): UPDATE on non-booking call propagates to leads ─
+-- This is the exact scenario the unified trigger was introduced to fix.
+-- Old design: Trigger A was INSERT-only; a webhook-driven UPDATE that wrote
+-- recording_url / summary / status=completed onto a queued row left
+-- leads.last_call_* stale.  The unified AFTER INSERT OR UPDATE trigger must
+-- refresh the snapshot on every UPDATE as well.
+
+INSERT INTO public.leads (id, session_id, status)
+VALUES ('aaaaaaaa-0000-0000-0000-000000000009'::uuid, 'sess-test-9', 'new');
+
+DO $$
+DECLARE v_vf_id uuid;
+BEGIN
+  -- Step 1: insert as 'queued' — simulates the outbound call being enqueued.
+  INSERT INTO public.voice_followups (
+    lead_id, phone_e164, call_intent, queued_at, status, booking_intent_detected
+  ) VALUES (
+    'aaaaaaaa-0000-0000-0000-000000000009'::uuid,
+    '+15555550009', 'report_help', NOW(), 'queued', false
+  ) RETURNING id INTO v_vf_id;
+
+  -- Pause briefly so the UPDATE is measurably later than the INSERT.
+  PERFORM pg_sleep(0.01);
+
+  -- Step 2: webhook arrives and writes completed / recording_url / summary.
+  UPDATE public.voice_followups
+  SET
+    status         = 'completed',
+    recording_url  = 'https://recordings.example.com/webhook-update.mp3',
+    summary        = 'Call completed via webhook update',
+    completed_at   = NOW()
+  WHERE id = v_vf_id;
+END;
+$$;
+
+-- The INSERT (queued) should have advanced the lead to 'called'.
+-- The UPDATE (completed, no booking_intent) must NOT regress it back to 'new'.
+SELECT is(
+  (SELECT status FROM public.leads WHERE id = 'aaaaaaaa-0000-0000-0000-000000000009'::uuid),
+  'called',
+  'REGRESSION: UPDATE on completed webhook call does not regress lead status from called'
+);
+
+-- last_call_status must reflect the completed UPDATE (not the original queued INSERT).
+SELECT is(
+  (SELECT last_call_status FROM public.leads WHERE id = 'aaaaaaaa-0000-0000-0000-000000000009'::uuid),
+  'completed',
+  'REGRESSION: UPDATE on webhook call syncs last_call_status=completed to leads'
+);
+
+-- recording_url was NULL at INSERT time; it must be set after the UPDATE.
+SELECT is(
+  (SELECT last_call_recording_url FROM public.leads WHERE id = 'aaaaaaaa-0000-0000-0000-000000000009'::uuid),
+  'https://recordings.example.com/webhook-update.mp3',
+  'REGRESSION: UPDATE syncs last_call_recording_url to leads (was stale under old two-trigger design)'
+);
+
+-- summary was NULL at INSERT time; must be set after the UPDATE.
+SELECT is(
+  (SELECT last_call_summary FROM public.leads WHERE id = 'aaaaaaaa-0000-0000-0000-000000000009'::uuid),
+  'Call completed via webhook update',
+  'REGRESSION: UPDATE syncs last_call_summary to leads (was stale under old two-trigger design)'
+);
+
+-- completed_at was NULL at INSERT time; must be set after the UPDATE.
+SELECT isnt(
+  (SELECT last_call_completed_at FROM public.leads WHERE id = 'aaaaaaaa-0000-0000-0000-000000000009'::uuid),
+  NULL,
+  'REGRESSION: UPDATE syncs last_call_completed_at to leads'
+);
+
+-- booking_intent must remain false — the UPDATE did not flip it.
+SELECT is(
+  (SELECT last_call_booking_intent FROM public.leads WHERE id = 'aaaaaaaa-0000-0000-0000-000000000009'::uuid),
+  false,
+  'REGRESSION: booking_intent stays false after non-booking UPDATE; no spurious appointment transition'
 );
 
 -- ── REGRESSION: booking_intent priority overrides new→called when INSERT ──────
