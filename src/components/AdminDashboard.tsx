@@ -137,11 +137,11 @@ function formatAge(seconds: number): string {
 }
 
 function getAgeStyle(seconds: number, status: string): React.CSSProperties {
-  if (status !== 'new') return { color: '#7D9DBB' };
+  if (status !== 'new') return { color: '#A0B8D8' };
   if (seconds < 300) return { color: '#10B981', fontWeight: 700 };
   if (seconds < 900) return { color: '#F59E0B', fontWeight: 700 };
   if (seconds < 3600) return { color: '#F97316', fontWeight: 700 };
-  return { color: '#7D9DBB' };
+  return { color: '#A0B8D8' };
 }
 
 function getRowBorderColor(lead: Lead, seconds: number): string {
@@ -158,7 +158,7 @@ function getFlowBadge(flow: string | null, tier: number) {
   if (flow === 'A') return { label: 'FLOW A', bg: 'rgba(29,78,216,0.18)', color: '#60A5FA' };
   if (flow === 'B') return { label: 'FLOW B', bg: 'rgba(245,158,11,0.18)', color: '#F59E0B' };
   if (flow === 'C') return { label: 'FLOW C', bg: 'rgba(249,115,22,0.18)', color: '#F97316' };
-  return { label: '—', bg: 'transparent', color: '#7D9DBB' };
+  return { label: '—', bg: 'transparent', color: '#A0B8D8' };
 }
 
 function buildCallScript(lead: Lead): string {
@@ -212,12 +212,12 @@ function StatusPill({ status }: { status: string }) {
     // Route statuses
     interested: { bg: 'rgba(16,185,129,0.15)', color: '#10B981' },
     sent: { bg: 'rgba(6,182,212,0.15)', color: '#06B6D4' },
-    suggested: { bg: 'rgba(107,114,128,0.12)', color: '#7D9DBB' },
+    suggested: { bg: 'rgba(107,114,128,0.12)', color: '#A0B8D8' },
   };
   const style = colorMap[status] || { bg: 'rgba(107,114,128,0.15)', color: '#6B7280' };
   return (
     <span style={{
-      fontFamily: monoFont, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+      fontFamily: monoFont, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
       padding: '3px 8px', background: style.bg, color: style.color, borderRadius: 2,
     }}>
       {status.replace(/_/g, ' ')}
@@ -226,7 +226,7 @@ function StatusPill({ status }: { status: string }) {
 }
 
 function GradeBadge({ grade }: { grade: string | null }) {
-  if (!grade) return <span style={{ color: '#7D9DBB' }}>—</span>;
+  if (!grade) return <span style={{ color: '#A0B8D8' }}>—</span>;
   const color = grade === 'F' || grade === 'D' ? '#DC2626' :
     grade === 'C' ? '#F59E0B' : '#10B981';
   return (
@@ -279,20 +279,20 @@ function LeadRow({
         display: 'grid', gridTemplateColumns: '24px 1fr 80px 100px 80px 110px 160px',
         gap: 0, alignItems: 'center', padding: '10px 14px', cursor: 'pointer',
       }} onClick={() => setExpanded(!expanded)}>
-        <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB', userSelect: 'none' }}>{expanded ? '▼' : '▶'}</div>
+        <div style={{ fontFamily: monoFont, fontSize: 12, color: '#A0B8D8', userSelect: 'none' }}>{expanded ? '▼' : '▶'}</div>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
             <span style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{lead.first_name}</span>
-            <span style={{ fontFamily: monoFont, fontSize: 9, padding: '2px 6px', borderRadius: 2, background: flowBadge.bg, color: flowBadge.color, letterSpacing: '0.08em' }}>{flowBadge.label}</span>
+            <span style={{ fontFamily: monoFont, fontSize: 11, padding: '2px 6px', borderRadius: 2, background: flowBadge.bg, color: flowBadge.color, letterSpacing: '0.08em' }}>{flowBadge.label}</span>
             {lead.grade && <span style={{ fontFamily: dispFont, fontSize: 16, fontWeight: 900, color: lead.grade === 'F' || lead.grade === 'D' ? '#DC2626' : lead.grade === 'C' ? '#F59E0B' : '#10B981' }}>{lead.grade}</span>}
           </div>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>{lead.county_name || '—'} · {lead.quote_range || 'no range'} · {lead.window_count || '—'}</div>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.08em' }}>{lead.county_name || '—'} · {lead.quote_range || 'no range'} · {lead.window_count || '—'}</div>
         </div>
-        <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8' }}>{lead.phone_verified ? '✓' : '○'} {lead.phone.slice(-4).padStart(lead.phone.length, '•')}</div>
+        <div style={{ fontFamily: monoFont, fontSize: 11, color: '#C8DEFF' }}>{lead.phone_verified ? '✓' : '○'} {lead.phone.slice(-4).padStart(lead.phone.length, '•')}</div>
         <div style={{ fontFamily: monoFont, fontSize: 12, ...ageStyle, textAlign: 'right' }}>{formatAge(seconds)} ago</div>
-        <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 15, color: lead.dollar_delta ? '#DC2626' : '#7D9DBB', textTransform: 'uppercase', textAlign: 'right' }}>{lead.dollar_delta ? `+$${lead.dollar_delta.toLocaleString()}` : '—'}</div>
+        <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 15, color: lead.dollar_delta ? '#DC2626' : '#A0B8D8', textTransform: 'uppercase', textAlign: 'right' }}>{lead.dollar_delta ? `+$${lead.dollar_delta.toLocaleString()}` : '—'}</div>
         <select value={lead.status} onChange={(e) => { e.stopPropagation(); onStatusChange(lead.id, e.target.value as Lead['status']); }} onClick={(e) => e.stopPropagation()}
-          style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '4px 6px', cursor: 'pointer', borderRadius: 0 }}>
+          style={{ fontFamily: monoFont, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '4px 6px', cursor: 'pointer', borderRadius: 0 }}>
           {['new', 'called', 'appointment', 'closed', 'dead'].map(s => (<option key={s} value={s}>{s.toUpperCase()}</option>))}
         </select>
         <div style={{ display: 'flex', gap: 5, justifyContent: 'flex-end' }}>
@@ -301,31 +301,31 @@ function LeadRow({
               style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 11, color: '#FFFFFF', background: '#DC2626', border: 'none', padding: '6px 12px', borderRadius: 2, cursor: 'pointer', whiteSpace: 'nowrap', animation: 'pulse-red 1.5s ease-in-out infinite' }}>CALL NOW</button>
           ) : (
             <button onClick={(e) => { e.stopPropagation(); onCallNow(lead); }}
-              style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '5px 10px', borderRadius: 2, cursor: 'pointer' }}>CALL</button>
+              style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 12, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '5px 10px', borderRadius: 2, cursor: 'pointer' }}>CALL</button>
           )}
           <button onClick={(e) => { e.stopPropagation(); onSMS(lead); }}
-            style={{ fontFamily: bodyFont, fontWeight: 600, fontSize: 10, color: '#A0B8D8', background: 'transparent', border: '1px solid #2E3A50', padding: '5px 8px', borderRadius: 2, cursor: 'pointer' }}>SMS</button>
+            style={{ fontFamily: bodyFont, fontWeight: 600, fontSize: 12, color: '#C8DEFF', background: 'transparent', border: '1px solid #2E3A50', padding: '5px 8px', borderRadius: 2, cursor: 'pointer' }}>SMS</button>
         </div>
       </div>
       {expanded && (
         <div style={{ borderTop: '1px solid #1C1C1C', padding: '14px 14px 14px 38px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <div>
-            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 8 }}>OPENING SCRIPT</div>
-            <div style={{ fontFamily: bodyFont, fontSize: 13, color: '#A0B8D8', lineHeight: 1.65, background: '#0A0A0A', padding: 12, borderLeft: '2px solid #1D4ED8', marginBottom: 10 }}>"{script}"</div>
-            <button onClick={copyScript} style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: copyFeedback ? '#10B981' : '#1D4ED8', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>{copyFeedback || '⊕ COPY SCRIPT'}</button>
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.1em', marginBottom: 8 }}>OPENING SCRIPT</div>
+            <div style={{ fontFamily: bodyFont, fontSize: 13, color: '#C8DEFF', lineHeight: 1.65, background: '#0A0A0A', padding: 12, borderLeft: '2px solid #1D4ED8', marginBottom: 10 }}>"{script}"</div>
+            <button onClick={copyScript} style={{ fontFamily: monoFont, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: copyFeedback ? '#10B981' : '#1D4ED8', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>{copyFeedback || '⊕ COPY SCRIPT'}</button>
           </div>
           <div>
-            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 8 }}>INTELLIGENCE PAYLOAD</div>
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.1em', marginBottom: 8 }}>INTELLIGENCE PAYLOAD</div>
             {[
               ['Phone', lead.phone, lead.phone_verified ? '#10B981' : '#F59E0B'],
-              ['Email', lead.email, '#A0B8D8'],
-              ['Project', lead.project_type || '—', '#A0B8D8'],
-              ['Process', lead.process_stage || '—', '#A0B8D8'],
-              ['Campaign', lead.utm_campaign || 'direct', '#7D9DBB'],
-              ['Top Flag', lead.top_flag_title || 'none found', lead.top_flag_title ? '#F97316' : '#7D9DBB'],
+              ['Email', lead.email, '#C8DEFF'],
+              ['Project', lead.project_type || '—', '#C8DEFF'],
+              ['Process', lead.process_stage || '—', '#C8DEFF'],
+              ['Campaign', lead.utm_campaign || 'direct', '#A0B8D8'],
+              ['Top Flag', lead.top_flag_title || 'none found', lead.top_flag_title ? '#F97316' : '#A0B8D8'],
             ].map(([label, value, color]) => (
               <div key={label as string} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', width: 60, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase', paddingTop: 1 }}>{label as string}</div>
+                <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', width: 60, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase', paddingTop: 1 }}>{label as string}</div>
                 <div style={{ fontFamily: monoFont, fontSize: 11, color: color as string }}>{value as string}</div>
               </div>
             ))}
@@ -351,7 +351,7 @@ function StatsHeader({ stats }: { stats: DailyStats }) {
         { label: 'PROJ. REVENUE', value: `$${(stats.projectedRevenue).toLocaleString()}`, color: '#F59E0B' },
       ].map(({ label, value, color }) => (
         <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
           <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
         </div>
       ))}
@@ -368,29 +368,29 @@ function OpportunityRow({ opp, onOpenDetail }: { opp: Opportunity; onOpenDetail:
   return (
     <div style={{ background: '#111418', border: '1px solid #2E3A50', borderLeft: `3px solid ${opp.priority_score >= 60 ? '#DC2626' : opp.priority_score >= 35 ? '#F59E0B' : '#2E3A50'}`, marginBottom: 6, cursor: 'pointer' }} onClick={() => onOpenDetail(opp)}>
       <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 100px 80px 100px 120px', gap: 0, alignItems: 'center', padding: '12px 14px' }}>
-        <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 22, color: opp.priority_score >= 60 ? '#DC2626' : opp.priority_score >= 35 ? '#F59E0B' : '#7D9DBB' }}>{opp.priority_score}</div>
+        <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 22, color: opp.priority_score >= 60 ? '#DC2626' : opp.priority_score >= 35 ? '#F59E0B' : '#A0B8D8' }}>{opp.priority_score}</div>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 3 }}>
             <GradeBadge grade={opp.grade} />
             <span style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{opp.county || '—'} County</span>
             <StatusPill status={opp.status} />
           </div>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>{opp.project_type || '—'} · {opp.window_count ?? '—'} windows · {opp.quote_range || '—'}</div>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.08em' }}>{opp.project_type || '—'} · {opp.window_count ?? '—'} windows · {opp.quote_range || '—'}</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em', marginBottom: 2 }}>FLAGS</div>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.08em', marginBottom: 2 }}>FLAGS</div>
           <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
             {opp.red_flag_count > 0 && <span style={{ fontFamily: monoFont, fontSize: 11, color: '#DC2626', fontWeight: 700 }}>{opp.red_flag_count}R</span>}
             {opp.amber_flag_count > 0 && <span style={{ fontFamily: monoFont, fontSize: 11, color: '#F59E0B', fontWeight: 700 }}>{opp.amber_flag_count}A</span>}
-            {opp.flag_count === 0 && <span style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB' }}>0</span>}
+            {opp.flag_count === 0 && <span style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8' }}>0</span>}
           </div>
         </div>
-        <div style={{ fontFamily: monoFont, fontSize: 12, color: '#A0B8D8', textAlign: 'right' }}>{formatAge(age)} ago</div>
+        <div style={{ fontFamily: monoFont, fontSize: 12, color: '#C8DEFF', textAlign: 'right' }}>{formatAge(age)} ago</div>
         <div style={{ textAlign: 'center' }}>
-          {opp.routed_at ? <span style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', letterSpacing: '0.08em' }}>ROUTED</span> : <span style={{ fontFamily: monoFont, fontSize: 9, color: '#F59E0B', letterSpacing: '0.08em' }}>PENDING</span>}
+          {opp.routed_at ? <span style={{ fontFamily: monoFont, fontSize: 11, color: '#10B981', letterSpacing: '0.08em' }}>ROUTED</span> : <span style={{ fontFamily: monoFont, fontSize: 11, color: '#F59E0B', letterSpacing: '0.08em' }}>PENDING</span>}
         </div>
         <div style={{ display: 'flex', gap: 5, justifyContent: 'flex-end' }}>
-          <button onClick={(e) => { e.stopPropagation(); onOpenDetail(opp); }} style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}>OPEN BRIEF</button>
+          <button onClick={(e) => { e.stopPropagation(); onOpenDetail(opp); }} style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 12, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}>OPEN BRIEF</button>
         </div>
       </div>
     </div>
@@ -439,15 +439,15 @@ function OpportunityDetail({
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <StatusPill status={opp.status} />
-              <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>PRIORITY: {opp.priority_score}</span>
+              <span style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.08em' }}>PRIORITY: {opp.priority_score}</span>
             </div>
           </div>
-          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 14, color: '#7D9DBB', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>✕</button>
+          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 14, color: '#A0B8D8', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>✕</button>
         </div>
 
         {/* Brief — contractor-safe data only */}
         <div style={{ background: '#161C28', border: '1px solid #2E3A50', padding: '20px 24px', marginBottom: 16 }}>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#2563EB', letterSpacing: '0.12em', marginBottom: 12 }}>CONTRACTOR-SAFE BRIEF</div>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#2563EB', letterSpacing: '0.12em', marginBottom: 12 }}>CONTRACTOR-SAFE BRIEF</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {[
               ['Grade', opp.grade || '—'], ['County', opp.county || '—'],
@@ -456,16 +456,16 @@ function OpportunityDetail({
               ['Red Flags', opp.red_flag_count.toString()], ['Amber Flags', opp.amber_flag_count.toString()],
             ].map(([label, value]) => (
               <div key={label} style={{ display: 'flex', gap: 8 }}>
-                <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', width: 80, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
+                <span style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', width: 80, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
                 <span style={{ fontFamily: monoFont, fontSize: 11, color: '#C8DEFF' }}>{value}</span>
               </div>
             ))}
           </div>
           {briefJson?.flag_summary && Array.isArray(briefJson.flag_summary) && (
             <div style={{ marginTop: 16, borderTop: '1px solid #2E3A50', paddingTop: 12 }}>
-              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.1em', marginBottom: 8 }}>FLAG SUMMARY</div>
+              <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.1em', marginBottom: 8 }}>FLAG SUMMARY</div>
               {(briefJson.flag_summary as Array<{ title: string; severity: string }>).slice(0, 8).map((f, i) => (
-                <div key={i} style={{ fontFamily: monoFont, fontSize: 10, color: f.severity === 'Critical' || f.severity === 'High' ? '#DC2626' : f.severity === 'Medium' ? '#F59E0B' : '#A0B8D8', marginBottom: 4 }}>
+                <div key={i} style={{ fontFamily: monoFont, fontSize: 12, color: f.severity === 'Critical' || f.severity === 'High' ? '#DC2626' : f.severity === 'Medium' ? '#F59E0B' : '#C8DEFF', marginBottom: 4 }}>
                   [{f.severity}] {f.title}
                 </div>
               ))}
@@ -473,26 +473,26 @@ function OpportunityDetail({
           )}
           {opp.brief_text && (
             <div style={{ marginTop: 12 }}>
-              <button onClick={() => navigator.clipboard.writeText(opp.brief_text || '')} style={{ fontFamily: monoFont, fontSize: 9, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}>📋 COPY FULL BRIEF</button>
+              <button onClick={() => navigator.clipboard.writeText(opp.brief_text || '')} style={{ fontFamily: monoFont, fontSize: 11, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}>📋 COPY FULL BRIEF</button>
             </div>
           )}
         </div>
 
         {/* Internal-only section — PII warning */}
         <div style={{ background: 'rgba(220,38,38,0.04)', border: '1px solid rgba(220,38,38,0.2)', padding: '16px 20px', marginBottom: 16 }}>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#DC2626', letterSpacing: '0.12em', marginBottom: 8 }}>⚠ INTERNAL OPERATOR ONLY — NOT CONTRACTOR-SAFE</div>
-          <div style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB' }}>Lead ID: {opp.lead_id.slice(0, 8)}… · Session: {opp.scan_session_id.slice(0, 8)}…</div>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#DC2626', letterSpacing: '0.12em', marginBottom: 8 }}>⚠ INTERNAL OPERATOR ONLY — NOT CONTRACTOR-SAFE</div>
+          <div style={{ fontFamily: monoFont, fontSize: 12, color: '#A0B8D8' }}>Lead ID: {opp.lead_id.slice(0, 8)}… · Session: {opp.scan_session_id.slice(0, 8)}…</div>
           {opp.homeowner_contact_released_at && (
-            <div style={{ fontFamily: monoFont, fontSize: 10, color: '#F59E0B', marginTop: 4 }}>Contact released: {new Date(opp.homeowner_contact_released_at).toLocaleString()}</div>
+            <div style={{ fontFamily: monoFont, fontSize: 12, color: '#F59E0B', marginTop: 4 }}>Contact released: {new Date(opp.homeowner_contact_released_at).toLocaleString()}</div>
           )}
-          {opp.cta_source && <div style={{ fontFamily: monoFont, fontSize: 10, color: '#A0B8D8', marginTop: 4 }}>CTA Source: {opp.cta_source}</div>}
-          {opp.last_call_intent && <div style={{ fontFamily: monoFont, fontSize: 10, color: '#A0B8D8', marginTop: 4 }}>Call Intent: {opp.last_call_intent} · Webhook: <span style={{ color: opp.last_call_webhook_status === 'sent' ? '#10B981' : opp.last_call_webhook_status === 'failed' ? '#EF4444' : '#F59E0B' }}>{opp.last_call_webhook_status || '—'}</span></div>}
+          {opp.cta_source && <div style={{ fontFamily: monoFont, fontSize: 12, color: '#C8DEFF', marginTop: 4 }}>CTA Source: {opp.cta_source}</div>}
+          {opp.last_call_intent && <div style={{ fontFamily: monoFont, fontSize: 12, color: '#C8DEFF', marginTop: 4 }}>Call Intent: {opp.last_call_intent} · Webhook: <span style={{ color: opp.last_call_webhook_status === 'sent' ? '#10B981' : opp.last_call_webhook_status === 'failed' ? '#EF4444' : '#F59E0B' }}>{opp.last_call_webhook_status || '—'}</span></div>}
         </div>
 
         {/* Suggested Match (Phase 3.4A) */}
         {opp.suggested_match_generated_at && (
           <div style={{ background: 'rgba(200,149,42,0.04)', border: '1px solid rgba(200,149,42,0.2)', padding: '16px 20px', marginBottom: 16 }}>
-            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#C8952A', letterSpacing: '0.12em', marginBottom: 8 }}>SUGGESTED MATCH</div>
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#C8952A', letterSpacing: '0.12em', marginBottom: 8 }}>SUGGESTED MATCH</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {[
                 ['Contractor', opp.suggested_contractor_id ? (contractors.find(c => c.id === opp.suggested_contractor_id)?.company_name || opp.suggested_contractor_id.slice(0, 8) + '…') : '—'],
@@ -501,13 +501,13 @@ function OpportunityDetail({
                 ['Overridden', opp.suggested_match_overridden ? '✗ YES' : 'No'],
               ].map(([label, value]) => (
                 <div key={label} style={{ display: 'flex', gap: 8 }}>
-                  <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', width: 80, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
+                  <span style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', width: 80, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
                   <span style={{ fontFamily: monoFont, fontSize: 11, color: '#C8DEFF' }}>{value}</span>
                 </div>
               ))}
             </div>
             {opp.suggested_match_reasons && Array.isArray(opp.suggested_match_reasons) && (
-              <div style={{ marginTop: 8, fontFamily: monoFont, fontSize: 10, color: '#A0B8D8' }}>
+              <div style={{ marginTop: 8, fontFamily: monoFont, fontSize: 12, color: '#C8DEFF' }}>
                 Reasons: {(opp.suggested_match_reasons as string[]).join(', ')}
               </div>
             )}
@@ -516,9 +516,9 @@ function OpportunityDetail({
 
         {/* Suggested Contractors */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>SUGGESTED CONTRACTORS ({suggested.length})</div>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginBottom: 10 }}>SUGGESTED CONTRACTORS ({suggested.length})</div>
           {suggested.length === 0 ? (
-            <div style={{ fontFamily: bodyFont, fontSize: 13, color: '#7D9DBB', padding: 12, background: '#111418', border: '1px solid #2E3A50' }}>No matching contractors found.</div>
+            <div style={{ fontFamily: bodyFont, fontSize: 13, color: '#A0B8D8', padding: 12, background: '#111418', border: '1px solid #2E3A50' }}>No matching contractors found.</div>
           ) : (
             suggested.map(c => {
               const alreadyRouted = routes.some(r => r.contractor_id === c.id);
@@ -529,10 +529,10 @@ function OpportunityDetail({
                       {c.company_name}
                       {c.is_vetted && <span style={{ fontFamily: monoFont, fontSize: 8, color: '#10B981', marginLeft: 8, letterSpacing: '0.08em' }}>✓ VETTED</span>}
                     </div>
-                    <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.06em', marginTop: 2 }}>{c.service_counties.join(', ') || '—'} · {c.project_types.join(', ') || 'all types'}</div>
+                    <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.06em', marginTop: 2 }}>{c.service_counties.join(', ') || '—'} · {c.project_types.join(', ') || 'all types'}</div>
                   </div>
-                  {alreadyRouted ? <span style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', letterSpacing: '0.08em' }}>ROUTED</span> : (
-                    <button onClick={() => onRoute(opp.id, c.id)} style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}>ROUTE BRIEF</button>
+                  {alreadyRouted ? <span style={{ fontFamily: monoFont, fontSize: 11, color: '#10B981', letterSpacing: '0.08em' }}>ROUTED</span> : (
+                    <button onClick={() => onRoute(opp.id, c.id)} style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 12, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}>ROUTE BRIEF</button>
                   )}
                 </div>
               );
@@ -543,7 +543,7 @@ function OpportunityDetail({
         {/* Routing History with Phase 3.4 actions */}
         {routes.length > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>ROUTING HISTORY ({routes.length})</div>
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginBottom: 10 }}>ROUTING HISTORY ({routes.length})</div>
             {routes.map(r => {
               const contractor = contractors.find(c => c.id === r.contractor_id);
               return (
@@ -560,7 +560,7 @@ function OpportunityDetail({
                     {/* Mark Interested */}
                     {r.route_status === 'sent' && (
                       <button onClick={() => onMarkInterested(r.id, opp.id, r.contractor_id)}
-                        style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                        style={{ fontFamily: monoFont, fontSize: 11, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
                         MARK INTERESTED
                       </button>
                     )}
@@ -568,34 +568,34 @@ function OpportunityDetail({
                     {r.release_status === 'pending_review' && (
                       <>
                         <button onClick={() => onReviewRelease(r.id, 'approve')}
-                          style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                          style={{ fontFamily: monoFont, fontSize: 11, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
                           APPROVE RELEASE
                         </button>
                         <button onClick={() => { const reason = denyReason || undefined; onReviewRelease(r.id, 'deny', reason); }}
-                          style={{ fontFamily: monoFont, fontSize: 9, color: '#EF4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                          style={{ fontFamily: monoFont, fontSize: 11, color: '#EF4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
                           DENY
                         </button>
                         <input value={denyReason} onChange={e => setDenyReason(e.target.value)} placeholder="denial reason..."
-                          style={{ fontFamily: monoFont, fontSize: 9, color: '#A0B8D8', background: '#161C28', border: '1px solid #2E3A50', padding: '3px 8px', borderRadius: 0, width: 160 }} />
+                          style={{ fontFamily: monoFont, fontSize: 11, color: '#C8DEFF', background: '#161C28', border: '1px solid #2E3A50', padding: '3px 8px', borderRadius: 0, width: 160 }} />
                       </>
                     )}
                     {/* Release Contact — explicit, requires approval first */}
                     {r.release_status === 'approved' && !r.contact_released && (
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center', border: '1px solid rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.04)', padding: '6px 10px' }}>
                         <select value={releaseModel} onChange={e => setReleaseModel(e.target.value)}
-                          style={{ fontFamily: monoFont, fontSize: 9, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '3px 6px', borderRadius: 0 }}>
+                          style={{ fontFamily: monoFont, fontSize: 11, background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '3px 6px', borderRadius: 0 }}>
                           {Object.entries(BILLING_MODEL).map(([k, v]) => <option key={v} value={v}>{k}</option>)}
                         </select>
                         <input value={releaseFee} onChange={e => setReleaseFee(e.target.value)} placeholder="fee $" type="number"
-                          style={{ fontFamily: monoFont, fontSize: 9, color: '#A0B8D8', background: '#161C28', border: '1px solid #2E3A50', padding: '3px 6px', width: 70, borderRadius: 0 }} />
+                          style={{ fontFamily: monoFont, fontSize: 11, color: '#C8DEFF', background: '#161C28', border: '1px solid #2E3A50', padding: '3px 6px', width: 70, borderRadius: 0 }} />
                         <button onClick={() => onReleaseContact(r.id, opp.id, r.contractor_id, opp.lead_id, opp.analysis_id)}
-                          style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}>
+                          style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 12, color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', padding: '5px 12px', borderRadius: 2, cursor: 'pointer' }}>
                           ⚠ RELEASE HOMEOWNER CONTACT
                         </button>
                       </div>
                     )}
-                    {r.contact_released && <span style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981' }}>✓ CONTACT RELEASED {r.contact_released_at ? new Date(r.contact_released_at).toLocaleDateString() : ''}</span>}
-                    {r.release_status === 'denied' && <span style={{ fontFamily: monoFont, fontSize: 9, color: '#EF4444' }}>✗ DENIED {r.release_denial_reason ? `(${r.release_denial_reason})` : ''}</span>}
+                    {r.contact_released && <span style={{ fontFamily: monoFont, fontSize: 11, color: '#10B981' }}>✓ CONTACT RELEASED {r.contact_released_at ? new Date(r.contact_released_at).toLocaleDateString() : ''}</span>}
+                    {r.release_status === 'denied' && <span style={{ fontFamily: monoFont, fontSize: 11, color: '#EF4444' }}>✗ DENIED {r.release_denial_reason ? `(${r.release_denial_reason})` : ''}</span>}
                   </div>
                 </div>
               );
@@ -607,12 +607,12 @@ function OpportunityDetail({
         <div style={{ display: 'flex', gap: 8, borderTop: '1px solid #2E3A50', paddingTop: 16 }}>
           {opp.status !== 'dead' && (
             <button onClick={() => onMarkDead(opp.id)}
-              style={{ fontFamily: monoFont, fontSize: 10, letterSpacing: '0.08em', color: '#DC2626', background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.2)', padding: '7px 14px', borderRadius: 2, cursor: 'pointer' }}>
+              style={{ fontFamily: monoFont, fontSize: 12, letterSpacing: '0.08em', color: '#DC2626', background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.2)', padding: '7px 14px', borderRadius: 2, cursor: 'pointer' }}>
               MARK DEAD
             </button>
           )}
           <button onClick={onClose}
-            style={{ fontFamily: monoFont, fontSize: 10, letterSpacing: '0.08em', color: '#7D9DBB', background: 'transparent', border: '1px solid #2E3A50', padding: '7px 14px', borderRadius: 2, cursor: 'pointer', marginLeft: 'auto' }}>
+            style={{ fontFamily: monoFont, fontSize: 12, letterSpacing: '0.08em', color: '#A0B8D8', background: 'transparent', border: '1px solid #2E3A50', padding: '7px 14px', borderRadius: 2, cursor: 'pointer', marginLeft: 'auto' }}>
             CLOSE
           </button>
         </div>
@@ -643,7 +643,7 @@ function BillableIntroRow({
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 100px 100px 140px', gap: 8, alignItems: 'center' }}>
         <div>
           <div style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{contractor?.company_name || 'Unknown Contractor'}</div>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 2 }}>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', marginTop: 2 }}>
             {intro.billing_model?.replace(/_/g, ' ').toUpperCase() || '—'} · {formatAge(age)} ago
           </div>
         </div>
@@ -651,24 +651,24 @@ function BillableIntroRow({
           {intro.fee_amount != null ? (
             <span style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 18, color: '#F59E0B' }}>${intro.fee_amount}</span>
           ) : (
-            <span style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB' }}>—</span>
+            <span style={{ fontFamily: monoFont, fontSize: 12, color: '#A0B8D8' }}>—</span>
           )}
         </div>
         <div><StatusPill status={intro.billing_status} /></div>
         <div>
           {outcome && (
-            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB' }}>
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8' }}>
               {outcome.deal_status?.toUpperCase() || 'OPEN'} · {outcome.appointment_status?.toUpperCase() || 'PENDING'}
             </div>
           )}
         </div>
         <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
           <select value={intro.billing_status} onChange={e => onStatusChange(intro.id, e.target.value)}
-            style={{ fontFamily: monoFont, fontSize: 9, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '3px 6px', borderRadius: 0 }}>
+            style={{ fontFamily: monoFont, fontSize: 11, background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '3px 6px', borderRadius: 0 }}>
             {Object.values(BILLING_STATUS).map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
           </select>
           <button onClick={() => onOpenOutcome(intro)}
-            style={{ fontFamily: monoFont, fontSize: 9, color: '#2563EB', background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.3)', padding: '4px 8px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
+            style={{ fontFamily: monoFont, fontSize: 11, color: '#2563EB', background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.3)', padding: '4px 8px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.06em' }}>
             OUTCOME
           </button>
         </div>
@@ -719,13 +719,13 @@ function OutcomeEditor({
 
   const fieldRow = (label: string, children: React.ReactNode) => (
     <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
-      <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', width: 110, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', width: 110, flexShrink: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
       {children}
     </div>
   );
 
-  const selectStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: 10, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '4px 8px', borderRadius: 0 };
-  const inputStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: 10, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '4px 8px', borderRadius: 0, width: 160 };
+  const selectStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: 12, background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '4px 8px', borderRadius: 0 };
+  const inputStyle: React.CSSProperties = { fontFamily: monoFont, fontSize: 12, background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '4px 8px', borderRadius: 0, width: 160 };
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -733,11 +733,11 @@ function OutcomeEditor({
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
             <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 20, color: '#FFFFFF', textTransform: 'uppercase' }}>OUTCOME TRACKING</div>
-            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginTop: 4 }}>
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', marginTop: 4 }}>
               Contractor: {contractor?.company_name || '—'} · Intro: {intro.id.slice(0, 8)}…
             </div>
           </div>
-          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 14, color: '#7D9DBB', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 14, color: '#A0B8D8', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
         </div>
 
         {fieldRow('APPOINTMENT', (
@@ -764,7 +764,7 @@ function OutcomeEditor({
         {fieldRow('NOTES', <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} style={{ ...inputStyle, width: '100%', resize: 'vertical' }} />)}
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20, borderTop: '1px solid #2E3A50', paddingTop: 16 }}>
-          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 10, color: '#7D9DBB', background: 'transparent', border: '1px solid #2E3A50', padding: '7px 14px', borderRadius: 2, cursor: 'pointer' }}>CANCEL</button>
+          <button onClick={onClose} style={{ fontFamily: monoFont, fontSize: 12, color: '#A0B8D8', background: 'transparent', border: '1px solid #2E3A50', padding: '7px 14px', borderRadius: 2, cursor: 'pointer' }}>CANCEL</button>
           <button onClick={handleSave} style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 11, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '7px 18px', borderRadius: 2, cursor: 'pointer' }}>SAVE OUTCOME</button>
         </div>
       </div>
@@ -800,14 +800,14 @@ function AdminPasswordGate({ children }: { children: React.ReactNode }) {
     <div style={{ minHeight: "100vh", background: "#0A0E14", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ background: "#111418", border: "1px solid #2E3A50", padding: "40px 32px", maxWidth: 360, width: "100%" }}>
         <div style={{ fontFamily: dispFont, fontSize: 22, fontWeight: 900, color: "#C8DEFF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>OPERATOR ACCESS</div>
-        <div style={{ fontFamily: monoFont, fontSize: 10, color: "#7D9DBB", letterSpacing: "0.1em", marginBottom: 24 }}>WINDOWMAN COMMAND CENTER</div>
+        <div style={{ fontFamily: monoFont, fontSize: 12, color: "#A0B8D8", letterSpacing: "0.1em", marginBottom: 24 }}>WINDOWMAN COMMAND CENTER</div>
         <input type="password" value={pwInput} onChange={(e) => { setPwInput(e.target.value); setPwError(false); }}
           onKeyDown={(e) => { if (e.key === "Enter") tryAuth(); }}
           placeholder="Enter access code"
           style={{ width: "100%", fontFamily: monoFont, fontSize: 13, background: "#0A0E14", border: `1px solid ${pwError ? "#DC2626" : "#2E3A50"}`, color: "#C8DEFF", padding: "12px 14px", marginBottom: 12, outline: "none", boxSizing: "border-box" }}
           autoFocus
         />
-        {pwError && <div style={{ fontFamily: monoFont, fontSize: 10, color: "#DC2626", marginBottom: 12 }}>ACCESS DENIED</div>}
+        {pwError && <div style={{ fontFamily: monoFont, fontSize: 12, color: "#DC2626", marginBottom: 12 }}>ACCESS DENIED</div>}
         <button onClick={tryAuth}
           style={{ width: "100%", fontFamily: bodyFont, fontWeight: 700, fontSize: 13, color: "#FFFFFF", background: "#0B60C5", border: "none", padding: "10px 0", cursor: "pointer" }}>
           AUTHENTICATE
@@ -1025,11 +1025,11 @@ export default function AdminDashboard() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 28, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>OPERATOR COMMAND CENTER</div>
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginTop: 2 }}>WINDOWMAN · LEAD & CONTRACTOR OPS · REVENUE · REALTIME</div>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginTop: 2 }}>WINDOWMAN · LEAD & CONTRACTOR OPS · REVENUE · REALTIME</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse-red 2s infinite' }} />
-          <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB' }}>LIVE</div>
+          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8' }}>LIVE</div>
         </div>
       </div>
 
@@ -1043,12 +1043,12 @@ export default function AdminDashboard() {
         ]).map(([key, label, badge]) => (
           <button key={key} onClick={() => setActiveTab(key)}
             style={{
-              fontFamily: monoFont, fontSize: 10, letterSpacing: '0.1em', padding: '10px 20px', border: 'none', cursor: 'pointer',
-              background: activeTab === key ? '#1D4ED8' : '#161C28', color: activeTab === key ? '#FFFFFF' : '#7D9DBB',
+              fontFamily: monoFont, fontSize: 12, letterSpacing: '0.1em', padding: '10px 20px', border: 'none', cursor: 'pointer',
+              background: activeTab === key ? '#1D4ED8' : '#161C28', color: activeTab === key ? '#FFFFFF' : '#A0B8D8',
               borderBottom: activeTab === key ? '2px solid #3B82F6' : '2px solid transparent',
             }}>
             {label}
-            {badge > 0 && <span style={{ marginLeft: 8, background: '#DC2626', color: '#FFFFFF', padding: '1px 6px', borderRadius: 8, fontSize: 9 }}>{badge}</span>}
+            {badge > 0 && <span style={{ marginLeft: 8, background: '#DC2626', color: '#FFFFFF', padding: '1px 6px', borderRadius: 8, fontSize: 11 }}>{badge}</span>}
           </button>
         ))}
       </div>
@@ -1059,12 +1059,12 @@ export default function AdminDashboard() {
           <StatsHeader stats={stats} />
           <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center' }}>
             {(['tier1', 'new', 'all'] as const).map(f => (
-              <button key={f} onClick={() => setFilter(f)} style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer', background: filter === f ? '#1D4ED8' : '#161C28', color: filter === f ? '#FFFFFF' : '#7D9DBB' }}>{f === 'tier1' ? 'TIER 1 ONLY' : f.toUpperCase()}</button>
+              <button key={f} onClick={() => setFilter(f)} style={{ fontFamily: monoFont, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer', background: filter === f ? '#1D4ED8' : '#161C28', color: filter === f ? '#FFFFFF' : '#A0B8D8' }}>{f === 'tier1' ? 'TIER 1 ONLY' : f.toUpperCase()}</button>
             ))}
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." style={{ fontFamily: bodyFont, fontSize: 12, color: '#FFFFFF', background: '#161C28', border: '1px solid #2E3A50', padding: '6px 12px', borderRadius: 0, outline: 'none', flex: 1, maxWidth: 280 }} />
           </div>
-          {loading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING...</div> :
-            filteredLeads.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>NO LEADS MATCH FILTER</div> :
+          {loading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', padding: 20 }}>LOADING...</div> :
+            filteredLeads.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', padding: 20 }}>NO LEADS MATCH FILTER</div> :
             filteredLeads.map(lead => <LeadRow key={lead.id} lead={lead} onStatusChange={handleStatusChange} onCallNow={handleCallNow} onSMS={handleSMS} />)}
 
           {/* ── VOICE AI SECTION ────────────────────────────── */}
@@ -1080,7 +1080,7 @@ export default function AdminDashboard() {
                 </div>
                 <div style={{
                   fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginTop: 2,
+                  fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginTop: 2,
                 }}>
                   AUTOMATED CALL LOGS · MANUAL TRIGGERS
                 </div>
@@ -1088,7 +1088,7 @@ export default function AdminDashboard() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{
                   fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 9, color: '#10B981', letterSpacing: '0.08em',
+                  fontSize: 11, color: '#10B981', letterSpacing: '0.08em',
                   background: 'rgba(16,185,129,0.1)',
                   padding: '3px 8px', borderRadius: 2,
                 }}>
@@ -1098,10 +1098,10 @@ export default function AdminDashboard() {
                   onClick={() => setShowVoicePanel(!showVoicePanel)}
                   style={{
                     fontFamily: "'JetBrains Mono',monospace",
-                    fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
+                    fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
                     padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer',
                     background: showVoicePanel ? '#1D4ED8' : '#161C28',
-                    color: showVoicePanel ? '#FFFFFF' : '#7D9DBB',
+                    color: showVoicePanel ? '#FFFFFF' : '#A0B8D8',
                   }}
                 >
                   {showVoicePanel ? 'HIDE PANEL' : 'SHOW PANEL'}
@@ -1145,23 +1145,23 @@ export default function AdminDashboard() {
               { label: 'AVG PRIORITY', value: opportunities.length > 0 ? Math.round(opportunities.reduce((s, o) => s + o.priority_score, 0) / opportunities.length) : 0, color: '#3B82F6' },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
-                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
+                <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
                 <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
               </div>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
             {(['all', 'pending', 'routed'] as const).map(f => (
-              <button key={f} onClick={() => setOppFilter(f)} style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer', background: oppFilter === f ? '#1D4ED8' : '#161C28', color: oppFilter === f ? '#FFFFFF' : '#7D9DBB' }}>{f.toUpperCase()}</button>
+              <button key={f} onClick={() => setOppFilter(f)} style={{ fontFamily: monoFont, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 12px', border: 'none', borderRadius: 2, cursor: 'pointer', background: oppFilter === f ? '#1D4ED8' : '#161C28', color: oppFilter === f ? '#FFFFFF' : '#A0B8D8' }}>{f.toUpperCase()}</button>
             ))}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 100px 80px 100px 120px', padding: '6px 14px', marginBottom: 4 }}>
             {['PRI', 'OPPORTUNITY', 'FLAGS', 'AGE', 'STATUS', ''].map(h => (
-              <div key={h} style={{ fontFamily: monoFont, fontSize: 8, color: '#7D9DBB', letterSpacing: '0.12em' }}>{h}</div>
+              <div key={h} style={{ fontFamily: monoFont, fontSize: 8, color: '#A0B8D8', letterSpacing: '0.12em' }}>{h}</div>
             ))}
           </div>
-          {oppLoading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING QUEUE...</div> :
-            filteredOpps.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>NO OPPORTUNITIES IN QUEUE</div> :
+          {oppLoading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', padding: 20 }}>LOADING QUEUE...</div> :
+            filteredOpps.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', padding: 20 }}>NO OPPORTUNITIES IN QUEUE</div> :
             filteredOpps.map(opp => <OpportunityRow key={opp.id} opp={opp} onOpenDetail={(o) => setSelectedOpp(o)} />)}
         </>
       )}
@@ -1176,7 +1176,7 @@ export default function AdminDashboard() {
               { label: 'TOTAL RELEASES', value: allRoutes.filter(r => r.contact_released).length, color: '#3B82F6' },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
-                <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
+                <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
                 <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
               </div>
             ))}
@@ -1185,7 +1185,7 @@ export default function AdminDashboard() {
           {/* Pending review */}
           {pendingReviewRoutes.length > 0 && (
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#F59E0B', letterSpacing: '0.12em', marginBottom: 10 }}>AWAITING RELEASE DECISION ({pendingReviewRoutes.length})</div>
+              <div style={{ fontFamily: monoFont, fontSize: 11, color: '#F59E0B', letterSpacing: '0.12em', marginBottom: 10 }}>AWAITING RELEASE DECISION ({pendingReviewRoutes.length})</div>
               {pendingReviewRoutes.map(r => {
                 const opp = opportunities.find(o => o.id === r.opportunity_id);
                 const contractor = contractors.find(c => c.id === r.contractor_id);
@@ -1194,26 +1194,26 @@ export default function AdminDashboard() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                       <div>
                         <span style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{contractor?.company_name || '—'}</span>
-                        <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginLeft: 12 }}>→ {opp?.county || '—'} County</span>
+                        <span style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', marginLeft: 12 }}>→ {opp?.county || '—'} County</span>
                         {opp && <GradeBadge grade={opp.grade} />}
                       </div>
-                      <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB' }}>
+                      <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8' }}>
                         Interest: {r.interested_at ? formatAge(secondsSince(r.interested_at)) + ' ago' : '—'}
                       </div>
                     </div>
                     {opp && (
-                      <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginBottom: 8 }}>
+                      <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', marginBottom: 8 }}>
                         Priority: {opp.priority_score} · {opp.red_flag_count}R {opp.amber_flag_count}A flags · {opp.window_count ?? '—'} windows · {opp.quote_range || '—'}
                       </div>
                     )}
-                    {r.interest_notes && <div style={{ fontFamily: monoFont, fontSize: 10, color: '#A0B8D8', marginBottom: 8, fontStyle: 'italic' }}>"{r.interest_notes}"</div>}
+                    {r.interest_notes && <div style={{ fontFamily: monoFont, fontSize: 12, color: '#C8DEFF', marginBottom: 8, fontStyle: 'italic' }}>"{r.interest_notes}"</div>}
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => handleReviewRelease(r.id, 'approve')}
-                        style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', padding: '5px 14px', borderRadius: 2, cursor: 'pointer' }}>
+                        style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 12, color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', padding: '5px 14px', borderRadius: 2, cursor: 'pointer' }}>
                         ✓ APPROVE RELEASE
                       </button>
                       <button onClick={() => handleReviewRelease(r.id, 'deny')}
-                        style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#EF4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', padding: '5px 14px', borderRadius: 2, cursor: 'pointer' }}>
+                        style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 12, color: '#EF4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', padding: '5px 14px', borderRadius: 2, cursor: 'pointer' }}>
                         ✗ DENY
                       </button>
                     </div>
@@ -1226,7 +1226,7 @@ export default function AdminDashboard() {
           {/* Approved but unreleased */}
           {approvedRoutes.length > 0 && (
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#10B981', letterSpacing: '0.12em', marginBottom: 10 }}>APPROVED — READY TO RELEASE ({approvedRoutes.length})</div>
+              <div style={{ fontFamily: monoFont, fontSize: 11, color: '#10B981', letterSpacing: '0.12em', marginBottom: 10 }}>APPROVED — READY TO RELEASE ({approvedRoutes.length})</div>
               {approvedRoutes.map(r => {
                 const opp = opportunities.find(o => o.id === r.opportunity_id);
                 const contractor = contractors.find(c => c.id === r.contractor_id);
@@ -1235,19 +1235,19 @@ export default function AdminDashboard() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                       <div>
                         <span style={{ fontFamily: bodyFont, fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{contractor?.company_name || '—'}</span>
-                        <span style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', marginLeft: 12 }}>→ {opp?.county || '—'} County</span>
+                        <span style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', marginLeft: 12 }}>→ {opp?.county || '—'} County</span>
                       </div>
                       <StatusPill status="approved" />
                     </div>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 }}>
                       <select value={releaseModel} onChange={e => setReleaseModel(e.target.value)}
-                        style={{ fontFamily: monoFont, fontSize: 9, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '3px 6px', borderRadius: 0 }}>
+                        style={{ fontFamily: monoFont, fontSize: 11, background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '3px 6px', borderRadius: 0 }}>
                         {Object.entries(BILLING_MODEL).map(([k, v]) => <option key={v} value={v}>{k}</option>)}
                       </select>
                       <input value={releaseFee} onChange={e => setReleaseFee(e.target.value)} placeholder="fee $" type="number"
-                        style={{ fontFamily: monoFont, fontSize: 9, color: '#A0B8D8', background: '#161C28', border: '1px solid #2E3A50', padding: '3px 6px', width: 70, borderRadius: 0 }} />
+                        style={{ fontFamily: monoFont, fontSize: 11, color: '#C8DEFF', background: '#161C28', border: '1px solid #2E3A50', padding: '3px 6px', width: 70, borderRadius: 0 }} />
                       <button onClick={() => opp && handleReleaseContact(r.id, opp.id, r.contractor_id, opp.lead_id, opp.analysis_id)}
-                        style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', padding: '5px 14px', borderRadius: 2, cursor: 'pointer' }}>
+                        style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 12, color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', padding: '5px 14px', borderRadius: 2, cursor: 'pointer' }}>
                         ⚠ RELEASE HOMEOWNER CONTACT
                       </button>
                     </div>
@@ -1258,7 +1258,7 @@ export default function AdminDashboard() {
           )}
 
           {pendingReviewRoutes.length === 0 && approvedRoutes.length === 0 && !releaseLoading && (
-            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 40, textAlign: 'center' }}>NO RELEASES PENDING</div>
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', padding: 40, textAlign: 'center' }}>NO RELEASES PENDING</div>
           )}
         </>
       )}
@@ -1304,19 +1304,19 @@ export default function AdminDashboard() {
           <>
             {/* Date filter + Export */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>FROM</div>
+              <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.08em' }}>FROM</div>
               <input type="date" value={revDateFrom} onChange={e => setRevDateFrom(e.target.value)}
-                style={{ fontFamily: monoFont, fontSize: 10, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '5px 8px', borderRadius: 0 }} />
-              <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.08em' }}>TO</div>
+                style={{ fontFamily: monoFont, fontSize: 12, background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '5px 8px', borderRadius: 0 }} />
+              <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.08em' }}>TO</div>
               <input type="date" value={revDateTo} onChange={e => setRevDateTo(e.target.value)}
-                style={{ fontFamily: monoFont, fontSize: 10, background: '#161C28', border: '1px solid #2E3A50', color: '#A0B8D8', padding: '5px 8px', borderRadius: 0 }} />
+                style={{ fontFamily: monoFont, fontSize: 12, background: '#161C28', border: '1px solid #2E3A50', color: '#C8DEFF', padding: '5px 8px', borderRadius: 0 }} />
               {(revDateFrom || revDateTo) && (
                 <button onClick={() => { setRevDateFrom(''); setRevDateTo(''); }}
-                  style={{ fontFamily: monoFont, fontSize: 9, color: '#EF4444', background: 'none', border: '1px solid rgba(239,68,68,0.3)', padding: '5px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.08em' }}>CLEAR</button>
+                  style={{ fontFamily: monoFont, fontSize: 11, color: '#EF4444', background: 'none', border: '1px solid rgba(239,68,68,0.3)', padding: '5px 10px', borderRadius: 2, cursor: 'pointer', letterSpacing: '0.08em' }}>CLEAR</button>
               )}
               <div style={{ flex: 1 }} />
               <button onClick={exportCSV}
-                style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 10, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '6px 14px', borderRadius: 2, cursor: 'pointer' }}>
+                style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 12, color: '#FFFFFF', background: '#0B60C5', border: 'none', padding: '6px 14px', borderRadius: 2, cursor: 'pointer' }}>
                 ⬇ EXPORT CSV
               </button>
             </div>
@@ -1329,15 +1329,15 @@ export default function AdminDashboard() {
                 { label: 'REVENUE', value: `$${totalRevenue.toLocaleString()}`, color: '#F59E0B' },
               ].map(({ label, value, color }) => (
                 <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
-                  <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
+                  <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
                   <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
                 </div>
               ))}
             </div>
 
-            <div style={{ fontFamily: monoFont, fontSize: 9, color: '#7D9DBB', letterSpacing: '0.12em', marginBottom: 10 }}>BILLABLE INTROS ({filtered.length})</div>
-            {revenueLoading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 20 }}>LOADING...</div> :
-              filtered.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#7D9DBB', padding: 40, textAlign: 'center' }}>NO BILLABLE INTROS {revDateFrom || revDateTo ? 'IN DATE RANGE' : 'YET'}</div> :
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginBottom: 10 }}>BILLABLE INTROS ({filtered.length})</div>
+            {revenueLoading ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', padding: 20 }}>LOADING...</div> :
+              filtered.length === 0 ? <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', padding: 40, textAlign: 'center' }}>NO BILLABLE INTROS {revDateFrom || revDateTo ? 'IN DATE RANGE' : 'YET'}</div> :
               filtered.map(intro => (
                 <BillableIntroRow key={intro.id} intro={intro} contractors={contractors} outcomes={outcomes}
                   onStatusChange={handleBillingStatusChange} onOpenOutcome={setOutcomeEditorIntro} />
