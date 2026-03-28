@@ -9,6 +9,8 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { Settings } from 'lucide-react';
 import { trackGtmEvent } from '@/lib/trackConversion';
 import { supabase } from '@/integrations/supabase/client';
 import { ROUTE_STATUS, RELEASE_STATUS, BILLING_STATUS, BILLING_MODEL, EVENTS, APPOINTMENT_STATUS, QUOTE_STATUS, DEAL_STATUS } from '@/lib/statusConstants';
@@ -1050,17 +1052,30 @@ export default function AdminDashboard() {
         select option { background: #161C28; }
       `}</style>
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <div>
-          <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 28, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>OPERATOR COMMAND CENTER</div>
-          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginTop: 2 }}>WINDOWMAN · LEAD & CONTRACTOR OPS · REVENUE · REALTIME</div>
+{/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div>
+            <div style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 28, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>OPERATOR COMMAND CENTER</div>
+            <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8', letterSpacing: '0.12em', marginTop: 2 }}>WINDOWMAN · LEAD & CONTRACTOR OPS · REVENUE · REALTIME</div>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* NEW ACCESS CONTROL BUTTON */}
+            <Link 
+              to="/admin/settings"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:text-blue-600 hover:border-blue-300 hover:shadow-md hover:shadow-blue-100/50 transition-all duration-200 text-sm font-semibold"
+            >
+              <Settings className="w-4 h-4" />
+              Access Control
+            </Link>
+
+            {/* EXISTING LIVE BADGE */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse-red 2s infinite' }} />
+              <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8' }}>LIVE</div>
+            </div>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse-red 2s infinite' }} />
-          <div style={{ fontFamily: monoFont, fontSize: 11, color: '#A0B8D8' }}>LIVE</div>
-        </div>
-      </div>
 
       {/* Tab Switcher */}
       <div style={{ display: 'flex', gap: 2, marginBottom: 20, flexWrap: 'wrap' }}>
