@@ -61,6 +61,7 @@ const App = () => (
           <Route path="/report/:sessionId" element={<ReportRedirect />} />
           {/* Internal/dev only — zero production CTAs point here */}
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/demo-classic" element={<DemoClassic />} />
           <Route path="/dev/report-preview" element={<DevReportPreview />} />
           
@@ -73,7 +74,7 @@ const App = () => (
           <Route path="/disclaimer" element={<Disclaimer />} />
           <Route path="/how-we-beat-window-quotes" element={<HowWeBeatWindowQuotes />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+         <Route path="*" element={<NotFound />} />
         </Routes>
         </Suspense>
         </FacebookConversionProvider>
