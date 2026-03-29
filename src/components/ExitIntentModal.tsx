@@ -111,7 +111,7 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                 className="font-display font-black uppercase leading-tight tracking-wide text-foreground mb-4"
                 style={{ fontSize: "clamp(22px, 4vw, 28px)" }}
               >
-                Before you go — one question.
+                1 Question Before You Go
               </h2>
 
               <div className="relative overflow-hidden bg-primary/5 border border-primary/10 p-6 mb-6">
