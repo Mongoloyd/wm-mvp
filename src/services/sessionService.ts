@@ -18,16 +18,16 @@
  * @author WindowMan Truth Engine Team
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const STORAGE_KEY = 'impact-windows-session';
+export const STORAGE_KEY = "impact-windows-session";
 export const SESSION_EXPIRY_DAYS = 30;
-export const SESSION_VERSION = '3.0.0';
+export const SESSION_VERSION = "3.0.0";
 
 // Debounce delay for Supabase sync (ms)
 const SYNC_DEBOUNCE_MS = 2000;
@@ -37,15 +37,15 @@ const SYNC_DEBOUNCE_MS = 2000;
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const FUNNEL_STAGES = {
-  ANONYMOUS: 'anonymous',
-  AUDIT_STARTED: 'audit_started',
-  MID_FUNNEL: 'mid_funnel',
-  TRUTH_GATE: 'truth_gate',
-  LEAD_CAPTURED: 'lead_captured',
-  GRADE_REVEALED: 'grade_revealed',
+  ANONYMOUS: "anonymous",
+  AUDIT_STARTED: "audit_started",
+  MID_FUNNEL: "mid_funnel",
+  TRUTH_GATE: "truth_gate",
+  LEAD_CAPTURED: "lead_captured",
+  GRADE_REVEALED: "grade_revealed",
 } as const;
 
-export type FunnelStage = typeof FUNNEL_STAGES[keyof typeof FUNNEL_STAGES];
+export type FunnelStage = (typeof FUNNEL_STAGES)[keyof typeof FUNNEL_STAGES];
 
 // Ordered stages for progression validation
 const STAGE_ORDER: FunnelStage[] = [
@@ -61,27 +61,27 @@ const STAGE_ORDER: FunnelStage[] = [
 // GRADE SCALE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const GRADES = ['A', 'B', 'C', 'D', 'F'] as const;
-export type Grade = typeof GRADES[number];
+export const GRADES = ["A", "B", "C", "D", "F"] as const;
+export type Grade = (typeof GRADES)[number];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // FORENSIC FLAGS
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const FORENSIC_FLAGS = [
-  'missing_impact_rating',
-  'no_noa_certification',
-  'inflated_labor_rate',
-  'missing_permit_line_item',
-  'no_manufacturer_warranty',
-  'suspicious_deposit_percentage',
-  'missing_debris_removal',
-  'no_installation_timeline',
-  'generic_window_specs',
-  'missing_flashing_details',
+  "missing_impact_rating",
+  "no_noa_certification",
+  "inflated_labor_rate",
+  "missing_permit_line_item",
+  "no_manufacturer_warranty",
+  "suspicious_deposit_percentage",
+  "missing_debris_removal",
+  "no_installation_timeline",
+  "generic_window_specs",
+  "missing_flashing_details",
 ] as const;
 
-export type ForensicFlag = typeof FORENSIC_FLAGS[number];
+export type ForensicFlag = (typeof FORENSIC_FLAGS)[number];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
@@ -171,18 +171,18 @@ let supabaseClient: SupabaseClient | null = null;
 function getSupabaseClient(): SupabaseClient | null {
   if (supabaseClient) return supabaseClient;
 
-  const supabaseUrl = typeof window !== 'undefined'
-    ? (window as any).__SUPABASE_URL__ || import.meta.env?.VITE_SUPABASE_URL
-    : null;
-  const supabaseKey = typeof window !== 'undefined'
-    ? (window as any).__SUPABASE_ANON_KEY__ || import.meta.env?.VITE_SUPABASE_ANON_KEY
-    : null;
+  const supabaseUrl =
+    typeof window !== "undefined" ? (window as any).__SUPABASE_URL__ || import.meta.env?.VITE_SUPABASE_URL : null;
+  const supabaseKey =
+    typeof window !== "undefined"
+      ? (window as any).__SUPABASE_ANON_KEY__ || import.meta.env?.VITE_SUPABASE_ANON_KEY
+      : null;
 
   if (supabaseUrl && supabaseKey) {
     try {
       supabaseClient = createClient(supabaseUrl, supabaseKey);
     } catch (error) {
-      console.warn('[GoldenThread] Supabase client initialization failed:', error);
+      console.warn("[GoldenThread] Supabase client initialization failed:", error);
     }
   }
 
@@ -194,13 +194,13 @@ function getSupabaseClient(): SupabaseClient | null {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function generateUUID(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
   }
   // Fallback for older browsers
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -213,7 +213,7 @@ function generateUUID(): string {
  * Safely read session from localStorage with corruption recovery
  */
 function getLocalSession(): SessionData | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -223,7 +223,7 @@ function getLocalSession(): SessionData | null {
 
     // Validate required fields
     if (!data.anonymousId || !data.funnelStage || !data.sessionVersion) {
-      console.warn('[GoldenThread] Invalid session structure, clearing');
+      console.warn("[GoldenThread] Invalid session structure, clearing");
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
@@ -231,7 +231,7 @@ function getLocalSession(): SessionData | null {
     return data as SessionData;
   } catch (error) {
     // Corrupted data - clear and return null
-    console.warn('[GoldenThread] Corrupted session data, recovering:', error);
+    console.warn("[GoldenThread] Corrupted session data, recovering:", error);
     localStorage.removeItem(STORAGE_KEY);
     return null;
   }
@@ -241,12 +241,12 @@ function getLocalSession(): SessionData | null {
  * Write session to localStorage
  */
 function setLocalSession(session: SessionData): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   } catch (error) {
-    console.error('[GoldenThread] Failed to save session:', error);
+    console.error("[GoldenThread] Failed to save session:", error);
   }
 }
 
@@ -254,7 +254,7 @@ function setLocalSession(session: SessionData): void {
  * Clear session from localStorage
  */
 function clearLocalSession(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
 }
 
@@ -262,7 +262,7 @@ function clearLocalSession(): void {
  * Archive expired session before clearing
  */
 function archiveSession(session: SessionData): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   try {
     const archiveKey = `${STORAGE_KEY}-archived-${Date.now()}`;
@@ -271,7 +271,7 @@ function archiveSession(session: SessionData): void {
     // Also attempt server-side archival
     syncArchivedSessionToSupabase(session);
   } catch (error) {
-    console.warn('[GoldenThread] Failed to archive session:', error);
+    console.warn("[GoldenThread] Failed to archive session:", error);
   }
 }
 
@@ -299,32 +299,53 @@ function isSessionExpired(session: SessionData): boolean {
  * Extract UTM parameters from URL
  */
 function captureUtmParams(): UtmParams | undefined {
-  if (typeof window === 'undefined') return undefined;
+  if (typeof window === "undefined") return undefined;
 
   const params = new URLSearchParams(window.location.search);
 
   const utm: UtmParams = {};
   let hasParams = false;
 
-  const source = params.get('utm_source');
-  const medium = params.get('utm_medium');
-  const campaign = params.get('utm_campaign');
-  const content = params.get('utm_content');
-  const term = params.get('utm_term');
-  const gclid = params.get('gclid');
-  const fbclid = params.get('fbclid');
+  const source = params.get("utm_source");
+  const medium = params.get("utm_medium");
+  const campaign = params.get("utm_campaign");
+  const content = params.get("utm_content");
+  const term = params.get("utm_term");
+  const gclid = params.get("gclid");
+  const fbclid = params.get("fbclid");
 
-  if (source) { utm.source = source; hasParams = true; }
-  if (medium) { utm.medium = medium; hasParams = true; }
-  if (campaign) { utm.campaign = campaign; hasParams = true; }
-  if (content) { utm.content = content; hasParams = true; }
-  if (term) { utm.term = term; hasParams = true; }
-  if (gclid) { utm.gclid = gclid; hasParams = true; }
-  if (fbclid) { utm.fbclid = fbclid; hasParams = true; }
+  if (source) {
+    utm.source = source;
+    hasParams = true;
+  }
+  if (medium) {
+    utm.medium = medium;
+    hasParams = true;
+  }
+  if (campaign) {
+    utm.campaign = campaign;
+    hasParams = true;
+  }
+  if (content) {
+    utm.content = content;
+    hasParams = true;
+  }
+  if (term) {
+    utm.term = term;
+    hasParams = true;
+  }
+  if (gclid) {
+    utm.gclid = gclid;
+    hasParams = true;
+  }
+  if (fbclid) {
+    utm.fbclid = fbclid;
+    hasParams = true;
+  }
 
   return hasParams ? utm : undefined;
 }
-
+/*
 // ═══════════════════════════════════════════════════════════════════════════════
 // GTM DATALAYER
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -334,15 +355,12 @@ declare global {
     dataLayer: any[];
   }
 }
-
+*/
 /**
  * Push event to GTM dataLayer
  */
-export function pushToDataLayer(
-  event: string,
-  data: Record<string, any> = {}
-): void {
-  if (typeof window === 'undefined') return;
+export function pushToDataLayer(event: string, data: Record<string, any> = {}): void {
+  if (typeof window === "undefined") return;
 
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({
@@ -409,7 +427,7 @@ export function calculateLeadScore(session: SessionData): number {
   }
 
   // Bad grade - needs our help more
-  if (session.grade === 'D' || session.grade === 'F') {
+  if (session.grade === "D" || session.grade === "F") {
     score += 5;
   }
 
@@ -420,14 +438,14 @@ export function calculateLeadScore(session: SessionData): number {
  * Get quote bracket string for analytics
  */
 export function getQuoteBracket(amount: number | undefined): string {
-  if (!amount) return 'unknown';
-  if (amount < 10000) return 'under-10k';
-  if (amount < 15000) return '10k-15k';
-  if (amount < 20000) return '15k-20k';
-  if (amount < 25000) return '20k-25k';
-  if (amount < 35000) return '25k-35k';
-  if (amount < 50000) return '35k-50k';
-  return 'over-50k';
+  if (!amount) return "unknown";
+  if (amount < 10000) return "under-10k";
+  if (amount < 15000) return "10k-15k";
+  if (amount < 20000) return "15k-20k";
+  if (amount < 25000) return "20k-25k";
+  if (amount < 35000) return "25k-35k";
+  if (amount < 50000) return "35k-50k";
+  return "over-50k";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -490,12 +508,12 @@ async function syncToSupabase(session: SessionData): Promise<void> {
         updated_at: new Date().toISOString(),
       };
 
-      await client.from('leads').upsert(payload, {
-        onConflict: 'id',
+      await client.from("leads").upsert(payload, {
+        onConflict: "id",
       });
     } catch (error) {
       // Silent fail - never block UI
-      console.warn('[GoldenThread] Supabase sync failed (non-blocking):', error);
+      console.warn("[GoldenThread] Supabase sync failed (non-blocking):", error);
     }
   }, SYNC_DEBOUNCE_MS);
 }
@@ -508,33 +526,26 @@ async function syncArchivedSessionToSupabase(session: SessionData): Promise<void
     const client = getSupabaseClient();
     if (!client) return;
 
-    await client.from('archived_sessions').insert({
+    await client.from("archived_sessions").insert({
       lead_id: session.leadId,
       session_data: session,
       expired_at: new Date().toISOString(),
     });
   } catch (error) {
     // Silent fail
-    console.warn('[GoldenThread] Archive sync failed:', error);
+    console.warn("[GoldenThread] Archive sync failed:", error);
   }
 }
 
 /**
  * Attempt to resolve identity by email from server
  */
-async function resolveIdentityByEmail(
-  email: string,
-  currentSession: SessionData
-): Promise<SessionData> {
+async function resolveIdentityByEmail(email: string, currentSession: SessionData): Promise<SessionData> {
   try {
     const client = getSupabaseClient();
     if (!client) return currentSession;
 
-    const { data: existingLead, error } = await client
-      .from('leads')
-      .select('*')
-      .eq('email', email)
-      .single();
+    const { data: existingLead, error } = await client.from("leads").select("*").eq("email", email).single();
 
     if (error || !existingLead) {
       return currentSession;
@@ -546,10 +557,10 @@ async function resolveIdentityByEmail(
       // Use existing leadId if available
       leadId: existingLead.id || currentSession.leadId,
       // Keep earliest firstSeenAt
-      firstSeenAt: existingLead.first_seen_at && 
-        new Date(existingLead.first_seen_at) < new Date(currentSession.firstSeenAt)
-        ? existingLead.first_seen_at
-        : currentSession.firstSeenAt,
+      firstSeenAt:
+        existingLead.first_seen_at && new Date(existingLead.first_seen_at) < new Date(currentSession.firstSeenAt)
+          ? existingLead.first_seen_at
+          : currentSession.firstSeenAt,
       // Preserve first-touch UTM from original session
       initialUtm: existingLead.session_data?.initialUtm || currentSession.initialUtm,
       initialReferrer: existingLead.session_data?.initialReferrer || currentSession.initialReferrer,
@@ -564,7 +575,7 @@ async function resolveIdentityByEmail(
 
     return merged;
   } catch (error) {
-    console.warn('[GoldenThread] Identity resolution failed:', error);
+    console.warn("[GoldenThread] Identity resolution failed:", error);
     return currentSession;
   }
 }
@@ -597,12 +608,12 @@ export function initSession(): SessionData {
       anonymousId: generateUUID(),
       funnelStage: FUNNEL_STAGES.ANONYMOUS,
       initialUtm: utmParams,
-      initialReferrer: typeof document !== 'undefined' ? document.referrer : undefined,
-      landingPage: typeof window !== 'undefined' ? window.location.pathname : '/',
+      initialReferrer: typeof document !== "undefined" ? document.referrer : undefined,
+      landingPage: typeof window !== "undefined" ? window.location.pathname : "/",
       firstSeenAt: now,
       lastActivityAt: now,
       sessionVersion: SESSION_VERSION,
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
     };
   } else {
     // Existing session - update lastActivityAt
@@ -620,8 +631,8 @@ export function initSession(): SessionData {
 
   // Fire GTM event
   if (isNewSession) {
-    pushToDataLayer('session_start', {
-      session_type: 'new',
+    pushToDataLayer("session_start", {
+      session_type: "new",
       landing_page: session.landingPage,
       utm_source: session.initialUtm?.source,
       utm_medium: session.initialUtm?.medium,
@@ -633,12 +644,10 @@ export function initSession(): SessionData {
     });
   } else if (isReturning) {
     const firstSeen = new Date(session.firstSeenAt);
-    const daysSinceFirst = Math.floor(
-      (Date.now() - firstSeen.getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const daysSinceFirst = Math.floor((Date.now() - firstSeen.getTime()) / (1000 * 60 * 60 * 24));
 
-    pushToDataLayer('session_resume', {
-      session_type: 'returning',
+    pushToDataLayer("session_resume", {
+      session_type: "returning",
       days_since_first_visit: daysSinceFirst,
       funnel_stage: session.funnelStage,
       is_identified: !!session.leadId,
@@ -703,7 +712,7 @@ export function startAudit(): SessionData {
   setLocalSession(session);
 
   // Fire GTM event
-  pushToDataLayer('audit_started', {
+  pushToDataLayer("audit_started", {
     anonymous_id: session.anonymousId,
     time_on_page_seconds: calculateTimeOnPage(session),
   });
@@ -727,17 +736,15 @@ export function captureMidFunnelData(data: MidFunnelData): SessionData {
   setLocalSession(session);
 
   // Fire GTM events
-  pushToDataLayer('county_identified', {
+  pushToDataLayer("county_identified", {
     county: data.county,
     anonymous_id: session.anonymousId,
   });
 
-  pushToDataLayer('quote_entered', {
+  pushToDataLayer("quote_entered", {
     quote_amount: data.quoteAmount,
     window_count: data.windowCount,
-    price_per_window: data.windowCount > 0 
-      ? Math.round(data.quoteAmount / data.windowCount) 
-      : 0,
+    price_per_window: data.windowCount > 0 ? Math.round(data.quoteAmount / data.windowCount) : 0,
     county: data.county,
   });
 
@@ -758,7 +765,7 @@ export function hitTruthGate(): SessionData {
   setLocalSession(session);
 
   // Fire GTM event for retargeting audience
-  pushToDataLayer('truth_gate_hit', {
+  pushToDataLayer("truth_gate_hit", {
     anonymous_id: session.anonymousId,
     county: session.county,
     window_count: session.windowCount,
@@ -782,7 +789,7 @@ export function markTruthGateAbandoned(): SessionData {
   setLocalSession(session);
 
   // Fire GTM event
-  pushToDataLayer('truth_gate_abandoned', {
+  pushToDataLayer("truth_gate_abandoned", {
     anonymous_id: session.anonymousId,
     time_at_gate_seconds: session.truthGateHitAt
       ? Math.floor((Date.now() - new Date(session.truthGateHitAt).getTime()) / 1000)
@@ -822,7 +829,7 @@ export async function captureLead(data: LeadCaptureData): Promise<SessionData> {
   setLocalSession(session);
 
   // Fire GTM event
-  pushToDataLayer('lead_captured', {
+  pushToDataLayer("lead_captured", {
     lead_id: session.leadId,
     anonymous_id: session.anonymousId,
     county: session.county,
@@ -832,7 +839,7 @@ export async function captureLead(data: LeadCaptureData): Promise<SessionData> {
   });
 
   // Fire user properties event
-  pushToDataLayer('user_properties_set', {
+  pushToDataLayer("user_properties_set", {
     user_id: session.leadId,
     user_properties: {
       lead_id: session.leadId,
@@ -874,12 +881,12 @@ export function revealGrade(results: GradeResults): SessionData {
     : 0;
 
   // Fire GTM event
-  pushToDataLayer('grade_revealed', {
+  pushToDataLayer("grade_revealed", {
     lead_id: session.leadId,
     grade: session.grade,
     grade_score: session.gradeScore,
     flag_count: session.flagCount,
-    forensic_flags: session.forensicFlags!.join(','),
+    forensic_flags: session.forensicFlags!.join(","),
     county: session.county,
     quote_amount: session.quoteAmount,
     window_count: session.windowCount,
@@ -887,7 +894,7 @@ export function revealGrade(results: GradeResults): SessionData {
   });
 
   // Update user properties
-  pushToDataLayer('user_properties_set', {
+  pushToDataLayer("user_properties_set", {
     user_id: session.leadId,
     user_properties: {
       lead_id: session.leadId,
@@ -940,10 +947,7 @@ function getStageIndex(stage: FunnelStage): number {
 /**
  * Check if progression to target stage is valid
  */
-export function canProgressTo(
-  currentStage: FunnelStage,
-  targetStage: FunnelStage
-): boolean {
+export function canProgressTo(currentStage: FunnelStage, targetStage: FunnelStage): boolean {
   const currentIndex = getStageIndex(currentStage);
   const targetIndex = getStageIndex(targetStage);
   return targetIndex >= currentIndex;
@@ -993,7 +997,7 @@ export function useGoldenThread(): UseGoldenThreadReturn {
 
   // Cross-tab synchronization via storage event
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key !== STORAGE_KEY) return;
@@ -1003,7 +1007,7 @@ export function useGoldenThread(): UseGoldenThreadReturn {
           const updatedSession = JSON.parse(event.newValue);
           setSession(updatedSession);
         } catch (error) {
-          console.warn('[GoldenThread] Failed to parse storage update:', error);
+          console.warn("[GoldenThread] Failed to parse storage update:", error);
         }
       } else {
         // Session was cleared in another tab
@@ -1011,8 +1015,8 @@ export function useGoldenThread(): UseGoldenThreadReturn {
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   // Memoized actions
