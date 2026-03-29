@@ -20,7 +20,8 @@ export type AdminAction =
   | "fetch_voice_followups"
   | "trigger_voice_followup"
   | "manage_user_roles"
-  | "list_user_roles";
+  | "list_user_roles"
+  | "get_role_audit_log";
 
 /** Payload types synchronized with Backend v2.2 */
 export interface AdminActionPayloads {
@@ -36,12 +37,59 @@ export interface AdminActionPayloads {
   trigger_voice_followup: { scan_session_id: string; phone_e164: string; opportunity_id?: string };
   manage_user_roles: { target_user_id: string; new_role: AppRole };
   list_user_roles: Record<string, never>;
+  get_role_audit_log: { limit?: number };
+}
+
+/** Response shape types for each action */
+export interface AdminActionResponses {
+  list_user_roles: {
+    users: Array<{
+      id: string;
+      user_id: string;
+      email: string;
+      role: AppRole;
+      last_sign_in: string | null;
+      updated_at: string | null;
+    }>;
+  };
+  get_role_audit_log: {
+    entries: Array<{
+      id: string;
+      target_user_id: string;
+      target_email: string;
+      changed_by_user_id: string;
+      changed_by_email: string;
+      old_role: string | null;
+      new_role: AppRole;
+      action: string;
+      created_at: string;
+    }>;
+  };
 }
 
 export interface AdminDataError {
   code: string;
   message: string;
   status: number;
+}
+
+/** Type guard: checks if an unknown error is an AdminDataError */
+export function isAdminDataError(err: unknown): err is AdminDataError {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    "message" in err &&
+    "status" in err
+  );
+}
+
+/** Extract a human-readable message from any caught error */
+export function getErrorMessage(err: unknown): string {
+  if (isAdminDataError(err)) return err.message;
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  return "An unexpected error occurred";
 }
 
 /**
@@ -95,7 +143,12 @@ export const triggerVoiceAI = (sessId: string, phone: string, oppId?: string) =>
     opportunity_id: oppId 
   });
 
-export const listUserRoles = () => invokeAdminData("list_user_roles");
+export const listUserRoles = (): Promise<AdminActionResponses["list_user_roles"]> =>
+  invokeAdminData("list_user_roles");
 
 export const manageUserRole = (targetId: string, role: AppRole) =>
   invokeAdminData("manage_user_roles", { target_user_id: targetId, new_role: role });
+
+export const getRoleAuditLog = (limit = 100): Promise<AdminActionResponses["get_role_audit_log"]> =>
+  invokeAdminData("get_role_audit_log", { limit });
+

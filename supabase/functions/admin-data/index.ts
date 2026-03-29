@@ -10,7 +10,7 @@ type ActionName =
   | "fetch_opportunities" | "fetch_contractors" | "fetch_routes" | "fetch_billable"
   | "route_opportunity" | "mark_dead"
   | "fetch_voice_followups" | "trigger_voice_followup"
-  | "manage_user_roles" | "list_user_roles";
+  | "manage_user_roles" | "list_user_roles" | "get_role_audit_log";
 
 const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_leads: ["super_admin", "operator", "viewer"],
@@ -25,6 +25,7 @@ const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   trigger_voice_followup: ["super_admin", "operator"],
   manage_user_roles: ["super_admin"],
   list_user_roles: ["super_admin"],
+  get_role_audit_log: ["super_admin"],
 };
 
 Deno.serve(async (req) => {
@@ -154,7 +155,64 @@ Deno.serve(async (req) => {
     if (action === "list_user_roles") {
       const { data: roles, error } = await supabaseAdmin.from("user_roles").select("*");
       if (error) throw error;
-      return successResponse({ users: roles });
+
+      // Enrich with email and last_sign_in from auth.users (service_role access)
+      const { data: { users: authUsers }, error: authErr } =
+        await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+      if (authErr) throw authErr;
+
+      const authMap = new Map(
+        authUsers.map((u: { id: string; email?: string; last_sign_in_at?: string }) => [
+          u.id,
+          { email: u.email ?? "", last_sign_in: u.last_sign_in_at ?? null },
+        ])
+      );
+
+      const enriched = (roles ?? []).map((r: { id: string; role: string; updated_at?: string }) => ({
+        id: r.id,
+        user_id: r.id,
+        role: r.role,
+        updated_at: r.updated_at ?? null,
+        email: authMap.get(r.id)?.email ?? "",
+        last_sign_in: authMap.get(r.id)?.last_sign_in ?? null,
+      }));
+
+      return successResponse({ data: { users: enriched } });
+    }
+
+    if (action === "get_role_audit_log") {
+      const limit = payload?.limit ?? 100;
+      const { data: entries, error } = await supabaseAdmin
+        .from("user_role_audit_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+
+      // Enrich with emails from auth.users
+      const { data: { users: authUsers }, error: authErr } =
+        await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+      if (authErr) throw authErr;
+
+      const emailMap = new Map(
+        authUsers.map((u: { id: string; email?: string }) => [u.id, u.email ?? ""])
+      );
+
+      const enriched = (entries ?? []).map((e: {
+        id: string;
+        target_user_id: string;
+        changed_by_user_id: string;
+        old_role?: string | null;
+        new_role: string;
+        action: string;
+        created_at: string;
+      }) => ({
+        ...e,
+        target_email: emailMap.get(e.target_user_id) ?? e.target_user_id,
+        changed_by_email: emailMap.get(e.changed_by_user_id) ?? e.changed_by_user_id,
+      }));
+
+      return successResponse({ data: { entries: enriched } });
     }
 
     return errorResponse(400, "unhandled_action", `Action ${action} not implemented`);
