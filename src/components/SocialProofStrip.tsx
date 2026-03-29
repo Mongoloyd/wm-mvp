@@ -52,7 +52,7 @@ const SocialProofStrip = () => {
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
           </div>
           <span className="font-semibold tabular-nums font-mono text-sm text-foreground whitespace-nowrap">
-            +{todayCount} today
+            +{todayCount} Today
           </span>
         </div>
       </div>
