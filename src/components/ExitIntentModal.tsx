@@ -143,7 +143,7 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
               </p>
 
               <p className="font-mono text-wm-body-soft text-muted-foreground mt-5">
-                Joined by {tickerTotal.toLocaleString()}+ Florida Homeowners
+                Joined by {tickerTotal.toLocaleString()}+ Homeowners
               </p>
 
               <div className="flex items-start gap-3 mt-5 pt-5 border-t border-border/50 text-left">
