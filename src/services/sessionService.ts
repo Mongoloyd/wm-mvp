@@ -345,7 +345,7 @@ function captureUtmParams(): UtmParams | undefined {
 
   return hasParams ? utm : undefined;
 }
-/*
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // GTM DATALAYER
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -356,7 +356,7 @@ declare global {
   }
 }
 */
-/**
+
  * Push event to GTM dataLayer
  */
 export function pushToDataLayer(event: string, data: Record<string, any> = {}): void {
