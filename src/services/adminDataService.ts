@@ -73,7 +73,12 @@ export interface AdminDataError {
   status: number;
 }
 
-/** Type guard: checks if an unknown error is an AdminDataError */
+/**
+ * Determines whether a value conforms to the AdminDataError shape.
+ *
+ * @param err - The value to test
+ * @returns `true` if `err` has `code`, `message`, and `status` properties and is an `AdminDataError`, `false` otherwise.
+ */
 export function isAdminDataError(err: unknown): err is AdminDataError {
   return (
     typeof err === "object" &&
@@ -84,7 +89,12 @@ export function isAdminDataError(err: unknown): err is AdminDataError {
   );
 }
 
-/** Extract a human-readable message from any caught error */
+/**
+ * Returns a readable message extracted from various error shapes.
+ *
+ * @param err - The error to extract a message from; may be an AdminDataError, Error, string, or other
+ * @returns The extracted message if available, otherwise `"An unexpected error occurred"`
+ */
 export function getErrorMessage(err: unknown): string {
   if (isAdminDataError(err)) return err.message;
   if (err instanceof Error) return err.message;
