@@ -1,10 +1,11 @@
 /**
  * AuthGuard — Ensures user has an active session before rendering children.
- * Unauthenticated visitors see a loading state while the session is resolved.
+ * Unauthenticated visitors are redirected to the home page.
  * Role-level enforcement is handled inside each protected page component.
  */
 
 import { useState, useEffect, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,28 +16,41 @@ interface AuthGuardProps {
 /**
  * Guards rendering of `children` behind an active Supabase session.
  *
- * While the session is being resolved, displays a full-screen loading UI; if no authenticated
- * session exists, displays a full-screen sign-in required screen; otherwise renders `children`.
+ * While the session is being resolved, displays a full-screen loading UI.
+ * Unauthenticated visitors are redirected to "/" via react-router.
+ * Renders `children` only when an authenticated session is confirmed.
  *
  * @param children - Content to render when an authenticated session is present
- * @returns The loading UI while checking, a sign-in prompt when unauthenticated, or `children` when authenticated
  */
 export function AuthGuard({ children }: AuthGuardProps) {
+  const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthenticated(!!session?.user);
-      setChecking(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        const isAuthed = !!data?.session?.user;
+        setAuthenticated(isAuthed);
+        setChecking(false);
+        if (!isAuthed) navigate("/", { replace: true });
+      })
+      .catch((err) => {
+        console.error("[AuthGuard] Failed to get auth session:", err);
+        setAuthenticated(false);
+        setChecking(false);
+        navigate("/", { replace: true });
+      });
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthenticated(!!session?.user);
+      const isAuthed = !!session?.user;
+      setAuthenticated(isAuthed);
+      if (!isAuthed) navigate("/", { replace: true });
     });
 
     return () => data.subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   if (checking) {
     return (
@@ -49,24 +63,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  if (!authenticated) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="max-w-sm text-center space-y-4">
-          <p className="text-lg font-bold text-slate-900">Sign in required</p>
-          <p className="text-sm text-slate-500">
-            You must be signed in to access this page.
-          </p>
-          <a
-            href="/"
-            className="inline-block mt-2 px-5 py-2.5 bg-gradient-to-b from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-200/50 hover:from-blue-400 hover:to-blue-500 transition-all duration-200"
-          >
-            Go to Home
-          </a>
-        </div>
-      </div>
-    );
-  }
+  if (!authenticated) return null;
 
   return <>{children}</>;
 }

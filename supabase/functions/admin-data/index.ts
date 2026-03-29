@@ -156,32 +156,40 @@ Deno.serve(async (req) => {
       const { data: roles, error } = await supabaseAdmin.from("user_roles").select("*");
       if (error) throw error;
 
-      // Enrich with email and last_sign_in from auth.users (service_role access)
-      const { data: { users: authUsers }, error: authErr } =
-        await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-      if (authErr) throw authErr;
+      // Fetch auth user data for only the IDs present in user_roles (avoids pagination limits)
+      const roleRows = roles ?? [];
+      const userIds: string[] = roleRows.map((r: { id: string }) => r.id);
 
-      const authMap = new Map(
-        authUsers.map((u: { id: string; email?: string; last_sign_in_at?: string }) => [
-          u.id,
-          { email: u.email ?? "", last_sign_in: u.last_sign_in_at ?? null },
-        ])
+      const authInfoMap = new Map<string, { email: string; last_sign_in: string | null }>();
+      await Promise.all(
+        userIds.map(async (uid) => {
+          const { data: authData, error: uidErr } = await supabaseAdmin.auth.admin.getUserById(uid);
+          if (!uidErr && authData?.user) {
+            authInfoMap.set(uid, {
+              email: authData.user.email ?? "",
+              last_sign_in: authData.user.last_sign_in_at ?? null,
+            });
+          }
+        })
       );
 
-      const enriched = (roles ?? []).map((r: { id: string; role: string; updated_at?: string }) => ({
+      const enriched = roleRows.map((r: { id: string; role: string; updated_at?: string }) => ({
         id: r.id,
         user_id: r.id,
         role: r.role,
         updated_at: r.updated_at ?? null,
-        email: authMap.get(r.id)?.email ?? "",
-        last_sign_in: authMap.get(r.id)?.last_sign_in ?? null,
+        email: authInfoMap.get(r.id)?.email ?? "",
+        last_sign_in: authInfoMap.get(r.id)?.last_sign_in ?? null,
       }));
 
       return successResponse({ data: { users: enriched } });
     }
 
     if (action === "get_role_audit_log") {
-      const limit = payload?.limit ?? 100;
+      // Clamp limit to a safe range: min 1, max 500, default 100
+      const rawLimit = payload?.limit;
+      const limit = Math.min(500, Math.max(1, Number.isInteger(rawLimit) ? rawLimit : 100));
+
       const { data: entries, error } = await supabaseAdmin
         .from("user_role_audit_log")
         .select("*")
@@ -189,16 +197,27 @@ Deno.serve(async (req) => {
         .limit(limit);
       if (error) throw error;
 
-      // Enrich with emails from auth.users
-      const { data: { users: authUsers }, error: authErr } =
-        await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-      if (authErr) throw authErr;
+      const auditRows = entries ?? [];
 
-      const emailMap = new Map(
-        authUsers.map((u: { id: string; email?: string }) => [u.id, u.email ?? ""])
+      // Collect all unique user IDs referenced in the audit log
+      const involvedIds = new Set<string>();
+      for (const e of auditRows) {
+        involvedIds.add(e.target_user_id);
+        involvedIds.add(e.changed_by_user_id);
+      }
+
+      // Fetch email for each involved user ID individually (avoids listUsers pagination cap)
+      const emailMap = new Map<string, string>();
+      await Promise.all(
+        Array.from(involvedIds).map(async (uid) => {
+          const { data: authData, error: uidErr } = await supabaseAdmin.auth.admin.getUserById(uid);
+          if (!uidErr && authData?.user?.email) {
+            emailMap.set(uid, authData.user.email);
+          }
+        })
       );
 
-      const enriched = (entries ?? []).map((e: {
+      const enriched = auditRows.map((e: {
         id: string;
         target_user_id: string;
         changed_by_user_id: string;
