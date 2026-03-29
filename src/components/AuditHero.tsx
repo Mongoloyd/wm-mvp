@@ -42,7 +42,7 @@ const AuditHero = ({
 
   const trustPillContent = (
     <>
-      <span className="text-primary text-sm">🛡</span>
+      <span className="text-primary text-sm">🛡️</span>
 
       <span className="wm-eyebrow text-primary">{variantBadgeText || "FORENSIC QUOTE INTELLIGENCE"}</span>
     </>
