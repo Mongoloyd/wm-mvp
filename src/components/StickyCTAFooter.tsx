@@ -6,10 +6,16 @@ interface StickyCTAFooterProps {
   onDemoClick: () => void;
   onPostConversionClick: () => void;
   isVisible: boolean;
-  conversionType: 'scan' | 'account' | null;
+  conversionType: "scan" | "account" | null;
 }
 
-export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClick, isVisible, conversionType }: StickyCTAFooterProps) => {
+export const StickyCTAFooter = ({
+  onScanClick,
+  onDemoClick,
+  onPostConversionClick,
+  isVisible,
+  conversionType,
+}: StickyCTAFooterProps) => {
   const [isScrolling, setIsScrolling] = useState(false);
 
   useEffect(() => {
@@ -19,21 +25,25 @@ export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClic
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => setIsScrolling(false), 300);
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => { window.removeEventListener('scroll', handleScroll); clearTimeout(scrollTimeout); };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(scrollTimeout);
+    };
   }, []);
 
   if (!isVisible) return null;
 
-  const postConversionText = conversionType === 'account'
-    ? "Request a Free Estimate"
-    : conversionType === 'scan'
-    ? "Get Answers About Your Grade"
-    : null;
+  const postConversionText =
+    conversionType === "account"
+      ? "Request a Free Estimate"
+      : conversionType === "scan"
+        ? "Get Answers About Your Grade"
+        : null;
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card p-3 px-4 transition-opacity duration-150 ${isScrolling ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}
+      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card p-3 px-4 transition-opacity duration-150 ${isScrolling ? "opacity-25 hover:opacity-100" : "opacity-100"}`}
       style={{ boxShadow: "var(--shadow-shelf-up)" }}
     >
       <div className="max-w-5xl mx-auto flex items-center justify-center md:justify-between w-full">
@@ -66,7 +76,7 @@ export const StickyCTAFooter = ({ onScanClick, onDemoClick, onPostConversionClic
                 className="flex-1 md:flex-none w-full max-w-[200px] btn-secondary-tactile"
                 style={{ padding: "12px 20px" }}
               >
-                Watch Live Demo
+                View Live Demo
               </button>
             </div>
           </>
