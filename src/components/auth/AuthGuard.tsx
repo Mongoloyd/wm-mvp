@@ -12,6 +12,15 @@ interface AuthGuardProps {
   children: ReactNode;
 }
 
+/**
+ * Guards rendering of `children` behind an active Supabase session.
+ *
+ * While the session is being resolved, displays a full-screen loading UI; if no authenticated
+ * session exists, displays a full-screen sign-in required screen; otherwise renders `children`.
+ *
+ * @param children - Content to render when an authenticated session is present
+ * @returns The loading UI while checking, a sign-in prompt when unauthenticated, or `children` when authenticated
+ */
 export function AuthGuard({ children }: AuthGuardProps) {
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
