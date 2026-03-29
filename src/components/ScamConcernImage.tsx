@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import homeownerImg from "@/assets/what are you missing.avif";
+import homeownerImg from "@/assets/what-are-you-missing.avif";
 
 const ScamConcernImage = () => {
   const ref = useRef<HTMLDivElement>(null);
