@@ -123,7 +123,7 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                     animation: "holo-pulse 3s ease-in-out infinite",
                   }}
                 />
-                <p className="font-body text-wm-label text-foreground mb-2">Your county baseline is ready.</p>
+                <p className="font-body text-wm-label text-foreground mb-2">Check Your County Rate..</p>
                 <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed">
                   Homeowners {locationLabel} saved an average of{" "}
                   <span className="font-mono font-bold text-destructive">${stats.savings.toLocaleString()}</span> after
