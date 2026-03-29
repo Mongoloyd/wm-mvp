@@ -41,7 +41,7 @@ const SocialProofStrip = () => {
         <div className="flex items-center gap-2 px-4 py-2">
           <span className="text-base flex-shrink-0 leading-none">🛡️</span>
           <span className="font-bold tabular-nums font-mono text-base text-primary">{totalCount.toLocaleString()}</span>
-          <span className="font-body text-xs text-muted-foreground whitespace-nowrap">quotes scanned</span>
+          <span className="font-body text-xs text-muted-foreground whitespace-nowrap">Quotes Scanned</span>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/5">
           <div className="relative flex h-2 w-2 flex-shrink-0">
