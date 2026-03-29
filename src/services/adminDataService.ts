@@ -153,7 +153,7 @@ export function getErrorMessage(error: unknown): string {
  */
 export async function invokeAdminData<T extends AdminAction>(
   action: T,
-  payload: AdminActionPayloads[T] = {} as AdminActionPayloads[T]
+  payload: AdminActionPayloads[T] = {} as AdminActionPayloads[T],
 ): Promise<any> {
   // 1. Grab the current user's session token
   const {
@@ -168,10 +168,7 @@ export async function invokeAdminData<T extends AdminAction>(
       message: "User is not authenticated or session has expired.",
       status: 401,
     };
-    console.error(
-      `[adminDataService] ${action} failed: No active session.`,
-      authError
-    );
+    console.error(`[adminDataService] ${action} failed: No active session.`, authError);
     throw authError;
   }
 
@@ -209,10 +206,19 @@ export async function listUserRoles(): Promise<ListUserRolesResponse> {
 }
 
 /**
+ * Assign or change a user's role (super_admin only).
+ * This is the function AdminSettings.tsx imports as `manageUserRole`.
+ */
+export async function manageUserRole(targetUserId: string, newRole: AppRole): Promise<{ success: boolean }> {
+  return invokeAdminData("manage_user_roles", {
+    target_user_id: targetUserId,
+    new_role: newRole,
+  });
+}
+
+/**
  * Get the role audit log with optional limit (super_admin only).
  */
-export async function getRoleAuditLog(
-  limit: number = 100
-): Promise<RoleAuditLogResponse> {
+export async function getRoleAuditLog(limit: number = 100): Promise<RoleAuditLogResponse> {
   return invokeAdminData("get_role_audit_log", { limit });
 }
