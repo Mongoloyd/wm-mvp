@@ -1,33 +1,73 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShieldCheck } from 'lucide-react';
-import { useTickerStats } from '@/hooks/useTickerStats';
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ShieldCheck } from "lucide-react";
+import { useTickerStats } from "@/hooks/useTickerStats";
 
-interface ExitIntentModalProps { stepsCompleted: number; flowMode: 'A' | 'B' | 'C'; leadCaptured: boolean; flowBLeadCaptured: boolean; county: string; answers: { windowCount: string | null; projectType: string | null; county: string | null; quoteStage: string | null; firstName: string | null; email: string | null; phone: string | null }; onClose: () => void; onCTAClick: () => void; onLeadSubmit?: (data: { email: string; phone: string }) => void; onReminderSet?: (data: { date: string; time: string }) => void; }
+interface ExitIntentModalProps {
+  stepsCompleted: number;
+  flowMode: "A" | "B" | "C";
+  leadCaptured: boolean;
+  flowBLeadCaptured: boolean;
+  county: string;
+  answers: {
+    windowCount: string | null;
+    projectType: string | null;
+    county: string | null;
+    quoteStage: string | null;
+    firstName: string | null;
+    email: string | null;
+    phone: string | null;
+  };
+  onClose: () => void;
+  onCTAClick: () => void;
+  onLeadSubmit?: (data: { email: string; phone: string }) => void;
+  onReminderSet?: (data: { date: string; time: string }) => void;
+}
 
-const COUNTY_STATS: Record<string, { scanned: number; savings: number }> = { 'Miami-Dade': { scanned: 312, savings: 4800 }, 'Broward': { scanned: 287, savings: 4200 }, 'Palm Beach': { scanned: 241, savings: 5100 } };
+const COUNTY_STATS: Record<string, { scanned: number; savings: number }> = {
+  "Miami-Dade": { scanned: 312, savings: 4800 },
+  Broward: { scanned: 287, savings: 4200 },
+  "Palm Beach": { scanned: 241, savings: 5100 },
+};
 const FLORIDA_FALLBACK = { scanned: 2400, savings: 4500 };
 
 const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitIntentModalProps) => {
   const [open, setOpen] = useState(false);
   const [liveViewers] = useState(() => 8 + Math.floor(Math.random() * 12));
   const { total: tickerTotal } = useTickerStats();
-  const resolvedCounty = county && county !== 'your county' ? county : null;
+  const resolvedCounty = county && county !== "your county" ? county : null;
   const stats = resolvedCounty && COUNTY_STATS[resolvedCounty] ? COUNTY_STATS[resolvedCounty] : FLORIDA_FALLBACK;
-  const locationLabel = resolvedCounty ? `in ${resolvedCounty} County` : 'across Florida';
+  const locationLabel = resolvedCounty ? `in ${resolvedCounty} County` : "across Florida";
 
-  const show = useCallback(() => { if (leadCaptured || sessionStorage.getItem('wm_exit_shown') === 'true') return; sessionStorage.setItem('wm_exit_shown', 'true'); setOpen(true); }, [leadCaptured]);
+  const show = useCallback(() => {
+    if (leadCaptured || sessionStorage.getItem("wm_exit_shown") === "true") return;
+    sessionStorage.setItem("wm_exit_shown", "true");
+    setOpen(true);
+  }, [leadCaptured]);
 
   useEffect(() => {
-    const handleMouse = (e: MouseEvent) => { if (e.clientY < 20) show(); };
-    const handleVisibility = () => { if (document.hidden) show(); };
-    document.addEventListener('mouseleave', handleMouse);
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => { document.removeEventListener('mouseleave', handleMouse); document.removeEventListener('visibilitychange', handleVisibility); };
+    const handleMouse = (e: MouseEvent) => {
+      if (e.clientY < 20) show();
+    };
+    const handleVisibility = () => {
+      if (document.hidden) show();
+    };
+    document.addEventListener("mouseleave", handleMouse);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      document.removeEventListener("mouseleave", handleMouse);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [show]);
 
-  const dismiss = () => { setOpen(false); onClose(); };
-  const handleCTA = () => { setOpen(false); onCTAClick(); };
+  const dismiss = () => {
+    setOpen(false);
+    onClose();
+  };
+  const handleCTA = () => {
+    setOpen(false);
+    onCTAClick();
+  };
 
   return (
     <AnimatePresence>
@@ -38,8 +78,10 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-[9500] flex items-center justify-center"
-          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
+          style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)" }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) dismiss();
+          }}
         >
           <motion.div
             initial={{ scale: 0.96, opacity: 0, y: 8 }}
@@ -62,12 +104,13 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
                 </span>
-                <span className="font-mono text-wm-body-soft font-bold text-primary">
-                  {liveViewers} homeowners checking right now
-                </span>
+                <span className="font-mono text-wm-body-soft font-bold text-primary">{liveViewers} Viewing Now</span>
               </div>
 
-              <h2 className="font-display font-black uppercase leading-tight tracking-wide text-foreground mb-4" style={{ fontSize: 'clamp(22px, 4vw, 28px)' }}>
+              <h2
+                className="font-display font-black uppercase leading-tight tracking-wide text-foreground mb-4"
+                style={{ fontSize: "clamp(22px, 4vw, 28px)" }}
+              >
                 Before you go — one question.
               </h2>
 
@@ -75,27 +118,20 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: 'linear-gradient(105deg, transparent 40%, rgba(37,99,235,0.06) 50%, transparent 60%)',
-                    backgroundSize: '200% 100%',
-                    animation: 'holo-pulse 3s ease-in-out infinite',
+                    background: "linear-gradient(105deg, transparent 40%, rgba(37,99,235,0.06) 50%, transparent 60%)",
+                    backgroundSize: "200% 100%",
+                    animation: "holo-pulse 3s ease-in-out infinite",
                   }}
                 />
-                <p className="font-body text-wm-label text-foreground mb-2">
-                  Your county baseline is ready.
-                </p>
+                <p className="font-body text-wm-label text-foreground mb-2">Your county baseline is ready.</p>
                 <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed">
-                  Homeowners {locationLabel} saved an average of{' '}
-                  <span className="font-mono font-bold text-destructive">
-                    ${stats.savings.toLocaleString()}
-                  </span>{' '}
-                  after scanning. Yours takes 60 seconds.
+                  Homeowners {locationLabel} saved an average of{" "}
+                  <span className="font-mono font-bold text-destructive">${stats.savings.toLocaleString()}</span> after
+                  scanning. Yours takes 60 seconds.
                 </p>
               </div>
 
-              <button
-                onClick={handleCTA}
-                className="btn-depth-primary w-full py-4"
-              >
+              <button onClick={handleCTA} className="btn-depth-primary w-full py-4">
                 Check My Quote — It's Free
               </button>
 
