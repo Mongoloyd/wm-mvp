@@ -1,6 +1,5 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import { Shield } from "lucide-react";
 import { useTickerStats } from "@/hooks/useTickerStats";
 
 function useCountUp(end: number, duration: number, active: boolean) {
@@ -37,20 +36,19 @@ const SocialProofStrip = () => {
     >
       <div
         className="inline-flex items-center divide-x divide-border overflow-hidden bg-white border border-border"
-        style={{ borderRadius: 'var(--radius-btn)', boxShadow: 'var(--shadow-sunken)' }}
+        style={{ borderRadius: "var(--radius-btn)", boxShadow: "var(--shadow-sunken)" }}
       >
         <div className="flex items-center gap-2 px-4 py-2">
-          <Shield className="w-4 h-4 flex-shrink-0 text-primary" />
-          <span className="font-bold tabular-nums font-mono text-base text-primary">
-            {totalCount.toLocaleString()}
-          </span>
-          <span className="font-body text-xs text-muted-foreground whitespace-nowrap">
-            quotes scanned
-          </span>
+          <span className="text-base flex-shrink-0 leading-none">🛡️</span>
+          <span className="font-bold tabular-nums font-mono text-base text-primary">{totalCount.toLocaleString()}</span>
+          <span className="font-body text-xs text-muted-foreground whitespace-nowrap">quotes scanned</span>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/5">
           <div className="relative flex h-2 w-2 flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" style={{ animationIterationCount: 3 }} />
+            <span
+              className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
+              style={{ animationIterationCount: 3 }}
+            />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
           </div>
           <span className="font-semibold tabular-nums font-mono text-sm text-foreground whitespace-nowrap">
