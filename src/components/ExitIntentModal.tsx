@@ -139,7 +139,7 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                 className="font-body text-[13px] text-muted-foreground mt-4 cursor-pointer hover:text-foreground transition-colors"
                 onClick={dismiss}
               >
-                I'll risk overpaying →
+                I'll Risk It →
               </p>
 
               <p className="font-mono text-wm-body-soft text-muted-foreground mt-5">
