@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     if (action === "fetch_opportunities") {
       const { data, error } = await supabaseAdmin.from("contractor_opportunities").select("*").order("priority_score", { ascending: false });
       if (error) throw error;
-     return successResponse({ data: data });
+      return successResponse({ data: data });
     }
 
     if (action === "fetch_contractors") {
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       const { data: intros, error: e1 } = await supabaseAdmin.from("billable_intros").select("*").order("created_at", { ascending: false });
       const { data: outcomes, error: e2 } = await supabaseAdmin.from("contractor_outcomes").select("*");
       if (e1 || e2) throw e1 || e2;
-      return successResponse({ data: { intros, outcomes } });
+      return successResponse({ intros, outcomes, data: { intros, outcomes } });
     }
 
     if (action === "fetch_voice_followups") {
@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
         metadata: { opportunity_id, contractor_id, timestamp: now },
       });
 
-      return successResponse({ success: true });
+      return successResponse({ data: { success: true } });
     }
 
     if (action === "mark_dead") {
@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
         body: { scan_session_id, phone_e164, opportunity_id, call_intent: "manual_admin_trigger" },
       });
       if (error) throw error;
-      return successResponse({ data: { success: true, data } });
+      return successResponse({ data: { success: true, invokeResult: data } });
 
     }
 
@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
       const { error } = await supabaseAdmin.from("user_roles").upsert({ id: target_user_id, role: new_role, updated_at: now });
       if (error) throw error;
       await supabaseAdmin.from("user_role_audit_log").insert({ target_user_id, changed_by_user_id: userId, new_role, action: "change" });
-      return successResponse({ success: true });
+      return successResponse({ data: { success: true } });
     }
 
     if (action === "list_user_roles") {
