@@ -149,7 +149,7 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
               <div className="flex items-start gap-3 mt-5 pt-5 border-t border-border/50 text-left">
                 <ShieldCheck size={16} className="text-emerald-500 shrink-0 mt-0.5" />
                 <p className="font-body text-[13px] text-muted-foreground leading-snug">
-                  We never contact your contractor. No sales calls. Your report is yours.
+                  We Dont Contact Your Contractor No sales calls The Report is Yours
                 </p>
               </div>
             </div>
