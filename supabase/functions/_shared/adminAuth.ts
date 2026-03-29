@@ -131,10 +131,13 @@ export function jsonResponse(status: number, body: unknown): Response {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Fetch user's role from the database.
- * Uses service_role client to bypass RLS.
+ * Retrieve the application's role for a user by their user ID.
  *
- * @returns The user's AppRole, or null if no role is assigned
+ * Uses the provided service-role Supabase client to read the `user_roles` table and determine the user's role. If the stored role is the legacy string `"admin"`, it is mapped to `"super_admin"`. Unknown roles, missing role rows, or database errors result in `null`.
+ *
+ * @param supabaseAdmin - Supabase client instantiated with the service role key (bypasses RLS)
+ * @param userId - The authenticated user's ID (matches `user_roles.id`)
+ * @returns The user's `AppRole` if recognized (legacy `"admin"` mapped to `"super_admin"`), or `null` if no valid role is found or an error occurs
  */
 async function getUserRole(
   supabaseAdmin: SupabaseClient,
@@ -143,7 +146,7 @@ async function getUserRole(
   const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role")
-    .eq("user_id", userId)
+    .eq("id", userId)
     .maybeSingle();
 
   if (error) {

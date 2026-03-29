@@ -15,8 +15,15 @@ import { trackGtmEvent } from '@/lib/trackConversion';
 import { supabase } from '@/integrations/supabase/client';
 import { ROUTE_STATUS, RELEASE_STATUS, BILLING_STATUS, BILLING_MODEL, EVENTS, APPOINTMENT_STATUS, QUOTE_STATUS, DEAL_STATUS } from '@/lib/statusConstants';
 import VoiceFollowupsPanel from './admin/VoiceFollowupsPanel';
+import { useCurrentUserRole } from '@/hooks/useCurrentUserRole';
 
-// Helper to call admin-data edge function (uses service_role server-side)
+/**
+ * Invoke the server-side `admin-data` edge function with an action and optional payload.
+ *
+ * @param action - The action name sent to the edge function (controls server behavior)
+ * @param payload - Additional key/value data to include in the request body
+ * @returns The `data` object returned by the edge function, or `null` if the invocation failed
+ */
 async function adminFetch(action: string, payload: Record<string, unknown> = {}) {
   const { data, error } = await supabase.functions.invoke('admin-data', {
     body: { action, ...payload },
@@ -793,7 +800,14 @@ function OutcomeEditor({
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MAIN ADMIN DASHBOARD
-// ══════════════════════════════════════════════════════════════════════════════
+/**
+ * Renders an access gate that requires the environment admin secret before revealing children.
+ *
+ * If no `VITE_ADMIN_SECRET` is configured, the gate is bypassed and children are rendered immediately.
+ *
+ * @param children - The protected UI to render when access is granted.
+ * @returns The protected `children` when authenticated; otherwise renders a password entry UI that, on successful authentication, stores `wm_admin_authed = "1"` in sessionStorage and reveals the children.
+ */
 
 function AdminPasswordGate({ children }: { children: React.ReactNode }) {
   const ADMIN_SECRET = import.meta.env.VITE_ADMIN_SECRET;
@@ -836,7 +850,13 @@ function AdminPasswordGate({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Render the administrative Operator Command Center dashboard for managing leads, contractor routing, release review, and revenue.
+ *
+ * @returns The React element that composes the admin dashboard UI (calls, contractor queue, release review, and revenue tabs).
+ */
 export default function AdminDashboard() {
+  const { isSuperAdmin } = useCurrentUserRole();
   const [activeTab, setActiveTab] = useState<'calls' | 'contractor' | 'release' | 'revenue'>('calls');
 
   // ── Call Queue State ────
@@ -1060,14 +1080,16 @@ export default function AdminDashboard() {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* NEW ACCESS CONTROL BUTTON */}
-            <Link 
-              to="/admin/settings"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:text-blue-600 hover:border-blue-300 hover:shadow-md hover:shadow-blue-100/50 transition-all duration-200 text-sm font-semibold"
-            >
-              <Settings className="w-4 h-4" />
-              Access Control
-            </Link>
+            {/* ACCESS CONTROL BUTTON — super_admin only */}
+            {isSuperAdmin && (
+              <Link 
+                to="/admin/settings"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:text-blue-600 hover:border-blue-300 hover:shadow-md hover:shadow-blue-100/50 transition-all duration-200 text-sm font-semibold"
+              >
+                <Settings className="w-4 h-4" />
+                Access Control
+              </Link>
+            )}
 
             {/* EXISTING LIVE BADGE */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
