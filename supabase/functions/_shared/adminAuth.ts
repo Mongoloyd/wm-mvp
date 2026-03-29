@@ -35,7 +35,7 @@
  * ```
  */
 
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Type Definitions
@@ -239,14 +239,14 @@ async function validateAndExtractUser(
   });
   const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-  // Validate JWT using getClaims() — the recommended approach
-  const { data: claimsData, error: claimsError } =
-    await supabaseAuth.auth.getClaims(token);
+  // Validate JWT using getUser() — the correct supabase-js v2 API
+  const { data: userData, error: userError } =
+    await supabaseAuth.auth.getUser(token);
 
-  if (claimsError || !claimsData?.claims) {
+  if (userError || !userData?.user) {
     console.error(
       "[adminAuth] JWT validation failed:",
-      claimsError?.message
+      userError?.message
     );
     return {
       ok: false,
@@ -258,8 +258,8 @@ async function validateAndExtractUser(
     };
   }
 
-  const email = claimsData.claims.email as string | undefined;
-  const userId = claimsData.claims.sub as string;
+  const email = userData.user.email as string | undefined;
+  const userId = userData.user.id as string;
 
   if (!email) {
     return {
