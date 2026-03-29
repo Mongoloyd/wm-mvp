@@ -18,27 +18,36 @@ interface AuditHeroProps {
   variantBadgeText?: string;
 }
 
-const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolClose, variantHeadline, variantSubheadline, variantBadgeText }: AuditHeroProps) => {
+const AuditHero = ({
+  onFlowBClick,
+  onUploadQuote,
+  triggerPowerTool,
+  onPowerToolClose,
+  variantHeadline,
+  variantSubheadline,
+  variantBadgeText,
+}: AuditHeroProps) => {
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
   const trustPillContent = (
     <>
-      <span className="text-primary text-sm">🛡</span>
-      <span className="wm-eyebrow text-primary">
-        {variantBadgeText || "FORENSIC QUOTE INTELLIGENCE"}
-      </span>
+      <ShieldCheck className="w-4 h-4 text-primary" strokeWidth={2.5} />
+      <span className="wm-eyebrow text-primary">{variantBadgeText || "FORENSIC QUOTE INTELLIGENCE"}</span>
     </>
   );
 
   return (
-    <section className="relative bg-background" style={{ background: 'linear-gradient(168deg, hsl(214 35% 95%) 0%, hsl(216 38% 93%) 40%, hsl(218 32% 94%) 100%)' }}>
-
+    <section
+      className="relative bg-background"
+      style={{
+        background: "linear-gradient(168deg, hsl(214 35% 95%) 0%, hsl(216 38% 93%) 40%, hsl(218 32% 94%) 100%)",
+      }}
+    >
       {/* ── HERO LAYOUT: flex-col on mobile, flex-row on md+ ── */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pb-16 md:pb-24">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8 text-center md:text-left">
-
           {/* ── ORDER 1 (mobile): Trust Pill ── */}
           <div className="order-1 md:hidden z-10 mt-4 inline-flex items-center gap-2 card-raised px-3 py-1 bg-primary/5">
             {trustPillContent}
@@ -95,12 +104,18 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
                 <>
                   YOUR QUOTE LOOKS LEGITIMATE.
                   <br />
-                  THAT'S EXACTLY WHAT <span className="text-destructive" style={{ textShadow: '0 0 20px hsla(25, 95%, 53%, 0.15)' }}>THEY'RE COUNTING ON.</span>
+                  THAT'S EXACTLY WHAT{" "}
+                  <span className="text-destructive" style={{ textShadow: "0 0 20px hsla(25, 95%, 53%, 0.15)" }}>
+                    THEY'RE COUNTING ON.
+                  </span>
                 </>
               )}
             </h1>
 
-            <p className="font-body mb-8" style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}>
+            <p
+              className="font-body mb-8"
+              style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}
+            >
               {variantSubheadline ? (
                 variantSubheadline
               ) : (
@@ -149,7 +164,6 @@ const AuditHero = ({ onFlowBClick, onUploadQuote, triggerPowerTool, onPowerToolC
 
             <TrustBullets />
           </motion.div>
-
         </div>
       </div>
     </section>
