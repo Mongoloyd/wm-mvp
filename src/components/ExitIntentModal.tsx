@@ -146,11 +146,11 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                 Joined by {tickerTotal.toLocaleString()}+ Homeowners
               </p>
 
-<div className="mt-5 pt-5 border-t border-border/50 text-left">
-  <p className="font-body text-[13px] text-muted-foreground leading-snug">
-    We Dont Contact Your Contractor No sales calls The Report is Yours
-  </p>
-</div>
+              <div className="mt-5 pt-5 border-t border-border/50 text-left">
+                <p className="font-body text-[13px] text-muted-foreground leading-snug">
+                  We Dont Contact Your Contractor No sales calls The Report is Yours
+                </p>
+              </div>
             </div>
           </motion.div>
         </motion.div>
