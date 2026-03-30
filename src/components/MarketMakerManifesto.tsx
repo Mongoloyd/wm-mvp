@@ -114,8 +114,8 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               borderColor: "border-primary/20",
               content: (
                 <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
-                  Every homeowner we introduce already understands fair-market pricing. Our contractors walk into
-                  conversations that are already halfway won.
+                  We Level The Playing Field. When Our Vetted Partners Walk In, They Know You've Already Been Educated.
+                  Everyone's On The Same Page and That Usually Results in A Mutually Beneficial Agreement
                 </p>
               ),
             },
