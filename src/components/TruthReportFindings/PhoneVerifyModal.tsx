@@ -272,7 +272,7 @@ export function PhoneVerifyModal({
                   className="flex flex-col items-center gap-4"
                 >
                   <p className="text-sm text-muted-foreground">
-                    Enter the 6-digit code sent to your phone
+                    Enter The 6-Digit Code Sent To Your Phone
                   </p>
 
                   <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
@@ -328,14 +328,14 @@ export function PhoneVerifyModal({
                     onClick={handleReset}
                     className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
                   >
-                    Use a different number
+                    Use a Different Number
                   </button>
                 </motion.div>
               )}
             </AnimatePresence>
 
             <p className="text-[11px] text-muted-foreground/60 mt-5 leading-relaxed">
-              We'll text a 6-digit code. No spam, ever.
+              We'll Text a 6-Digit Code. No Spam, Ever.
             </p>
           </div>
         </motion.div>
