@@ -4,11 +4,11 @@ import { Home, Wrench, BarChart3, Scale, ArrowRight, ArrowDown } from "lucide-re
 import windowmanHero from "@/assets/windowman-truth.avif";
 
 const listItems = [
-  "Free AI analysis of your quote",
-  "Red flags explained in plain English",
-  "Fair-market price for your county",
-  "A negotiation script for your situation",
-  "An introduction to a vetted contractor who will beat your price",
+  "Free Unbiased AI Analysis Of Your Quote",
+  "Red Flags Explained in Plain English",
+  "Fair-Market Price For Your Area",
+  "A Negotiation Script For Your Situation",
+  "An Introduction to a Qualified Contractor Who Will Improve Your Quote",
 ];
 
 interface MarketMakerManifestoProps {
@@ -18,7 +18,7 @@ interface MarketMakerManifestoProps {
 const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.1 });
-  
+
   const fade = (delay = 0) => ({
     initial: { opacity: 0, y: 16 } as const,
     animate: inView ? { opacity: 1, y: 0 } : {},
