@@ -268,7 +268,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         >
           <Spinner />
           <p className="font-mono text-wm-body-soft text-primary">
-            Configuring your analysis...
+            Configuring Your Analysis...
           </p>
         </motion.div>
       );
@@ -368,7 +368,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           See What's In Your Quote.
         </h2>
         <p className="font-body text-wm-body-soft text-muted-foreground mb-6">
-          Enter your details to run the scan.
+          Enter Your Details To Run The Scan.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -392,13 +392,13 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               {fieldStatus.firstName === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.firstName === "invalid" && (
-              <p className="font-body text-xs text-orange-500 mt-1">Please enter your first name (2+ characters)</p>
+              <p className="font-body text-xs text-orange-500 mt-1">Please Enter Your First Name (2+ characters)</p>
             )}
           </div>
 
           <div>
             <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
-              EMAIL ADDRESS <span className="text-muted-foreground font-normal">(your grade report is sent here)</span>
+              EMAIL ADDRESS <span className="text-muted-foreground font-normal">(Your Truth Report Is Sent Here)</span>
             </label>
             <div className="relative">
               <input
@@ -418,7 +418,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               {fieldStatus.email === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.email === "invalid" && (
-              <p className="font-body text-xs text-orange-500 mt-1">Please enter a valid email address</p>
+              <p className="font-body text-xs text-orange-500 mt-1">Please Enter a Valid Email Address</p>
             )}
           </div>
 
@@ -456,7 +456,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed text-center mt-4">
           No contractor will be contacted without your permission.
           <br />
-          No sales calls. Your report is yours — we just help you read it.
+          No Sales Calls. Your Report Is Yours — We Just Help You Read It.
         </p>
 
         <div
