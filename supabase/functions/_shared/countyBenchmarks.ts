@@ -73,3 +73,21 @@ export function getCountyBenchmark(input?: string | null): CountyBenchmark {
     ? SOUTH_FLORIDA_COUNTY_BENCHMARKS[normalized]
     : SOUTH_FLORIDA_COUNTY_BENCHMARKS["south-florida"];
 }
+
+// ── Phase 2 upgrade path ────────────────────────────────────────────────────
+// When the refresh-benchmarks cron job has accumulated enough real-scan data
+// (sample_count >= 5 per bucket), replace getCountyBenchmark() above with a
+// live DB query so scoring uses computed benchmarks instead of hardcoded values:
+//
+//   const { data: benchmark } = await supabase
+//     .from("county_benchmarks")
+//     .select("*")
+//     .eq("county_key", normalizeCountyName(input) ?? "south-florida")
+//     .eq("project_type", "all")
+//     .maybeSingle();
+//
+// Map the returned row to CountyBenchmark using:
+//   installed_price_per_opening_low  → installed_price_per_opening_p25
+//   installed_price_per_opening_avg  → installed_price_per_opening_median
+//   installed_price_per_opening_high → installed_price_per_opening_p75
+// Fall back to SOUTH_FLORIDA_COUNTY_BENCHMARKS if data is null or stale.

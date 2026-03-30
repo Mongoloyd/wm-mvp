@@ -350,7 +350,7 @@ const TruthGateFlow = ({
       // Normalize phone to E.164 before DB insert (matches server-side normalizePhone.ts)
       const phoneE164 = normalizePhoneToE164(answers.phone);
 
-      const { error } = await supabase.from("leads").insert({
+      const { data: insertedLead, error } = await supabase.from("leads").insert({
         session_id: sessionId,
         first_name: answers.firstName,
         email: answers.email,
@@ -360,7 +360,7 @@ const TruthGateFlow = ({
         window_count: parseWindowCount(answers.windowCount),
         quote_range: answers.quoteRange,
         source: "truth-gate",
-      });
+      }).select("id").single();
 
       if (error) throw error;
 
@@ -392,6 +392,19 @@ const TruthGateFlow = ({
 
       setSubmitState("success");
       onLeadCaptured?.(sessionId);
+
+      // Fire-and-forget: enrich lead with property data (async, non-blocking)
+      if (insertedLead?.id) {
+        supabase.functions.invoke("enrich-lead", {
+          body: {
+            lead_id: insertedLead.id,
+            county: answers.county,
+            window_count: parseWindowCount(answers.windowCount),
+          },
+        }).then(({ error: enrichErr }) => {
+          if (enrichErr) console.warn("[TruthGateFlow] enrichment failed:", enrichErr);
+        });
+      }
     } catch (err) {
       console.error("Lead capture error:", err);
 
