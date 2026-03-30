@@ -13,7 +13,7 @@ import { useScanFunnelSafe } from "@/state/scanFunnel";
 const stepConfig = [
   {
     question: "How many windows are in your project?",
-    sub: "To Calibrate The Mark Comparison.",
+    sub: "To Calibrate The Market Comparison.",
     key: "windowCount",
     options: ["1–5 windows", "6–10 windows", "11–20 windows", "20+ windows"],
   },
