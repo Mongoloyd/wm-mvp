@@ -56,7 +56,7 @@ export function LeadStatusButton({
     try {
       const result = await updateLeadStatus(leadId, targetStatus);
       setState("success");
-      onSuccess?.(result.new_status);
+      onSuccess?.(targetStatus);
 
       // Reset after 2.5s
       setTimeout(() => setState("idle"), 2500);
