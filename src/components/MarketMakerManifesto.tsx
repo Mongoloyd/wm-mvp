@@ -81,7 +81,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
           </div>
         </motion.div>
 
-        <motion.div {...fade(0.1)} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <motion.div {...fade(0.1)} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[
             {
               icon: <span className="mr-2">✅</span>,
@@ -103,8 +103,8 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               borderColor: "border-gold/20",
               content: (
                 <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
-                  WindowMan earns a percentage of the sale — only when you choose to work with one of our contractors
-                  and your project is completed. We never charge homeowners.
+                  WindowMan Earns A Percentage Of The Sale — Only When You Choose To Work With One Of Our Contractors
+                  And Your Project Is Completed. We Never Charge Homeowners.
                 </p>
               ),
             },
@@ -115,7 +115,38 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               content: (
                 <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
                   We Level The Playing Field. When Our Vetted Partners Walk In, They Know You've Already Been Educated.
-                  Everyone's On The Same Page and That Usually Results in A Mutually Beneficial Agreement
+                  Everyone Is On The Same Page From Minute One, Turning A Stressful Sales Pitch Into A Mutually
+                  Beneficial Agreement.
+                </p>
+              ),
+            },
+            {
+              icon: <Search size={16} className="text-orange-500" strokeWidth={2.5} />,
+              title: "Hidden Cost Traps",
+              borderColor: "border-orange-500/20",
+              content: (
+                <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
+                  Where The "TBD" Fees And Fine-Print Surprises Are Buried In Your Estimate.
+                </p>
+              ),
+            },
+            {
+              icon: <ArrowRight size={16} className="text-primary" strokeWidth={2.5} />,
+              title: "The Negotiation Script",
+              borderColor: "border-primary/20",
+              content: (
+                <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
+                  Exactly What To Say To Your Contractor To Negotiate A Fair Price Based On The AI Findings.
+                </p>
+              ),
+            },
+            {
+              icon: <Home size={16} className="text-gold" strokeWidth={2.5} />,
+              title: "Warranty Protection Audit",
+              borderColor: "border-gold/20",
+              content: (
+                <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
+                  Whether The Fine Print Actually Protects Your Home Or Just Protects The Installer's Bottom Line.
                 </p>
               ),
             },
