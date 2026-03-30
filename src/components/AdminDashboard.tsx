@@ -13,27 +13,10 @@ import { Link } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import { trackGtmEvent } from '@/lib/trackConversion';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeAdminData } from '@/services/adminDataService';
 import { ROUTE_STATUS, RELEASE_STATUS, BILLING_STATUS, BILLING_MODEL, EVENTS, APPOINTMENT_STATUS, QUOTE_STATUS, DEAL_STATUS } from '@/lib/statusConstants';
 import VoiceFollowupsPanel from './admin/VoiceFollowupsPanel';
 import { useCurrentUserRole } from '@/hooks/useCurrentUserRole';
-
-/**
- * Invoke the server-side `admin-data` edge function with an action and optional payload.
- *
- * @param action - The action name sent to the edge function (controls server behavior)
- * @param payload - Additional key/value data to include in the request body
- * @returns The `data` object returned by the edge function, or `null` if the invocation failed
- */
-async function adminFetch(action: string, payload: Record<string, unknown> = {}) {
-  const { data, error } = await supabase.functions.invoke('admin-data', {
-    body: { action, ...payload },
-  });
-  if (error) {
-    console.error(`[AdminDashboard] admin-data ${action} failed`, error);
-    return null;
-  }
-  return data;
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SHARED TYPES & HELPERS
@@ -898,9 +881,8 @@ export default function AdminDashboard() {
 
   // ── Fetch functions ────
   const fetchLeads = useCallback(async () => {
-    const result = await adminFetch('fetch_leads');
-    if (result?.data) {
-      const data = result.data;
+    const data = await invokeAdminData('fetch_leads');
+    if (data) {
       setLeads(data as unknown as Lead[]);
       const todayLeads = data as unknown as Lead[];
       setStats({
@@ -916,28 +898,28 @@ export default function AdminDashboard() {
 
   const fetchOpportunities = useCallback(async () => {
     setOppLoading(true);
-    const oppResult = await adminFetch('fetch_opportunities');
-    if (oppResult?.data) setOpportunities(oppResult.data as Opportunity[]);
-    const cResult = await adminFetch('fetch_contractors');
-    if (cResult?.data) setContractors(cResult.data as Contractor[]);
+    const opportunities = await invokeAdminData('fetch_opportunities');
+    if (opportunities) setOpportunities(opportunities as Opportunity[]);
+    const contractors = await invokeAdminData('fetch_contractors');
+    if (contractors) setContractors(contractors as Contractor[]);
     setOppLoading(false);
   }, []);
 
   const fetchRoutesForOpp = useCallback(async (oppId: string) => {
-    const result = await adminFetch('fetch_routes', { opportunity_id: oppId });
-    if (result?.data) setOppRoutes(result.data as Route[]);
+    const routes = await invokeAdminData('fetch_routes', { opportunity_id: oppId });
+    if (routes) setOppRoutes(routes as Route[]);
   }, []);
 
   const fetchAllRoutes = useCallback(async () => {
     setReleaseLoading(true);
-    const result = await adminFetch('fetch_routes');
-    if (result?.data) setAllRoutes(result.data as Route[]);
+    const routes = await invokeAdminData('fetch_routes');
+    if (routes) setAllRoutes(routes as Route[]);
     setReleaseLoading(false);
   }, []);
 
   const fetchBillableIntros = useCallback(async () => {
     setRevenueLoading(true);
-    const result = await adminFetch('fetch_billable');
+    const result = await invokeAdminData('fetch_billable');
     if (result?.intros) setBillableIntros(result.intros as BillableIntro[]);
     if (result?.outcomes) setOutcomes(result.outcomes as ContractorOutcome[]);
     setRevenueLoading(false);
@@ -965,7 +947,7 @@ export default function AdminDashboard() {
     // Capture lead data before the async call — state may have changed by the time
     // the await resolves, so we snapshot what we need right now.
     const lead = leads.find(l => l.id === id);
-    await adminFetch('update_lead_status', { lead_id: id, status });
+    await invokeAdminData('update_lead_status', { lead_id: id, status });
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
 
     if (status === 'appointment') {
@@ -983,7 +965,7 @@ export default function AdminDashboard() {
   // ── Contractor Queue Actions ────
   const handleRoute = async (oppId: string, contractorId: string) => {
     const scanSessionId = opportunities.find(o => o.id === oppId)?.scan_session_id || null;
-    await adminFetch('route_opportunity', { opportunity_id: oppId, contractor_id: contractorId, scan_session_id: scanSessionId });
+    await invokeAdminData('route_opportunity', { opportunity_id: oppId, contractor_id: contractorId, scan_session_id: scanSessionId });
     fetchOpportunities(); fetchAllRoutes();
     if (selectedOpp?.id === oppId) fetchRoutesForOpp(oppId);
   };
@@ -991,7 +973,25 @@ export default function AdminDashboard() {
   // ── Phase 3.4 Actions (via edge function) ────
   const invokeAction = async (action: string, payload: Record<string, unknown>) => {
     try {
-      const { data, error } = await supabase.functions.invoke('contractor-actions', { body: { action, ...payload } });
+      // Get the current user's session token
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      // If there's no session, throw an error early
+      if (sessionError || !session?.access_token) {
+        console.error(`[AdminDashboard] ${action} failed: No active session.`);
+        return false;
+      }
+
+      // Explicitly attach the session token to the request headers
+      const { data, error } = await supabase.functions.invoke('contractor-actions', {
+        body: { action, ...payload },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
       if (error || !data?.success) {
         console.error(`[AdminDashboard] ${action} failed`, error || data);
         return false;
@@ -1024,7 +1024,7 @@ export default function AdminDashboard() {
 
   const handleMarkDead = async (oppId: string) => {
     const scanSessionId = opportunities.find(o => o.id === oppId)?.scan_session_id || null;
-    await adminFetch('mark_dead', { opportunity_id: oppId, scan_session_id: scanSessionId });
+    await invokeAdminData('mark_dead', { opportunity_id: oppId, scan_session_id: scanSessionId });
     setSelectedOpp(null); fetchOpportunities();
   };
 
