@@ -663,7 +663,7 @@ const TruthGateFlow = ({
         <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed text-center mt-4">
           No contractor will be contacted without your permission.
           <br />
-          No sales calls. Your report is yours — we just help you read it.
+          Your Free Report is Yours — We Just Help You Read Understand It.
         </p>
 
         <div
