@@ -30,10 +30,30 @@ const PILLAR_ICONS: Record<string, React.ReactNode> = {
 };
 
 const STATUS_CONFIG = {
-  pass: { color: "hsl(var(--color-emerald))", bg: "hsl(var(--color-emerald) / 0.12)", border: "hsl(var(--color-emerald) / 0.3)", label: "PASS" },
-  warn: { color: "hsl(var(--color-caution))", bg: "hsl(var(--color-caution) / 0.12)", border: "hsl(var(--color-caution) / 0.3)", label: "REVIEW" },
-  fail: { color: "hsl(var(--color-danger))", bg: "hsl(var(--color-danger) / 0.12)", border: "hsl(var(--color-danger) / 0.3)", label: "FAIL" },
-  pending: { color: "hsl(var(--muted-foreground))", bg: "hsl(var(--secondary))", border: "hsl(var(--border))", label: "PENDING" },
+  pass: {
+    color: "hsl(var(--color-emerald))",
+    bg: "hsl(var(--color-emerald) / 0.12)",
+    border: "hsl(var(--color-emerald) / 0.3)",
+    label: "PASS",
+  },
+  warn: {
+    color: "hsl(var(--color-caution))",
+    bg: "hsl(var(--color-caution) / 0.12)",
+    border: "hsl(var(--color-caution) / 0.3)",
+    label: "REVIEW",
+  },
+  fail: {
+    color: "hsl(var(--color-danger))",
+    bg: "hsl(var(--color-danger) / 0.12)",
+    border: "hsl(var(--color-danger) / 0.3)",
+    label: "FAIL",
+  },
+  pending: {
+    color: "hsl(var(--muted-foreground))",
+    bg: "hsl(var(--secondary))",
+    border: "hsl(var(--border))",
+    label: "PENDING",
+  },
 };
 
 const stagger = (i: number) => ({
@@ -42,26 +62,33 @@ const stagger = (i: number) => ({
   transition: { delay: i * 0.04, duration: 0.15, ease: "easeInOut" as const },
 });
 
-function PillarCard({ pillar, flags: pillarFlags, isFull }: { pillar: RankedPillar; flags: AnalysisFlag[]; isFull: boolean }) {
+function PillarCard({
+  pillar,
+  flags: pillarFlags,
+  isFull,
+}: {
+  pillar: RankedPillar;
+  flags: AnalysisFlag[];
+  isFull: boolean;
+}) {
   const sc = STATUS_CONFIG[pillar.status];
   const icon = PILLAR_ICONS[pillar.key];
   const isDominant = pillar.tier === "dominant";
   const isSafe = pillar.tier === "safe";
 
   // Gap indicator text
-  const gapText = pillar.gap != null && pillar.gap > 0
-    ? `${pillar.gap} pts below county avg`
-    : pillar.gap === 0 ? "Meets county standard" : null;
+  const gapText =
+    pillar.gap != null && pillar.gap > 0
+      ? `${pillar.gap} pts below county avg`
+      : pillar.gap === 0
+        ? "Meets county standard"
+        : null;
 
   // Card classes based on tier
-  const cardClass = isDominant
-    ? "card-dominant"
-    : isSafe
-      ? "section-recessed"
-      : "card-raised";
+  const cardClass = isDominant ? "card-dominant" : isSafe ? "section-recessed" : "card-raised";
 
-  const redFlags = pillarFlags.filter(f => f.severity === "red");
-  const amberFlags = pillarFlags.filter(f => f.severity === "amber");
+  const redFlags = pillarFlags.filter((f) => f.severity === "red");
+  const amberFlags = pillarFlags.filter((f) => f.severity === "amber");
 
   return (
     <motion.div
@@ -136,8 +163,12 @@ function PillarCard({ pillar, flags: pillarFlags, isFull }: { pillar: RankedPill
                 <svg viewBox="0 0 36 36" style={{ transform: "rotate(-90deg)" }}>
                   <circle cx="18" cy="18" r="14" fill="none" stroke="hsl(var(--border))" strokeWidth="3" />
                   <circle
-                    cx="18" cy="18" r="14" fill="none"
-                    stroke={sc.color} strokeWidth="3"
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke={sc.color}
+                    strokeWidth="3"
                     strokeDasharray={`${(pillar.score / 100) * 87.96} 87.96`}
                     strokeLinecap="round"
                   />
@@ -145,9 +176,14 @@ function PillarCard({ pillar, flags: pillarFlags, isFull }: { pillar: RankedPill
                 <span
                   className="font-mono"
                   style={{
-                    position: "absolute", inset: 0,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontWeight: 700, color: sc.color,
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: sc.color,
                   }}
                 >
                   {pillar.score}
@@ -156,10 +192,7 @@ function PillarCard({ pillar, flags: pillarFlags, isFull }: { pillar: RankedPill
 
               {/* Gap indicator */}
               {gapText && (
-                <span
-                  className="font-mono text-muted-foreground"
-                  style={{ fontSize: 11 }}
-                >
+                <span className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
                   {gapText}
                 </span>
               )}
@@ -169,9 +202,13 @@ function PillarCard({ pillar, flags: pillarFlags, isFull }: { pillar: RankedPill
           {/* Flag summary for non-full or safe tier */}
           {!isDominant && (redFlags.length > 0 || amberFlags.length > 0) && (
             <p className="font-body text-muted-foreground" style={{ fontSize: 12, marginTop: 2 }}>
-              {redFlags.length > 0 && <span style={{ color: "hsl(var(--color-danger))" }}>{redFlags.length} critical</span>}
+              {redFlags.length > 0 && (
+                <span style={{ color: "hsl(var(--color-danger))" }}>{redFlags.length} critical</span>
+              )}
               {redFlags.length > 0 && amberFlags.length > 0 && " · "}
-              {amberFlags.length > 0 && <span style={{ color: "hsl(var(--color-caution))" }}>{amberFlags.length} caution</span>}
+              {amberFlags.length > 0 && (
+                <span style={{ color: "hsl(var(--color-caution))" }}>{amberFlags.length} caution</span>
+              )}
             </p>
           )}
 
@@ -187,10 +224,7 @@ function PillarCard({ pillar, flags: pillarFlags, isFull }: { pillar: RankedPill
               }}
             >
               <div className="flex items-start gap-2">
-                <ShieldAlert
-                  size={14}
-                  style={{ color: "hsl(var(--color-danger))", marginTop: 2, flexShrink: 0 }}
-                />
+                <ShieldAlert size={14} style={{ color: "hsl(var(--color-danger))", marginTop: 2, flexShrink: 0 }} />
                 <div>
                   <p
                     className="font-mono"
@@ -207,7 +241,10 @@ function PillarCard({ pillar, flags: pillarFlags, isFull }: { pillar: RankedPill
                   <p className="font-body text-foreground" style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>
                     {redFlags[0].label}
                   </p>
-                  <p className="font-body text-muted-foreground" style={{ fontSize: 12, lineHeight: 1.5, marginTop: 2 }}>
+                  <p
+                    className="font-body text-muted-foreground"
+                    style={{ fontSize: 12, lineHeight: 1.5, marginTop: 2 }}
+                  >
                     {redFlags[0].detail}
                   </p>
                   {redFlags[0].tip && (
@@ -216,7 +253,10 @@ function PillarCard({ pillar, flags: pillarFlags, isFull }: { pillar: RankedPill
                         size={12}
                         style={{ color: "hsl(var(--color-gold-accent))", marginTop: 2, flexShrink: 0 }}
                       />
-                      <p className="font-body" style={{ fontSize: 12, color: "hsl(var(--color-gold-accent))", lineHeight: 1.4 }}>
+                      <p
+                        className="font-body"
+                        style={{ fontSize: 12, color: "hsl(var(--color-gold-accent))", lineHeight: 1.4 }}
+                      >
                         {redFlags[0].tip}
                       </p>
                     </div>
@@ -231,12 +271,7 @@ function PillarCard({ pillar, flags: pillarFlags, isFull }: { pillar: RankedPill
   );
 }
 
-export default function ForensicPillarSection({
-  pillarScores,
-  flags,
-  county,
-  isFull,
-}: ForensicPillarSectionProps) {
+export default function ForensicPillarSection({ pillarScores, flags, county, isFull }: ForensicPillarSectionProps) {
   const ranked = rankPillars(pillarScores, flags);
   const hasProblem = ranked.some((p) => p.status === "fail" || p.status === "warn");
 
@@ -245,13 +280,15 @@ export default function ForensicPillarSection({
       <div className="max-w-4xl mx-auto">
         <motion.div {...stagger(1)}>
           <div className="flex items-center gap-2 mb-1">
-            <span className="wm-eyebrow" style={{ color: "hsl(var(--color-cyan))" }}>5-PILLAR ANALYSIS</span>
+            <span className="wm-eyebrow" style={{ color: "hsl(var(--color-cyan))" }}>
+              5-PILLAR ANALYSIS
+            </span>
           </div>
           <h2 className="wm-title-section text-foreground" style={{ marginBottom: 6 }}>
             How Your Quote Scores Across 5 Key Areas
           </h2>
           <p className="font-body text-muted-foreground" style={{ fontSize: 14, marginBottom: 20 }}>
-            Each pillar is scored independently against {county} County standards.
+            Each Pillar is Scored Independently Against {county} County Standards.
           </p>
         </motion.div>
 
@@ -265,12 +302,7 @@ export default function ForensicPillarSection({
           {/* Rank 1 — always visible */}
           <div className="flex flex-col gap-3">
             {ranked.slice(0, 1).map((p) => (
-              <PillarCard
-                key={p.key}
-                pillar={p}
-                flags={flags.filter((f) => f.pillar === p.key)}
-                isFull={isFull}
-              />
+              <PillarCard key={p.key} pillar={p} flags={flags.filter((f) => f.pillar === p.key)} isFull={isFull} />
             ))}
           </div>
 
@@ -278,21 +310,13 @@ export default function ForensicPillarSection({
           <div className="relative mt-3">
             <div className={`flex flex-col gap-3 ${!isFull ? "blur-[3px] select-none pointer-events-none" : ""}`}>
               {ranked.slice(1).map((p) => (
-                <PillarCard
-                  key={p.key}
-                  pillar={p}
-                  flags={flags.filter((f) => f.pillar === p.key)}
-                  isFull={isFull}
-                />
+                <PillarCard key={p.key} pillar={p} flags={flags.filter((f) => f.pillar === p.key)} isFull={isFull} />
               ))}
             </div>
 
             {/* Unlock overlay */}
             {!isFull && hasProblem && (
-              <div
-                className="absolute inset-0 flex items-center justify-center"
-                style={{ zIndex: 10 }}
-              >
+              <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
                 <div
                   className="card-raised flex items-center gap-2"
                   style={{
@@ -303,7 +327,7 @@ export default function ForensicPillarSection({
                 >
                   <Lock size={14} className="text-muted-foreground" />
                   <span className="font-mono text-muted-foreground" style={{ fontSize: 11, letterSpacing: "0.06em" }}>
-                    Unlock to see {ranked.length - 1} more areas
+                    Unlock To See {ranked.length - 1} More Areas
                   </span>
                 </div>
               </div>
