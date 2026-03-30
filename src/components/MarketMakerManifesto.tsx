@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Home, Wrench, BarChart3, Check, Scale, ArrowRight, ArrowDown } from "lucide-react";
+import { Home, Wrench, BarChart3, Scale, ArrowRight, ArrowDown } from "lucide-react";
 import windowmanHero from "@/assets/windowman-truth.avif";
 
 const listItems = [
@@ -18,6 +18,7 @@ interface MarketMakerManifestoProps {
 const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.1 });
+  
   const fade = (delay = 0) => ({
     initial: { opacity: 0, y: 16 } as const,
     animate: inView ? { opacity: 1, y: 0 } : {},
@@ -83,7 +84,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
         <motion.div {...fade(0.1)} className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
             {
-             <span className="mr-2">✅</span>,
+              icon: <span className="mr-2">✅</span>,
               title: "What Do You Get — Free",
               borderColor: "border-primary/20",
               content: listItems.map((item, i) => (
