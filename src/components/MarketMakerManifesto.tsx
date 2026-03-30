@@ -83,7 +83,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
         <motion.div {...fade(0.1)} className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
             {
-             <span className="mr-2">✅</span>
+             <span className="mr-2">✅</span>,
               title: "What Do You Get — Free",
               borderColor: "border-primary/20",
               content: listItems.map((item, i) => (
