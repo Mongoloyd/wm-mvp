@@ -531,7 +531,7 @@ const TruthGateFlow = ({
             marginBottom: 8,
           }}
         >
-          See What's In Your Quote.
+          See What's Hiding In Your Quote.
         </h2>
         <p className="font-body text-wm-body-soft text-muted-foreground mb-6">Enter your details to run the scan.</p>
 
