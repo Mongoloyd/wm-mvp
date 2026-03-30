@@ -11,13 +11,7 @@
  * All actions use service role (operator-only). No anon access.
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders, validateAdminRequestWithRole } from "../_shared/adminAuth.ts";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -40,13 +34,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Require operator or super_admin role
+    const validation = await validateAdminRequestWithRole(req, ["super_admin", "operator"]);
+    if (!validation.ok) return validation.response;
+
+    const { supabaseAdmin: supabase } = validation;
+
     const body = await req.json();
     const { action } = body;
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
 
     const now = new Date().toISOString();
 

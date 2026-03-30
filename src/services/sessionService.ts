@@ -355,8 +355,8 @@ declare global {
     dataLayer: any[];
   }
 }
-*/
 
+/**
  * Push event to GTM dataLayer
  */
 export function pushToDataLayer(event: string, data: Record<string, any> = {}): void {

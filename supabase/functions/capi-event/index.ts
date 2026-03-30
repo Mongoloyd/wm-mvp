@@ -42,7 +42,7 @@ interface CAPIEvent {
   custom_data?: Record<string, unknown>;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
