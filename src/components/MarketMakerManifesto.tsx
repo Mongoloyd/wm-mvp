@@ -1,3 +1,4 @@
+// Cache-bust: force Vite HMR recompile
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Home, Wrench, BarChart3, Scale, ArrowRight, ArrowDown, Search } from "lucide-react";
@@ -98,7 +99,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               )),
             },
             {
-              icon: <Scale size={16} className="text-gold" strokeWidth={2.5} />,
+              icon: <Scale size={16} className="text-gold" strokeWidth={2.5} />, 
               title: "​So How Do I Make Money",
               borderColor: "border-gold/20",
               content: (
@@ -109,7 +110,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               ),
             },
             {
-              icon: <BarChart3 size={16} className="text-primary" strokeWidth={2.5} />,
+              icon: <BarChart3 size={16} className="text-primary" strokeWidth={2.5} />, 
               title: "Why Work With Me",
               borderColor: "border-primary/20",
               content: (
@@ -121,7 +122,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               ),
             },
             {
-              icon: <Search size={16} className="text-orange-500" strokeWidth={2.5} />,
+              icon: <Search size={16} className="text-orange-500" strokeWidth={2.5} />, 
               title: "Hidden Cost Traps",
               borderColor: "border-orange-500/20",
               content: (
@@ -131,7 +132,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               ),
             },
             {
-              icon: <ArrowRight size={16} className="text-primary" strokeWidth={2.5} />,
+              icon: <ArrowRight size={16} className="text-primary" strokeWidth={2.5} />, 
               title: "The Negotiation Script",
               borderColor: "border-primary/20",
               content: (
@@ -141,7 +142,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               ),
             },
             {
-              icon: <Home size={16} className="text-gold" strokeWidth={2.5} />,
+              icon: <Home size={16} className="text-gold" strokeWidth={2.5} />, 
               title: "Warranty Protection Audit",
               borderColor: "border-gold/20",
               content: (
@@ -151,7 +152,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               ),
             },
           ].map((card, i) => (
-            <div key={i} className={`card-raised p-7 border ${card.borderColor}`}>
+            <div key={i} className={`card-raised p-7 border ${card.borderColor}`}> 
               <div className="flex items-center gap-2.5 mb-3.5">
                 <div
                   className={`flex items-center justify-center w-9 h-9 border ${card.borderColor} bg-card`}
