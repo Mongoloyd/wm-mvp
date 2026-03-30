@@ -13,7 +13,7 @@ import { useScanFunnelSafe } from "@/state/scanFunnel";
 const stepConfig = [
   {
     question: "How many windows are in your project?",
-    sub: "We use this to calibrate the market comparison.",
+    sub: "To Calibrate The Mark Comparison.",
     key: "windowCount",
     options: ["1–5 windows", "6–10 windows", "11–20 windows", "20+ windows"],
   },
@@ -204,7 +204,9 @@ const TruthGateFlow = ({
   // Ref to track whether the component is still mounted (for timeout safety)
   const mountedRef = useRef(true);
   useEffect(() => {
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -429,7 +431,7 @@ const TruthGateFlow = ({
           className="flex flex-col items-center justify-center py-12 gap-4"
         >
           <Spinner />
-          <p className="font-mono text-wm-body-soft text-primary">Configuring your analysis...</p>
+          <p className="font-mono text-wm-body-soft text-primary">Configuring Your Analysis...</p>
         </motion.div>
       );
     }
@@ -599,9 +601,7 @@ const TruthGateFlow = ({
 
           {/* ── MOBILE NUMBER (not required, no asterisk, no "optional" label) ── */}
           <div>
-            <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
-              MOBILE NUMBER
-            </label>
+            <label className="wm-eyebrow mb-1.5 text-muted-foreground block">MOBILE NUMBER</label>
             <div className="relative">
               <input
                 type="tel"
