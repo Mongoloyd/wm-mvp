@@ -141,7 +141,23 @@ export function PostScanReportSwitcher(props: Props) {
       if (phone) props.onVerified?.(phone);
     },
   });
-
+// ── Send report email on first preview load (fire-and-forget) ──
+useEffect(() => {
+  if (!props.scanSessionId || !props.grade) return;
+  // Non-blocking: send email in background
+  supabase.functions
+    .invoke("send-report-email", {
+      body: {
+        scan_session_id: props.scanSessionId,
+        email_type: "preview",
+      },
+    })
+    .then(({ data, error }) => {
+      if (error) console.warn("[PostScanReportSwitcher] report email failed:", error);
+      else if (data?.success) console.log("[PostScanReportSwitcher] report email sent");
+      else if (data?.skipped) console.log("[PostScanReportSwitcher] email skipped:", data.reason);
+    });
+}, [props.scanSessionId, props.grade]);
   // Resolve phone for CTA calls
   const phoneE164 = capturedPhone || funnel?.phoneE164 || pipeline.e164 || null;
 
