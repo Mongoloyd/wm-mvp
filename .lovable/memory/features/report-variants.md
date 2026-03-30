@@ -1,21 +1,24 @@
-Naming convention and shared gate architecture for TruthReportClassic and TruthReportFindings
+Naming (Locked)
+Component Name: TruthReportClassic
 
-## Naming (locked)
-- `TruthReportClassic` / `TruthReportFindings` — component names
-- `classic` / `findings` — enum values in AnalysisViewMode
-- Short refs: classic, findings
-- NEVER use: v1, v2, alpha, bravo, legacy, new
+View Mode: classic (Enum value in AnalysisViewMode)
 
-## Files
-- `src/components/TruthReportClassic.tsx` — default export `TruthReportClassic`
-- `src/components/TruthReportFindings/TruthReportFindings.tsx` — named export `TruthReportFindings`
-- `src/components/TruthReportFindings/VerifyBanner.tsx`
-- `src/components/TruthReportFindings/VerifyGate.tsx`
-- `src/components/TruthReportFindings/PhoneVerifyModal.tsx`
+Short Ref: classic
 
-## Architecture
-- Both reports are presentation-only — NO embedded OTP/phone logic
-- `PostScanReportSwitcher` chooses variant via `useAnalysisViewMode()` and derives `accessLevel` via `useReportAccess()`
-- `useReportAccess()` reads `ScanFunnelContext` (via `useScanFunnelSafe()`) for verification state
-- Gate logic is centralized and identical for both variants
-- Split test compares presentation only, not OTP/state behavior
+Prohibited Terms: NEVER use v1, v2, alpha, bravo, legacy, new, or findings.
+
+Files
+src/components/TruthReportClassic.tsx — Default export: TruthReportClassic.
+
+src/components/LockedOverlay.tsx — Centralized gate UI used for report blurring/locking.
+
+Note: All files previously in src/components/TruthReportFindings/ are deprecated/removed.
+
+Architecture
+Presentation Only: The report component is purely presentational. It contains NO embedded OTP, phone validation, or lead-generation logic.
+
+Orchestration: PostScanReportSwitcher handles the top-level logic, choosing the classic variant and deriving accessLevel via the useReportAccess() hook.
+
+State Access: useReportAccess() reads ScanFunnelContext (via useScanFunnelSafe()) to determine if the user has verified their phone and unlocked the full report.
+
+Centralized Gating: Gate logic (blurring and "Unlock" CTAs) is handled by the LockedOverlay, ensuring consistent behavior across the funnel.
