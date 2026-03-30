@@ -222,3 +222,17 @@ export async function manageUserRole(targetUserId: string, newRole: AppRole): Pr
 export async function getRoleAuditLog(limit: number = 100): Promise<RoleAuditLogResponse> {
   return invokeAdminData("get_role_audit_log", { limit });
 }
+
+/**
+ * Update lead status (operator+).
+ */
+export async function updateLeadStatus(leadId: string, status: string): Promise<{ success: boolean }> {
+  return invokeAdminData("update_lead_status", { lead_id: leadId, status });
+}
+
+/**
+ * Response type map for admin actions.
+ */
+export type AdminActionResponses = {
+  [K in AdminAction]: any;
+};

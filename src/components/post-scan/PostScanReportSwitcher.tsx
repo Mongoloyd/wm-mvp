@@ -252,7 +252,7 @@ useEffect(() => {
       );
 
       if (cancelled || error || !data) return;
-      const sessionIds = (data as { scan_session_id: string }[]).map((r) => r.scan_session_id);
+      const sessionIds = (data as unknown as { scan_session_id: string }[]).map((r) => r.scan_session_id);
       if (sessionIds.length >= 2) {
         setAvailableComparisons(sessionIds);
       }

@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-
 /**
  * calculate-estimate-metrics — Derived financial metrics from OCR extraction.
  *
@@ -410,7 +408,7 @@ function deriveMetrics(data: ExtractionResult) {
 }
 
 // ── Server ───────────────────────────────────────────────────────────────────
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

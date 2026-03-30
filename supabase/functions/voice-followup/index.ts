@@ -7,13 +7,7 @@
  * Required secrets: PHONECALL_BOT_WEBHOOK_URL (optional — gracefully skips if not set)
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders, validateAdminRequestWithRole } from "../_shared/adminAuth.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -21,6 +15,12 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Require operator or super_admin role
+    const validation = await validateAdminRequestWithRole(req, ["super_admin", "operator"]);
+    if (!validation.ok) return validation.response;
+
+    const { supabaseAdmin: supabase } = validation;
+
     const {
       scan_session_id,
       phone_e164,
@@ -36,10 +36,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
 
     const now = new Date().toISOString();
 

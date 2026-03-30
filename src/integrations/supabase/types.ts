@@ -31,6 +31,8 @@ export type Database = {
           grade: string | null
           id: string
           lead_id: string | null
+          negotiation_script: Json | null
+          negotiation_script_generated_at: string | null
           preview_json: Json | null
           proof_of_read: Json | null
           rubric_version: string | null
@@ -54,6 +56,8 @@ export type Database = {
           grade?: string | null
           id?: string
           lead_id?: string | null
+          negotiation_script?: Json | null
+          negotiation_script_generated_at?: string | null
           preview_json?: Json | null
           proof_of_read?: Json | null
           rubric_version?: string | null
@@ -77,6 +81,8 @@ export type Database = {
           grade?: string | null
           id?: string
           lead_id?: string | null
+          negotiation_script?: Json | null
+          negotiation_script_generated_at?: string | null
           preview_json?: Json | null
           proof_of_read?: Json | null
           rubric_version?: string | null
@@ -656,6 +662,57 @@ export type Database = {
           },
         ]
       }
+      county_benchmarks: {
+        Row: {
+          computed_at: string
+          county_key: string
+          county_label: string
+          created_at: string
+          id: string
+          installed_price_per_opening_avg: number | null
+          installed_price_per_opening_median: number | null
+          installed_price_per_opening_p25: number | null
+          installed_price_per_opening_p75: number | null
+          project_type: string
+          sample_count: number
+          source_label: string | null
+          source_type: string
+          updated_at: string
+        }
+        Insert: {
+          computed_at?: string
+          county_key: string
+          county_label: string
+          created_at?: string
+          id?: string
+          installed_price_per_opening_avg?: number | null
+          installed_price_per_opening_median?: number | null
+          installed_price_per_opening_p25?: number | null
+          installed_price_per_opening_p75?: number | null
+          project_type?: string
+          sample_count?: number
+          source_label?: string | null
+          source_type?: string
+          updated_at?: string
+        }
+        Update: {
+          computed_at?: string
+          county_key?: string
+          county_label?: string
+          created_at?: string
+          id?: string
+          installed_price_per_opening_avg?: number | null
+          installed_price_per_opening_median?: number | null
+          installed_price_per_opening_p25?: number | null
+          installed_price_per_opening_p75?: number | null
+          project_type?: string
+          sample_count?: number
+          source_label?: string | null
+          source_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_logs: {
         Row: {
           created_at: string
@@ -757,6 +814,8 @@ export type Database = {
         Row: {
           amber_flag_count: number
           appointment_booked_at: string | null
+          audit_completed_at: string | null
+          audit_started_at: string | null
           billable_intro_created_at: string | null
           billable_status: string | null
           city: string | null
@@ -770,6 +829,8 @@ export type Database = {
           deal_status: string | null
           deal_value: number | null
           email: string | null
+          enriched_at: string | null
+          enrichment_source: string | null
           estimated_savings_high: number | null
           estimated_savings_low: number | null
           estimated_savings_midpoint: number | null
@@ -779,9 +840,12 @@ export type Database = {
           first_name: string | null
           first_page_path: string | null
           flag_count: number
+          forensic_flags: string[] | null
+          funnel_stage: string | null
           gbraid: string | null
           gclid: string | null
           grade: string | null
+          grade_score: number | null
           has_estimate: boolean | null
           homeowner: boolean | null
           id: string
@@ -829,12 +893,19 @@ export type Database = {
           phone_verified_at: string | null
           pricing_posture: string | null
           project_type: string | null
+          property_type: string | null
+          property_value_high: number | null
+          property_value_low: number | null
           qualification_answers_json: Json
           qualification_status: string | null
+          quote_amount: number | null
           quote_range: string | null
+          reactivation_email_sent_at: string | null
           red_flag_count: number
           referring_domain: string | null
           replacement_quote_submitted_at: string | null
+          report_email_sent_at: string | null
+          report_email_type: string | null
           report_help_call_requested_at: string | null
           report_unlocked_at: string | null
           revenue_amount: number | null
@@ -849,6 +920,8 @@ export type Database = {
           suggested_match_confidence: string | null
           suggested_match_generated_at: string | null
           timeline_bucket: string | null
+          truth_gate_abandoned: boolean | null
+          truth_gate_hit_at: string | null
           ttclid: string | null
           twclid: string | null
           updated_at: string
@@ -862,11 +935,14 @@ export type Database = {
           voice_fallback_used: boolean
           wbraid: string | null
           window_count: number | null
+          year_built: number | null
           zip: string | null
         }
         Insert: {
           amber_flag_count?: number
           appointment_booked_at?: string | null
+          audit_completed_at?: string | null
+          audit_started_at?: string | null
           billable_intro_created_at?: string | null
           billable_status?: string | null
           city?: string | null
@@ -880,6 +956,8 @@ export type Database = {
           deal_status?: string | null
           deal_value?: number | null
           email?: string | null
+          enriched_at?: string | null
+          enrichment_source?: string | null
           estimated_savings_high?: number | null
           estimated_savings_low?: number | null
           estimated_savings_midpoint?: number | null
@@ -889,9 +967,12 @@ export type Database = {
           first_name?: string | null
           first_page_path?: string | null
           flag_count?: number
+          forensic_flags?: string[] | null
+          funnel_stage?: string | null
           gbraid?: string | null
           gclid?: string | null
           grade?: string | null
+          grade_score?: number | null
           has_estimate?: boolean | null
           homeowner?: boolean | null
           id?: string
@@ -939,12 +1020,19 @@ export type Database = {
           phone_verified_at?: string | null
           pricing_posture?: string | null
           project_type?: string | null
+          property_type?: string | null
+          property_value_high?: number | null
+          property_value_low?: number | null
           qualification_answers_json?: Json
           qualification_status?: string | null
+          quote_amount?: number | null
           quote_range?: string | null
+          reactivation_email_sent_at?: string | null
           red_flag_count?: number
           referring_domain?: string | null
           replacement_quote_submitted_at?: string | null
+          report_email_sent_at?: string | null
+          report_email_type?: string | null
           report_help_call_requested_at?: string | null
           report_unlocked_at?: string | null
           revenue_amount?: number | null
@@ -959,6 +1047,8 @@ export type Database = {
           suggested_match_confidence?: string | null
           suggested_match_generated_at?: string | null
           timeline_bucket?: string | null
+          truth_gate_abandoned?: boolean | null
+          truth_gate_hit_at?: string | null
           ttclid?: string | null
           twclid?: string | null
           updated_at?: string
@@ -972,11 +1062,14 @@ export type Database = {
           voice_fallback_used?: boolean
           wbraid?: string | null
           window_count?: number | null
+          year_built?: number | null
           zip?: string | null
         }
         Update: {
           amber_flag_count?: number
           appointment_booked_at?: string | null
+          audit_completed_at?: string | null
+          audit_started_at?: string | null
           billable_intro_created_at?: string | null
           billable_status?: string | null
           city?: string | null
@@ -990,6 +1083,8 @@ export type Database = {
           deal_status?: string | null
           deal_value?: number | null
           email?: string | null
+          enriched_at?: string | null
+          enrichment_source?: string | null
           estimated_savings_high?: number | null
           estimated_savings_low?: number | null
           estimated_savings_midpoint?: number | null
@@ -999,9 +1094,12 @@ export type Database = {
           first_name?: string | null
           first_page_path?: string | null
           flag_count?: number
+          forensic_flags?: string[] | null
+          funnel_stage?: string | null
           gbraid?: string | null
           gclid?: string | null
           grade?: string | null
+          grade_score?: number | null
           has_estimate?: boolean | null
           homeowner?: boolean | null
           id?: string
@@ -1049,12 +1147,19 @@ export type Database = {
           phone_verified_at?: string | null
           pricing_posture?: string | null
           project_type?: string | null
+          property_type?: string | null
+          property_value_high?: number | null
+          property_value_low?: number | null
           qualification_answers_json?: Json
           qualification_status?: string | null
+          quote_amount?: number | null
           quote_range?: string | null
+          reactivation_email_sent_at?: string | null
           red_flag_count?: number
           referring_domain?: string | null
           replacement_quote_submitted_at?: string | null
+          report_email_sent_at?: string | null
+          report_email_type?: string | null
           report_help_call_requested_at?: string | null
           report_unlocked_at?: string | null
           revenue_amount?: number | null
@@ -1069,6 +1174,8 @@ export type Database = {
           suggested_match_confidence?: string | null
           suggested_match_generated_at?: string | null
           timeline_bucket?: string | null
+          truth_gate_abandoned?: boolean | null
+          truth_gate_hit_at?: string | null
           ttclid?: string | null
           twclid?: string | null
           updated_at?: string
@@ -1082,6 +1189,7 @@ export type Database = {
           voice_fallback_used?: boolean
           wbraid?: string | null
           window_count?: number | null
+          year_built?: number | null
           zip?: string | null
         }
         Relationships: []
@@ -1198,6 +1306,44 @@ export type Database = {
           },
         ]
       }
+      quote_comparisons: {
+        Row: {
+          analysis_count: number
+          comparison_json: Json
+          created_at: string
+          generated_at: string
+          id: string
+          lead_id: string | null
+          scan_session_ids: string[]
+        }
+        Insert: {
+          analysis_count?: number
+          comparison_json: Json
+          created_at?: string
+          generated_at?: string
+          id?: string
+          lead_id?: string | null
+          scan_session_ids: string[]
+        }
+        Update: {
+          analysis_count?: number
+          comparison_json?: Json
+          created_at?: string
+          generated_at?: string
+          id?: string
+          lead_id?: string | null
+          scan_session_ids?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_comparisons_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_files: {
         Row: {
           created_at: string
@@ -1275,21 +1421,54 @@ export type Database = {
           },
         ]
       }
+      user_role_audit_log: {
+        Row: {
+          action: string
+          changed_by_user_id: string | null
+          created_at: string
+          id: string
+          new_role: string
+          old_role: string | null
+          target_user_id: string
+        }
+        Insert: {
+          action: string
+          changed_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          new_role: string
+          old_role?: string | null
+          target_user_id: string
+        }
+        Update: {
+          action?: string
+          changed_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          new_role?: string
+          old_role?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
           id: string
           role: string
+          updated_at: string
         }
         Insert: {
           created_at?: string | null
           id: string
           role: string
+          updated_at?: string
         }
         Update: {
           created_at?: string | null
           id?: string
           role?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1456,6 +1635,11 @@ export type Database = {
           status: string
         }[]
       }
+      has_any_role: {
+        Args: { _roles: string[]; _user_id: string }
+        Returns: boolean
+      }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_internal_operator: { Args: never; Returns: boolean }
     }
     Enums: {

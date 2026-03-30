@@ -350,13 +350,8 @@ function captureUtmParams(): UtmParams | undefined {
 // GTM DATALAYER
 // ═══════════════════════════════════════════════════════════════════════════════
 
-declare global {
-  interface Window {
-    dataLayer: any[];
-  }
-}
-*/
 
+/**
  * Push event to GTM dataLayer
  */
 export function pushToDataLayer(event: string, data: Record<string, any> = {}): void {
