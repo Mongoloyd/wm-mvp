@@ -1,14 +1,14 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Home, Wrench, BarChart3, Scale, ArrowRight, ArrowDown, Search, Check } from "lucide-react";
+import { Home, Wrench, BarChart3, Scale, ArrowRight, ArrowDown } from "lucide-react";
 import windowmanHero from "@/assets/windowman-truth.avif";
 
 const listItems = [
-  "Free AI Analysis Of Your Quote",
-  "Red Flags Explained In Plain English",
-  "Fair-Market Price For Your County",
+  "Free Unbiased AI Analysis Of Your Quote",
+  "Red Flags Explained in Plain English",
+  "Fair-Market Price For Your Area",
   "A Negotiation Script For Your Situation",
-  "An Introduction To A Vetted Contractor Who Will Beat Your Price",
+  "An Introduction to a Qualified Contractor Who Will Improve Your Quote",
 ];
 
 interface MarketMakerManifestoProps {
@@ -84,26 +84,22 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
         <motion.div {...fade(0.1)} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[
             {
-              icon: <Check size={18} className="text-primary" />,
+              icon: <span className="mr-2">✅</span>,
               title: "What Do You Get — Free",
               borderColor: "border-primary/20",
-              content: (
-                <div className="space-y-2 mt-3">
-                  {listItems.map((item, i) => (
-                    <div
-                      key={i}
-                      className="flex gap-2 items-start font-body text-[13px] text-muted-foreground leading-[1.6]"
-                    >
-                      <span className="text-primary flex-shrink-0">→</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
+              content: listItems.map((item, i) => (
+                <div
+                  key={i}
+                  className="flex gap-2 items-start font-body text-[13px] text-muted-foreground leading-[2.0]"
+                >
+                  <span className="text-primary flex-shrink-0">→</span>
+                  <span>{item}</span>
                 </div>
-              ),
+              )),
             },
             {
               icon: <Scale size={16} className="text-gold" strokeWidth={2.5} />,
-              title: "How I Make Money",
+              title: "​So How Do I Make Money",
               borderColor: "border-gold/20",
               content: (
                 <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
