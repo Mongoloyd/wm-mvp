@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Home, Wrench, BarChart3, Scale, ArrowRight, ArrowDown } from "lucide-react";
+import { Home, Wrench, BarChart3, Scale, ArrowRight, ArrowDown, Search } from "lucide-react";
 import windowmanHero from "@/assets/windowman-truth.avif";
 
 const listItems = [
