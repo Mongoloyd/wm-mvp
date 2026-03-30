@@ -86,7 +86,9 @@ const EvidenceLocker = ({
     if (navigator.share) {
       try {
         await navigator.share({ title: "WindowMan Quote Analysis", text });
-      } catch (e) {}
+      } catch (e) {
+        // Share was cancelled or failed, do nothing
+      }
     } else {
       await navigator.clipboard.writeText(text);
       toast({ title: "Copied", description: "Report copied to clipboard" });
