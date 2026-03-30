@@ -11,7 +11,13 @@ interface NarrativeProofProps { onScanClick?: () => void; onDemoClick?: () => vo
 const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.1 });
-  const handleScanClick = () => { onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" }); };
+  const handleScanClick = () => {
+    if (onScanClick) {
+      onScanClick();
+    } else {
+      document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
     <section className="bg-background">

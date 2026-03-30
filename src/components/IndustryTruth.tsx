@@ -50,7 +50,11 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
   const inView = useInView(ref, { once: true, amount: 0.15 });
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const handleScanClick = () => {
-    onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" });
+    if (onScanClick) {
+      onScanClick();
+    } else {
+      document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   return (

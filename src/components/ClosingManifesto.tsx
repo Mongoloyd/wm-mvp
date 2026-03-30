@@ -15,7 +15,11 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
     `Used by ${tickerTotal.toLocaleString()}+ Florida homeowners this year`,
   ];
   const handleScanClick = () => {
-    onScanClick ? onScanClick() : document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" });
+    if (onScanClick) {
+      onScanClick();
+    } else {
+      document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   return (
