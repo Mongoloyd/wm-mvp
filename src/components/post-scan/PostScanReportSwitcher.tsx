@@ -96,12 +96,47 @@ export function PostScanReportSwitcher(props: Props) {
     return () => { cancelled = true; };
   }, [props.scanSessionId, props.isFullLoaded]);
 
+  // ── Hydrate phone from leads table on mount (handles page refresh) ──
+  // If the user provided their phone in TruthGateFlow, it's in leads.phone_e164.
+  // On fresh page load the funnel context is empty, so we read it back from DB
+  // and inject it into the funnel. This makes the OTP gate skip to "send_code"
+  // with the phone pre-filled instead of asking the user to type it again.
+  useEffect(() => {
+    if (!props.scanSessionId || funnel?.phoneE164) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { data: session } = await supabase
+          .from("scan_sessions")
+          .select("lead_id")
+          .eq("id", props.scanSessionId)
+          .maybeSingle();
+
+        if (cancelled || !session?.lead_id) return;
+
+        const { data: lead } = await supabase
+          .from("leads")
+          .select("phone_e164")
+          .eq("id", session.lead_id)
+          .maybeSingle();
+
+        if (cancelled || !lead?.phone_e164 || !funnel) return;
+
+        funnel.setPhone(lead.phone_e164, "none");
+      } catch (err) {
+        console.warn("[PostScanReportSwitcher] phone hydration failed:", err);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [props.scanSessionId, funnel?.phoneE164]);
+
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: props.scanSessionId,
     externalPhoneE164: funnel?.phoneE164 ?? null,
     onVerified: () => {
       funnel?.setPhoneStatus("verified");
-      // Phone will be passed via submitOtp result in handleOtpSubmit
       const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
       if (phone) props.onVerified?.(phone);
     },
@@ -134,7 +169,6 @@ export function PostScanReportSwitcher(props: Props) {
   const handleOtpSubmit = useCallback(async () => {
     if (otpValue.length < 6) return;
     const result = await pipeline.submitOtp(otpValue);
-    // If server returned canonical phone, prefer it for downstream use
     if (result.status === "verified" && result.e164) {
       setCapturedPhone(result.e164);
     }
