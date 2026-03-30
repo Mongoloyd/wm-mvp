@@ -1,4 +1,9 @@
 /**
+ * @deprecated 
+ * DO NOT USE THIS COMPONENT. 
+ * This route is deprecated in favor of TruthReportClassic.tsx.
+ * All new features and bug fixes must go to TruthReportClassic.tsx.
+ */
  * TruthReportFindings — Findings-first post-scan report.
  *
  * Preview mode: findings are fully locked (severity color + pillar only).
