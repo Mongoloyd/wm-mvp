@@ -68,29 +68,25 @@ const parseWindowCount = (val: string): number | null => {
   return null;
 };
 
-const OptionButton = ({
-  label,
-  selected,
-  onClick,
-}: {
-  label: string;
-  selected: boolean;
-  onClick: () => void;
-}) => (
+const OptionButton = ({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) => (
   <button
     onClick={onClick}
     className={`flex items-center justify-between p-4 border transition-all group text-left hover:-translate-y-px ${
       selected
-        ? 'border-primary bg-primary/10 text-primary'
-        : 'border-border bg-card hover:border-primary/50 text-foreground'
+        ? "border-primary bg-primary/10 text-primary"
+        : "border-border bg-card hover:border-primary/50 text-foreground"
     }`}
     style={{
-      borderRadius: 'var(--radius-btn)',
-      boxShadow: selected ? 'var(--shadow-pressed)' : 'var(--shadow-resting)',
+      borderRadius: "var(--radius-btn)",
+      boxShadow: selected ? "var(--shadow-pressed)" : "var(--shadow-resting)",
     }}
   >
     <span className="font-body text-wm-body-soft">{label}</span>
-    <span className={`text-base transition-colors ${selected ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`}>→</span>
+    <span
+      className={`text-base transition-colors ${selected ? "text-primary" : "text-muted-foreground group-hover:text-primary"}`}
+    >
+      →
+    </span>
   </button>
 );
 
@@ -101,7 +97,17 @@ const Spinner = () => (
   </svg>
 );
 
-const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDone }: { onLeadCaptured?: (sessionId: string) => void; onStepChange?: (step: number, county: string) => void; highlight?: boolean; onHighlightDone?: () => void }) => {
+const TruthGateFlow = ({
+  onLeadCaptured,
+  onStepChange,
+  highlight,
+  onHighlightDone,
+}: {
+  onLeadCaptured?: (sessionId: string) => void;
+  onStepChange?: (step: number, county: string) => void;
+  highlight?: boolean;
+  onHighlightDone?: () => void;
+}) => {
   const [glowing, setGlowing] = useState(false);
   const { today: tickerToday } = useTickerStats();
   useEffect(() => {
@@ -163,22 +169,28 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         }, 400);
       }
     },
-    [currentStep]
+    [currentStep],
   );
 
   const validateField = useCallback((field: string, value: string) => {
     switch (field) {
-      case "firstName": return isValidName(value) ? "valid" : "invalid";
-      case "email": return isValidEmail(value) ? "valid" : "invalid";
-      default: return "untouched";
+      case "firstName":
+        return isValidName(value) ? "valid" : "invalid";
+      case "email":
+        return isValidEmail(value) ? "valid" : "invalid";
+      default:
+        return "untouched";
     }
   }, []);
 
-  const handleFieldBlur = useCallback((field: string, value: string) => {
-    if (value.trim().length > 0) {
-      setFieldStatus(prev => ({ ...prev, [field]: validateField(field, value) }));
-    }
-  }, [validateField]);
+  const handleFieldBlur = useCallback(
+    (field: string, value: string) => {
+      if (value.trim().length > 0) {
+        setFieldStatus((prev) => ({ ...prev, [field]: validateField(field, value) }));
+      }
+    },
+    [validateField],
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,7 +210,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
     try {
       // Insert lead row — phone is captured later at LockedOverlay (Just-in-Time OTP)
       const sessionId = crypto.randomUUID();
-      const { error } = await supabase.from('leads').insert({
+      const { error } = await supabase.from("leads").insert({
         session_id: sessionId,
         first_name: answers.firstName,
         email: answers.email,
@@ -207,7 +219,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         project_type: answers.projectType,
         window_count: parseWindowCount(answers.windowCount),
         quote_range: answers.quoteRange,
-        source: 'truth-gate',
+        source: "truth-gate",
       });
 
       if (error) throw error;
@@ -218,35 +230,41 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
       }
 
       // Analytics: track lead capture (no OTP at this stage)
-      supabase.from("event_logs").insert({
-        event_name: "lead_captured_no_phone",
-        session_id: sessionId,
-        metadata: {
-          first_name: answers.firstName,
-          county: answers.county,
-          timestamp: new Date().toISOString(),
-        },
-      }).then(({ error: evtErr }) => {
-        if (evtErr) console.warn("event_log insert failed:", evtErr);
-      });
+      supabase
+        .from("event_logs")
+        .insert({
+          event_name: "lead_captured_no_phone",
+          session_id: sessionId,
+          metadata: {
+            first_name: answers.firstName,
+            county: answers.county,
+            timestamp: new Date().toISOString(),
+          },
+        })
+        .then(({ error: evtErr }) => {
+          if (evtErr) console.warn("event_log insert failed:", evtErr);
+        });
 
       setSubmitState("success");
       onLeadCaptured?.(sessionId);
     } catch (err) {
-      console.error('Lead capture error:', err);
+      console.error("Lead capture error:", err);
 
       // Analytics: track upstream failure
-      supabase.from("event_logs").insert({
-        event_name: "lead_capture_failed",
-        session_id: funnel?.sessionId || null,
-        metadata: {
-          error_message: err instanceof Error ? err.message : String(err),
-          stage: "lead_capture",
-          timestamp: new Date().toISOString(),
-        },
-      }).then(({ error: evtErr }) => {
-        if (evtErr) console.warn("event_log insert failed:", evtErr);
-      });
+      supabase
+        .from("event_logs")
+        .insert({
+          event_name: "lead_capture_failed",
+          session_id: funnel?.sessionId || null,
+          metadata: {
+            error_message: err instanceof Error ? err.message : String(err),
+            stage: "lead_capture",
+            timestamp: new Date().toISOString(),
+          },
+        })
+        .then(({ error: evtErr }) => {
+          if (evtErr) console.warn("event_log insert failed:", evtErr);
+        });
 
       setSubmitState("error");
     }
@@ -267,9 +285,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           className="flex flex-col items-center justify-center py-12 gap-4"
         >
           <Spinner />
-          <p className="font-mono text-wm-body-soft text-primary">
-            Configuring Your Analysis...
-          </p>
+          <p className="font-mono text-wm-body-soft text-primary">Configuring your analysis...</p>
         </motion.div>
       );
     }
@@ -323,9 +339,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
           >
             {cfg.question}
           </h2>
-          <p className="font-body text-wm-body-soft text-muted-foreground mb-7">
-            {cfg.sub}
-          </p>
+          <p className="font-body text-wm-body-soft text-muted-foreground mb-7 text-center">{cfg.sub}</p>
           <div className="grid grid-cols-2 gap-3">
             {cfg.options.map((opt) => (
               <OptionButton
@@ -367,9 +381,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         >
           See What's In Your Quote.
         </h2>
-        <p className="font-body text-wm-body-soft text-muted-foreground mb-6">
-          Enter Your Details To Run The Scan.
-        </p>
+        <p className="font-body text-wm-body-soft text-muted-foreground mb-6">Enter your details to run the scan.</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
@@ -384,7 +396,11 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
                 className={`wm-input-well w-full h-12 px-4 font-body text-[15px] text-foreground outline-none ${
                   fieldStatus.firstName !== "untouched" ? "pr-10" : ""
                 } ${
-                  fieldStatus.firstName === "invalid" ? "border-orange-500" : fieldStatus.firstName === "valid" ? "border-primary" : ""
+                  fieldStatus.firstName === "invalid"
+                    ? "border-orange-500"
+                    : fieldStatus.firstName === "valid"
+                      ? "border-primary"
+                      : ""
                 }`}
                 onBlur={() => handleFieldBlur("firstName", answers.firstName)}
               />
@@ -392,13 +408,13 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               {fieldStatus.firstName === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.firstName === "invalid" && (
-              <p className="font-body text-xs text-orange-500 mt-1">Please Enter Your First Name (2+ characters)</p>
+              <p className="font-body text-xs text-orange-500 mt-1">Please enter your first name (2+ characters)</p>
             )}
           </div>
 
           <div>
             <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
-              EMAIL ADDRESS <span className="text-muted-foreground font-normal">(Your Truth Report Is Sent Here)</span>
+              EMAIL ADDRESS <span className="text-muted-foreground font-normal">(your grade report is sent here)</span>
             </label>
             <div className="relative">
               <input
@@ -410,7 +426,11 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
                 className={`wm-input-well w-full h-12 px-4 font-body text-[15px] text-foreground outline-none ${
                   fieldStatus.email !== "untouched" ? "pr-10" : ""
                 } ${
-                  fieldStatus.email === "invalid" ? "border-orange-500" : fieldStatus.email === "valid" ? "border-primary" : ""
+                  fieldStatus.email === "invalid"
+                    ? "border-orange-500"
+                    : fieldStatus.email === "valid"
+                      ? "border-primary"
+                      : ""
                 }`}
                 onBlur={() => handleFieldBlur("email", answers.email)}
               />
@@ -418,14 +438,13 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
               {fieldStatus.email === "invalid" && <ValidationIcon valid={false} />}
             </div>
             {fieldStatus.email === "invalid" && (
-              <p className="font-body text-xs text-orange-500 mt-1">Please Enter a Valid Email Address</p>
+              <p className="font-body text-xs text-orange-500 mt-1">Please enter a valid email address</p>
             )}
           </div>
 
           <motion.button
             type="submit"
             disabled={submitState === "submitting" || submitState === "success"}
-            
             className="btn-depth-primary w-full"
             style={{
               height: 54,
@@ -456,7 +475,7 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
         <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed text-center mt-4">
           No contractor will be contacted without your permission.
           <br />
-          No Sales Calls. Your Report Is Yours — We Just Help You Read It.
+          No sales calls. Your report is yours — we just help you read it.
         </p>
 
         <div
@@ -477,10 +496,10 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 
   return (
     <section id="truth-gate" className="bg-background">
-      <div className={`mx-auto max-w-2xl px-4 md:px-8 py-20 md:py-28 transition-all duration-500 ${glowing ? 'ring-2 ring-cobalt shadow-lg shadow-cobalt/20' : ''}`}>
-        <p className="text-center mb-2 wm-eyebrow text-muted-foreground">
-          THE SCANNER
-        </p>
+      <div
+        className={`mx-auto max-w-2xl px-4 md:px-8 py-20 md:py-28 transition-all duration-500 ${glowing ? "ring-2 ring-cobalt shadow-lg shadow-cobalt/20" : ""}`}
+      >
+        <p className="text-center mb-2 wm-eyebrow text-muted-foreground">THE SCANNER</p>
         <p className="text-center mb-3 wm-eyebrow text-primary" style={{ fontSize: 11 }}>
           {eyebrowLabels[Math.min(currentStep - 1, 4)]}
         </p>
@@ -508,7 +527,9 @@ const TruthGateFlow = ({ onLeadCaptured, onStepChange, highlight, onHighlightDon
 };
 
 const ValidationIcon = ({ valid }: { valid: boolean }) => (
-  <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-base leading-none ${valid ? "text-primary" : "text-orange-500"}`}>
+  <span
+    className={`absolute right-3 top-1/2 -translate-y-1/2 text-base leading-none ${valid ? "text-primary" : "text-orange-500"}`}
+  >
     {valid ? "✓" : "✗"}
   </span>
 );
