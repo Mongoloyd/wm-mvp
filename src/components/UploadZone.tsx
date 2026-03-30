@@ -145,20 +145,18 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
         } else {
           toast.error("Scan encountered an issue. We'll retry automatically.");
         }
-        await supabase
-          .from("event_logs")
-          .insert({
-            event_name: isRateLimited ? "scan_rate_limited" : "scan_invoke_failed",
-            session_id: sessionId || null,
-            metadata: {
-              scan_session_id: scanSessionId,
-              quote_file_id: quoteFileId,
-              error_message: fnError.message || String(fnError),
-              file_name: file.name,
-              file_size: file.size,
-              timestamp: new Date().toISOString(),
-            },
-          });
+        await supabase.from("event_logs").insert({
+          event_name: isRateLimited ? "scan_rate_limited" : "scan_invoke_failed",
+          session_id: sessionId || null,
+          metadata: {
+            scan_session_id: scanSessionId,
+            quote_file_id: quoteFileId,
+            error_message: fnError.message || String(fnError),
+            file_name: file.name,
+            file_size: file.size,
+            timestamp: new Date().toISOString(),
+          },
+        });
       }
     } catch (err) {
       console.error("Scan error:", err);
@@ -266,12 +264,12 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
             )}
 
             <p className="font-body text-[13px] text-muted-foreground text-center mt-4">
-              Don't have a digital copy?{" "}
+              Don't Have a Digital Copy?{" "}
               <button
                 onClick={() => trackEvent({ event_name: "photo_option_clicked" })}
                 className="font-body text-[13px] text-primary bg-transparent border-none underline cursor-pointer"
               >
-                Take a photo with your phone →
+                Take a Photo With Your Phone →
               </button>
             </p>
             <p className="font-body text-[11px] text-muted-foreground text-center mt-4">
