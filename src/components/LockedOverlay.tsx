@@ -92,10 +92,7 @@ export function LockedOverlay({
   const redCount = flagRedCount ?? flagCount;
 
   // Header text per mode
-  const header =
-    gateMode === "enter_phone"
-      ? "Unlock Your Full Report"
-      : "Enter Your Secure Code";
+  const header = gateMode === "enter_phone" ? "Unlock Your Full Report" : "Enter Your Secure Code";
 
   const subtext =
     gateMode === "enter_phone"
@@ -108,26 +105,17 @@ export function LockedOverlay({
         : ["Enter the code we texted you", "to unlock your full report."];
 
   const progressPercent =
-    gateMode === "enter_phone"
-      ? 50 + (phoneDigitCount / 10) * 40
-      : gateMode === "send_code"
-        ? 85
-        : 95;
+    gateMode === "enter_phone" ? 50 + (phoneDigitCount / 10) * 40 : gateMode === "send_code" ? 85 : 95;
 
-  const stepLabel =
-    gateMode === "enter_code" ? "STEP 2 OF 2" : "STEP 1 OF 2";
-  const stepHint =
-    gateMode === "enter_code" ? "FINAL STEP" : "ALMOST THERE";
+  const stepLabel = gateMode === "enter_code" ? "STEP 2 OF 2" : "STEP 1 OF 2";
+  const stepHint = gateMode === "enter_code" ? "FINAL STEP" : "ALMOST THERE";
 
   const canSubmitPhone = phoneIsValid && tcpaConsent && !isLoading;
 
   return (
     <div className="relative">
       {/* Blurred redacted findings behind */}
-      <div
-        className="flex flex-col gap-3"
-        style={{ filter: "blur(6px)", pointerEvents: "none", userSelect: "none" }}
-      >
+      <div className="flex flex-col gap-3" style={{ filter: "blur(6px)", pointerEvents: "none", userSelect: "none" }}>
         {[1, 2, 3].map((i) => (
           <div
             key={i}
@@ -199,10 +187,7 @@ export function LockedOverlay({
         >
           {/* ─── Progress indicator (Zeigarnik) ─── */}
           <div style={{ marginBottom: 20 }}>
-            <div
-              className="flex items-center justify-between"
-              style={{ marginBottom: 6 }}
-            >
+            <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
               <span
                 className="font-mono"
                 style={{
@@ -290,26 +275,31 @@ export function LockedOverlay({
 
           {/* ─── Error message with contextual recovery ─── */}
           {errorMsg && (
-            <div style={{
-              background: "hsl(var(--color-danger) / 0.08)",
-              border: "1px solid hsl(var(--color-danger) / 0.25)",
-              borderRadius: "var(--radius-card)",
-              padding: "12px 16px",
-              marginBottom: 12,
-              textAlign: "center",
-            }}>
+            <div
+              style={{
+                background: "hsl(var(--color-danger) / 0.08)",
+                border: "1px solid hsl(var(--color-danger) / 0.25)",
+                borderRadius: "var(--radius-card)",
+                padding: "12px 16px",
+                marginBottom: 12,
+                textAlign: "center",
+              }}
+            >
               <div className="flex items-center justify-center gap-2" style={{ marginBottom: 4 }}>
                 {errorType === "rate_limit" ? (
                   <Clock size={14} style={{ color: "hsl(var(--color-caution))", flexShrink: 0 }} />
                 ) : (
                   <AlertCircle size={14} style={{ color: "hsl(var(--color-danger))", flexShrink: 0 }} />
                 )}
-                <p className="font-body" style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: errorType === "rate_limit" ? "hsl(var(--color-caution))" : "hsl(var(--color-danger))",
-                  margin: 0,
-                }}>
+                <p
+                  className="font-body"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: errorType === "rate_limit" ? "hsl(var(--color-caution))" : "hsl(var(--color-danger))",
+                    margin: 0,
+                  }}
+                >
                   {errorMsg}
                 </p>
               </div>
@@ -338,21 +328,27 @@ export function LockedOverlay({
               )}
 
               {errorType === "network" && (
-                <p className="font-body text-muted-foreground" style={{
-                  fontSize: 11,
-                  marginTop: 6,
-                  margin: 0,
-                }}>
+                <p
+                  className="font-body text-muted-foreground"
+                  style={{
+                    fontSize: 11,
+                    marginTop: 6,
+                    margin: 0,
+                  }}
+                >
                   Check your connection and try again.
                 </p>
               )}
 
               {errorType === "rate_limit" && (
-                <p className="font-body text-muted-foreground" style={{
-                  fontSize: 11,
-                  marginTop: 6,
-                  margin: 0,
-                }}>
+                <p
+                  className="font-body text-muted-foreground"
+                  style={{
+                    fontSize: 11,
+                    marginTop: 6,
+                    margin: 0,
+                  }}
+                >
                   This protects your phone from abuse. The limit resets shortly.
                 </p>
               )}
@@ -361,29 +357,37 @@ export function LockedOverlay({
 
           {/* ─── Full-fetch stall recovery ─── */}
           {fetchStalled && (
-            <div style={{
-              background: "hsl(var(--color-danger) / 0.08)",
-              border: "1px solid hsl(var(--color-danger) / 0.25)",
-              borderRadius: "var(--radius-card)",
-              padding: "16px 20px",
-              marginBottom: 12,
-              textAlign: "center",
-            }}>
+            <div
+              style={{
+                background: "hsl(var(--color-danger) / 0.08)",
+                border: "1px solid hsl(var(--color-danger) / 0.25)",
+                borderRadius: "var(--radius-card)",
+                padding: "16px 20px",
+                marginBottom: 12,
+                textAlign: "center",
+              }}
+            >
               <div className="flex items-center justify-center gap-2" style={{ marginBottom: 8 }}>
                 <AlertCircle size={14} style={{ color: "hsl(var(--color-danger))", flexShrink: 0 }} />
-                <p className="font-body" style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "hsl(var(--color-danger))",
-                  margin: 0,
-                }}>
+                <p
+                  className="font-body"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "hsl(var(--color-danger))",
+                    margin: 0,
+                  }}
+                >
                   Report loading failed
                 </p>
               </div>
-              <p className="font-body text-muted-foreground" style={{
-                fontSize: 12,
-                margin: "0 0 12px 0",
-              }}>
+              <p
+                className="font-body text-muted-foreground"
+                style={{
+                  fontSize: 12,
+                  margin: "0 0 12px 0",
+                }}
+              >
                 Your identity was verified, but the full report didn't load. Tap below to retry.
               </p>
               <button
@@ -408,12 +412,7 @@ export function LockedOverlay({
                 className="flex flex-col items-center gap-4"
               >
                 <div className="[&_input]:!bg-transparent [&_input]:!text-foreground">
-                  <InputOTP
-                    maxLength={6}
-                    value={otpValue}
-                    onChange={onOtpChange}
-                    autoFocus
-                  >
+                  <InputOTP maxLength={6} value={otpValue} onChange={onOtpChange} autoFocus>
                     <InputOTPGroup>
                       {[0, 1, 2, 3, 4, 5].map((i) => (
                         <InputOTPSlot
@@ -559,8 +558,7 @@ export function LockedOverlay({
                       textAlign: "center",
                       letterSpacing: "0.03em",
                       outline: "none",
-                      transition:
-                        "border-color 0.2s, box-shadow 0.2s, background 0.2s",
+                      transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s",
                       boxShadow: phoneIsValid
                         ? "0 0 0 4px hsl(var(--color-gold-accent) / 0.15), 0 2px 12px rgba(0,0,0,0.1)"
                         : "0 2px 12px rgba(0,0,0,0.1)",
@@ -627,8 +625,7 @@ export function LockedOverlay({
                       lineHeight: 1.5,
                     }}
                   >
-                    I agree to receive a one-time verification code via SMS.
-                    Msg & data rates may apply. No marketing texts.
+                    I agree to receive a one-time verification code via SMS. Msg & data rates may apply.
                   </span>
                 </label>
 
