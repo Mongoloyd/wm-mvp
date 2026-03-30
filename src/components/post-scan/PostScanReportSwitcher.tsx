@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { Loader2 } from "lucide-react";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { trackEvent } from "@/lib/trackEvent";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
@@ -75,6 +76,11 @@ export function PostScanReportSwitcher(props: Props) {
   const [reportCallRequested, setReportCallRequested] = useState(false);
   const [isCtaLoading, setIsCtaLoading] = useState(false);
   const [suggestedMatch, setSuggestedMatch] = useState<SuggestedMatch | null>(null);
+
+  // ── compare-quotes state ──
+  const [availableComparisons, setAvailableComparisons] = useState<string[]>([]);
+  const [comparisonResult, setComparisonResult] = useState<Record<string, unknown> | null>(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
 
   // ── Hydrate CTA state from DB on mount (prevents duplicates after refresh) ──
   useEffect(() => {
@@ -231,7 +237,54 @@ useEffect(() => {
 
   const handleResend = useCallback(async () => { await pipeline.resend(); }, [pipeline]);
 
-  // ── CTA A: Get Counter-Quote ──
+  // ── Detect 2+ completed analyses for this lead via SECURITY DEFINER RPC ──
+  // Direct queries to scan_sessions and analyses are blocked for anon users (no
+  // SELECT RLS policy). get_comparable_sessions() runs as SECURITY DEFINER and
+  // returns the session IDs for completed analyses belonging to the same lead.
+  useEffect(() => {
+    if (!props.scanSessionId || !props.isFullLoaded) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data, error } = await (supabase.rpc as (fn: string, args: Record<string, unknown>) => ReturnType<typeof supabase.rpc>)(
+        "get_comparable_sessions",
+        { p_scan_session_id: props.scanSessionId }
+      );
+
+      if (cancelled || error || !data) return;
+      const sessionIds = (data as { scan_session_id: string }[]).map((r) => r.scan_session_id);
+      if (sessionIds.length >= 2) {
+        setAvailableComparisons(sessionIds);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [props.scanSessionId, props.isFullLoaded]);
+
+  // ── CTA C: Compare My Quotes ──
+  const handleCompareQuotes = useCallback(async () => {
+    if (availableComparisons.length < 2 || !phoneE164) return;
+    setComparisonLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("compare-quotes", {
+        body: {
+          scan_session_ids: availableComparisons,
+          phone_e164: phoneE164,
+        },
+      });
+      if (error || !data?.success) {
+        console.error("[compare-quotes] failed:", error || data);
+        toast.error("Comparison failed. Please try again.");
+      } else {
+        setComparisonResult(data.comparison);
+      }
+    } catch (err) {
+      console.error("[compare-quotes] error:", err);
+      toast.error("Connection error. Please try again.");
+    } finally {
+      setComparisonLoading(false);
+    }
+  }, [availableComparisons, phoneE164]);
   const handleContractorMatchClick = useCallback(async () => {
     if (!props.scanSessionId || !phoneE164) {
       toast.error("Unable to process request. Please verify your phone number first.");
@@ -326,16 +379,46 @@ useEffect(() => {
   };
 
   return (
-    <TruthReportClassic
-      {...props}
-      accessLevel={accessLevel}
-      gateProps={accessLevel === "preview" ? gateProps : undefined}
-      onContractorMatchClick={handleContractorMatchClick}
-      onReportHelpCall={handleReportHelpCall}
-      introRequested={introRequested}
-      reportCallRequested={reportCallRequested}
-      isCtaLoading={isCtaLoading}
-      suggestedMatch={suggestedMatch}
-    />
+    <>
+      <TruthReportClassic
+        {...props}
+        accessLevel={accessLevel}
+        gateProps={accessLevel === "preview" ? gateProps : undefined}
+        onContractorMatchClick={handleContractorMatchClick}
+        onReportHelpCall={handleReportHelpCall}
+        introRequested={introRequested}
+        reportCallRequested={reportCallRequested}
+        isCtaLoading={isCtaLoading}
+        suggestedMatch={suggestedMatch}
+      />
+      {availableComparisons.length >= 2 && !comparisonResult && (
+        <div className="px-4 pb-6 pt-2">
+          <button
+            onClick={handleCompareQuotes}
+            disabled={comparisonLoading}
+            className="btn-depth-primary w-full"
+            style={{ height: 54, fontSize: 16 }}
+          >
+            {comparisonLoading ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 size={18} className="animate-spin" /> Comparing Quotes...
+              </span>
+            ) : (
+              `Compare My ${availableComparisons.length} Quotes Side-by-Side →`
+            )}
+          </button>
+        </div>
+      )}
+      {comparisonResult && (
+        <div className="glass-card-strong mx-4 mb-6 p-4 rounded-xl">
+          <p className="text-sm font-semibold text-white mb-1">Quote Comparison Ready</p>
+          <p className="text-xs text-white/60">
+            {typeof comparisonResult.summary === "string"
+              ? comparisonResult.summary
+              : "Your quotes have been compared. Contact your advisor for details."}
+          </p>
+        </div>
+      )}
+    </>
   );
 }

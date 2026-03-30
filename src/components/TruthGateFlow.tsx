@@ -392,6 +392,23 @@ const TruthGateFlow = ({
 
       setSubmitState("success");
       onLeadCaptured?.(sessionId);
+
+      // Fire-and-forget: enrich lead with property data (async, non-blocking).
+      // Passes session_id so the edge function can resolve the lead UUID server-side.
+      supabase.functions
+        .invoke("enrich-lead", {
+          body: {
+            session_id: sessionId,
+            county: answers.county,
+            window_count: parseWindowCount(answers.windowCount),
+          },
+        })
+        .then(({ error: enrichErr }) => {
+          if (enrichErr) console.warn("[TruthGateFlow] enrichment failed:", enrichErr);
+        })
+        .catch((invokeErr) => {
+          console.warn("[TruthGateFlow] enrichment invoke rejected:", invokeErr);
+        });
     } catch (err) {
       console.error("Lead capture error:", err);
 
