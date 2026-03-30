@@ -571,7 +571,7 @@ const TruthGateFlow = ({
           <div>
             <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
               EMAIL ADDRESS <span className="text-orange-500">*</span>{" "}
-              <span className="text-muted-foreground font-normal">(your grade report is sent here)</span>
+              <span className="text-muted-foreground font-normal">(Your Free Report is Sent Here)</span>
             </label>
             <div className="relative">
               <input
