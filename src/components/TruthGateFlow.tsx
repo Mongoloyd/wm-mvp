@@ -1,10 +1,14 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
 import { Check } from "lucide-react";
 import { useTickerStats } from "@/hooks/useTickerStats";
 import { supabase } from "@/integrations/supabase/client";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════════════
 
 const stepConfig = [
   {
@@ -41,6 +45,10 @@ const eyebrowLabels = [
   "STEP 4 OF 4 · SCAN CONFIGURED",
 ];
 
+// ═══════════════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════════════
+
 type Answers = {
   windowCount: string;
   projectType: string;
@@ -48,11 +56,16 @@ type Answers = {
   quoteRange: string;
   firstName: string;
   email: string;
+  phone: string;
 };
 
 type TransitionState = "idle" | "loading" | "estimate" | "done";
 type SubmitState = "idle" | "submitting" | "success" | "error";
 type FieldStatus = "untouched" | "valid" | "invalid";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
 
 const slideVariants = {
   enter: { x: 40, opacity: 0 },
@@ -67,6 +80,71 @@ const parseWindowCount = (val: string): number | null => {
   if (val.includes("20+")) return 25;
   return null;
 };
+
+/**
+ * Validate a US phone number entered by the user.
+ * Returns true if empty (field is optional) or if the input looks like a real 10-digit US number.
+ * Blocks junk like all-repeating digits, sequential fakes, and invalid area codes.
+ */
+const isValidPhone = (val: string): boolean => {
+  if (!val || val.trim() === "") return true; // empty is fine — field is optional
+  const digits = val.replace(/\D/g, "");
+
+  // Strip leading country code if user typed +1 or 1
+  const normalized = digits.length === 11 && digits[0] === "1" ? digits.slice(1) : digits;
+
+  // Must be exactly 10 digits
+  if (normalized.length !== 10) return false;
+
+  // US area codes cannot start with 0 or 1
+  if (normalized[0] === "0" || normalized[0] === "1") return false;
+
+  // Reject all-repeating digits (2222222222, 5555555555, etc.)
+  if (/^(\d)\1{9}$/.test(normalized)) return false;
+
+  // Reject common fake sequential numbers
+  if (normalized === "1234567890" || normalized === "0987654321") return false;
+
+  return true;
+};
+
+/**
+ * Normalize a user-entered phone string to E.164 format (+1XXXXXXXXXX).
+ * Returns null if the input is empty or invalid.
+ * Mirrors the server-side normalizePhone.ts logic in the edge functions.
+ */
+const normalizePhoneToE164 = (val: string): string | null => {
+  if (!val || val.trim() === "") return null;
+  const digits = val.replace(/\D/g, "");
+
+  // 10-digit US number → +1XXXXXXXXXX
+  if (/^\d{10}$/.test(digits)) return `+1${digits}`;
+
+  // 11-digit starting with 1 → +1XXXXXXXXXX
+  if (/^1\d{10}$/.test(digits)) return `+${digits}`;
+
+  // Anything else is invalid
+  return null;
+};
+
+/**
+ * Format a phone string for display as (XXX) XXX-XXXX while the user types.
+ * Only formats when we have enough digits; otherwise returns the raw input.
+ */
+const formatPhoneDisplay = (val: string): string => {
+  const digits = val.replace(/\D/g, "");
+  // Strip leading 1 for display
+  const local = digits.length === 11 && digits[0] === "1" ? digits.slice(1) : digits;
+
+  if (local.length === 0) return "";
+  if (local.length <= 3) return `(${local}`;
+  if (local.length <= 6) return `(${local.slice(0, 3)}) ${local.slice(3)}`;
+  return `(${local.slice(0, 3)}) ${local.slice(3, 6)}-${local.slice(6, 10)}`;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SMALL COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════
 
 const OptionButton = ({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) => (
   <button
@@ -97,6 +175,18 @@ const Spinner = () => (
   </svg>
 );
 
+const ValidationIcon = ({ valid }: { valid: boolean }) => (
+  <span
+    className={`absolute right-3 top-1/2 -translate-y-1/2 text-base leading-none ${valid ? "text-primary" : "text-orange-500"}`}
+  >
+    {valid ? "✓" : "✗"}
+  </span>
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════
+
 const TruthGateFlow = ({
   onLeadCaptured,
   onStepChange,
@@ -110,16 +200,26 @@ const TruthGateFlow = ({
 }) => {
   const [glowing, setGlowing] = useState(false);
   const { today: tickerToday } = useTickerStats();
+
+  // Ref to track whether the component is still mounted (for timeout safety)
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
+
   useEffect(() => {
     if (highlight) {
       setGlowing(true);
       const timer = setTimeout(() => {
-        setGlowing(false);
-        onHighlightDone?.();
+        if (mountedRef.current) {
+          setGlowing(false);
+          onHighlightDone?.();
+        }
       }, 1500);
       return () => clearTimeout(timer);
     }
   }, [highlight, onHighlightDone]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [answers, setAnswers] = useState<Answers>({
     windowCount: "",
@@ -128,6 +228,7 @@ const TruthGateFlow = ({
     quoteRange: "",
     firstName: "",
     email: "",
+    phone: "",
   });
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [transitionState, setTransitionState] = useState<TransitionState>("idle");
@@ -135,12 +236,16 @@ const TruthGateFlow = ({
   const [fieldStatus, setFieldStatus] = useState<Record<string, FieldStatus>>({
     firstName: "untouched",
     email: "untouched",
+    phone: "untouched",
   });
   const funnel = useScanFunnelSafe();
 
   const selectedCounty = answers.county || "your county";
   const selectedRange = answers.quoteRange || "your";
 
+  // ── Option selection (quiz steps 1-4) ───────────────────────────────
+  // FIX: Added `answers` to dependency array to prevent stale closure.
+  // The `onStepChange` callback receives the freshest county value.
   const handleOptionClick = useCallback(
     (key: string, value: string) => {
       setSelectedOption(value);
@@ -149,6 +254,7 @@ const TruthGateFlow = ({
 
       if (currentStep < 4) {
         setTimeout(() => {
+          if (!mountedRef.current) return;
           setSelectedOption("");
           setCurrentStep((s) => {
             const next = s + 1;
@@ -157,11 +263,16 @@ const TruthGateFlow = ({
           });
         }, 300);
       } else {
+        // Transition chain: selected → loading → estimate → done
+        // FIX: All timeouts check mountedRef to prevent state updates on unmounted component
         setTimeout(() => {
+          if (!mountedRef.current) return;
           setTransitionState("loading");
           setTimeout(() => {
+            if (!mountedRef.current) return;
             setTransitionState("estimate");
             setTimeout(() => {
+              if (!mountedRef.current) return;
               setTransitionState("done");
               setCurrentStep(5);
             }, 1500);
@@ -169,15 +280,20 @@ const TruthGateFlow = ({
         }, 400);
       }
     },
-    [currentStep],
+    [currentStep, answers, onStepChange],
   );
 
-  const validateField = useCallback((field: string, value: string) => {
+  // ── Field validation ────────────────────────────────────────────────
+  const validateField = useCallback((field: string, value: string): FieldStatus => {
     switch (field) {
       case "firstName":
         return isValidName(value) ? "valid" : "invalid";
       case "email":
         return isValidEmail(value) ? "valid" : "invalid";
+      case "phone":
+        // Empty is valid (optional field). Only validate if user typed something.
+        if (!value || value.trim() === "") return "untouched";
+        return isValidPhone(value) ? "valid" : "invalid";
       default:
         return "untouched";
     }
@@ -192,29 +308,51 @@ const TruthGateFlow = ({
     [validateField],
   );
 
+  // ── Phone input handler with auto-formatting ────────────────────────
+  const handlePhoneChange = useCallback((rawValue: string) => {
+    // Only allow digits, spaces, parens, dashes, plus sign
+    const cleaned = rawValue.replace(/[^\d\s()\-+]/g, "");
+    const formatted = formatPhoneDisplay(cleaned);
+    setAnswers((prev) => ({ ...prev, phone: formatted }));
+
+    // Clear any previous validation error while typing
+    setFieldStatus((prev) => {
+      if (prev.phone === "invalid") return { ...prev, phone: "untouched" };
+      return prev;
+    });
+  }, []);
+
+  // ── Form submission ─────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const nameValid = isValidName(answers.firstName);
     const emailValid = isValidEmail(answers.email);
+    const phoneValid = isValidPhone(answers.phone);
 
     setFieldStatus({
       firstName: nameValid ? "valid" : "invalid",
       email: emailValid ? "valid" : "invalid",
+      // Phone: only mark invalid if they typed something bad
+      phone: answers.phone.trim() === "" ? "untouched" : phoneValid ? "valid" : "invalid",
     });
 
-    if (!nameValid || !emailValid) return;
+    // Block submit if required fields fail OR if optional phone is present but junk
+    if (!nameValid || !emailValid || !phoneValid) return;
 
     setSubmitState("submitting");
 
     try {
-      // Insert lead row — phone is captured later at LockedOverlay (Just-in-Time OTP)
       const sessionId = crypto.randomUUID();
+
+      // Normalize phone to E.164 before DB insert (matches server-side normalizePhone.ts)
+      const phoneE164 = normalizePhoneToE164(answers.phone);
+
       const { error } = await supabase.from("leads").insert({
         session_id: sessionId,
         first_name: answers.firstName,
         email: answers.email,
-        // phone_e164 intentionally omitted — captured at LockedOverlay after scan
+        phone_e164: phoneE164, // null if empty, +1XXXXXXXXXX if provided
         county: answers.county,
         project_type: answers.projectType,
         window_count: parseWindowCount(answers.windowCount),
@@ -224,20 +362,25 @@ const TruthGateFlow = ({
 
       if (error) throw error;
 
-      // Write to ScanFunnelContext (persist sessionId)
+      // Write to ScanFunnelContext (persist sessionId + phone for downstream components)
+      // This is what makes the OTP gate pre-fill the phone instead of asking again.
       if (funnel) {
         funnel.setSessionId(sessionId);
+        if (phoneE164) {
+          funnel.setPhone(phoneE164, "none");
+        }
       }
 
-      // Analytics: track lead capture (no OTP at this stage)
+      // Analytics: track lead capture with phone presence flag
       supabase
         .from("event_logs")
         .insert({
-          event_name: "lead_captured_no_phone",
+          event_name: phoneE164 ? "lead_captured_with_phone" : "lead_captured_no_phone",
           session_id: sessionId,
           metadata: {
             first_name: answers.firstName,
             county: answers.county,
+            has_phone: !!phoneE164,
             timestamp: new Date().toISOString(),
           },
         })
@@ -250,7 +393,7 @@ const TruthGateFlow = ({
     } catch (err) {
       console.error("Lead capture error:", err);
 
-      // Analytics: track upstream failure
+      // Analytics: track upstream failure (restored from original)
       supabase
         .from("event_logs")
         .insert({
@@ -270,6 +413,7 @@ const TruthGateFlow = ({
     }
   };
 
+  // ── Render ──────────────────────────────────────────────────────────
   const progressWidth = currentStep <= 4 ? `${currentStep * 25}%` : "100%";
 
   const renderStepContent = () => {
@@ -354,7 +498,13 @@ const TruthGateFlow = ({
       );
     }
 
-    // Step 5 — Lead Gate (name + email only, phone captured later at LockedOverlay)
+    // ══════════════════════════════════════════════════════════════════
+    // Step 5 — Lead Gate (name + email required, phone optional)
+    //
+    // UX STRATEGY: Asterisks on required fields, NO "(optional)" label
+    // on phone. Users in "form completion mode" fill every field by
+    // habit. Saying "(optional)" gives them permission to skip.
+    // ══════════════════════════════════════════════════════════════════
     return (
       <motion.div
         key="lead-gate"
@@ -384,8 +534,11 @@ const TruthGateFlow = ({
         <p className="font-body text-wm-body-soft text-muted-foreground mb-6">Enter your details to run the scan.</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* ── FIRST NAME (required) ────────────────────────────── */}
           <div>
-            <label className="wm-eyebrow mb-1.5 text-muted-foreground block">FIRST NAME</label>
+            <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
+              FIRST NAME <span className="text-orange-500">*</span>
+            </label>
             <div className="relative">
               <input
                 type="text"
@@ -412,9 +565,11 @@ const TruthGateFlow = ({
             )}
           </div>
 
+          {/* ── EMAIL (required) ──────────────────────────────────── */}
           <div>
             <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
-              EMAIL ADDRESS <span className="text-muted-foreground font-normal">(your grade report is sent here)</span>
+              EMAIL ADDRESS <span className="text-orange-500">*</span>{" "}
+              <span className="text-muted-foreground font-normal">(your grade report is sent here)</span>
             </label>
             <div className="relative">
               <input
@@ -442,6 +597,39 @@ const TruthGateFlow = ({
             )}
           </div>
 
+          {/* ── MOBILE NUMBER (not required, no asterisk, no "optional" label) ── */}
+          <div>
+            <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
+              MOBILE NUMBER
+            </label>
+            <div className="relative">
+              <input
+                type="tel"
+                placeholder="(555) 555-5555"
+                autoComplete="tel"
+                inputMode="tel"
+                value={answers.phone}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                className={`wm-input-well w-full h-12 px-4 font-body text-[15px] text-foreground outline-none ${
+                  fieldStatus.phone !== "untouched" ? "pr-10" : ""
+                } ${
+                  fieldStatus.phone === "invalid"
+                    ? "border-orange-500"
+                    : fieldStatus.phone === "valid"
+                      ? "border-primary"
+                      : ""
+                }`}
+                onBlur={() => handleFieldBlur("phone", answers.phone)}
+              />
+              {fieldStatus.phone === "valid" && <ValidationIcon valid />}
+              {fieldStatus.phone === "invalid" && <ValidationIcon valid={false} />}
+            </div>
+            {fieldStatus.phone === "invalid" && (
+              <p className="font-body text-xs text-orange-500 mt-1">Please enter a valid 10-digit US phone number</p>
+            )}
+          </div>
+
+          {/* ── SUBMIT ────────────────────────────────────────────── */}
           <motion.button
             type="submit"
             disabled={submitState === "submitting" || submitState === "success"}
@@ -525,13 +713,5 @@ const TruthGateFlow = ({
     </section>
   );
 };
-
-const ValidationIcon = ({ valid }: { valid: boolean }) => (
-  <span
-    className={`absolute right-3 top-1/2 -translate-y-1/2 text-base leading-none ${valid ? "text-primary" : "text-orange-500"}`}
-  >
-    {valid ? "✓" : "✗"}
-  </span>
-);
 
 export default TruthGateFlow;
