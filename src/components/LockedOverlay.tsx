@@ -661,7 +661,7 @@ export function LockedOverlay({
               lineHeight: 1.5,
             }}
           >
-            one code · one time · one call
+            Unlock Report + Your Free Review
           </p>
         </motion.div>
       </div>
