@@ -86,8 +86,8 @@ export function getCountyBenchmark(input?: string | null): CountyBenchmark {
 //     .eq("project_type", "all")
 //     .maybeSingle();
 //
-// Map the returned row to CountyBenchmark using:
-//   installed_price_per_opening_low  → installed_price_per_opening_p25
-//   installed_price_per_opening_avg  → installed_price_per_opening_median
-//   installed_price_per_opening_high → installed_price_per_opening_p75
+// Map the returned row `benchmark` to CountyBenchmark as:
+//   CountyBenchmark.installed_price_per_opening_low  = benchmark.installed_price_per_opening_p25
+//   CountyBenchmark.installed_price_per_opening_avg  = benchmark.installed_price_per_opening_median
+//   CountyBenchmark.installed_price_per_opening_high = benchmark.installed_price_per_opening_p75
 // Fall back to SOUTH_FLORIDA_COUNTY_BENCHMARKS if data is null or stale.

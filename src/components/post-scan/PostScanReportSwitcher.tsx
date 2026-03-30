@@ -237,36 +237,24 @@ useEffect(() => {
 
   const handleResend = useCallback(async () => { await pipeline.resend(); }, [pipeline]);
 
-  // ── Detect 2+ completed analyses for this lead (enables compare-quotes CTA) ──
+  // ── Detect 2+ completed analyses for this lead via SECURITY DEFINER RPC ──
+  // Direct queries to scan_sessions and analyses are blocked for anon users (no
+  // SELECT RLS policy). get_comparable_sessions() runs as SECURITY DEFINER and
+  // returns the session IDs for completed analyses belonging to the same lead.
   useEffect(() => {
     if (!props.scanSessionId || !props.isFullLoaded) return;
     let cancelled = false;
 
     (async () => {
-      const { data: session } = await supabase
-        .from("scan_sessions")
-        .select("lead_id")
-        .eq("id", props.scanSessionId)
-        .maybeSingle();
+      const { data, error } = await (supabase.rpc as (fn: string, args: Record<string, unknown>) => ReturnType<typeof supabase.rpc>)(
+        "get_comparable_sessions",
+        { p_scan_session_id: props.scanSessionId }
+      );
 
-      if (cancelled || !session?.lead_id) return;
-
-      const { data: allSessions } = await supabase
-        .from("scan_sessions")
-        .select("id")
-        .eq("lead_id", session.lead_id);
-
-      if (cancelled || !allSessions || allSessions.length < 2) return;
-
-      const { data: completedAnalyses } = await supabase
-        .from("analyses")
-        .select("scan_session_id")
-        .in("scan_session_id", allSessions.map((s) => s.id))
-        .eq("analysis_status", "complete");
-
-      if (cancelled) return;
-      if (completedAnalyses && completedAnalyses.length >= 2) {
-        setAvailableComparisons(completedAnalyses.map((a) => a.scan_session_id));
+      if (cancelled || error || !data) return;
+      const sessionIds = (data as { scan_session_id: string }[]).map((r) => r.scan_session_id);
+      if (sessionIds.length >= 2) {
+        setAvailableComparisons(sessionIds);
       }
     })();
 
