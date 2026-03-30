@@ -275,6 +275,13 @@ export default function ForensicPillarSection({ pillarScores, flags, county, isF
   const ranked = rankPillars(pillarScores, flags);
   const hasProblem = ranked.some((p) => p.status === "fail" || p.status === "warn");
 
+  const handleUnlockClick = () => {
+    const otpSection = document.getElementById("otp-verification-section");
+    if (otpSection) {
+      otpSection.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   return (
     <section className="py-10 md:py-14 px-4 md:px-8 bg-background border-b border-border">
       <div className="max-w-4xl mx-auto">
@@ -317,19 +324,21 @@ export default function ForensicPillarSection({ pillarScores, flags, county, isF
             {/* Unlock overlay */}
             {!isFull && hasProblem && (
               <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
-                <div
-                  className="card-raised flex items-center gap-2"
+                <button
+                  onClick={handleUnlockClick}
+                  className="card-raised flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95"
                   style={{
                     padding: "10px 20px",
                     border: "1px solid hsl(var(--border))",
                     background: "hsl(var(--card) / 0.95)",
                   }}
+                  aria-label="Click to scroll to verification section and unlock report"
                 >
                   <Lock size={14} className="text-muted-foreground" />
                   <span className="font-mono text-muted-foreground" style={{ fontSize: 11, letterSpacing: "0.06em" }}>
                     Unlock To See {ranked.length - 1} More Areas
                   </span>
-                </div>
+                </button>
               </div>
             )}
           </div>

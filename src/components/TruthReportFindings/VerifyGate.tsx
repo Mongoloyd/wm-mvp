@@ -134,6 +134,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
 
   return (
     <motion.div
+      id="otp-verification-section"
       {...fadeUp}
       className="mb-12 border border-gold/30 bg-gold/[0.03] px-5 sm:px-8 py-7"
       role="region"
