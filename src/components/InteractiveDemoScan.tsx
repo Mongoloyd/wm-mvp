@@ -457,9 +457,9 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
         </div>
 
         {/* Persistent CTA below demo */}
-        <div className="mx-auto max-w-[520px] mt-6 text-center">
+        <div className="mx-auto max-w-[520px] mt-6 mb-16 text-center min-h-[80px]">
           <button onClick={handleCtaClick} className="btn-depth-primary w-full" style={{ padding: "16px 32px" }}>
-            Want To See YOUR Quote Graded? →
+            Want to See YOUR Quote Graded? →
           </button>
         </div>
       </div>
