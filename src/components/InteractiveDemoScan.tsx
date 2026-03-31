@@ -307,7 +307,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
           <h2 className="wm-title-section mb-1.5" style={{ fontSize: "clamp(28px, 4vw, 34px)" }}>
             See the AI at work.
           </h2>
-          <p className="wm-body">This runs automatically. No upload required.</p>
+          <p className="wm-body">This Runs Automatically. No Upload Required.</p>
         </div>
 
         <div
