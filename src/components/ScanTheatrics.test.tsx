@@ -89,14 +89,14 @@ describe("ScanTheatrics OTP auto-send", () => {
     await waitFor(() => expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("otp_sent"));
   });
 
-  it("reverts sending_otp to screened_valid on unmount cancellation", async () => {
+  it("preserves sending_otp on unmount cancellation (no rollback to screened_valid)", async () => {
     submitPhoneMock.mockImplementationOnce(() => new Promise(() => {}));
     const { unmount } = render(<ScanTheatrics isActive scanSessionId="scan-1" />);
 
     await waitFor(() => expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("sending_otp"));
     unmount();
 
-    expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("screened_valid");
+    expect(funnelState.setPhoneStatus).not.toHaveBeenCalledWith("screened_valid");
   });
 
   it("does not auto-send before quote is classified as valid", async () => {

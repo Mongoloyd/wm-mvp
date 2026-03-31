@@ -132,6 +132,14 @@ describe("PostScanReportSwitcher shared OTP status wiring", () => {
     expect(screen.getByTestId("error-msg")).toHaveTextContent("Send or confirm your number to receive a code.");
   });
 
+  it("keeps send_code non-loading only for screened_valid (pre-send), not for in-flight sending_otp", () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "screened_valid";
+    render(<PostScanReportSwitcher {...baseProps()} />);
+    expect(screen.getByTestId("gate-mode")).toHaveTextContent("send_code");
+    expect(screen.getByTestId("is-loading")).toHaveTextContent("false");
+  });
+
   it("shows enter_phone mode when no phone exists", () => {
     render(<PostScanReportSwitcher {...baseProps()} />);
     expect(screen.getByTestId("gate-mode")).toHaveTextContent("enter_phone");
