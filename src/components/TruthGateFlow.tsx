@@ -679,7 +679,7 @@ const TruthGateFlow = ({
         <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed text-center mt-4">
           Your Free Report is Yours
           <br />
-          We Just Help You Understand It Much Better
+          We Just Help You Understand It Better
         </p>
 
         <div
