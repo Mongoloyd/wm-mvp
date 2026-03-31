@@ -17,9 +17,9 @@ import React, { createContext, useContext, useState, useCallback, useMemo } from
 
 export type PhoneFunnelStatus =
   | "none"
-  | "validated"
+  | "sending_otp"
   | "otp_sent"
-  | "otp_failed"
+  | "send_failed"
   | "verified";
 
 export interface ScanFunnelState {

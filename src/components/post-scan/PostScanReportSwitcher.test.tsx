@@ -1,0 +1,138 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import React from "react";
+import { PostScanReportSwitcher } from "./PostScanReportSwitcher";
+
+const { mockUseReportAccess, mockUseScanFunnelSafe, mockUsePhonePipeline } = vi.hoisted(() => ({
+  mockUseReportAccess: vi.fn(),
+  mockUseScanFunnelSafe: vi.fn(),
+  mockUsePhonePipeline: vi.fn(),
+}));
+
+vi.mock("@/hooks/useReportAccess", () => ({
+  useReportAccess: mockUseReportAccess,
+}));
+
+vi.mock("@/state/scanFunnel", () => ({
+  useScanFunnelSafe: mockUseScanFunnelSafe,
+}));
+
+vi.mock("@/hooks/usePhonePipeline", () => ({
+  usePhonePipeline: mockUsePhonePipeline,
+}));
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      insert: vi.fn().mockResolvedValue({ data: null, error: null }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    })),
+    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: { success: true }, error: null }),
+    },
+  },
+}));
+
+vi.mock("../TruthReportClassic", () => ({
+  default: ({ gateProps }: { gateProps?: any }) => (
+    <div>
+      <div data-testid="gate-mode">{gateProps?.gateMode ?? "none"}</div>
+      <div data-testid="is-loading">{String(!!gateProps?.isLoading)}</div>
+      <div data-testid="error-msg">{gateProps?.errorMsg ?? ""}</div>
+      <button onClick={gateProps?.onResend}>resend</button>
+    </div>
+  ),
+}));
+
+vi.mock("sonner", () => ({
+  toast: { error: vi.fn(), success: vi.fn() },
+}));
+
+function baseProps() {
+  return {
+    grade: "C",
+    flags: [],
+    pillarScores: [],
+    contractorName: null,
+    county: "Miami-Dade",
+    confidenceScore: 0.8,
+    documentType: "quote",
+    onSecondScan: vi.fn(),
+    scanSessionId: "scan-1",
+    onVerified: vi.fn(),
+    isFullLoaded: false,
+  };
+}
+
+describe("PostScanReportSwitcher shared OTP status wiring", () => {
+  let funnelState: any;
+  let resendMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseReportAccess.mockReturnValue("preview");
+
+    funnelState = {
+      phoneE164: null,
+      phoneStatus: "none",
+      setPhone: vi.fn(),
+      setPhoneStatus: vi.fn(),
+      sessionId: "sess-1",
+    };
+    mockUseScanFunnelSafe.mockImplementation(() => funnelState);
+
+    resendMock = vi.fn().mockResolvedValue(undefined);
+    mockUsePhonePipeline.mockReturnValue({
+      displayValue: "",
+      rawDigits: "",
+      e164: null,
+      inputComplete: false,
+      phoneStatus: "idle",
+      errorMsg: "",
+      errorType: null,
+      resendCooldown: 0,
+      handlePhoneChange: vi.fn(),
+      submitPhone: vi.fn(),
+      submitOtp: vi.fn(),
+      resend: resendMock,
+      reset: vi.fn(),
+    });
+  });
+
+  it("shows code entry mode when shared status is otp_sent", () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "otp_sent";
+    render(<PostScanReportSwitcher {...baseProps()} />);
+    expect(screen.getByTestId("gate-mode")).toHaveTextContent("enter_code");
+  });
+
+  it("shows send_code mode and loading while shared status is sending_otp", () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "sending_otp";
+    render(<PostScanReportSwitcher {...baseProps()} />);
+    expect(screen.getByTestId("gate-mode")).toHaveTextContent("send_code");
+    expect(screen.getByTestId("is-loading")).toHaveTextContent("true");
+  });
+
+  it("shows fallback copy when shared status is send_failed", () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "send_failed";
+    render(<PostScanReportSwitcher {...baseProps()} />);
+    expect(screen.getByTestId("error-msg")).toHaveTextContent("Send or confirm your number to receive a code.");
+  });
+
+  it("shows enter_phone mode when no phone exists", () => {
+    render(<PostScanReportSwitcher {...baseProps()} />);
+    expect(screen.getByTestId("gate-mode")).toHaveTextContent("enter_phone");
+  });
+
+  it("manual resend still calls pipeline.resend", async () => {
+    render(<PostScanReportSwitcher {...baseProps()} />);
+    fireEvent.click(screen.getByText("resend"));
+    await waitFor(() => expect(resendMock).toHaveBeenCalledTimes(1));
+  });
+});
