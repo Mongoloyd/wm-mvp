@@ -33,10 +33,7 @@ const PIPELINE_TO_OUTCOME: Record<string, OtpVerifyOutcome> = {
 };
 
 // ── GateMode derivation ─────────────────────────────────────────────────────
-function deriveGateMode(
-  funnelPhoneStatus: string | undefined,
-  funnelPhoneE164: string | null | undefined
-): GateMode {
+function deriveGateMode(funnelPhoneStatus: string | undefined, funnelPhoneE164: string | null | undefined): GateMode {
   if (funnelPhoneStatus === "otp_sent" || funnelPhoneStatus === "verified") {
     return "enter_code";
   }
@@ -56,29 +53,19 @@ function useCountyForSession(sessionId: string | undefined): string {
 
     async function fetchCounty() {
       try {
-        const { data: session } = await supabase
-          .from("scan_sessions")
-          .select("lead_id")
-          .eq("id", sessionId)
-          .single();
+        const { data, error } = await supabase.rpc("get_county_by_scan_session", { p_scan_session_id: sessionId });
 
-        if (cancelled || !session?.lead_id) return;
-
-        const { data: lead } = await supabase
-          .from("leads")
-          .select("county")
-          .eq("id", session.lead_id)
-          .single();
-
-        if (cancelled || !lead?.county) return;
-        setCounty(lead.county);
+        if (cancelled || error || !data || data.length === 0) return;
+        setCounty(data[0].county);
       } catch {
         // Silently fall back to default
       }
     }
 
     fetchCounty();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [sessionId]);
 
   return county;
@@ -96,10 +83,14 @@ export default function ReportClassic() {
   const funnel = useScanFunnelSafe();
 
   // ── Data loading ───────────────────────────────────────────────────────
-  const { data: analysisData, isLoading, error, fetchFull, isLoadingFull, isFullLoaded } = useAnalysisData(
-    sessionId ?? null,
-    !!sessionId
-  );
+  const {
+    data: analysisData,
+    isLoading,
+    error,
+    fetchFull,
+    isLoadingFull,
+    isFullLoaded,
+  } = useAnalysisData(sessionId ?? null, !!sessionId);
 
   // ── County resolution ──────────────────────────────────────────────────
   const county = useCountyForSession(sessionId);
@@ -151,7 +142,9 @@ export default function ReportClassic() {
           setSuggestedMatch(data.suggested_match_snapshot as unknown as SuggestedMatch);
         }
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [sessionId, isFullLoaded]);
 
   // ── Gate mode derived from funnel state ────────────────────────────────
@@ -218,15 +211,17 @@ export default function ReportClassic() {
       }
 
       // Fire voice followup webhook
-      supabase.functions.invoke("voice-followup", {
-        body: {
-          scan_session_id: sessionId,
-          phone_e164: phoneE164,
-          call_intent: "contractor_intro",
-          cta_source: "intro_request",
-          opportunity_id: data.opportunity_id,
-        },
-      }).catch(err => console.warn("[ReportClassic] voice followup failed", err));
+      supabase.functions
+        .invoke("voice-followup", {
+          body: {
+            scan_session_id: sessionId,
+            phone_e164: phoneE164,
+            call_intent: "contractor_intro",
+            cta_source: "intro_request",
+            opportunity_id: data.opportunity_id,
+          },
+        })
+        .catch((err) => console.warn("[ReportClassic] voice followup failed", err));
 
       setIntroRequested(true);
     } catch (err) {
@@ -324,7 +319,16 @@ export default function ReportClassic() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md px-5">
           <div className="w-16 h-16 mx-auto mb-6 rounded-none border-2 border-destructive/40 flex items-center justify-center">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--destructive))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="hsl(var(--destructive))"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -333,9 +337,7 @@ export default function ReportClassic() {
           <h1 className="font-heading text-xl font-bold text-foreground uppercase tracking-wider mb-3">
             {terminalMsg.title}
           </h1>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-            {terminalMsg.body}
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-8">{terminalMsg.body}</p>
           <a
             href="/"
             className="inline-block bg-primary text-primary-foreground font-semibold text-sm px-8 py-3 rounded-none hover:bg-primary/90 transition-colors duration-150"
@@ -356,9 +358,7 @@ export default function ReportClassic() {
           <h1 className="font-heading text-xl font-bold text-foreground uppercase tracking-wider mb-2">
             Report Not Found
           </h1>
-          <p className="text-sm text-muted-foreground mb-6">
-            {error || "We couldn't find a report for this session."}
-          </p>
+          <p className="text-sm text-muted-foreground mb-6">{error || "We couldn't find a report for this session."}</p>
           <a
             href="/"
             className="inline-block bg-muted border border-border text-muted-foreground text-sm font-semibold px-6 py-2.5 rounded-none hover:bg-muted/80 transition-colors duration-150"
@@ -383,10 +383,7 @@ export default function ReportClassic() {
     phoneDigitCount: pipeline.rawDigits.length,
     onPhoneChange: pipeline.handlePhoneChange,
     onPhoneSubmit: handlePhoneSubmit,
-    isLoading:
-      pipeline.phoneStatus === "sending_otp" ||
-      pipeline.phoneStatus === "verifying" ||
-      isLoadingFull,
+    isLoading: pipeline.phoneStatus === "sending_otp" || pipeline.phoneStatus === "verifying" || isLoadingFull,
     errorMsg: pipeline.errorMsg,
     resendCooldown: pipeline.resendCooldown,
     onResend: handleResend,
