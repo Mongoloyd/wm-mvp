@@ -691,7 +691,7 @@ const TruthGateFlow = ({
             style={{ width: 8, height: 8, backgroundColor: "#2563EB", borderRadius: "50%", display: "inline-block" }}
           />
           <span className="font-mono text-[11px] text-muted-foreground">
-            {tickerToday} homeowners in {selectedCounty} found red flags today
+            {tickerToday} Homeowners in {selectedCounty} Found Red Flags Today
           </span>
         </div>
       </motion.div>
