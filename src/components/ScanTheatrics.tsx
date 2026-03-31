@@ -62,6 +62,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
   });
 
   const autoSendGuardRef = useRef<Set<string>>(new Set());
+  const activeGuardKeyRef = useRef<string | null>(null);
   const submitPhoneRef = useRef<(() => Promise<PipelineStartResult>) | null>(null);
 
   const [phase, setPhase] = useState<Phase>("scanning");
@@ -96,39 +97,34 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     if (autoSendGuardRef.current.has(guardKey)) return;
     autoSendGuardRef.current.add(guardKey);
 
-    let cancelled = false;
-    let reachedTerminalState = false;
+    activeGuardKeyRef.current = guardKey;
     funnel.setPhoneStatus("sending_otp");
 
     (async () => {
       try {
         const result = await submitPhoneRef.current?.();
-        if (cancelled || !result) {
-          return;
-        }
+        if (!result) return;
+
+        // Relevance guard: only write terminal state if this request
+        // is still the active one (same scan session / phone key).
+        if (activeGuardKeyRef.current !== guardKey) return;
 
         if (result.status === "otp_sent") {
-          reachedTerminalState = true;
           funnel.setPhoneStatus("otp_sent");
         } else {
-          reachedTerminalState = true;
           funnel.setPhoneStatus("send_failed");
         }
       } catch (err) {
-        if (!cancelled) {
-          console.error("[ScanTheatrics] auto-send failed:", err);
-          reachedTerminalState = true;
+        console.error("[ScanTheatrics] auto-send failed:", err);
+        if (activeGuardKeyRef.current === guardKey) {
           funnel.setPhoneStatus("send_failed");
         }
       }
     })();
 
-    return () => {
-      cancelled = true;
-      // Intentionally preserve shared "sending_otp" across normal unmount/handoff.
-      // This prevents the post-scan gate from regressing to clickable pre-send UI
-      // ("Get Your Code") while an OTP send has already been triggered upstream.
-    };
+    // Intentionally no cleanup that suppresses terminal state writes.
+    // The in-flight request writes otp_sent / send_failed via the
+    // relevance guard (activeGuardKeyRef) even after unmount/handoff.
   }, [isActive, resolvedScanSessionId, scanStatus, funnel?.phoneE164, funnel?.setPhoneStatus]);
 
   const clearTimers = useCallback(() => {

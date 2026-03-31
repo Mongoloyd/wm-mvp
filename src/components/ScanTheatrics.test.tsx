@@ -154,4 +154,50 @@ describe("ScanTheatrics OTP auto-send", () => {
     rerender(<ScanTheatrics isActive scanSessionId="scan-2" />);
     await waitFor(() => expect(submitPhoneMock).toHaveBeenCalledTimes(3));
   });
+
+  it("writes otp_sent to shared funnel after unmount instead of staying stuck in sending_otp", async () => {
+    // Deferred promise we control — simulates in-flight OTP send
+    let resolveOtp!: (val: { status: string; e164: string }) => void;
+    submitPhoneMock.mockImplementationOnce(
+      () => new Promise((resolve) => { resolveOtp = resolve; })
+    );
+
+    const { unmount } = render(<ScanTheatrics isActive scanSessionId="scan-1" />);
+
+    await waitFor(() => {
+      expect(submitPhoneMock).toHaveBeenCalledTimes(1);
+      expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("sending_otp");
+    });
+
+    // Unmount before OTP promise resolves (simulates handoff to PostScan)
+    unmount();
+
+    // Resolve OTP send *after* unmount
+    resolveOtp({ status: "otp_sent", e164: "+13055551234" });
+    await waitFor(() => {
+      expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("otp_sent");
+    });
+  });
+
+  it("writes send_failed to shared funnel after unmount on OTP error", async () => {
+    let rejectOtp!: (err: Error) => void;
+    submitPhoneMock.mockImplementationOnce(
+      () => new Promise((_, reject) => { rejectOtp = reject; })
+    );
+
+    const { unmount } = render(<ScanTheatrics isActive scanSessionId="scan-1" />);
+
+    await waitFor(() => {
+      expect(submitPhoneMock).toHaveBeenCalledTimes(1);
+      expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("sending_otp");
+    });
+
+    unmount();
+
+    // Reject after unmount
+    rejectOtp(new Error("network failure"));
+    await waitFor(() => {
+      expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("send_failed");
+    });
+  });
 });
