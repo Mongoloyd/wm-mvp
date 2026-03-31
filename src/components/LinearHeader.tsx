@@ -1,8 +1,6 @@
 import "@fontsource/dm-sans/800.css";
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck } from "lucide-react";
 
 interface LinearHeaderProps {
   ctaText?: string;
@@ -36,10 +34,13 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
           aria-label="WindowMan.PRO home"
         >
           <span className="relative overflow-hidden inline-flex">
-            <ShieldCheck
-              size={20}
-              className="text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_6px_rgba(37,99,235,0.7)]"
-            />
+            <span
+              role="img"
+              aria-label="shield"
+              className="text-[20px] transition-all duration-300 group-hover:drop-shadow-[0_0_6px_rgba(37,99,235,0.7)]"
+            >
+              🛡️
+            </span>
           </span>
           <span className="font-display" style={{ fontWeight: 800, fontSize: 20, letterSpacing: "0.02em" }}>
             <span className="text-foreground">WINDOW</span>
@@ -55,11 +56,7 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
 
         {/* Desktop nav — compact CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <button
-            className="btn-depth-primary"
-            style={{ padding: "10px 20px", fontSize: 14 }}
-            onClick={onCtaClick}
-          >
+          <button className="btn-depth-primary" style={{ padding: "10px 20px", fontSize: 14 }} onClick={onCtaClick}>
             {ctaText}
           </button>
         </div>
