@@ -166,7 +166,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <h1 className="font-display text-foreground" style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.2 }}>
               WindowMan Truth Report™
             </h1>
-            <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 14 }}>
+            <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 16 }}>
               {county} County · {reportDate} · {documentType ? humanizeDocType(documentType) : "Quote Document"}
             </p>
           </div>
@@ -174,7 +174,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             {isFull && confidenceScore != null &&
             <div className="text-right hidden md:block">
                 <p className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.08em" }}>CONFIDENCE</p>
-                <p className="font-mono" style={{ fontSize: 18, fontWeight: 700, color: confidenceScore >= 70 ? "hsl(var(--color-emerald))" : "hsl(var(--color-caution))" }}>{Math.round(confidenceScore)}%</p>
+                <p className="font-mono" style={{ fontSize: 20, fontWeight: 700, color: confidenceScore >= 70 ? "hsl(var(--color-emerald))" : "hsl(var(--color-caution))" }}>{Math.round(confidenceScore)}%</p>
               </div>
             }
             <motion.div
@@ -200,7 +200,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 GRADE {grade} — {config.label}
               </span>
             </div>
-            <p className="font-body text-foreground/90" style={{ fontSize: 15 }}>{config.verdict}</p>
+            <p className="font-body text-foreground/90" style={{ fontSize: 16 }}>{config.verdict}</p>
           </div>
 
           {/* Summary chips — affirmative only, preview mode */}
@@ -208,7 +208,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <div className="flex flex-wrap gap-2 mt-3">
               {qualityBand && (
                 <span className="font-mono" style={{
-                  fontSize: 10, fontWeight: 700,
+                  fontSize: 12, fontWeight: 700,
                   color: qualityBand === "good" ? "hsl(var(--color-emerald))" : qualityBand === "fair" ? "hsl(var(--color-caution))" : "hsl(var(--muted-foreground))",
                   background: qualityBand === "good" ? "hsl(var(--color-emerald) / 0.12)" : qualityBand === "fair" ? "hsl(var(--color-caution) / 0.12)" : "hsl(var(--muted-foreground) / 0.12)",
                   padding: "3px 10px", letterSpacing: "0.06em",
@@ -218,7 +218,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               )}
               {hasWarranty === true && (
                 <span className="font-mono" style={{
-                  fontSize: 10, fontWeight: 700,
+                  fontSize: 12, fontWeight: 700,
                   color: "hsl(var(--color-emerald))", background: "hsl(var(--color-emerald) / 0.12)",
                   padding: "3px 10px", letterSpacing: "0.06em",
                 }}>
@@ -227,7 +227,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               )}
               {hasPermits === true && (
                 <span className="font-mono" style={{
-                  fontSize: 10, fontWeight: 700,
+                  fontSize: 12, fontWeight: 700,
                   color: "hsl(var(--color-emerald))", background: "hsl(var(--color-emerald) / 0.12)",
                   padding: "3px 10px", letterSpacing: "0.06em",
                 }}>
@@ -247,23 +247,23 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               DOCUMENT VERIFIED
             </span>
             {pageCount != null && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
+              <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
                 Multi-page document analyzed
               </span>
             )}
             {lineItemCount != null && lineItemCount > 0 && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
+              <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
                 · Detailed line items detected
               </span>
             )}
             {contractorName && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
+              <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
                 · Contractor identified
               </span>
             )}
             {confidenceScore != null && (
               <span className="font-mono" style={{
-                fontSize: 10, fontWeight: 700, marginLeft: "auto",
+                fontSize: 12, fontWeight: 700, marginLeft: "auto",
                 color: confidenceScore >= 55 ? "hsl(var(--color-emerald))" : "hsl(var(--color-caution))",
                 background: confidenceScore >= 55 ? "hsl(var(--color-emerald) / 0.12)" : "hsl(var(--color-caution) / 0.12)",
                 padding: "2px 10px", letterSpacing: "0.06em",
@@ -308,7 +308,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       )}
 
       {/* ─── FORENSIC FINDINGS ─── */}
-      <section className="py-10 md:py-14 px-4 md:px-8 bg-background border-b border-border">
+      <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
           <motion.div {...stagger(3)}>
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
@@ -392,7 +392,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                           }}>{pillarLabel}</span>
                           }
                           </div>
-                          <p className="font-body text-foreground" style={{ fontSize: 16, fontWeight: 700 }}>{flag.label}</p>
+                          <p className="font-body text-foreground" style={{ fontSize: 18, fontWeight: 700 }}>{flag.label}</p>
                         </div>
                         <div className="text-muted-foreground" style={{ flexShrink: 0, marginTop: 4 }}>
                           {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -413,7 +413,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                       }}>
                               <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
                               <div>
-                                <p className="font-mono" style={{ fontSize: 9, color: "hsl(var(--color-gold-accent))", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>
+                                <p className="font-mono" style={{ fontSize: 10, color: "hsl(var(--color-gold-accent))", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>
                                   WHAT TO DO
                                 </p>
                                 <p className="font-body text-foreground/90" style={{ fontSize: 13, lineHeight: 1.6 }}>{flag.tip}</p>
@@ -447,24 +447,24 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
           {/* Summary bar */}
           <div className="card-raised flex flex-col md:flex-row md:items-center md:justify-between gap-2" style={{ padding: "14px 20px", marginTop: 16 }}>
-            <p className="font-body text-foreground" style={{ fontSize: 14 }}>
+            <p className="font-body text-foreground" style={{ fontSize: 16 }}>
               {redCount} critical, {amberCount} caution, {greenCount} confirmed across 5 pillars.
             </p>
-            <p className="font-mono text-foreground" style={{ fontSize: 12 }}>Grade {grade} · {isFull ? flags.length : (flagCountProp ?? flags.length)} items reviewed</p>
+            <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {isFull ? flags.length : (flagCountProp ?? flags.length)} items reviewed</p>
           </div>
         </div>
       </section>
 
       {/* ─── NEGOTIATION SCRIPT ─── */}
       {isFull &&
-      <section className="py-10 md:py-14 px-4 md:px-8 bg-background border-b border-border">
+      <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
           <div className="max-w-4xl mx-auto">
             <motion.div {...stagger(6)}>
               <span className="wm-eyebrow" style={{ color: "hsl(var(--color-cyan))" }}>NEGOTIATION TOOL</span>
               <h2 className="wm-title-section text-foreground" style={{ marginTop: 4, marginBottom: 6 }}>
                 Your Word-for-Word Script
               </h2>
-              <p className="font-body text-muted-foreground" style={{ fontSize: 14, marginBottom: 20 }}>
+              <p className="font-body text-muted-foreground" style={{ fontSize: 16, marginBottom: 20 }}>
                 Customized for {displayName} based on the {issueCount} issue{issueCount !== 1 ? "s" : ""} found in your quote.
               </p>
             </motion.div>
