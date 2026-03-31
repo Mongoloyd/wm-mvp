@@ -6,12 +6,12 @@
  * TruthReportClassic remains pure UI — zero Twilio/Supabase knowledge.
  *
  * Data source: useAnalysisData (existing hook, fetches via get_analysis_preview RPC)
- * County:      fetched from leads table via scan_sessions.lead_id join
+ * County:      fetched from leads table via narrow RPC (get_county_by_scan_session)
  * Gate:        LockedOverlay props built from usePhonePipeline + funnel context
  * CTAs:        generate-contractor-brief + voice-followup edge functions
  */
 
-import { useState, useCallback, useEffect, Component, type ReactNode, type ErrorInfo } from "react";
+import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
@@ -53,12 +53,18 @@ function useCountyForSession(sessionId: string | undefined): string {
 
     async function fetchCounty() {
       try {
-        const { data, error } = await supabase.rpc("get_county_by_scan_session", { p_scan_session_id: sessionId });
+        // Use (supabase.rpc as any) to bypass the TypeScript "Missing Function" error
+        const { data, error } = await (supabase.rpc as any)("get_county_by_scan_session", {
+          p_scan_session_id: sessionId,
+        });
 
-        if (cancelled || error || !data || data.length === 0) return;
-        setCounty(data[0].county);
-      } catch {
-        // Silently fall back to default
+        // Use (data as any[]) to bypass the "Property county does not exist" error
+        if (cancelled || error || !data || (data as any[]).length === 0) return;
+
+        const result = data as any[];
+        setCounty(result[0].county);
+      } catch (err) {
+        console.warn("[ReportClassic] County fetch failed:", err);
       }
     }
 
