@@ -350,7 +350,6 @@ function captureUtmParams(): UtmParams | undefined {
 // GTM DATALAYER
 // ═══════════════════════════════════════════════════════════════════════════════
 
-
 /**
  * Push event to GTM dataLayer
  */
@@ -540,7 +539,13 @@ async function resolveIdentityByEmail(email: string, currentSession: SessionData
     const client = getSupabaseClient();
     if (!client) return currentSession;
 
-    const { data: existingLead, error } = await client.from("leads").select("*").eq("email", email).single();
+    // Use narrow RPC — returns only session-resumption fields, not 120+ PII columns
+    const { data: rpcResult, error } = await client.rpc("get_lead_by_email", {
+      p_email: email,
+    });
+
+    // RPC returns an array (TABLE return type); mimic .single() behavior
+    const existingLead = rpcResult && rpcResult.length > 0 ? rpcResult[0] : null;
 
     if (error || !existingLead) {
       return currentSession;
