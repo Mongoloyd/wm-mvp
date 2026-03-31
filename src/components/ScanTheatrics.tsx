@@ -125,11 +125,9 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
 
     return () => {
       cancelled = true;
-      // True cancellation fallback: if we unmount/navigate while request is still in-flight,
-      // avoid leaving shared state stranded in "sending_otp".
-      if (!reachedTerminalState) {
-        funnel.setPhoneStatus("screened_valid");
-      }
+      // Intentionally preserve shared "sending_otp" across normal unmount/handoff.
+      // This prevents the post-scan gate from regressing to clickable pre-send UI
+      // ("Get Your Code") while an OTP send has already been triggered upstream.
     };
   }, [isActive, resolvedScanSessionId, scanStatus, funnel?.phoneE164, funnel?.setPhoneStatus]);
 
