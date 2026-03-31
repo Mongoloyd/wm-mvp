@@ -126,8 +126,8 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
                 <p className="font-body text-wm-label text-foreground mb-2">Check Your County Rate..</p>
                 <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed">
                   Homeowners {locationLabel} saved an average of{" "}
-                  <span className="font-mono font-bold text-destructive">${stats.savings.toLocaleString()}</span> after
-                  scanning. Yours takes 60 seconds.
+                  <span className="font-mono font-bold text-destructive">${stats.savings.toLocaleString()}</span> After
+                  Scanning. Yours Takes 60 Seconds.
                 </p>
               </div>
 
