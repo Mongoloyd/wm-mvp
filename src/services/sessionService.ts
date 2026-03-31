@@ -539,13 +539,14 @@ async function resolveIdentityByEmail(email: string, currentSession: SessionData
     const client = getSupabaseClient();
     if (!client) return currentSession;
 
-    // Use narrow RPC — returns only session-resumption fields, not 120+ PII columns
-    const { data: rpcResult, error } = await client.rpc("get_lead_by_email", {
+    // 1. Call the secure RPC (Use 'as any' to bypass the build error for unregistered functions)
+    const { data: rpcResult, error } = await (client.rpc as any)("get_lead_by_email", {
       p_email: email,
     });
 
-    // RPC returns an array (TABLE return type); mimic .single() behavior
-    const existingLead = rpcResult && rpcResult.length > 0 ? rpcResult[0] : null;
+    // 2. Cast result to any[] to safely handle the first record
+    const result = rpcResult as any[];
+    const existingLead = result && result.length > 0 ? result[0] : null;
 
     if (error || !existingLead) {
       return currentSession;
@@ -556,12 +557,12 @@ async function resolveIdentityByEmail(email: string, currentSession: SessionData
       ...currentSession,
       // Use existing leadId if available
       leadId: existingLead.id || currentSession.leadId,
-      // Keep earliest firstSeenAt
+      // Keep earliest firstSeenAt (matches the 'created_at' column from the RPC)
       firstSeenAt:
-        existingLead.first_seen_at && new Date(existingLead.first_seen_at) < new Date(currentSession.firstSeenAt)
-          ? existingLead.first_seen_at
+        existingLead.created_at && new Date(existingLead.created_at) < new Date(currentSession.firstSeenAt)
+          ? existingLead.created_at
           : currentSession.firstSeenAt,
-      // Preserve first-touch UTM from original session
+      // Preserve first-touch UTM from original session (stored in session_data column)
       initialUtm: existingLead.session_data?.initialUtm || currentSession.initialUtm,
       initialReferrer: existingLead.session_data?.initialReferrer || currentSession.initialReferrer,
       landingPage: existingLead.session_data?.landingPage || currentSession.landingPage,
