@@ -12,6 +12,42 @@ const COOLDOWN_SECONDS = 30;        // min gap between sends for same phone
 const WINDOW_MINUTES = 10;          // rolling window
 const MAX_SENDS_PER_WINDOW = 5;     // max sends in that window
 
+async function runPhoneLookup(phoneE164: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+  const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+  const lookupEnabled = Deno.env.get("TWILIO_LOOKUP_ENABLED") === "true";
+
+  // Fail-open unless explicitly enabled. This keeps blast radius small in environments
+  // where lookup credentials/permissions are not configured yet.
+  if (!lookupEnabled || !accountSid || !authToken) {
+    return { ok: true };
+  }
+
+  try {
+    const encodedPhone = encodeURIComponent(phoneE164);
+    const res = await fetch(
+      `https://lookups.twilio.com/v2/PhoneNumbers/${encodedPhone}?Fields=line_type_intelligence`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Basic " + btoa(`${accountSid}:${authToken}`),
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("[send-otp] Twilio Lookup failed:", { status: res.status, body });
+      return { ok: false, reason: "Phone number could not be verified. Please check your number." };
+    }
+
+    return { ok: true };
+  } catch (err) {
+    console.error("[send-otp] Twilio Lookup exception:", err);
+    return { ok: false, reason: "Phone screening unavailable. Please try again." };
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -32,6 +68,14 @@ Deno.serve(async (req) => {
     if (!/^\+1\d{10}$/.test(phone_e164)) {
       return new Response(
         JSON.stringify({ error: "Invalid US phone number. Expected format: +1XXXXXXXXXX" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const lookupResult = await runPhoneLookup(phone_e164);
+    if (!lookupResult.ok) {
+      return new Response(
+        JSON.stringify({ error: lookupResult.reason, success: false }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

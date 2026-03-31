@@ -71,7 +71,7 @@ export interface UsePhonePipelineReturn {
   /** Submit a 6-digit OTP code */
   submitOtp: (code: string) => Promise<PipelineVerifyResult>;
   /** Resend OTP (respects cooldown) */
-  resend: () => Promise<void>;
+  resend: () => Promise<PipelineStartResult>;
   /** Reset pipeline to idle */
   reset: () => void;
 }
@@ -309,22 +309,30 @@ export function usePhonePipeline(
 
   /* ── resend ──────────────────────────────────────────── */
 
-  const resend = useCallback(async () => {
-    if (cooldown > 0 || !activePhone) return;
+  const resend = useCallback(async (): Promise<PipelineStartResult> => {
+    if (cooldown > 0 || !activePhone) return { status: "blocked", error: "Please wait before resending." };
     setErrorMsg(""); setErrorType(null);
     setCooldown(RESEND_COOLDOWN_SECONDS);
 
     try {
+      setPhoneStatus("sending_otp");
       const { data, error } = await supabase.functions.invoke("send-otp", {
         body: { phone_e164: activePhone },
       });
       if (error || !data?.success) {
-        setErrorMsg(data?.error || "Failed to resend code.");
+        const msg = data?.error || "Failed to resend code.";
+        setErrorMsg(msg);
+        setPhoneStatus("otp_failed");
         setCooldown(0);
+        return { status: "error", error: msg };
       }
+      setPhoneStatus("otp_sent");
+      return { status: "otp_sent", e164: activePhone };
     } catch {
       setErrorMsg("Network error. Please try again.");
+      setPhoneStatus("otp_failed");
       setCooldown(0);
+      return { status: "error", error: "Network error. Please try again." };
     }
   }, [cooldown, activePhone]);
 

@@ -49,6 +49,7 @@ function deriveGateMode(
   localGateOverride: GateMode | null
 ): GateMode {
   if (localGateOverride) return localGateOverride;
+  if (funnelPhoneStatus === "sending_otp") return "send_code";
   if (funnelPhoneStatus === "otp_sent" || funnelPhoneStatus === "verified") return "enter_code";
   if (funnelPhoneE164) return "send_code";
   return "enter_phone";
@@ -70,13 +71,7 @@ export function PostScanReportSwitcher(props: Props) {
   const [capturedPhone, setCapturedPhone] = useState<string | null>(null);
   const [fetchStalled, setFetchStalled] = useState(false);
   const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /**
-   * Idempotency guard for auto-send.
-   * Keyed by: scan session + phone, so:
-   * - rerenders don't duplicate OTP sends
-   * - changing phone naturally creates a new key and allows a new send
-   */
-  const autoSendGuardRef = useRef<Set<string>>(new Set());
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
   // ── CTA state ──
   const [introRequested, setIntroRequested] = useState(false);
@@ -176,13 +171,13 @@ useEffect(() => {
 
   // ── Stall detection ──
   useEffect(() => {
-    if (pipeline.phoneStatus === "verified" && !props.isFullLoaded) {
+    if (funnel?.phoneStatus === "verified" && !props.isFullLoaded) {
       stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);
       return () => { if (stallTimerRef.current) clearTimeout(stallTimerRef.current); };
     }
     if (props.isFullLoaded && fetchStalled) setFetchStalled(false);
     if (stallTimerRef.current) { clearTimeout(stallTimerRef.current); stallTimerRef.current = null; }
-  }, [pipeline.phoneStatus, props.isFullLoaded, fetchStalled]);
+  }, [funnel?.phoneStatus, props.isFullLoaded, fetchStalled]);
 
   const handleRetryFetchFull = useCallback(() => {
     const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
@@ -197,9 +192,14 @@ useEffect(() => {
 
   const handleOtpSubmit = useCallback(async () => {
     if (otpValue.length < 6) return;
-    const result = await pipeline.submitOtp(otpValue);
-    if (result.status === "verified" && result.e164) {
-      setCapturedPhone(result.e164);
+    setIsVerifyingOtp(true);
+    try {
+      const result = await pipeline.submitOtp(otpValue);
+      if (result.status === "verified" && result.e164) {
+        setCapturedPhone(result.e164);
+      }
+    } finally {
+      setIsVerifyingOtp(false);
     }
   }, [otpValue, pipeline]);
 
@@ -222,39 +222,6 @@ useEffect(() => {
       setIsSendInFlight(false);
     }
   }, [funnel, pipeline, isSendInFlight]);
-
-  /**
-   * Auto-send OTP once when we already have a valid upstream phone.
-   * This fixes the conversion leak where users landed on "send_code"
-   * and had to click manually before code entry.
-   */
-  useEffect(() => {
-    if (accessLevel !== "preview") return;
-    if (gateMode !== "send_code") return;
-    if (!funnel?.phoneE164) return;
-
-    const guardKey = `${props.scanSessionId ?? "no-session"}|${funnel.phoneE164}`;
-    if (autoSendGuardRef.current.has(guardKey)) return;
-    autoSendGuardRef.current.add(guardKey);
-
-    setIsSendInFlight(true);
-
-    (async () => {
-      try {
-        const result = await pipeline.submitPhone();
-        if (result.status === "otp_sent") {
-          funnel.setPhoneStatus("otp_sent");
-          setCapturedPhone(funnel.phoneE164);
-          setLocalGateOverride("enter_code");
-          return;
-        }
-        // If auto-send fails, allow a retry path on re-open.
-        autoSendGuardRef.current.delete(guardKey);
-      } finally {
-        setIsSendInFlight(false);
-      }
-    })();
-  }, [accessLevel, gateMode, funnel?.phoneE164, funnel?.setPhoneStatus, pipeline, props.scanSessionId]);
 
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
@@ -285,7 +252,16 @@ useEffect(() => {
     funnel?.setPhone("", "none");
   }, [pipeline, funnel]);
 
-  const handleResend = useCallback(async () => { await pipeline.resend(); }, [pipeline]);
+  const handleResend = useCallback(async () => {
+    if (!funnel?.phoneE164) return;
+    funnel.setPhoneStatus("sending_otp");
+    const result = await pipeline.resend();
+    if (result.status === "otp_sent") {
+      funnel.setPhoneStatus("otp_sent");
+      return;
+    }
+    funnel.setPhoneStatus("send_failed");
+  }, [pipeline, funnel]);
 
   // ── Detect 2+ completed analyses for this lead via SECURITY DEFINER RPC ──
   // Direct queries to scan_sessions and analyses are blocked for anon users (no
@@ -422,8 +398,7 @@ useEffect(() => {
     isLoading:
       isSendInFlight ||
       funnel?.phoneStatus === "sending_otp" ||
-      pipeline.phoneStatus === "sending_otp" ||
-      pipeline.phoneStatus === "verifying",
+      isVerifyingOtp,
     errorMsg: effectiveErrorMsg,
     errorType: pipeline.errorType ?? (sharedSendFailed ? "generic" : undefined),
     resendCooldown: pipeline.resendCooldown,
