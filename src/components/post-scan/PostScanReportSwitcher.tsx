@@ -70,6 +70,13 @@ export function PostScanReportSwitcher(props: Props) {
   const [capturedPhone, setCapturedPhone] = useState<string | null>(null);
   const [fetchStalled, setFetchStalled] = useState(false);
   const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * Idempotency guard for auto-send.
+   * Keyed by: scan session + phone, so:
+   * - rerenders don't duplicate OTP sends
+   * - changing phone naturally creates a new key and allows a new send
+   */
+  const autoSendGuardRef = useRef<Set<string>>(new Set());
 
   // ── CTA state ──
   const [introRequested, setIntroRequested] = useState(false);
@@ -210,6 +217,39 @@ useEffect(() => {
       setIsSendInFlight(false);
     }
   }, [funnel, pipeline, isSendInFlight]);
+
+  /**
+   * Auto-send OTP once when we already have a valid upstream phone.
+   * This fixes the conversion leak where users landed on "send_code"
+   * and had to click manually before code entry.
+   */
+  useEffect(() => {
+    if (accessLevel !== "preview") return;
+    if (gateMode !== "send_code") return;
+    if (!funnel?.phoneE164) return;
+
+    const guardKey = `${props.scanSessionId ?? "no-session"}|${funnel.phoneE164}`;
+    if (autoSendGuardRef.current.has(guardKey)) return;
+    autoSendGuardRef.current.add(guardKey);
+
+    setIsSendInFlight(true);
+
+    (async () => {
+      try {
+        const result = await pipeline.submitPhone();
+        if (result.status === "otp_sent") {
+          funnel.setPhoneStatus("otp_sent");
+          setCapturedPhone(funnel.phoneE164);
+          setLocalGateOverride("enter_code");
+          return;
+        }
+        // If auto-send fails, allow a retry path on re-open.
+        autoSendGuardRef.current.delete(guardKey);
+      } finally {
+        setIsSendInFlight(false);
+      }
+    })();
+  }, [accessLevel, gateMode, funnel?.phoneE164, funnel?.setPhoneStatus, pipeline, props.scanSessionId]);
 
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
