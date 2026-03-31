@@ -1605,10 +1605,38 @@ export type Database = {
           rubric_version: string
         }[]
       }
+      get_county_by_scan_session: {
+        Args: { p_scan_session_id: string }
+        Returns: {
+          county: string
+        }[]
+      }
+      get_lead_by_email: {
+        Args: { p_email: string }
+        Returns: {
+          county: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          lead_score: number
+          phone_e164: string
+          quote_amount: number
+          session_id: string
+          status: string
+          window_count: number
+        }[]
+      }
       get_lead_by_session: {
         Args: { p_session_id: string }
         Returns: {
           id: string
+        }[]
+      }
+      get_lead_phone_by_scan_session: {
+        Args: { p_scan_session_id: string }
+        Returns: {
+          phone_e164: string
         }[]
       }
       get_rubric_stats: {
