@@ -310,7 +310,12 @@ export function usePhonePipeline(
   /* ── resend ──────────────────────────────────────────── */
 
   const resend = useCallback(async (): Promise<PipelineStartResult> => {
-    if (cooldown > 0 || !activePhone) return { status: "blocked", error: "Please wait before resending." };
+    if (cooldown > 0 || !activePhone) {
+      const msg = "Please wait before requesting another code.";
+      setErrorMsg(msg);
+      setErrorType("generic");
+      return { status: "blocked", error: msg };
+    }
     setErrorMsg(""); setErrorType(null);
     setCooldown(RESEND_COOLDOWN_SECONDS);
 

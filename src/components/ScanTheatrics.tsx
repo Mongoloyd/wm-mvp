@@ -97,6 +97,7 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     autoSendGuardRef.current.add(guardKey);
 
     let cancelled = false;
+    let reachedTerminalState = false;
     funnel.setPhoneStatus("sending_otp");
 
     (async () => {
@@ -107,13 +108,16 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
         }
 
         if (result.status === "otp_sent") {
+          reachedTerminalState = true;
           funnel.setPhoneStatus("otp_sent");
         } else {
+          reachedTerminalState = true;
           funnel.setPhoneStatus("send_failed");
         }
       } catch (err) {
         if (!cancelled) {
           console.error("[ScanTheatrics] auto-send failed:", err);
+          reachedTerminalState = true;
           funnel.setPhoneStatus("send_failed");
         }
       }
@@ -121,8 +125,13 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
 
     return () => {
       cancelled = true;
+      // True cancellation fallback: if we unmount/navigate while request is still in-flight,
+      // avoid leaving shared state stranded in "sending_otp".
+      if (!reachedTerminalState) {
+        funnel.setPhoneStatus("screened_valid");
+      }
     };
-  }, [isActive, resolvedScanSessionId, scanStatus, funnel?.phoneE164, funnel?.phoneStatus, funnel?.setPhoneStatus]);
+  }, [isActive, resolvedScanSessionId, scanStatus, funnel?.phoneE164, funnel?.setPhoneStatus]);
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);

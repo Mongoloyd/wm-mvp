@@ -260,6 +260,11 @@ useEffect(() => {
       funnel.setPhoneStatus("otp_sent");
       return;
     }
+    if (result.status === "blocked") {
+      // Keep OTP-ready state for cooldown UX; do not downgrade to send_failed.
+      funnel.setPhoneStatus("otp_sent");
+      return;
+    }
     funnel.setPhoneStatus("send_failed");
   }, [pipeline, funnel]);
 
