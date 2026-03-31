@@ -369,7 +369,8 @@ const TruthGateFlow = ({
       if (funnel) {
         funnel.setSessionId(sessionId);
         if (phoneE164) {
-          funnel.setPhone(phoneE164, "none");
+          // Mark as screened_valid so OTP can auto-send later only after quote validity is confirmed.
+          funnel.setPhone(phoneE164, "screened_valid");
         }
       }
 

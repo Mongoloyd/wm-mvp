@@ -88,7 +88,9 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
   useEffect(() => {
     if (!isActive) return;
     if (!funnel?.phoneE164 || !resolvedScanSessionId) return;
-    if (funnel.phoneStatus !== "none") return;
+    const isValidQuote = scanStatus === "preview_ready" || scanStatus === "complete";
+    if (!isValidQuote) return;
+    if (funnel.phoneStatus !== "screened_valid") return;
 
     const guardKey = `${resolvedScanSessionId}|${funnel.phoneE164}`;
     if (autoSendGuardRef.current.has(guardKey)) return;
@@ -101,7 +103,6 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
       try {
         const result = await submitPhoneRef.current?.();
         if (cancelled || !result) {
-          funnel.setPhoneStatus("none");
           return;
         }
 
@@ -120,9 +121,8 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
 
     return () => {
       cancelled = true;
-      funnel.setPhoneStatus("none");
     };
-  }, [isActive, resolvedScanSessionId, funnel?.phoneE164, funnel?.phoneStatus, funnel?.setPhoneStatus]);
+  }, [isActive, resolvedScanSessionId, scanStatus, funnel?.phoneE164, funnel?.phoneStatus, funnel?.setPhoneStatus]);
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);

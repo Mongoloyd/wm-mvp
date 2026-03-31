@@ -17,6 +17,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo } from
 
 export type PhoneFunnelStatus =
   | "none"
+  | "screened_valid"
   | "sending_otp"
   | "otp_sent"
   | "send_failed"
