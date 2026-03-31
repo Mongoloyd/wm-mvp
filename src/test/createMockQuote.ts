@@ -522,25 +522,28 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     expectedGrade: "D",
     extraction: {
       document_type: "impact_window_quote",
-      metadata: {
-        contractor_name: "Premium Illusions LLC",
-        total_price: 24500,
-      },
-      windows: [
+      is_window_door_related: true,
+      confidence: 0.95,
+      total_quoted_price: 24500,
+      contractor_name: "Premium Illusions LLC",
+      line_items: [
         {
+          description: "PGT WinGuard Single Hung - Non-Impact Glass", // <-- FATAL FLAW
           quantity: 12,
-          window_type: "Single Hung",
-          glass_type: "Non-Impact", // <-- THE FATAL FLAW
-          brand: "PGT", // Premium brand (Plus points)
-          dp_rating: 65, // Excellent safety rating (Plus points)
-          noa_number: "22-0414.01", // Fully documented (Plus points)
+          unit_price: 1800,
+          total_price: 21600,
+          brand: "PGT",
+          dp_rating: "DP65",
+          noa_number: "NOA 22-0414.01",
         },
       ],
-      flags: {
-        has_warranty_details: true, // Perfect warranty
-        includes_permit_fees: true, // Perfect transparency
-        includes_debris_removal: true, // Perfect transparency
+      warranty: {
+        labor_years: 10,
+        manufacturer_years: 25,
+        details: "Full lifetime manufacturer warranty.",
       },
+      permits: { included: true, responsible_party: "contractor" },
+      installation: { scope_detail: "Full removal and install", disposal_included: true },
     },
   },
   {
