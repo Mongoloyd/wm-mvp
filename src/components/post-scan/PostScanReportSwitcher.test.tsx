@@ -44,6 +44,10 @@ vi.mock("../TruthReportClassic", () => ({
       <div data-testid="is-loading">{String(!!gateProps?.isLoading)}</div>
       <div data-testid="error-msg">{gateProps?.errorMsg ?? ""}</div>
       <button onClick={gateProps?.onResend}>resend</button>
+      <button onClick={gateProps?.onPhoneSubmit}>phone-submit</button>
+      <button onClick={gateProps?.onChangePhone}>change-phone</button>
+      <button onClick={gateProps?.onResend}>resend</button>
+      <div data-testid="masked-phone">{gateProps?.maskedPhone ?? ""}</div>
     </div>
   ),
 }));
@@ -63,6 +67,7 @@ function baseProps() {
     documentType: "quote",
     onSecondScan: vi.fn(),
     scanSessionId: "scan-1",
+    scanSessionId: null,
     onVerified: vi.fn(),
     isFullLoaded: false,
   };
