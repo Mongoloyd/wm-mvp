@@ -198,6 +198,7 @@ useEffect(() => {
 
   const handleSendCode = useCallback(async () => {
     if (!funnel?.phoneE164 || isSendInFlight) return;
+    funnel.setPhoneStatus("sending_otp");
     setIsSendInFlight(true);
     try {
       const result = await pipeline.submitPhone();
@@ -205,7 +206,11 @@ useEffect(() => {
         funnel.setPhoneStatus("otp_sent");
         setCapturedPhone(funnel.phoneE164);
         setLocalGateOverride("enter_code");
+      } else {
+        funnel.setPhoneStatus("send_failed");
       }
+    } catch {
+      funnel.setPhoneStatus("send_failed");
     } finally {
       setIsSendInFlight(false);
     }
@@ -213,6 +218,7 @@ useEffect(() => {
 
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
+    funnel?.setPhoneStatus("sending_otp");
     setIsSendInFlight(true);
     trackEvent({ event_name: "phone_submitted", session_id: props.scanSessionId, metadata: {} });
     try {
@@ -221,7 +227,11 @@ useEffect(() => {
         funnel?.setPhone(result.e164, "otp_sent");
         setCapturedPhone(result.e164);
         setLocalGateOverride("enter_code");
+      } else {
+        funnel?.setPhoneStatus("send_failed");
       }
+    } catch {
+      funnel?.setPhoneStatus("send_failed");
     } finally {
       setIsSendInFlight(false);
     }
@@ -349,6 +359,9 @@ useEffect(() => {
   }, [props.scanSessionId, phoneE164]);
 
   const maskedPhone = capturedPhone ? maskPhone(capturedPhone) : funnel?.phoneE164 ? maskPhone(funnel.phoneE164) : undefined;
+  const sharedSendFailed = funnel?.phoneStatus === "send_failed";
+  const effectiveErrorMsg =
+    pipeline.errorMsg || (sharedSendFailed ? "Send or confirm your number to receive a code." : "");
 
   const gateProps: Omit<LockedOverlayProps, "grade" | "flagCount"> = {
     gateMode,
@@ -368,10 +381,11 @@ useEffect(() => {
     flagRedCount: props.flagRedCount,
     isLoading:
       isSendInFlight ||
+      funnel?.phoneStatus === "sending_otp" ||
       pipeline.phoneStatus === "sending_otp" ||
       pipeline.phoneStatus === "verifying",
-    errorMsg: pipeline.errorMsg,
-    errorType: pipeline.errorType ?? undefined,
+    errorMsg: effectiveErrorMsg,
+    errorType: pipeline.errorType ?? (sharedSendFailed ? "generic" : undefined),
     resendCooldown: pipeline.resendCooldown,
     onResend: handleResend,
     fetchStalled,
