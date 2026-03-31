@@ -521,6 +521,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     description: "Perfect quote but uses non-impact glass — should hard cap at D",
     expectedGrade: "D",
     extraction: {
+      document_type: "impact_window_quote",
       metadata: {
         contractor_name: "Premium Illusions LLC",
         total_price: 24500,
