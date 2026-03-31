@@ -690,8 +690,8 @@ const TruthGateFlow = ({
             className="animate-pulse-dot shrink-0"
             style={{ width: 8, height: 8, backgroundColor: "#2563EB", borderRadius: "50%", display: "inline-block" }}
           />
-          <span className="font-mono text-[9px] text-muted-foreground">
-            {tickerToday} Homeowners in {selectedCounty} Found Red Flags Today
+          <span className="font-mono text-[11px] text-muted-foreground">
+            {tickerToday} People in {selectedCounty} Saw Red Flags Today
           </span>
         </div>
       </motion.div>
