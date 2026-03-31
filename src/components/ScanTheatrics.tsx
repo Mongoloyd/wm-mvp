@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useScanPolling, ScanStatus } from "@/hooks/useScanPolling";
 import { toast } from "sonner";
 import type { AnalysisData } from "@/hooks/useAnalysisData";
+import { usePhonePipeline } from "@/hooks/usePhonePipeline";
+import type { PipelineStartResult } from "@/hooks/usePhonePipeline";
+import { useScanFunnelSafe } from "@/state/scanFunnel";
 
 const GRADE_COLORS: Record<string, string> = {
   A: "#059669",
@@ -51,6 +54,16 @@ const pillars = [
 type Phase = "scanning" | "cliffhanger" | "pillars" | "reveal";
 
 const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null, grade: gradeProp = "C", analysisData = null, onRevealComplete, onInvalidDocument, onNeedsBetterUpload }: ScanTheatricsProps) => {
+  const funnel = useScanFunnelSafe();
+  const resolvedScanSessionId = scanSessionId ?? funnel?.scanSessionId ?? null;
+  const pipeline = usePhonePipeline("validate_and_send_otp", {
+    scanSessionId: resolvedScanSessionId,
+    externalPhoneE164: funnel?.phoneE164 ?? null,
+  });
+
+  const autoSendGuardRef = useRef<Set<string>>(new Set());
+  const submitPhoneRef = useRef<(() => Promise<PipelineStartResult>) | null>(null);
+
   const [phase, setPhase] = useState<Phase>("scanning");
   const [activeLogIndex, setActiveLogIndex] = useState(0);
   const [progressWidth, setProgressWidth] = useState(0);
@@ -60,8 +73,56 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
   const timersRef = useRef<number[]>([]);
 
   const { status: scanStatus, error: pollError } = useScanPolling({
-    scanSessionId: isActive ? scanSessionId : null,
+    scanSessionId: isActive ? resolvedScanSessionId : null,
   });
+
+  // Keep submitPhone stable for effect dependency discipline.
+  useEffect(() => {
+    submitPhoneRef.current = pipeline.submitPhone;
+  }, [pipeline.submitPhone]);
+
+  /**
+   * OTP auto-send belongs upstream in theatrics.
+   * Fires once per (scanSessionId, phoneE164) while theatrics is truly active.
+   */
+  useEffect(() => {
+    if (!isActive) return;
+    if (!funnel?.phoneE164 || !resolvedScanSessionId) return;
+    if (funnel.phoneStatus !== "none") return;
+
+    const guardKey = `${resolvedScanSessionId}|${funnel.phoneE164}`;
+    if (autoSendGuardRef.current.has(guardKey)) return;
+    autoSendGuardRef.current.add(guardKey);
+
+    let cancelled = false;
+    funnel.setPhoneStatus("sending_otp");
+
+    (async () => {
+      try {
+        const result = await submitPhoneRef.current?.();
+        if (cancelled || !result) {
+          funnel.setPhoneStatus("none");
+          return;
+        }
+
+        if (result.status === "otp_sent") {
+          funnel.setPhoneStatus("otp_sent");
+        } else {
+          funnel.setPhoneStatus("send_failed");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("[ScanTheatrics] auto-send failed:", err);
+          funnel.setPhoneStatus("send_failed");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      funnel.setPhoneStatus("none");
+    };
+  }, [isActive, resolvedScanSessionId, funnel?.phoneE164, funnel?.phoneStatus, funnel?.setPhoneStatus]);
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);

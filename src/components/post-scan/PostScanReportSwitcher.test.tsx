@@ -41,6 +41,9 @@ vi.mock("../TruthReportClassic", () => ({
   default: ({ gateProps }: { gateProps?: any }) => (
     <div>
       <div data-testid="gate-mode">{gateProps?.gateMode ?? "none"}</div>
+      <div data-testid="is-loading">{String(!!gateProps?.isLoading)}</div>
+      <div data-testid="error-msg">{gateProps?.errorMsg ?? ""}</div>
+      <button onClick={gateProps?.onResend}>resend</button>
       <button onClick={gateProps?.onPhoneSubmit}>phone-submit</button>
       <button onClick={gateProps?.onChangePhone}>change-phone</button>
       <button onClick={gateProps?.onResend}>resend</button>
@@ -63,15 +66,15 @@ function baseProps() {
     confidenceScore: 0.8,
     documentType: "quote",
     onSecondScan: vi.fn(),
+    scanSessionId: "scan-1",
     scanSessionId: null,
     onVerified: vi.fn(),
     isFullLoaded: false,
   };
 }
 
-describe("PostScanReportSwitcher OTP gating", () => {
+describe("PostScanReportSwitcher shared OTP status wiring", () => {
   let funnelState: any;
-  let submitPhoneMock: ReturnType<typeof vi.fn>;
   let resendMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -81,18 +84,12 @@ describe("PostScanReportSwitcher OTP gating", () => {
     funnelState = {
       phoneE164: null,
       phoneStatus: "none",
-      setPhone: vi.fn((e164: string, status: string) => {
-        funnelState.phoneE164 = e164;
-        funnelState.phoneStatus = status;
-      }),
-      setPhoneStatus: vi.fn((status: string) => {
-        funnelState.phoneStatus = status;
-      }),
+      setPhone: vi.fn(),
+      setPhoneStatus: vi.fn(),
       sessionId: "sess-1",
     };
     mockUseScanFunnelSafe.mockImplementation(() => funnelState);
 
-    submitPhoneMock = vi.fn().mockResolvedValue({ status: "otp_sent", e164: "+13055551234" });
     resendMock = vi.fn().mockResolvedValue(undefined);
     mockUsePhonePipeline.mockReturnValue({
       displayValue: "",
@@ -104,66 +101,41 @@ describe("PostScanReportSwitcher OTP gating", () => {
       errorType: null,
       resendCooldown: 0,
       handlePhoneChange: vi.fn(),
-      submitPhone: submitPhoneMock,
+      submitPhone: vi.fn(),
       submitOtp: vi.fn(),
       resend: resendMock,
       reset: vi.fn(),
     });
   });
 
-  it("Scenario A: auto-sends once when upstream phone exists and transitions to code entry", async () => {
+  it("shows code entry mode when shared status is otp_sent", () => {
     funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "otp_sent";
     render(<PostScanReportSwitcher {...baseProps()} />);
-
-    await waitFor(() => {
-      expect(submitPhoneMock).toHaveBeenCalledTimes(1);
-      expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("otp_sent");
-    });
     expect(screen.getByTestId("gate-mode")).toHaveTextContent("enter_code");
   });
 
-  it("Scenario B: requires phone submit when no upstream phone exists", async () => {
+  it("shows send_code mode and loading while shared status is sending_otp", () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "sending_otp";
     render(<PostScanReportSwitcher {...baseProps()} />);
+    expect(screen.getByTestId("gate-mode")).toHaveTextContent("send_code");
+    expect(screen.getByTestId("is-loading")).toHaveTextContent("true");
+  });
 
+  it("shows fallback copy when shared status is send_failed", () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "send_failed";
+    render(<PostScanReportSwitcher {...baseProps()} />);
+    expect(screen.getByTestId("error-msg")).toHaveTextContent("Send or confirm your number to receive a code.");
+  });
+
+  it("shows enter_phone mode when no phone exists", () => {
+    render(<PostScanReportSwitcher {...baseProps()} />);
     expect(screen.getByTestId("gate-mode")).toHaveTextContent("enter_phone");
-    expect(submitPhoneMock).toHaveBeenCalledTimes(0);
-
-    fireEvent.click(screen.getByText("phone-submit"));
-
-    await waitFor(() => {
-      expect(submitPhoneMock).toHaveBeenCalledTimes(1);
-      expect(funnelState.setPhone).toHaveBeenCalledWith("+13055551234", "otp_sent");
-    });
   });
 
-  it("Scenario C: rerender does not duplicate auto-send", async () => {
-    funnelState.phoneE164 = "+13055551234";
-    const { rerender } = render(<PostScanReportSwitcher {...baseProps()} />);
-    await waitFor(() => expect(submitPhoneMock).toHaveBeenCalledTimes(1));
-
-    rerender(<PostScanReportSwitcher {...baseProps()} />);
-    await waitFor(() => expect(submitPhoneMock).toHaveBeenCalledTimes(1));
-  });
-
-  it("Scenario D: change number allows new auto-send with new phone key", async () => {
-    funnelState.phoneE164 = "+13055551234";
-    const { rerender } = render(<PostScanReportSwitcher {...baseProps()} />);
-    await waitFor(() => expect(submitPhoneMock).toHaveBeenCalledTimes(1));
-
-    // Simulate user clicking "Wrong number?"
-    fireEvent.click(screen.getByText("change-phone"));
-    expect(funnelState.setPhone).toHaveBeenCalledWith("", "none");
-
-    // New phone appears from user entry/upstream update.
-    funnelState.phoneE164 = "+14075550199";
-    funnelState.phoneStatus = "none";
-    rerender(<PostScanReportSwitcher {...baseProps()} />);
-    fireEvent.click(screen.getByText("phone-submit"));
-
-    await waitFor(() => expect(submitPhoneMock).toHaveBeenCalledTimes(2));
-  });
-
-  it("Scenario E: manual resend still calls pipeline.resend", async () => {
+  it("manual resend still calls pipeline.resend", async () => {
     render(<PostScanReportSwitcher {...baseProps()} />);
     fireEvent.click(screen.getByText("resend"));
     await waitFor(() => expect(resendMock).toHaveBeenCalledTimes(1));
