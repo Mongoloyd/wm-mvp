@@ -53,7 +53,16 @@ const pillars = [
 
 type Phase = "scanning" | "cliffhanger" | "pillars" | "reveal";
 
-const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null, grade: gradeProp = "C", analysisData = null, onRevealComplete, onInvalidDocument, onNeedsBetterUpload }: ScanTheatricsProps) => {
+const ScanTheatrics = ({
+  isActive,
+  selectedCounty = "your",
+  scanSessionId = null,
+  grade: gradeProp = "C",
+  analysisData = null,
+  onRevealComplete,
+  onInvalidDocument,
+  onNeedsBetterUpload
+}: ScanTheatricsProps) => {
   const funnel = useScanFunnelSafe();
   const resolvedScanSessionId = scanSessionId ?? funnel?.scanSessionId ?? null;
   const pipeline = usePhonePipeline("validate_and_send_otp", {
@@ -202,11 +211,18 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
     setShowGrade(false);
     pillars.forEach((p, i) => {
       addTimer(() => {
-        setPillarsDone((prev) => { const next = [...prev]; next[i] = true; return next; });
+        setPillarsDone((prev) => {
+          const next = [...prev];
+          next[i] = true;
+          return next;
+        });
       }, (p.delay + 1.2) * 1000);
     });
     addTimer(() => setShowGrade(true), 5000);
-    addTimer(() => { console.log({ event: "wm_grade_revealed" }); onRevealComplete?.(); }, 7000);
+    addTimer(() => {
+      console.log({ event: "wm_grade_revealed" });
+      onRevealComplete?.();
+    }, 7000);
   };
 
   const county = selectedCounty;
@@ -500,10 +516,19 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
   let label = "Good";
   let color = "#059669";
   if (confidenceScore != null) {
-    if (confidenceScore >= 85 && anchorCount >= 3) { label = "Excellent"; color = "#059669"; }
-    else if (confidenceScore >= 70) { label = "Great"; color = "#059669"; }
-    else if (confidenceScore >= 55) { label = "Good"; color = "#2563EB"; }
-    else { label = "Fair"; color = "#D97706"; }
+    if (confidenceScore >= 85 && anchorCount >= 3) {
+      label = "Excellent";
+      color = "#059669";
+    } else if (confidenceScore >= 70) {
+      label = "Great";
+      color = "#059669";
+    } else if (confidenceScore >= 55) {
+      label = "Good";
+      color = "#2563EB";
+    } else {
+      label = "Fair";
+      color = "#D97706";
+    }
   }
 
   return (
