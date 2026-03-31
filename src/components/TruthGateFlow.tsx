@@ -700,9 +700,12 @@ const TruthGateFlow = ({
   };
 
   return (
-    <section id="truth-gate" className="bg-background">
+    <section
+      id="truth-gate"
+      className="bg-background h-full min-h-screen md:min-h-[85vh] flex flex-col justify-center py-12"
+    >
       <div
-        className={`mx-auto max-w-2xl px-4 md:px-8 py-20 md:py-28 transition-all duration-500 ${glowing ? "ring-2 ring-cobalt shadow-lg shadow-cobalt/20" : ""}`}
+        className={`mx-auto w-full max-w-2xl px-4 md:px-8 py-10 md:py-16 transition-all duration-500 ${glowing ? "ring-2 ring-cobalt shadow-lg shadow-cobalt/20" : ""}`}
       >
         <p className="text-center mb-2 wm-eyebrow text-muted-foreground">THE SCANNER</p>
         <p className="text-center mb-3 wm-eyebrow text-primary" style={{ fontSize: 11 }}>
