@@ -516,9 +516,11 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     },
   },
   {
-    name: "lipstickOnAPig_NonImpact",
+    key: "lipstickOnAPig_NonImpact",
+    label: "Lipstick on a Pig",
+    description: "Perfect quote but uses non-impact glass — should hard cap at D",
     expectedGrade: "D",
-    data: {
+    extraction: {
       metadata: {
         contractor_name: "Premium Illusions LLC",
         total_price: 24500,
