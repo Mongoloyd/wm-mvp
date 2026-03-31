@@ -550,7 +550,7 @@ const TruthGateFlow = ({
         >
           See What's Hiding In Your Quote.
         </h2>
-        <p className="font-body text-wm-body-soft text-muted-foreground mb-6">Enter your details to run the scan.</p>
+        <p className="font-body text-wm-body-soft text-muted-foreground mb-6">Enter Your Details to Run The Scan.</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* ── FIRST NAME (required) ────────────────────────────── */}
