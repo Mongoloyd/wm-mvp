@@ -1,6 +1,7 @@
 /**
  * PostScanReportSwitcher — In-page post-scan report orchestrator.
- * * CANONICAL: Always renders TruthReportClassic (findings-first removed).
+ *
+ * CANONICAL: Always renders TruthReportClassic (findings-first removed).
  * Owns the real Twilio OTP pipeline for the in-page scan flow.
  * Owns CTA logic: generate-contractor-brief + voice-followup edge functions.
  */
@@ -45,9 +46,10 @@ type Props = {
 function deriveGateMode(
   funnelPhoneStatus: string | undefined,
   funnelPhoneE164: string | null | undefined,
-  localGateOverride: GateMode | null,
+  localGateOverride: GateMode | null
 ): GateMode {
   if (localGateOverride) return localGateOverride;
+  if (funnelPhoneStatus === "sending_otp") return "send_code";
   if (funnelPhoneStatus === "otp_sent" || funnelPhoneStatus === "verified") return "enter_code";
   if (funnelPhoneE164) return "send_code";
   return "enter_phone";
@@ -69,9 +71,7 @@ export function PostScanReportSwitcher(props: Props) {
   const [capturedPhone, setCapturedPhone] = useState<string | null>(null);
   const [fetchStalled, setFetchStalled] = useState(false);
   const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // UX Fix: The Stable Guard to prevent duplicate OTP sends on re-render
-  const hasAutoSentRef = useRef(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
   // ── CTA state ──
   const [introRequested, setIntroRequested] = useState(false);
@@ -84,7 +84,7 @@ export function PostScanReportSwitcher(props: Props) {
   const [comparisonResult, setComparisonResult] = useState<Record<string, unknown> | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
-  // ── Hydrate CTA state from DB on mount ──
+  // ── Hydrate CTA state from DB on mount (prevents duplicates after refresh) ──
   useEffect(() => {
     if (!props.scanSessionId || !props.isFullLoaded) return;
     let cancelled = false;
@@ -101,12 +101,14 @@ export function PostScanReportSwitcher(props: Props) {
           setSuggestedMatch(data.suggested_match_snapshot as unknown as SuggestedMatch);
         }
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [props.scanSessionId, props.isFullLoaded]);
 
-  // ── Hydrate phone from leads table on mount ──
+  // ── Hydrate phone from leads table on mount (handles page refresh) ──
+  // If the user provided their phone in TruthGateFlow, it's in leads.phone_e164.
+  // On fresh page load the funnel context is empty, so we read it back from DB
+  // and inject it into the funnel. This makes the OTP gate skip to "send_code"
+  // with the phone pre-filled instead of asking the user to type it again.
   useEffect(() => {
     if (!props.scanSessionId || funnel?.phoneE164) return;
     let cancelled = false;
@@ -135,9 +137,7 @@ export function PostScanReportSwitcher(props: Props) {
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [props.scanSessionId, funnel?.phoneE164]);
 
   const pipeline = usePhonePipeline("validate_and_send_otp", {
@@ -149,83 +149,63 @@ export function PostScanReportSwitcher(props: Props) {
       if (phone) props.onVerified?.(phone);
     },
   });
-
-  // ── UX Fix: The Auto-Trigger ──
-  // Fires when the component enters 'send_code' mode with a pre-filled phone number
-  const currentGateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164, localGateOverride);
-
-  useEffect(() => {
-    if (currentGateMode === "send_code" && funnel?.phoneE164 && !hasAutoSentRef.current) {
-      // Immediately lock the guard
-      hasAutoSentRef.current = true;
-
-      // Auto-submit the phone to the OTP pipeline
-      trackEvent({
-        event_name: "otp_auto_sent",
-        session_id: props.scanSessionId,
-        metadata: { phone_last4: funnel.phoneE164.slice(-4) },
-      });
-
-      pipeline.submitPhone();
-    }
-  }, [currentGateMode, funnel?.phoneE164, pipeline, props.scanSessionId]);
-
-  // ── Send report email on first preview load ──
-  useEffect(() => {
-    if (!props.scanSessionId || !props.grade) return;
-    supabase.functions
-      .invoke("send-report-email", {
-        body: {
-          scan_session_id: props.scanSessionId,
-          email_type: "preview",
-        },
-      })
-      .then(({ data, error }) => {
-        if (error) console.warn("[PostScanReportSwitcher] report email failed:", error);
-        else if (data?.success) console.log("[PostScanReportSwitcher] report email sent");
-      });
-  }, [props.scanSessionId, props.grade]);
-
+// ── Send report email on first preview load (fire-and-forget) ──
+useEffect(() => {
+  if (!props.scanSessionId || !props.grade) return;
+  // Non-blocking: send email in background
+  supabase.functions
+    .invoke("send-report-email", {
+      body: {
+        scan_session_id: props.scanSessionId,
+        email_type: "preview",
+      },
+    })
+    .then(({ data, error }) => {
+      if (error) console.warn("[PostScanReportSwitcher] report email failed:", error);
+      else if (data?.success) console.log("[PostScanReportSwitcher] report email sent");
+      else if (data?.skipped) console.log("[PostScanReportSwitcher] email skipped:", data.reason);
+    });
+}, [props.scanSessionId, props.grade]);
+  // Resolve phone for CTA calls
   const phoneE164 = capturedPhone || funnel?.phoneE164 || pipeline.e164 || null;
 
   // ── Stall detection ──
   useEffect(() => {
-    if (pipeline.phoneStatus === "verified" && !props.isFullLoaded) {
+    if (funnel?.phoneStatus === "verified" && !props.isFullLoaded) {
       stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);
-      return () => {
-        if (stallTimerRef.current) clearTimeout(stallTimerRef.current);
-      };
+      return () => { if (stallTimerRef.current) clearTimeout(stallTimerRef.current); };
     }
     if (props.isFullLoaded && fetchStalled) setFetchStalled(false);
-    if (stallTimerRef.current) {
-      clearTimeout(stallTimerRef.current);
-      stallTimerRef.current = null;
-    }
-  }, [pipeline.phoneStatus, props.isFullLoaded, fetchStalled]);
+    if (stallTimerRef.current) { clearTimeout(stallTimerRef.current); stallTimerRef.current = null; }
+  }, [funnel?.phoneStatus, props.isFullLoaded, fetchStalled]);
 
   const handleRetryFetchFull = useCallback(() => {
     const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
     if (phone) {
-      trackEvent({
-        event_name: "fetch_stall_retry",
-        session_id: props.scanSessionId,
-        metadata: { phone_last4: phone.slice(-4) },
-      });
+      trackEvent({ event_name: "fetch_stall_retry", session_id: props.scanSessionId, metadata: { phone_last4: phone.slice(-4) } });
       setFetchStalled(false);
       props.onVerified?.(phone);
     }
   }, [capturedPhone, funnel?.phoneE164, pipeline.e164, props]);
 
+  const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164, localGateOverride);
+
   const handleOtpSubmit = useCallback(async () => {
     if (otpValue.length < 6) return;
-    const result = await pipeline.submitOtp(otpValue);
-    if (result.status === "verified" && result.e164) {
-      setCapturedPhone(result.e164);
+    setIsVerifyingOtp(true);
+    try {
+      const result = await pipeline.submitOtp(otpValue);
+      if (result.status === "verified" && result.e164) {
+        setCapturedPhone(result.e164);
+      }
+    } finally {
+      setIsVerifyingOtp(false);
     }
   }, [otpValue, pipeline]);
 
   const handleSendCode = useCallback(async () => {
     if (!funnel?.phoneE164 || isSendInFlight) return;
+    funnel.setPhoneStatus("sending_otp");
     setIsSendInFlight(true);
     try {
       const result = await pipeline.submitPhone();
@@ -233,7 +213,11 @@ export function PostScanReportSwitcher(props: Props) {
         funnel.setPhoneStatus("otp_sent");
         setCapturedPhone(funnel.phoneE164);
         setLocalGateOverride("enter_code");
+      } else {
+        funnel.setPhoneStatus("send_failed");
       }
+    } catch {
+      funnel.setPhoneStatus("send_failed");
     } finally {
       setIsSendInFlight(false);
     }
@@ -241,6 +225,7 @@ export function PostScanReportSwitcher(props: Props) {
 
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
+    funnel?.setPhoneStatus("sending_otp");
     setIsSendInFlight(true);
     trackEvent({ event_name: "phone_submitted", session_id: props.scanSessionId, metadata: {} });
     try {
@@ -249,16 +234,17 @@ export function PostScanReportSwitcher(props: Props) {
         funnel?.setPhone(result.e164, "otp_sent");
         setCapturedPhone(result.e164);
         setLocalGateOverride("enter_code");
+      } else {
+        funnel?.setPhoneStatus("send_failed");
       }
+    } catch {
+      funnel?.setPhoneStatus("send_failed");
     } finally {
       setIsSendInFlight(false);
     }
   }, [pipeline, funnel, isSendInFlight, props.scanSessionId]);
 
   const handleChangePhone = useCallback(() => {
-    // UX Fix: Unlock the guard so the next phone number can be auto-sent if needed
-    hasAutoSentRef.current = false;
-
     pipeline.reset();
     setOtpValue("");
     setCapturedPhone(null);
@@ -267,18 +253,34 @@ export function PostScanReportSwitcher(props: Props) {
   }, [pipeline, funnel]);
 
   const handleResend = useCallback(async () => {
-    await pipeline.resend();
-  }, [pipeline]);
+    if (!funnel?.phoneE164) return;
+    funnel.setPhoneStatus("sending_otp");
+    const result = await pipeline.resend();
+    if (result.status === "otp_sent") {
+      funnel.setPhoneStatus("otp_sent");
+      return;
+    }
+    if (result.status === "blocked") {
+      // Keep OTP-ready state for cooldown UX; do not downgrade to send_failed.
+      funnel.setPhoneStatus("otp_sent");
+      return;
+    }
+    funnel.setPhoneStatus("send_failed");
+  }, [pipeline, funnel]);
 
-  // ── Detect 2+ completed analyses for this lead ──
+  // ── Detect 2+ completed analyses for this lead via SECURITY DEFINER RPC ──
+  // Direct queries to scan_sessions and analyses are blocked for anon users (no
+  // SELECT RLS policy). get_comparable_sessions() runs as SECURITY DEFINER and
+  // returns the session IDs for completed analyses belonging to the same lead.
   useEffect(() => {
     if (!props.scanSessionId || !props.isFullLoaded) return;
     let cancelled = false;
 
     (async () => {
-      const { data, error } = await (
-        supabase.rpc as (fn: string, args: Record<string, unknown>) => ReturnType<typeof supabase.rpc>
-      )("get_comparable_sessions", { p_scan_session_id: props.scanSessionId });
+      const { data, error } = await (supabase.rpc as (fn: string, args: Record<string, unknown>) => ReturnType<typeof supabase.rpc>)(
+        "get_comparable_sessions",
+        { p_scan_session_id: props.scanSessionId }
+      );
 
       if (cancelled || error || !data) return;
       const sessionIds = (data as unknown as { scan_session_id: string }[]).map((r) => r.scan_session_id);
@@ -287,9 +289,7 @@ export function PostScanReportSwitcher(props: Props) {
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [props.scanSessionId, props.isFullLoaded]);
 
   // ── CTA C: Compare My Quotes ──
@@ -316,7 +316,6 @@ export function PostScanReportSwitcher(props: Props) {
       setComparisonLoading(false);
     }
   }, [availableComparisons, phoneE164]);
-
   const handleContractorMatchClick = useCallback(async () => {
     if (!props.scanSessionId || !phoneE164) {
       toast.error("Unable to process request. Please verify your phone number first.");
@@ -336,17 +335,16 @@ export function PostScanReportSwitcher(props: Props) {
       if (data.suggested_match) {
         setSuggestedMatch(data.suggested_match);
       }
-      supabase.functions
-        .invoke("voice-followup", {
-          body: {
-            scan_session_id: props.scanSessionId,
-            phone_e164: phoneE164,
-            call_intent: "contractor_intro",
-            cta_source: "intro_request",
-            opportunity_id: data.opportunity_id,
-          },
-        })
-        .catch((err) => console.warn("[PostScanReportSwitcher] voice followup failed", err));
+      // Fire voice followup
+      supabase.functions.invoke("voice-followup", {
+        body: {
+          scan_session_id: props.scanSessionId,
+          phone_e164: phoneE164,
+          call_intent: "contractor_intro",
+          cta_source: "intro_request",
+          opportunity_id: data.opportunity_id,
+        },
+      }).catch(err => console.warn("[PostScanReportSwitcher] voice followup failed", err));
       setIntroRequested(true);
     } catch (err) {
       console.error("[PostScanReportSwitcher] unexpected error", err);
@@ -381,14 +379,13 @@ export function PostScanReportSwitcher(props: Props) {
     }
   }, [props.scanSessionId, phoneE164]);
 
-  const maskedPhone = capturedPhone
-    ? maskPhone(capturedPhone)
-    : funnel?.phoneE164
-      ? maskPhone(funnel.phoneE164)
-      : undefined;
+  const maskedPhone = capturedPhone ? maskPhone(capturedPhone) : funnel?.phoneE164 ? maskPhone(funnel.phoneE164) : undefined;
+  const sharedSendFailed = funnel?.phoneStatus === "send_failed";
+  const effectiveErrorMsg =
+    pipeline.errorMsg || (sharedSendFailed ? "Send or confirm your number to receive a code." : "");
 
   const gateProps: Omit<LockedOverlayProps, "grade" | "flagCount"> = {
-    gateMode: currentGateMode,
+    gateMode,
     otpValue,
     onOtpChange: setOtpValue,
     onOtpSubmit: handleOtpSubmit,
@@ -403,9 +400,12 @@ export function PostScanReportSwitcher(props: Props) {
     maskedPhone,
     onChangePhone: handleChangePhone,
     flagRedCount: props.flagRedCount,
-    isLoading: isSendInFlight || pipeline.phoneStatus === "sending_otp" || pipeline.phoneStatus === "verifying",
-    errorMsg: pipeline.errorMsg,
-    errorType: pipeline.errorType ?? undefined,
+    isLoading:
+      isSendInFlight ||
+      funnel?.phoneStatus === "sending_otp" ||
+      isVerifyingOtp,
+    errorMsg: effectiveErrorMsg,
+    errorType: pipeline.errorType ?? (sharedSendFailed ? "generic" : undefined),
     resendCooldown: pipeline.resendCooldown,
     onResend: handleResend,
     fetchStalled,
