@@ -65,7 +65,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
 
         <div className="pt-10 border-t border-border mt-14">
           <div className="flex justify-center items-center gap-6 flex-wrap font-body text-xs text-muted-foreground">
-            <span>© 2025 WindowMan.pro</span>
+            <span>© 2026 WindowMan.pro</span>
           </div>
         </div>
       </div>
