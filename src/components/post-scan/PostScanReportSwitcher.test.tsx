@@ -76,6 +76,7 @@ function baseProps() {
 describe("PostScanReportSwitcher shared OTP status wiring", () => {
   let funnelState: any;
   let resendMock: ReturnType<typeof vi.fn>;
+  let submitPhoneMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -90,7 +91,8 @@ describe("PostScanReportSwitcher shared OTP status wiring", () => {
     };
     mockUseScanFunnelSafe.mockImplementation(() => funnelState);
 
-    resendMock = vi.fn().mockResolvedValue(undefined);
+    resendMock = vi.fn().mockResolvedValue({ status: "otp_sent", e164: "+13055551234" });
+    submitPhoneMock = vi.fn().mockResolvedValue({ status: "otp_sent", e164: "+13055551234" });
     mockUsePhonePipeline.mockReturnValue({
       displayValue: "",
       rawDigits: "",
@@ -101,7 +103,7 @@ describe("PostScanReportSwitcher shared OTP status wiring", () => {
       errorType: null,
       resendCooldown: 0,
       handlePhoneChange: vi.fn(),
-      submitPhone: vi.fn(),
+      submitPhone: submitPhoneMock,
       submitOtp: vi.fn(),
       resend: resendMock,
       reset: vi.fn(),
@@ -136,8 +138,31 @@ describe("PostScanReportSwitcher shared OTP status wiring", () => {
   });
 
   it("manual resend still calls pipeline.resend", async () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "otp_sent";
     render(<PostScanReportSwitcher {...baseProps()} />);
-    fireEvent.click(screen.getByText("resend"));
+    fireEvent.click(screen.getAllByText("resend")[0]);
     await waitFor(() => expect(resendMock).toHaveBeenCalledTimes(1));
+  });
+
+  it("blocked resend does not downgrade shared status to send_failed", async () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "otp_sent";
+    resendMock.mockResolvedValueOnce({ status: "blocked", error: "Please wait before requesting another code." });
+    render(<PostScanReportSwitcher {...baseProps()} />);
+
+    fireEvent.click(screen.getAllByText("resend")[0]);
+    await waitFor(() => expect(resendMock).toHaveBeenCalledTimes(1));
+    expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("sending_otp");
+    expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("otp_sent");
+    expect(funnelState.setPhoneStatus).not.toHaveBeenCalledWith("send_failed");
+  });
+
+  it("does not auto-send on mount from PostScanReportSwitcher", async () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "screened_valid";
+    render(<PostScanReportSwitcher {...baseProps()} />);
+    await Promise.resolve();
+    expect(submitPhoneMock).not.toHaveBeenCalled();
   });
 });

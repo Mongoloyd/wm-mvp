@@ -36,7 +36,7 @@ describe("ScanTheatrics OTP auto-send", () => {
 
     funnelState = {
       phoneE164: "+13055551234",
-      phoneStatus: "none",
+      phoneStatus: "screened_valid",
       scanSessionId: "scan-1",
       setPhoneStatus: vi.fn((status: string) => {
         funnelState.phoneStatus = status;
@@ -44,7 +44,7 @@ describe("ScanTheatrics OTP auto-send", () => {
     };
 
     submitPhoneMock = vi.fn().mockResolvedValue({ status: "otp_sent", e164: "+13055551234" });
-    mockUseScanPolling.mockReturnValue({ status: "processing", error: null });
+    mockUseScanPolling.mockReturnValue({ status: "preview_ready", error: null });
     mockUseScanFunnelSafe.mockImplementation(() => funnelState);
     mockUsePhonePipeline.mockReturnValue({
       submitPhone: submitPhoneMock,
@@ -67,6 +67,55 @@ describe("ScanTheatrics OTP auto-send", () => {
 
   it("does not auto-send when theatrics is inactive/hidden", async () => {
     render(<ScanTheatrics isActive={false} scanSessionId="scan-1" />);
+    await Promise.resolve();
+    expect(submitPhoneMock).not.toHaveBeenCalled();
+  });
+
+  it("does not lose otp_sent transition when rerender happens during sending_otp", async () => {
+    let resolveSend: ((value: { status: "otp_sent"; e164: string }) => void) | null = null;
+    submitPhoneMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSend = resolve;
+        })
+    );
+
+    const { rerender } = render(<ScanTheatrics isActive scanSessionId="scan-1" />);
+
+    await waitFor(() => expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("sending_otp"));
+    rerender(<ScanTheatrics isActive scanSessionId="scan-1" />);
+
+    resolveSend?.({ status: "otp_sent", e164: "+13055551234" });
+    await waitFor(() => expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("otp_sent"));
+  });
+
+  it("reverts sending_otp to screened_valid on unmount cancellation", async () => {
+    submitPhoneMock.mockImplementationOnce(() => new Promise(() => {}));
+    const { unmount } = render(<ScanTheatrics isActive scanSessionId="scan-1" />);
+
+    await waitFor(() => expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("sending_otp"));
+    unmount();
+
+    expect(funnelState.setPhoneStatus).toHaveBeenCalledWith("screened_valid");
+  });
+
+  it("does not auto-send before quote is classified as valid", async () => {
+    mockUseScanPolling.mockReturnValueOnce({ status: "processing", error: null });
+    render(<ScanTheatrics isActive scanSessionId="scan-1" />);
+    await Promise.resolve();
+    expect(submitPhoneMock).not.toHaveBeenCalled();
+  });
+
+  it("does not auto-send for invalid quote classification", async () => {
+    mockUseScanPolling.mockReturnValueOnce({ status: "invalid_document", error: null });
+    render(<ScanTheatrics isActive scanSessionId="scan-1" />);
+    await Promise.resolve();
+    expect(submitPhoneMock).not.toHaveBeenCalled();
+  });
+
+  it("does not auto-send when phone is not screened_valid", async () => {
+    funnelState.phoneStatus = "none";
+    render(<ScanTheatrics isActive scanSessionId="scan-1" />);
     await Promise.resolve();
     expect(submitPhoneMock).not.toHaveBeenCalled();
   });
@@ -97,9 +146,11 @@ describe("ScanTheatrics OTP auto-send", () => {
     await waitFor(() => expect(submitPhoneMock).toHaveBeenCalledTimes(1));
 
     funnelState.phoneE164 = "+14075550199";
+    funnelState.phoneStatus = "screened_valid";
     rerender(<ScanTheatrics isActive scanSessionId="scan-1" />);
     await waitFor(() => expect(submitPhoneMock).toHaveBeenCalledTimes(2));
 
+    funnelState.phoneStatus = "screened_valid";
     rerender(<ScanTheatrics isActive scanSessionId="scan-2" />);
     await waitFor(() => expect(submitPhoneMock).toHaveBeenCalledTimes(3));
   });
