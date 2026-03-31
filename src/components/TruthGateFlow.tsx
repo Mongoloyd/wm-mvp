@@ -677,9 +677,9 @@ const TruthGateFlow = ({
         </form>
 
         <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed text-center mt-4">
-          No contractor will be contacted without your permission.
+          Your Free Report is Yours
           <br />
-          Your Free Report is Yours — We Just Help You Read Understand It.
+          We Just Help You Understand It Much Better
         </p>
 
         <div
