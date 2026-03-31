@@ -84,7 +84,7 @@ export default function VerdictPositionBar({ pillars }: VerdictPositionBarProps)
               <span
                 className="font-mono"
                 style={{
-                  fontSize: 8,
+                  fontSize: 10,
                   fontWeight: 700,
                   letterSpacing: "0.08em",
                   color: color,
