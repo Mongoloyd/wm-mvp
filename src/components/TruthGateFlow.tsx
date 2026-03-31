@@ -587,8 +587,7 @@ const TruthGateFlow = ({
           {/* ── EMAIL (required) ──────────────────────────────────── */}
           <div>
             <label className="wm-eyebrow mb-1.5 text-muted-foreground block">
-              EMAIL ADDRESS <span className="text-orange-500">*</span>{" "}
-              <span className="text-muted-foreground font-normal">(Your Free Report is Sent Here)</span>
+              EMAIL ADDRESS <span className="text-orange-500">*</span>
             </label>
             <div className="relative">
               <input
