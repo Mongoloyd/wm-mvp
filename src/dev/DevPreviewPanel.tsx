@@ -20,9 +20,10 @@ interface DevPreviewPanelProps {
 
 const STATES = Object.entries(DEV_PREVIEW_CONFIGS) as [DevPreviewState, typeof DEV_PREVIEW_CONFIGS[DevPreviewState]][];
 
-export default function DevPreviewPanel({ currentState, onChange }: DevPreviewPanelProps) {
+export default function DevPreviewPanel({ currentState, onChange, sessionId, onScanStart }: DevPreviewPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showRubricStats, setShowRubricStats] = useState(false);
+  const [showQuoteGen, setShowQuoteGen] = useState(false);
 
   return (
     <div className="fixed bottom-4 left-4 z-[9999]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
