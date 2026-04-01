@@ -6,6 +6,11 @@ import MarketProblemSection from "@/components/about/MarketProblemSection";
 import InformationAsymmetrySection from "@/components/about/InformationAsymmetrySection";
 import WhyPricesVarySection from "@/components/about/WhyPricesVarySection";
 import NotAContractorSection from "@/components/about/NotAContractorSection";
+import HowWindowManWorksSection from "@/components/about/HowWindowManWorksSection";
+import ArbitrageEngineSection from "@/components/about/ArbitrageEngineSection";
+import HowWeMakeMoneySection from "@/components/about/HowWeMakeMoneySection";
+import BestPriceConditionsSection from "@/components/about/BestPriceConditionsSection";
+import TransparencyShiftSection from "@/components/about/TransparencyShiftSection";
 
 export default function About() {
   useEffect(() => {
@@ -30,6 +35,11 @@ export default function About() {
       <InformationAsymmetrySection onTrack={handleTrack} />
       <WhyPricesVarySection />
       <NotAContractorSection />
+      <HowWindowManWorksSection />
+      <ArbitrageEngineSection />
+      <HowWeMakeMoneySection />
+      <BestPriceConditionsSection />
+      <TransparencyShiftSection />
     </main>
   );
 }
