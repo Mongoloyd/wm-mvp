@@ -147,7 +147,7 @@ const Index = () => {
 
   return (
     <ScanFunnelProvider>
-    <div className="min-h-screen bg-background pb-[240px] sm:pb-[180px] lg:pb-32">
+    <div className="min-h-screen bg-background">
       <LinearHeader onCtaClick={() => triggerTruthGate('header_cta')} />
 
       {/* ─── DEV: Special states (invalid doc, bad upload) ─── */}
