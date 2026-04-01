@@ -57,7 +57,7 @@ export const ALL_VARIANTS: Record<string, HomepageVariant> = {
     badgeText: "FREE AI QUOTE AUDIT",
     headline: "BEFORE YOU SIGN THAT QUOTE, LET AI CHECK THE MATH.",
     subheadline:
-      "Upload your contractor's estimate. In 60 seconds, our AI grades it across 5 critical areas — safety, scope, pricing, fine print, and warranty. It's free.",
+      "Upload your estimate. In 60 seconds, our AI grades it across 5 critical areas — safety, scope, pricing, fine print, and warranty. It's free.",
     weight: 1,
   },
   question: {
