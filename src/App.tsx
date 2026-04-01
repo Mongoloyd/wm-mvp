@@ -18,7 +18,6 @@ const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
 const AdminDashboard = lazy(() => import("./components/AdminDashboard.tsx"));
 const DevReportPreview = lazy(() => import("./pages/DevReportPreview.tsx"));
 
-
 // ── Static content pages ─────────────────────────────────────────────────────
 const About = lazy(() => import("./pages/About.tsx"));
 const Contact = lazy(() => import("./pages/Contact.tsx"));
@@ -39,7 +38,7 @@ function PageLoader() {
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="h-8 w-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-        <p className="text-xs text-muted-foreground font-mono">Loading analysis...</p>
+        <p className="text-xs text-muted-foreground font-mono">Loading…</p>
       </div>
     </div>
   );
@@ -54,32 +53,32 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <FacebookConversionProvider>
-        <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/report/classic/:sessionId" element={<ReportClassic />} />
-          {/* Legacy V2 route → permanent redirect to Classic */}
-          <Route path="/report/:sessionId" element={<ReportRedirect />} />
-          {/* Internal/dev only — zero production CTAs point here */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          <Route path="/demo-classic" element={<DemoClassic />} />
-          <Route path="/dev/report-preview" element={<DevReportPreview />} />
-          
-          {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
-          <Route element={<PublicLayout />}>
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/disclaimer" element={<Disclaimer />} />
-            <Route path="/how-we-beat-window-quotes" element={<HowWeBeatWindowQuotes />} />
-          </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-         <Route path="*" element={<NotFound />} />
-        </Routes>
-        </Suspense>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/report/classic/:sessionId" element={<ReportClassic />} />
+              {/* Legacy V2 route → permanent redirect to Classic */}
+              <Route path="/report/:sessionId" element={<ReportRedirect />} />
+              {/* Internal/dev only — zero production CTAs point here */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/demo-classic" element={<DemoClassic />} />
+              <Route path="/dev/report-preview" element={<DevReportPreview />} />
+
+              {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
+              <Route element={<PublicLayout />}>
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/disclaimer" element={<Disclaimer />} />
+                <Route path="/how-we-beat-window-quotes" element={<HowWeBeatWindowQuotes />} />
+              </Route>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </FacebookConversionProvider>
       </BrowserRouter>
     </TooltipProvider>
