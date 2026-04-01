@@ -3,22 +3,27 @@
  * Only rendered when IS_DEV_MODE is true. Tree-shaken in production.
  */
 
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bug, ChevronUp, ChevronDown, BarChart3 } from "lucide-react";
+import { Bug, ChevronUp, ChevronDown, BarChart3, FlaskConical } from "lucide-react";
 import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "./fixtures";
 import { RubricComparison } from "@/components/dev/RubricComparison";
+
+const DevQuoteGenerator = lazy(() => import("@/components/dev/DevQuoteGenerator").then(m => ({ default: m.DevQuoteGenerator })));
 
 interface DevPreviewPanelProps {
   currentState: DevPreviewState;
   onChange: (state: DevPreviewState) => void;
+  sessionId?: string | null;
+  onScanStart?: (fileName: string, scanSessionId: string) => void;
 }
 
 const STATES = Object.entries(DEV_PREVIEW_CONFIGS) as [DevPreviewState, typeof DEV_PREVIEW_CONFIGS[DevPreviewState]][];
 
-export default function DevPreviewPanel({ currentState, onChange }: DevPreviewPanelProps) {
+export default function DevPreviewPanel({ currentState, onChange, sessionId, onScanStart }: DevPreviewPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showRubricStats, setShowRubricStats] = useState(false);
+  const [showQuoteGen, setShowQuoteGen] = useState(false);
 
   return (
     <div className="fixed bottom-4 left-4 z-[9999]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -85,6 +90,24 @@ export default function DevPreviewPanel({ currentState, onChange }: DevPreviewPa
 
       <div style={{ display: "flex", gap: 6 }}>
         <button
+          onClick={() => setShowQuoteGen(!showQuoteGen)}
+          style={{
+            display: "flex", alignItems: "center", gap: 4,
+            background: showQuoteGen ? "#C8952A" : "#0F1F35",
+            color: "white",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: 10,
+            padding: "8px 10px",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+          }}
+          title="OCR Bypass"
+        >
+          <FlaskConical size={14} />
+        </button>
+        <button
           onClick={() => setShowRubricStats(!showRubricStats)}
           style={{
             display: "flex", alignItems: "center", gap: 4,
@@ -137,6 +160,23 @@ export default function DevPreviewPanel({ currentState, onChange }: DevPreviewPa
             style={{ position: "fixed", bottom: 60, left: 4, zIndex: 9998 }}
           >
             <RubricComparison />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* OCR Bypass Panel */}
+      <AnimatePresence>
+        {showQuoteGen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            style={{ position: "fixed", bottom: 60, left: 4, zIndex: 9998, maxHeight: "70vh", overflowY: "auto" }}
+          >
+            <Suspense fallback={null}>
+              <DevQuoteGenerator sessionId={sessionId} onScanStart={onScanStart} />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>

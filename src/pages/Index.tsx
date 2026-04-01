@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import LinearHeader from "@/components/LinearHeader";
 import AuditHero from "@/components/AuditHero";
@@ -31,9 +31,6 @@ import { trackEvent } from "@/lib/trackEvent";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
-const DevQuoteGenerator = import.meta.env.DEV
-  ? React.lazy(() => import("@/components/dev/DevQuoteGenerator").then(m => ({ default: m.DevQuoteGenerator })))
-  : null;
 import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "@/dev/fixtures";
 import { AlertTriangle, RotateCcw, FileX } from "lucide-react";
 
@@ -355,18 +352,7 @@ const Index = () => {
       />
 
       {/* Dev-only preview panel */}
-      {IS_DEV_MODE && <DevPreviewPanel currentState={devState} onChange={setDevState} />}
-      {import.meta.env.DEV && DevQuoteGenerator && (
-        <Suspense fallback={null}>
-          <DevQuoteGenerator
-            sessionId={sessionId}
-            onScanStart={(fileName, scanId) => {
-              setScanSessionId(scanId);
-              setFileUploaded(true);
-            }}
-          />
-        </Suspense>
-      )}
+      {IS_DEV_MODE && <DevPreviewPanel currentState={devState} onChange={setDevState} sessionId={sessionId} onScanStart={(fileName, scanId) => { setScanSessionId(scanId); setFileUploaded(true); }} />}
       <div className="bg-card pb-[240px] sm:pb-[180px] lg:pb-32">
         <Footer />
       </div>
