@@ -121,18 +121,18 @@ const proofOfRead = {
 
 ### 3.3 Backend — `preview_json` construction
 
-**Source:** `supabase/functions/scan-quote/index.ts:1181–1192`
+**Source:** `supabase/functions/scan-quote/index.ts:1181–1190` (exact)
 
 ```js
 const previewJson = {
-  grade:                 gradeResult.letterGrade,
-  flag_count:            flags.length,
-  opening_count_bucket:  openingBucket,           // "1-5" | "6-10" | "11-20" | "20+"
-  quality_band:          gradeResult.weightedAverage >= 70 ? "good" : ... ,
-  hard_cap_applied:      gradeResult.hardCapApplied,
-  has_warranty:          !!extraction.warranty,
-  has_permits:           !!extraction.permits,
-  pillar_scores:         buildPreviewPillarScores(gradeResult.pillarScores),
+  grade: gradeResult.letterGrade,
+  flag_count: flags.length,
+  opening_count_bucket: openingBucket,
+  quality_band: gradeResult.weightedAverage >= 70 ? "good" : gradeResult.weightedAverage >= 50 ? "fair" : "poor",
+  hard_cap_applied: gradeResult.hardCapApplied,
+  has_warranty: !!extraction.warranty,
+  has_permits: !!extraction.permits,
+  pillar_scores: buildPreviewPillarScores(gradeResult.pillarScores),
 };
 ```
 
@@ -217,7 +217,7 @@ return "preview";
 #### 2. Is `contractor_name` returned and mapped correctly?
 
 - **Returned:** ✅ YES — inside `proof_of_read` JSONB blob (scan-quote:1175, migration:39).
-- **Mapped:** ✅ YES — `contractorName: (proofOfRead?.contractor_name as string) || null` at `useAnalysisData.ts:262`. The cast is safe because the type guard fails silently to null.
+- **Mapped:** ✅ YES — `contractorName: (proofOfRead?.contractor_name as string) || null` at `useAnalysisData.ts:262`. This relies on the backend contract that `contractor_name` is `string | null`; there is no additional runtime type guard here (unlike `pageCount`/`lineItemCount`).
 - **Rendered:** ⚠️ WEAK — ScanTheatrics.tsx:365–368 shows only the generic copy "· Contractor information identified" when `contractorName` is truthy. The actual contractor name is **never displayed**. A trust-building opportunity (e.g. "Quote from [ContractorName]") is discarded.
 
 #### 3. Is `page_count` returned and mapped correctly?
@@ -514,7 +514,7 @@ Examples of evidence-based substitutes (for reference, not prescriptive):
 
 **Risk:** Low — UI-only. Does not change data flow, state, or OTP path. If `analysisData` is null (timing race), the block can safely render nothing or a spinner.
 
-**Must-not-do:** Do not display `flagCount`, `flagRedCount`, or any flag-content in the theatrics phase. These are safe as aggregate counts to show intent (e.g. "issues found") but specific flag detail must remain gated behind OTP.
+**Must-not-do:** Do not display any individual flag details or flag content in the theatrics phase. Aggregate counts (for example, a total "issues found" count) are safe to show, but specific flag detail must remain gated behind OTP.
 
 ### Step 4 — Optionally add `documentType` as a visible chip
 
@@ -541,7 +541,7 @@ Examples of evidence-based substitutes (for reference, not prescriptive):
 | 6 | Upload from clean session with no `analysisData` at cliffhanger start | No hardcoded green checkmarks appear; neutral/loading state renders instead |
 | 7 | Upload after a previous session (stale funnel state cleared) | No phantom contractor name or line item count from previous session |
 | 8 | Mobile background/return during theatrics | No stale trust signal chips appear; correct `analysisData` used |
-| 9 | React dev mode / StrictMode | Trust signals render exactly once, no duplicate chip sets |
+| 9 | React dev mode / StrictMode | No duplicate trust-signal chip sets visible; side effects remain correct under StrictMode re-renders |
 | 10 | OTP gate reached after preview | Full report unlocks; trust signal chips not visible after reveal |
 | 11 | Slow scan (>10s backend processing) | Cliffhanger shows neutral state initially; updates when `analysisData` arrives |
 | 12 | `document_type` is "unrelated_document" | `invalid_document` path fires; theatrics do not progress to cliffhanger |
