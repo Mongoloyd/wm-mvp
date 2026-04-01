@@ -338,12 +338,12 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                       )}
                       {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.lineItemCount} line items detected
+                          {analysisData.lineItemCount} {analysisData.lineItemCount === 1 ? "line item" : "line items"} detected
                         </span>
                       )}
                       {analysisData.openingCount != null && analysisData.openingCount > 0 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.openingCount} openings identified
+                          {analysisData.openingCount} {analysisData.openingCount === 1 ? "opening" : "openings"} identified
                         </span>
                       )}
                       {analysisData.pageCount != null && analysisData.pageCount > 1 && (
@@ -363,12 +363,12 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                       )}
                       {analysisData.flagRedCount > 0 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.flagRedCount} critical flagged
+                          {analysisData.flagRedCount} critical {analysisData.flagRedCount === 1 ? "flag" : "flags"}
                         </span>
                       )}
                       {analysisData.flagAmberCount > 0 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.flagAmberCount} warnings flagged
+                          {analysisData.flagAmberCount} {analysisData.flagAmberCount === 1 ? "warning" : "warnings"} flagged
                         </span>
                       )}
                     </div>
