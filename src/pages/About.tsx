@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { trackEvent } from "@/lib/trackEvent";
-import AboutHeader from "@/components/about/AboutHeader";
 import AboutHero from "@/components/about/AboutHero";
 import MarketProblemSection from "@/components/about/MarketProblemSection";
 import InformationAsymmetrySection from "@/components/about/InformationAsymmetrySection";
@@ -34,7 +33,6 @@ export default function About() {
 
   return (
     <main className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(170deg, #dce8f4 0%, #e4edf6 30%, #eaeff8 60%, #dde6f2 100%)" }}>
-      <AboutHeader />
       <AboutHero onTrack={handleTrack} />
       <MarketProblemSection />
       <InformationAsymmetrySection onTrack={handleTrack} />

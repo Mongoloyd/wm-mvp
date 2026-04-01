@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FacebookConversionProvider } from "@/components/FacebookConversionProvider";
 import AdminSettings from "./pages/AdminSettings";
+import PublicLayout from "@/components/PublicLayout";
 
 // ── Lazy-loaded routes ───────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index.tsx"));
@@ -65,14 +66,16 @@ const App = () => (
           <Route path="/demo-classic" element={<DemoClassic />} />
           <Route path="/dev/report-preview" element={<DevReportPreview />} />
           
-          {/* ── Static content pages ── */}
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/disclaimer" element={<Disclaimer />} />
-          <Route path="/how-we-beat-window-quotes" element={<HowWeBeatWindowQuotes />} />
+          {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
+          <Route element={<PublicLayout />}>
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/disclaimer" element={<Disclaimer />} />
+            <Route path="/how-we-beat-window-quotes" element={<HowWeBeatWindowQuotes />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
          <Route path="*" element={<NotFound />} />
         </Routes>
