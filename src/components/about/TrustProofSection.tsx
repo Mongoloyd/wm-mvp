@@ -29,8 +29,35 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
   const displayStats = stats ?? defaultStats;
 
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — strong cyan-blue radial, behind stat strip */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "15%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "85%",
+          height: "50%",
+          background: "radial-gradient(ellipse at 50% 35%, rgba(6,182,212,0.10) 0%, rgba(30,80,180,0.07) 50%, transparent 72%)",
+          filter: "blur(48px)",
+        }}
+      />
+      {/* Depth L2 — deep blue flanks */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          bottom: "0%",
+          right: "-8%",
+          width: "55%",
+          height: "70%",
+          background: "radial-gradient(ellipse at 65% 55%, rgba(14,40,100,0.08) 0%, transparent 70%)",
+          filter: "blur(44px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">THE PROOF LAYER</SectionEyebrow>
@@ -46,7 +73,7 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
         <div className="mb-10 flex divide-x divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white"
           style={{
             boxShadow:
-              "0 4px 6px rgba(15,30,60,0.06), 0 12px 40px rgba(15,30,60,0.10), inset 0 1px 0 rgba(255,255,255,0.9)",
+              "0 4px 8px rgba(10,25,60,0.10), 0 16px 48px rgba(10,25,80,0.14), 0 0 0 1px rgba(6,182,212,0.07), inset 0 1px 0 rgba(255,255,255,0.95)",
           }}
         >
           {displayStats.map((stat) => (
@@ -56,7 +83,7 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
             >
               <span
                 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl"
-                style={{ color: "#06B6D4" }}
+                style={{ color: "#06B6D4", textShadow: "0 0 20px rgba(6,182,212,0.3)" }}
               >
                 {stat.value}
               </span>
@@ -99,7 +126,7 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
           className="rounded-2xl bg-white p-8"
           style={{
             boxShadow:
-              "0 4px 6px rgba(15,30,60,0.06), 0 12px 40px rgba(15,30,60,0.10), inset 0 1px 0 rgba(255,255,255,0.9)",
+              "0 4px 8px rgba(10,25,60,0.10), 0 16px 48px rgba(10,25,80,0.14), 0 0 0 1px rgba(6,182,212,0.08), inset 0 1px 0 rgba(255,255,255,0.95)",
             borderLeft: "3px solid #06B6D4",
           }}
         >

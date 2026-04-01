@@ -3,8 +3,34 @@ import SectionHeading from "./SectionHeading";
 
 export default function ArbitrageEngineSection() {
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — blue radial field, left (mechanism 01 side) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "-5%",
+          left: "-8%",
+          width: "55%",
+          height: "90%",
+          background: "radial-gradient(ellipse at 30% 45%, rgba(6,182,212,0.09) 0%, rgba(30,80,180,0.07) 45%, transparent 70%)",
+          filter: "blur(44px)",
+        }}
+      />
+      {/* Depth L2 — orange underglow, right (arbitrage/pressure side) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          bottom: "5%",
+          right: "-8%",
+          width: "50%",
+          height: "75%",
+          background: "radial-gradient(ellipse at 70% 65%, rgba(249,115,22,0.07) 0%, rgba(234,88,12,0.04) 45%, transparent 70%)",
+          filter: "blur(50px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">THE SECRET WEAPON</SectionEyebrow>
@@ -27,7 +53,7 @@ export default function ArbitrageEngineSection() {
             className="flex flex-col rounded-2xl bg-white p-8 md:p-10"
             style={{
               boxShadow:
-                "0 4px 6px rgba(15,30,60,0.06), 0 12px 40px rgba(15,30,60,0.12), inset 0 1px 0 rgba(255,255,255,0.9)",
+                "0 4px 8px rgba(10,25,60,0.09), 0 16px 48px rgba(10,25,60,0.14), 0 0 0 1px rgba(6,182,212,0.08), inset 0 1px 0 rgba(255,255,255,0.95)",
             }}
           >
             <div className="mb-6 flex items-center gap-3">
@@ -69,7 +95,7 @@ export default function ArbitrageEngineSection() {
             className="flex flex-col rounded-2xl bg-white p-8 md:p-10"
             style={{
               boxShadow:
-                "0 4px 6px rgba(15,30,60,0.06), 0 12px 40px rgba(15,30,60,0.12), inset 0 1px 0 rgba(255,255,255,0.9)",
+                "0 4px 8px rgba(10,25,60,0.09), 0 16px 48px rgba(10,25,60,0.14), 0 0 0 1px rgba(249,115,22,0.07), inset 0 1px 0 rgba(255,255,255,0.95)",
             }}
           >
             <div className="mb-6 flex items-center gap-3">

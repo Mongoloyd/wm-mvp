@@ -3,8 +3,21 @@ import SectionHeading from "./SectionHeading";
 
 export default function HowWeMakeMoneySection() {
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — soft blue, left */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "10%",
+          left: "-10%",
+          width: "50%",
+          height: "80%",
+          background: "radial-gradient(ellipse at 30% 50%, rgba(30,80,180,0.08) 0%, transparent 68%)",
+          filter: "blur(40px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">HOW WE MAKE MONEY</SectionEyebrow>
