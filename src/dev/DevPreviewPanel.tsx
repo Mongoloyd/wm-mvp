@@ -3,15 +3,19 @@
  * Only rendered when IS_DEV_MODE is true. Tree-shaken in production.
  */
 
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bug, ChevronUp, ChevronDown, BarChart3 } from "lucide-react";
+import { Bug, ChevronUp, ChevronDown, BarChart3, FlaskConical } from "lucide-react";
 import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "./fixtures";
 import { RubricComparison } from "@/components/dev/RubricComparison";
+
+const DevQuoteGenerator = lazy(() => import("@/components/dev/DevQuoteGenerator").then(m => ({ default: m.DevQuoteGenerator })));
 
 interface DevPreviewPanelProps {
   currentState: DevPreviewState;
   onChange: (state: DevPreviewState) => void;
+  sessionId?: string | null;
+  onScanStart?: (fileName: string, scanSessionId: string) => void;
 }
 
 const STATES = Object.entries(DEV_PREVIEW_CONFIGS) as [DevPreviewState, typeof DEV_PREVIEW_CONFIGS[DevPreviewState]][];
