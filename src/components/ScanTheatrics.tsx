@@ -316,31 +316,47 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                 transition={{ duration: 0.15 }}
                 style={{ marginTop: 24 }}
               >
-                {/* Evidence-based validation signals — only render when confirmed by analysisData */}
-                {(() => {
-                  const signals: { key: string; label: string }[] = [];
-                  if (analysisData?.contractorName) signals.push({ key: "contractor", label: "Contractor identified" });
-                  if (analysisData?.lineItemCount != null && analysisData.lineItemCount > 0) signals.push({ key: "lineitems", label: "Line items detected" });
-                  if (analysisData?.documentType) signals.push({ key: "doctype", label: "Quote type confirmed" });
-                  if (signals.length === 0) return null;
-                  return (
-                    <div style={{ textAlign: "left", marginBottom: 16 }}>
-                      {signals.map((item, i) => (
-                        <motion.div
-                          key={item.key}
-                          initial={{ opacity: 0, x: -8 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.15, delay: i * 0.15 }}
-                          className="flex items-center gap-2"
-                          style={{ marginBottom: 6 }}
-                        >
-                          <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
-                          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>{item.label}</span>
-                        </motion.div>
-                      ))}
-                    </div>
-                  );
-                })()}
+                {/* Evidence-based OCR signals — rendered only when real analysisData fields exist */}
+                {analysisData && (analysisData.contractorName || (analysisData.lineItemCount != null && analysisData.lineItemCount > 0) || analysisData.documentType) && (
+                  <div style={{ textAlign: "left", marginBottom: 16 }}>
+                    {analysisData.contractorName && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.15, delay: 0 }}
+                        className="flex items-center gap-2"
+                        style={{ marginBottom: 6 }}
+                      >
+                        <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>Contractor identified</span>
+                      </motion.div>
+                    )}
+                    {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.15, delay: 0.15 }}
+                        className="flex items-center gap-2"
+                        style={{ marginBottom: 6 }}
+                      >
+                        <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>Line items detected</span>
+                      </motion.div>
+                    )}
+                    {analysisData.documentType && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.15, delay: 0.3 }}
+                        className="flex items-center gap-2"
+                        style={{ marginBottom: 6 }}
+                      >
+                        <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>Quote type confirmed</span>
+                      </motion.div>
+                    )}
+                  </div>
+                )}
 
                 {/* Real trust signals when analysisData available */}
                 {analysisData && (analysisData.analysisStatus === "preview_ready" || analysisData.analysisStatus === "complete") && (
