@@ -316,26 +316,31 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                 transition={{ duration: 0.15 }}
                 style={{ marginTop: 24 }}
               >
-                {/* OCR Validation Summary */}
-                <div style={{ textAlign: "left", marginBottom: 16 }}>
-                  {[
-                    { label: "Document structure detected", done: true },
-                    { label: "Text readability confirmed", done: true },
-                    { label: "Quote layout identified", done: true },
-                  ].map((item, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.15, delay: i * 0.15 }}
-                      className="flex items-center gap-2"
-                      style={{ marginBottom: 6 }}
-                    >
-                      <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
-                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>{item.label}</span>
-                    </motion.div>
-                  ))}
-                </div>
+                {/* Evidence-based validation signals — only render when confirmed by analysisData */}
+                {(() => {
+                  const signals: { key: string; label: string }[] = [];
+                  if (analysisData?.contractorName) signals.push({ key: "contractor", label: "Contractor identified" });
+                  if (analysisData?.lineItemCount != null && analysisData.lineItemCount > 0) signals.push({ key: "lineitems", label: "Line items detected" });
+                  if (analysisData?.documentType) signals.push({ key: "doctype", label: "Quote type confirmed" });
+                  if (signals.length === 0) return null;
+                  return (
+                    <div style={{ textAlign: "left", marginBottom: 16 }}>
+                      {signals.map((item, i) => (
+                        <motion.div
+                          key={item.key}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.15, delay: i * 0.15 }}
+                          className="flex items-center gap-2"
+                          style={{ marginBottom: 6 }}
+                        >
+                          <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
+                          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>{item.label}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 {/* Real trust signals when analysisData available */}
                 {analysisData && (analysisData.analysisStatus === "preview_ready" || analysisData.analysisStatus === "complete") && (
@@ -352,14 +357,14 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                   >
                     {/* Proof-of-read trust signals — presence-based only */}
                     <div className="flex flex-wrap gap-3 mb-3">
-                      {analysisData.pageCount != null && (
+                      {analysisData.pageCount != null && analysisData.pageCount > 1 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
                           Multi-page document analyzed
                         </span>
                       )}
                       {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.pageCount != null ? "·" : ""} Detailed line items detected
+                          {analysisData.pageCount != null && analysisData.pageCount > 1 ? "·" : ""} Detailed line items detected
                         </span>
                       )}
                       {analysisData.contractorName && (
