@@ -316,50 +316,8 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                 transition={{ duration: 0.15 }}
                 style={{ marginTop: 24 }}
               >
-                {/* Evidence-based OCR signals — rendered only when real analysisData fields exist */}
-                {analysisData && (analysisData.contractorName || (analysisData.lineItemCount != null && analysisData.lineItemCount > 0) || analysisData.documentType) && (
-                  <div style={{ textAlign: "left", marginBottom: 16 }}>
-                    {analysisData.contractorName && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.15, delay: 0 }}
-                        className="flex items-center gap-2"
-                        style={{ marginBottom: 6 }}
-                      >
-                        <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>Contractor identified</span>
-                      </motion.div>
-                    )}
-                    {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.15, delay: 0.15 }}
-                        className="flex items-center gap-2"
-                        style={{ marginBottom: 6 }}
-                      >
-                        <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>Line items detected</span>
-                      </motion.div>
-                    )}
-                    {analysisData.documentType && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.15, delay: 0.3 }}
-                        className="flex items-center gap-2"
-                        style={{ marginBottom: 6 }}
-                      >
-                        <span style={{ color: "#059669", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>✓</span>
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>Quote type confirmed</span>
-                      </motion.div>
-                    )}
-                  </div>
-                )}
-
-                {/* Real trust signals when analysisData available */}
-                {analysisData && (analysisData.analysisStatus === "preview_ready" || analysisData.analysisStatus === "complete") && (
+                {/* Proof of Read — truthful, evidence-based signals only */}
+                {analysisData && (
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -371,21 +329,46 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                       marginBottom: 12,
                     }}
                   >
-                    {/* Proof-of-read trust signals — presence-based only */}
+                    {/* Presence-based chips — only rendered when value is meaningful */}
                     <div className="flex flex-wrap gap-3 mb-3">
+                      {analysisData.contractorName && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          Contractor: {analysisData.contractorName}
+                        </span>
+                      )}
+                      {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          {analysisData.lineItemCount} line items detected
+                        </span>
+                      )}
+                      {analysisData.openingCount != null && analysisData.openingCount > 0 && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          {analysisData.openingCount} openings identified
+                        </span>
+                      )}
                       {analysisData.pageCount != null && analysisData.pageCount > 1 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
                           Multi-page document analyzed
                         </span>
                       )}
-                      {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
+                      {analysisData.hasWarranty === true && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.pageCount != null && analysisData.pageCount > 1 ? "·" : ""} Detailed line items detected
+                          Warranty language found
                         </span>
                       )}
-                      {analysisData.contractorName && (
+                      {analysisData.hasPermits === true && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          · Contractor information identified
+                          Permit language found
+                        </span>
+                      )}
+                      {analysisData.flagRedCount > 0 && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          {analysisData.flagRedCount} critical flagged
+                        </span>
+                      )}
+                      {analysisData.flagAmberCount > 0 && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          {analysisData.flagAmberCount} warnings flagged
                         </span>
                       )}
                     </div>
