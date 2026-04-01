@@ -1,0 +1,72 @@
+import SectionEyebrow from "./SectionEyebrow";
+import SectionHeading from "./SectionHeading";
+import SkeuoCard from "./SkeuoCard";
+
+const identityCards = [
+  {
+    label: "Not a Contractor",
+    body: "We do not profit by installing the job.",
+    accent: "bg-slate-200",
+  },
+  {
+    label: "Not a Blind Directory",
+    body: "We are not a generic list of names or form-fill marketplace.",
+    accent: "bg-slate-200",
+  },
+  {
+    label: "Not a Surface-Level Comparison",
+    body: "We do not reduce contract intelligence to price alone.",
+    accent: "bg-slate-200",
+  },
+  {
+    label: "An Intelligence Layer",
+    body: "We sit between quote confusion and informed action.",
+    accent: "bg-cyan-500",
+  },
+];
+
+export default function NotAContractorSection() {
+  return (
+    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
+      <div className="mx-auto max-w-7xl">
+        {/* Section Header */}
+        <div className="mb-12 text-center md:mb-16">
+          <SectionEyebrow className="mb-4">OUR ROLE</SectionEyebrow>
+          <SectionHeading className="mb-6">
+            WindowMan Is Not the Contractor. It's the Layer Between.
+          </SectionHeading>
+          <p className="mx-auto max-w-3xl text-base leading-relaxed text-foreground/80 md:text-lg">
+            We do not install windows. We do not operate as a generic lead
+            marketplace. We function as an independent intelligence layer
+            designed to bring more visibility to one of the least standardized
+            decisions in home improvement.
+          </p>
+        </div>
+
+        {/* Identity Card Grid */}
+        <div className="mb-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {identityCards.map((card) => (
+            <SkeuoCard key={card.label} className="flex flex-col">
+              <span
+                className={`mb-4 inline-block h-1.5 w-8 rounded-full ${card.accent}`}
+                aria-hidden="true"
+              />
+              <h3 className="mb-3 font-display text-lg font-bold tracking-tight text-foreground">
+                {card.label}
+              </h3>
+              <p className="text-sm leading-relaxed text-foreground/70">
+                {card.body}
+              </p>
+            </SkeuoCard>
+          ))}
+        </div>
+
+        {/* Closing Statement */}
+        <p className="text-center font-display text-lg font-semibold tracking-tight text-foreground/60 md:text-xl">
+          The goal is not more noise. The goal is better visibility before
+          commitment.
+        </p>
+      </div>
+    </section>
+  );
+}
