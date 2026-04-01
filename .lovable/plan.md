@@ -1,30 +1,18 @@
 
 
-## Problem
+## Plan: Move DevQuoteGenerator into DevPreviewPanel as a toggle button
 
-The Index page wrapper (`div.min-h-screen.bg-background.pb-[240px]`) has large bottom padding to prevent the Footer from being hidden behind the fixed StickyCTAFooter. This padding area uses `bg-background` (blue-gray `#EEF2F8`), creating a visible gray gap between the white Footer and the white sticky bar.
+### What changes
 
-## Fix
+**1. `src/dev/DevPreviewPanel.tsx`** — Add a third button ("OCR") next to the existing BarChart3 and DEV buttons. Clicking it toggles the DevQuoteGenerator panel open/closed, same pattern as the other two. Import and render DevQuoteGenerator inside an AnimatePresence block. Add `sessionId` and `onScanStart` as props passed through from the parent.
 
-**One change in `src/pages/Index.tsx` (line 150):**
+**2. `src/pages/Index.tsx`** — Remove the standalone `<DevQuoteGenerator>` block (lines 359-369). Pass `sessionId` and `onScanStart` props to `<DevPreviewPanel>` so it can forward them to the generator.
 
-Remove the bottom padding from the page wrapper div and instead add it directly to the `<Footer />` component's container. Specifically:
+### Technical details
 
-- Change line 150 from:
-  `<div className="min-h-screen bg-background pb-[240px] sm:pb-[180px] lg:pb-32">`
-  to:
-  `<div className="min-h-screen bg-background">`
-
-- Change the `<Footer />` on line 370 to wrap it so the footer's background extends through the padding area. Add the bottom padding to the Footer's parent wrapper with the footer's own background color:
-  ```
-  <div className="bg-card pb-[240px] sm:pb-[180px] lg:pb-32">
-    <Footer />
-  </div>
-  ```
-
-This ensures the padding zone matches the Footer's white (`bg-card`) background, eliminating the gray gap.
-
-## Also fix build error
-
-**`src/components/post-scan/PostScanReportSwitcher.test.tsx` line 70:** Remove the duplicate property in the object literal causing `TS1117`.
+- `DevPreviewPanel` gets new props: `sessionId?: string | null` and `onScanStart?: (fileName: string, scanSessionId: string) => void`
+- New state: `const [showQuoteGen, setShowQuoteGen] = useState(false)`
+- New button in the bottom button row with a test-tube icon (`FlaskConical` from lucide-react), labeled "OCR"
+- The DevQuoteGenerator renders in a fixed-position AnimatePresence panel (like RubricComparison), positioned to avoid overlap
+- Lazy import of DevQuoteGenerator stays intact via `React.lazy`
 
