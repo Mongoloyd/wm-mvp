@@ -66,7 +66,6 @@ function baseProps() {
     confidenceScore: 0.8,
     documentType: "quote",
     onSecondScan: vi.fn(),
-    scanSessionId: "scan-1",
     scanSessionId: null,
     onVerified: vi.fn(),
     isFullLoaded: false,
