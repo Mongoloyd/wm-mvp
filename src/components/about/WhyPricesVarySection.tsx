@@ -33,8 +33,21 @@ const varianceMarkers = [
 
 export default function WhyPricesVarySection() {
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — blue radial, upper right */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "-20%",
+          right: "-8%",
+          width: "58%",
+          height: "90%",
+          background: "radial-gradient(ellipse at 65% 35%, rgba(30,80,180,0.08) 0%, rgba(56,130,220,0.04) 55%, transparent 72%)",
+          filter: "blur(38px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">WHY THE NUMBERS DRIFT</SectionEyebrow>

@@ -76,14 +76,43 @@ export default function AboutCTASection({
   return (
     <section
       ref={sectionRef}
-      className="bg-slate-100 px-6 py-16 md:px-8 md:py-24"
+      className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24"
+      style={{ background: "transparent" }}
     >
-      <div className="mx-auto max-w-7xl">
+      {/* Depth L1 — restrained orange pressure underglow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          bottom: "0%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "80%",
+          height: "70%",
+          background: "radial-gradient(ellipse at 50% 80%, rgba(249,115,22,0.10) 0%, rgba(234,88,12,0.05) 45%, transparent 70%)",
+          filter: "blur(50px)",
+        }}
+      />
+      {/* Depth L2 — blue atmospheric crown */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "-10%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "70%",
+          height: "60%",
+          background: "radial-gradient(ellipse at 50% 20%, rgba(30,80,180,0.09) 0%, transparent 70%)",
+          filter: "blur(44px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         <div
           className="mx-auto max-w-2xl rounded-2xl bg-white px-8 py-12 text-center"
           style={{
             boxShadow:
-              "0 4px 6px rgba(15,30,60,0.06), 0 16px 48px rgba(15,30,60,0.13), inset 0 1px 0 rgba(255,255,255,0.9)",
+              "0 4px 8px rgba(10,25,60,0.10), 0 20px 60px rgba(10,25,80,0.16), 0 0 0 1px rgba(249,115,22,0.06), inset 0 1px 0 rgba(255,255,255,0.95)",
             border: "1px solid hsl(214 30% 82%)",
           }}
         >

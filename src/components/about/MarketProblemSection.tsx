@@ -4,8 +4,27 @@ import SkeuoCard from "./SkeuoCard";
 
 export default function MarketProblemSection() {
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — soft blue radial blob, upper right */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "-15%",
+          right: "-10%",
+          width: "60%",
+          height: "80%",
+          background: "radial-gradient(ellipse at 65% 30%, rgba(30,80,180,0.09) 0%, rgba(99,150,220,0.04) 50%, transparent 70%)",
+          filter: "blur(40px)",
+        }}
+      />
+      {/* Depth L2 — cool atmosphere wash */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "linear-gradient(155deg, rgba(219,234,254,0.12) 0%, transparent 60%)" }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">THE STRUCTURAL FAILURE</SectionEyebrow>

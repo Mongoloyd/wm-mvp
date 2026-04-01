@@ -40,8 +40,21 @@ export default function InformationAsymmetrySection({
   };
 
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — blue radial, left side */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "0%",
+          left: "-12%",
+          width: "55%",
+          height: "100%",
+          background: "radial-gradient(ellipse at 30% 50%, rgba(30,80,180,0.09) 0%, rgba(56,130,220,0.04) 50%, transparent 72%)",
+          filter: "blur(40px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         <div className="grid gap-12 md:grid-cols-2 md:gap-16 lg:gap-20">
           {/* Left Column: Narrative + Bullets */}
           <div className="flex flex-col justify-center">

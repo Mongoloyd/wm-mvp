@@ -25,8 +25,34 @@ const standards = [
 
 export default function InevitabilitySection() {
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — strong blue radial, centered-right for featured card */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "5%",
+          right: "-5%",
+          width: "65%",
+          height: "90%",
+          background: "radial-gradient(ellipse at 65% 40%, rgba(14,50,140,0.12) 0%, rgba(30,80,180,0.08) 45%, transparent 70%)",
+          filter: "blur(50px)",
+        }}
+      />
+      {/* Depth L2 — cyan accent, featured card halo */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "20%",
+          right: "2%",
+          width: "38%",
+          height: "60%",
+          background: "radial-gradient(ellipse at 60% 45%, rgba(6,182,212,0.10) 0%, transparent 65%)",
+          filter: "blur(36px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">THE STANDARD</SectionEyebrow>
@@ -50,7 +76,7 @@ export default function InevitabilitySection() {
                 item.featured
                   ? {
                       boxShadow:
-                        "0 4px 6px rgba(15,30,60,0.08), 0 16px 48px rgba(30,58,138,0.18), inset 0 1px 0 rgba(255,255,255,0.9)",
+                        "0 4px 8px rgba(10,25,80,0.12), 0 20px 56px rgba(14,50,140,0.22), 0 40px 80px rgba(6,182,212,0.08), inset 0 1px 0 rgba(255,255,255,0.95)",
                       border: "1px solid #1E3A8A",
                       borderTop: "2px solid #06B6D4",
                     }

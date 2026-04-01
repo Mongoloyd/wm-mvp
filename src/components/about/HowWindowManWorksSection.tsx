@@ -24,8 +24,35 @@ const steps = [
 
 export default function HowWindowManWorksSection() {
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — cyan-tinted radial behind mechanism panel */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "10%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "80%",
+          height: "85%",
+          background: "radial-gradient(ellipse at 50% 40%, rgba(6,182,212,0.09) 0%, rgba(30,80,180,0.08) 40%, transparent 70%)",
+          filter: "blur(48px)",
+        }}
+      />
+      {/* Depth L2 — deep blue flanks */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "-10%",
+          left: "-10%",
+          width: "40%",
+          height: "80%",
+          background: "radial-gradient(ellipse at 25% 45%, rgba(14,40,100,0.08) 0%, transparent 70%)",
+          filter: "blur(36px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">THE MECHANISM</SectionEyebrow>
@@ -44,7 +71,7 @@ export default function HowWindowManWorksSection() {
           className="mb-10 overflow-hidden rounded-2xl border border-slate-200"
           style={{
             background: "#f8fafc",
-            boxShadow: "inset 0 4px 18px rgba(15,30,60,0.07), 0 2px 8px rgba(15,30,60,0.06)",
+            boxShadow: "inset 0 4px 18px rgba(15,30,60,0.08), 0 4px 20px rgba(10,30,100,0.10), 0 16px 48px rgba(6,182,212,0.06)",
           }}
         >
           {/* Machine Header Bar */}

@@ -19,8 +19,21 @@ const cards = [
 
 export default function ContractorBenefitSection() {
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — soft blue radial, right side */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "5%",
+          right: "-10%",
+          width: "55%",
+          height: "85%",
+          background: "radial-gradient(ellipse at 65% 40%, rgba(30,80,180,0.08) 0%, transparent 70%)",
+          filter: "blur(44px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">THE PRO-MARKET STANCE</SectionEyebrow>

@@ -4,8 +4,21 @@ import SkeuoCard from "./SkeuoCard";
 
 export default function TransparencyShiftSection() {
   return (
-    <section className="bg-slate-100 px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden px-6 py-16 md:px-8 md:py-24" style={{ background: "transparent" }}>
+      {/* Depth L1 — blue radial, upper left */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute"
+        style={{
+          top: "-15%",
+          left: "-5%",
+          width: "60%",
+          height: "85%",
+          background: "radial-gradient(ellipse at 30% 35%, rgba(30,80,180,0.09) 0%, rgba(56,130,220,0.04) 50%, transparent 72%)",
+          filter: "blur(42px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">THE NEW NORMAL</SectionEyebrow>
