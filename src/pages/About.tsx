@@ -11,6 +11,11 @@ import ArbitrageEngineSection from "@/components/about/ArbitrageEngineSection";
 import HowWeMakeMoneySection from "@/components/about/HowWeMakeMoneySection";
 import BestPriceConditionsSection from "@/components/about/BestPriceConditionsSection";
 import TransparencyShiftSection from "@/components/about/TransparencyShiftSection";
+import ContractorBenefitSection from "@/components/about/ContractorBenefitSection";
+import InevitabilitySection from "@/components/about/InevitabilitySection";
+import TrustProofSection from "@/components/about/TrustProofSection";
+import AboutCTASection from "@/components/about/AboutCTASection";
+import AboutFooter from "@/components/about/AboutFooter";
 
 export default function About() {
   useEffect(() => {
@@ -40,6 +45,11 @@ export default function About() {
       <HowWeMakeMoneySection />
       <BestPriceConditionsSection />
       <TransparencyShiftSection />
+      <ContractorBenefitSection />
+      <InevitabilitySection />
+      <TrustProofSection />
+      <AboutCTASection onTrack={handleTrack} />
+      <AboutFooter />
     </main>
   );
 }
