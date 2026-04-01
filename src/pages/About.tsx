@@ -3,6 +3,9 @@ import { trackEvent } from "@/lib/trackEvent";
 import AboutHeader from "@/components/about/AboutHeader";
 import AboutHero from "@/components/about/AboutHero";
 import MarketProblemSection from "@/components/about/MarketProblemSection";
+import InformationAsymmetrySection from "@/components/about/InformationAsymmetrySection";
+import WhyPricesVarySection from "@/components/about/WhyPricesVarySection";
+import NotAContractorSection from "@/components/about/NotAContractorSection";
 
 export default function About() {
   useEffect(() => {
@@ -24,6 +27,9 @@ export default function About() {
       <AboutHeader />
       <AboutHero onTrack={handleTrack} />
       <MarketProblemSection />
+      <InformationAsymmetrySection onTrack={handleTrack} />
+      <WhyPricesVarySection />
+      <NotAContractorSection />
     </main>
   );
 }
