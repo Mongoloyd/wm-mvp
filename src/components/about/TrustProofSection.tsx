@@ -42,21 +42,17 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
           </p>
         </div>
 
-        {/* A) StatStrip */}
-        <div className="mb-10 grid grid-cols-3 gap-4 rounded-2xl border border-slate-200 bg-white p-6 md:gap-8 md:p-8"
+        {/* A) StatStrip — flex with automatic dividers, adapts to any stat count */}
+        <div className="mb-10 flex divide-x divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white"
           style={{
             boxShadow:
               "0 4px 6px rgba(15,30,60,0.06), 0 12px 40px rgba(15,30,60,0.10), inset 0 1px 0 rgba(255,255,255,0.9)",
           }}
         >
-          {displayStats.map((stat, i) => (
+          {displayStats.map((stat) => (
             <div
               key={stat.label}
-              className={`flex flex-col items-center gap-1 text-center ${
-                i < displayStats.length - 1
-                  ? "border-r border-slate-200 pr-4 md:pr-8"
-                  : ""
-              }`}
+              className="flex flex-1 flex-col items-center gap-1 px-4 py-6 text-center md:px-8 md:py-8"
             >
               <span
                 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl"

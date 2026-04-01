@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import SectionEyebrow from "./SectionEyebrow";
 import SectionHeading from "./SectionHeading";
@@ -19,19 +19,35 @@ export default function AboutCTASection({
 }: AboutCTASectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
 
+  // Single tracking path: delegate to onTrack when provided (caller handles trackEvent),
+  // otherwise call trackEvent directly. Prevents double-logging when About.tsx wires
+  // onTrack → trackEvent.
+  const track = useCallback(
+    (eventName: string) => {
+      if (onTrack) {
+        onTrack(eventName);
+      } else {
+        try {
+          trackEvent({ event_name: eventName, route: "/about" });
+        } catch {
+          // fail gracefully
+        }
+      }
+    },
+    [onTrack]
+  );
+
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
 
+    // Guard for browsers that don't support IntersectionObserver
+    if (!("IntersectionObserver" in window)) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          try {
-            trackEvent({ event_name: "about_cta_section_viewed", route: "/about" });
-          } catch {
-            // fail gracefully
-          }
-          if (onTrack) onTrack("about_cta_section_viewed");
+          track("about_cta_section_viewed");
           observer.disconnect();
         }
       },
@@ -40,35 +56,20 @@ export default function AboutCTASection({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [onTrack]);
+  }, [track]);
 
   const handleAnalyze = () => {
-    try {
-      trackEvent({ event_name: "about_bottom_cta_analyze_clicked", route: "/about" });
-    } catch {
-      // fail gracefully
-    }
-    if (onTrack) onTrack("about_bottom_cta_analyze_clicked");
+    track("about_bottom_cta_analyze_clicked");
     if (onAnalyzeClick) onAnalyzeClick();
   };
 
   const handleVault = () => {
-    try {
-      trackEvent({ event_name: "about_bottom_cta_vault_clicked", route: "/about" });
-    } catch {
-      // fail gracefully
-    }
-    if (onTrack) onTrack("about_bottom_cta_vault_clicked");
+    track("about_bottom_cta_vault_clicked");
     if (onCreateVaultClick) onCreateVaultClick();
   };
 
   const handleSampleReport = () => {
-    try {
-      trackEvent({ event_name: "about_bottom_cta_sample_report_clicked", route: "/about" });
-    } catch {
-      // fail gracefully
-    }
-    if (onTrack) onTrack("about_bottom_cta_sample_report_clicked");
+    track("about_bottom_cta_sample_report_clicked");
     if (onSampleReportClick) onSampleReportClick();
   };
 
