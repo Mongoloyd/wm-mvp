@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Lock, FileText, HelpCircle, CheckSquare } from "lucide-react";
+import { Lock, HelpCircle, CheckSquare } from "lucide-react";
 
 interface FixItCTAProps {
   redCount: number;
@@ -18,32 +18,8 @@ const FixItCTA = ({
 }: FixItCTAProps) => {
   const isFull = accessLevel === "full";
 
-  // Red state: non-clickable coming-soon div
-  if (redCount > 0) {
-    return (
-      <section className="py-6 px-4 md:px-8 bg-background">
-        <div className="max-w-4xl mx-auto">
-          <div
-            className="rounded-2xl shadow-sm flex items-center justify-center gap-2 py-4 px-6 font-body"
-            style={{
-              background: "hsl(var(--color-danger) / 0.06)",
-              border: "1.5px solid hsl(var(--color-danger) / 0.2)",
-              color: "hsl(var(--color-danger))",
-              fontSize: 15,
-              fontWeight: 600,
-              cursor: "default",
-            }}
-          >
-            <FileText size={18} />
-            Request for Proposal Tool (Coming Soon)
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Amber state: gap-fix CTA
-  if (amberCount > 0) {
+  // Red or Amber state: gap-fix CTA
+  if (redCount > 0 || amberCount > 0) {
     const isLocked = !isFull;
     return (
       <section className="py-6 px-4 md:px-8 bg-background">

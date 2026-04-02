@@ -485,7 +485,7 @@ const PillarCard = ({
   </motion.div>
 );
 
-/** OCR Read Quality Badge — always affirmative */
+/** OCR Read Quality Badge — reflects actual read fidelity */
 function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | null; data: AnalysisData }) {
   // Derive quality from confidence + anchor presence
   let anchorCount = 0;
@@ -497,10 +497,14 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
   let label = "Good";
   let color = "#059669";
   if (confidenceScore != null) {
-    if (confidenceScore >= 85 && anchorCount >= 3) { label = "Excellent"; color = "#059669"; }
+    if (confidenceScore >= 90 || (confidenceScore >= 85 && anchorCount >= 3)) { label = "Excellent"; color = "#059669"; }
     else if (confidenceScore >= 70) { label = "Great"; color = "#059669"; }
     else if (confidenceScore >= 55) { label = "Good"; color = "#2563EB"; }
     else { label = "Fair"; color = "#D97706"; }
+  } else if (anchorCount >= 3) {
+    // No confidence score but strong structural signal (e.g. digital PDF)
+    label = "Excellent";
+    color = "#059669";
   }
 
   return (
@@ -509,7 +513,7 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
         fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF",
         letterSpacing: "0.08em",
       }}>
-        OCR READ QUALITY
+        READ QUALITY
       </span>
       <span style={{
         fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700,

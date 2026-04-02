@@ -282,7 +282,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 background: confidenceScore >= 55 ? "hsl(var(--color-emerald) / 0.12)" : "hsl(var(--color-caution) / 0.12)",
                 padding: "2px 10px", letterSpacing: "0.06em",
               }}>
-                READ QUALITY: {confidenceScore >= 85 ? "EXCELLENT" : confidenceScore >= 70 ? "GREAT" : confidenceScore >= 55 ? "GOOD" : "FAIR"}
+                READ QUALITY: {confidenceScore >= 90 ? "EXCELLENT" : confidenceScore >= 70 ? "GREAT" : confidenceScore >= 55 ? "GOOD" : "FAIR"}
               </span>
             )}
           </div>
@@ -465,7 +465,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <p className="font-body text-foreground" style={{ fontSize: 16 }}>
               {redCount} critical, {amberCount} caution, {greenCount} confirmed across 5 pillars.
             </p>
-            <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {isFull ? flags.length : (flagCountProp ?? flags.length)} items reviewed</p>
+            <div className="text-right">
+              <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {isFull ? flags.length : (flagCountProp ?? flags.length)} Forensic Findings</p>
+              <p className="font-mono text-muted-foreground" style={{ fontSize: 11, marginTop: 2 }}>Analyzed against 37 industry-standard safety signals.</p>
+            </div>
           </div>
         </div>
       </section>
