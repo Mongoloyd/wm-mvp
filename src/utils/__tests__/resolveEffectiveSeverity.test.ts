@@ -52,35 +52,35 @@ describe("resolveEffectiveSeverity", () => {
     expect(resolveEffectiveSeverity(flag)).toBe("red");
   });
 
-  // ── Amber overrides ──
+  // ── Red overrides (expanded — includes formerly amber topics) ──
 
-  it("escalates green to amber when permit is missing", () => {
+  it("escalates green to red when permit is missing", () => {
     const flag = makeFlag({
       severity: "green",
       label: "Permit Handling",
       detail: "No mention of permits in the quote.",
     });
-    expect(resolveEffectiveSeverity(flag)).toBe("amber");
+    expect(resolveEffectiveSeverity(flag)).toBe("red");
   });
 
-  it("escalates green to amber when timeline is unclear", () => {
+  it("escalates green to red when timeline is unclear", () => {
     const flag = makeFlag({
       severity: "green",
       label: "Project Timeline",
       detail: "Start date not specified.",
     });
-    expect(resolveEffectiveSeverity(flag)).toBe("amber");
+    expect(resolveEffectiveSeverity(flag)).toBe("red");
   });
 
-  // ── Catch-all escalation ──
+  // ── Catch-all escalation (risk-first: any negative → red) ──
 
-  it("escalates green to amber when any negative trigger is present on unknown topic", () => {
+  it("escalates green to red when any negative trigger is present on unknown topic", () => {
     const flag = makeFlag({
       severity: "green",
       label: "Material Specifications",
       detail: "Glass type is unspecified in the document.",
     });
-    expect(resolveEffectiveSeverity(flag)).toBe("amber");
+    expect(resolveEffectiveSeverity(flag)).toBe("red");
   });
 
   // ── No change cases ──
@@ -94,13 +94,13 @@ describe("resolveEffectiveSeverity", () => {
     expect(resolveEffectiveSeverity(flag)).toBe("red");
   });
 
-  it("preserves amber severity when negative trigger is present on unknown topic", () => {
+  it("escalates amber to red when negative trigger is present on unknown topic", () => {
     const flag = makeFlag({
       severity: "amber",
       label: "Something",
       detail: "Details are unclear.",
     });
-    expect(resolveEffectiveSeverity(flag)).toBe("amber");
+    expect(resolveEffectiveSeverity(flag)).toBe("red");
   });
 
   it("preserves green severity when no negative trigger is present", () => {

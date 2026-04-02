@@ -177,7 +177,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {isFull && confidenceScore != null &&
+            {isFull && confidenceScore != null && confidenceScore >= 40 &&
             <div className="text-right hidden md:block">
                 <p className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.08em" }}>CONFIDENCE</p>
                 <p className="font-mono" style={{ fontSize: 20, fontWeight: 700, color: confidenceScore >= 70 ? "hsl(var(--color-emerald))" : "hsl(var(--color-caution))" }}>{Math.round(confidenceScore)}%</p>
@@ -209,37 +209,11 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <p className="font-body text-foreground/90" style={{ fontSize: 16 }}>{config.verdict}</p>
           </div>
 
-          {/* Summary chips — affirmative only, preview mode */}
+          {/* Summary chips — preview mode, no misleading green chips */}
           {!isFull && (
             <div className="flex flex-wrap gap-2 mt-3">
-              {qualityBand && (
-                <span className="font-mono" style={{
-                  fontSize: 12, fontWeight: 700,
-                  color: qualityBand === "good" ? "hsl(var(--color-emerald))" : qualityBand === "fair" ? "hsl(var(--color-caution))" : "hsl(var(--muted-foreground))",
-                  background: qualityBand === "good" ? "hsl(var(--color-emerald) / 0.12)" : qualityBand === "fair" ? "hsl(var(--color-caution) / 0.12)" : "hsl(var(--muted-foreground) / 0.12)",
-                  padding: "3px 10px", letterSpacing: "0.06em",
-                }}>
-                  {qualityBand === "good" ? "GOOD QUOTE STRUCTURE" : qualityBand === "fair" ? "FAIR QUOTE STRUCTURE" : "BASIC QUOTE STRUCTURE"}
-                </span>
-              )}
-              {hasWarranty === true && (
-                <span className="font-mono" style={{
-                  fontSize: 12, fontWeight: 700,
-                  color: "hsl(var(--color-emerald))", background: "hsl(var(--color-emerald) / 0.12)",
-                  padding: "3px 10px", letterSpacing: "0.06em",
-                }}>
-                  WARRANTY: FOUND
-                </span>
-              )}
-              {hasPermits === true && (
-                <span className="font-mono" style={{
-                  fontSize: 12, fontWeight: 700,
-                  color: "hsl(var(--color-emerald))", background: "hsl(var(--color-emerald) / 0.12)",
-                  padding: "3px 10px", letterSpacing: "0.06em",
-                }}>
-                  PERMITS: FOUND
-                </span>
-              )}
+              {/* qualityBand, hasWarranty, hasPermits chips removed —
+                  they created false confidence and duplicated findings */}
             </div>
           )}
         </div>
@@ -275,22 +249,22 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 · Contractor identified
               </span>
             )}
-            {confidenceScore != null && (
+            {confidenceScore != null && confidenceScore >= 55 && (
               <span className="font-mono" style={{
                 fontSize: 12, fontWeight: 700, marginLeft: "auto",
                 color: confidenceScore >= 55 ? "hsl(var(--color-emerald))" : "hsl(var(--color-caution))",
                 background: confidenceScore >= 55 ? "hsl(var(--color-emerald) / 0.12)" : "hsl(var(--color-caution) / 0.12)",
                 padding: "2px 10px", letterSpacing: "0.06em",
               }}>
-                READ QUALITY: {confidenceScore >= 90 ? "EXCELLENT" : confidenceScore >= 70 ? "GREAT" : confidenceScore >= 55 ? "GOOD" : "FAIR"}
+                READ QUALITY: {confidenceScore >= 90 ? "EXCELLENT" : confidenceScore >= 70 ? "GOOD" : "FAIR"}
               </span>
             )}
           </div>
         </motion.section>
       )}
 
-      {/* ─── TOP VIOLATION SUMMARY STRIP ─── */}
-      {(() => {
+      {/* ─── TOP VIOLATION SUMMARY STRIP (preview only — avoid chip+card duplication) ─── */}
+      {!isFull && (() => {
         const topViolation = selectTopViolation(flags, grade);
         if (!topViolation) return null;
         return (
@@ -329,10 +303,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <div>
                 <span className="wm-eyebrow" style={{ color: "hsl(var(--color-danger))" }}>FORENSIC FINDINGS</span>
                 <h2 className="wm-title-section text-foreground" style={{ marginTop: 4 }}>
-                  {issueCount} Issue{issueCount !== 1 ? "s" : ""} Identified
+                  {issueCount} Forensic Finding{issueCount !== 1 ? "s" : ""}
                 </h2>
                 <p className="font-body text-muted-foreground" style={{ fontSize: 14 }}>
-                  {redCount} critical · {amberCount} caution · {greenCount} confirmed
+                  {redCount} critical · {amberCount} review{greenCount > 0 ? ` · ${greenCount} clear` : ""}
                 </p>
               </div>
               <div className="hidden md:block" style={{ background: "hsl(var(--color-cyan) / 0.12)", border: "1px solid hsl(var(--color-cyan))", borderRadius: "var(--radius-btn)", padding: "6px 12px" }}>
@@ -463,10 +437,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           {/* Summary bar */}
           <div className="card-raised flex flex-col md:flex-row md:items-center md:justify-between gap-2" style={{ padding: "14px 20px", marginTop: 16 }}>
             <p className="font-body text-foreground" style={{ fontSize: 16 }}>
-              {redCount} critical, {amberCount} caution, {greenCount} confirmed across 5 pillars.
+              {redCount} critical, {amberCount} review{greenCount > 0 ? `, ${greenCount} clear` : ""} across 5 pillars.
             </p>
             <div className="text-right">
-              <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {isFull ? flags.length : (flagCountProp ?? flags.length)} Forensic Findings</p>
+              <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {issueCount} Issue{issueCount !== 1 ? "s" : ""}{greenCount > 0 ? ` · ${greenCount} Confirmed` : ""}</p>
               <p className="font-mono text-muted-foreground" style={{ fontSize: 11, marginTop: 2 }}>Analyzed against 37 industry-standard safety signals.</p>
             </div>
           </div>

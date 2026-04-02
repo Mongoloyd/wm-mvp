@@ -85,32 +85,27 @@ export function resolveEffectiveSeverity(flag: AnalysisFlag): EffectiveSeverity 
   }
 
   // ── Red overrides: critical consumer protections ──
+  // In Florida impact window domain, missing permits, unspecified products,
+  // missing deposit terms, and unclear timelines are all critical — not just
+  // "important". A missing protection is always a red flag.
   const redTopics = [
     () => hasToken("cancellation"),
     () => hasToken("license") || hasToken("licensing") || hasToken("licensed"),
     () => hasToken("warranty") || hasPhrase("labor warranty") || hasPhrase("manufacturer warranty"),
     () => hasToken("insurance") || hasPhrase("proof of insurance"),
+    () => hasToken("permit") || hasToken("permits") || hasToken("permitting"),
+    () => hasToken("timeline") || hasPhrase("start date") || hasPhrase("completion date"),
+    () => hasToken("deposit") || hasPhrase("payment schedule"),
+    () => hasToken("scope") || hasToken("brand") || hasToken("noa") || hasPhrase("dp rating"),
+    () => hasToken("payment") || hasPhrase("payment terms"),
   ];
 
   for (const check of redTopics) {
     if (check()) return "red";
   }
 
-  // ── Amber overrides: important but not critical ──
-  const amberTopics = [
-    () => hasToken("permit") || hasToken("permits") || hasToken("permitting"),
-    () => hasToken("timeline") || hasPhrase("start date") || hasPhrase("completion date"),
-    () => hasToken("deposit") || hasPhrase("payment schedule"),
-  ];
-
-  for (const check of amberTopics) {
-    if (check()) return "amber";
-  }
-
-  // ── Catch-all: any negative trigger on a green flag escalates to amber ──
-  if (flag.severity === "green") {
-    return "amber";
-  }
-
-  return flag.severity;
+  // ── Catch-all: any negative trigger escalates to red ──
+  // A missing consumer protection with no specific topic match is still
+  // critical. Green is strictly reserved for positive confirmations.
+  return "red";
 }
