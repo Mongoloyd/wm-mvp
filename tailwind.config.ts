@@ -134,6 +134,12 @@ export default {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
         },
+        "hero-drift": {
+          "0%, 100%": { transform: "scale(1.08) translate(0, 0)" },
+          "25%": { transform: "scale(1.08) translate(-10px, 5px)" },
+          "50%": { transform: "scale(1.08) translate(5px, -8px)" },
+          "75%": { transform: "scale(1.08) translate(8px, 3px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.15s ease-out",
