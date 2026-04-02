@@ -182,7 +182,7 @@ const AuditHero = ({
                   <span className="inline-flex items-center justify-center bg-primary text-primary-foreground font-mono text-[9px] font-bold tracking-[0.05em] px-1.5 py-0.5">
                     NEW
                   </span>
-                  <span>Getting Quotes Soon?</span>
+                  <span className="text-xl">Getting Quotes Soon?</span>
                 </span>
               </button>
               <TrustBullets />
