@@ -1,15 +1,17 @@
 
 
-# Remove Duplicate Stats Bar
+# Fix SocialProofStrip Visibility
 
-The screenshot shows two stats bars stacked — the upper one (lines 238-252 in Index.tsx) is the plain inline stats bar I just added, and the lower one is the original `SocialProofStrip` component with the card-style design (white background, rounded, divider, pulsing dot).
+## Current State
+- **No crash exists.** Every component that uses `useTickerStats` (SocialProofStrip, ExitIntentModal, TruthGateFlow, ClosingManifesto, FlowBEntry, PowerToolDemo) imports the hook independently. Index.tsx has zero references to `total` or `today` — there is nothing to restore.
+- **The real issue:** SocialProofStrip is invisible because `useInView(ref, { once: true, amount: 0.5 })` requires 50% of the element to be visible before triggering the animation from `opacity: 0` to `opacity: 1`. The strip is too short for this threshold to reliably fire.
 
-## What I'll do
+## Plan — One change, one file
 
-**File: `src/pages/Index.tsx`**
-- Delete lines 237-252 (the `{/* Stats Bar */}` div with the inline `total` / `today` display)
-- Keep the `<SocialProofStrip />` on line 253 as-is
-- Remove the `useTickerStats` import and `const { total, today }` destructure since they're no longer used in this file
+### File: `src/components/SocialProofStrip.tsx`
+**Line 24** — Change `amount: 0.5` to `amount: 0.1`
 
-One file, three small deletions. The original card-style SocialProofStrip stays exactly where it is.
+This lowers the intersection threshold so the count-up animation triggers as soon as 10% of the strip scrolls into view, making it reliably visible.
+
+No other files need changes.
 
