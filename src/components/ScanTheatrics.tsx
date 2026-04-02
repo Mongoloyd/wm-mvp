@@ -658,11 +658,17 @@ const ForensicTerminal = ({
 }) => {
   const [typedText, setTypedText] = useState("");
   const intervalRef = useRef<number | null>(null);
-  const prevIndexRef = useRef<number>(-1);
+  const prevStateRef = useRef<{ index: number; county: string } | null>(null);
 
   useEffect(() => {
-    if (activeIndex === prevIndexRef.current) return;
-    prevIndexRef.current = activeIndex;
+    if (
+      prevStateRef.current &&
+      prevStateRef.current.index === activeIndex &&
+      prevStateRef.current.county === county
+    ) {
+      return;
+    }
+    prevStateRef.current = { index: activeIndex, county };
 
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current);
@@ -690,7 +696,7 @@ const ForensicTerminal = ({
         intervalRef.current = null;
       }
     };
-  }, [activeIndex, county]);
+  }, [activeIndex, county, steps]);
 
   return (
     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
@@ -725,9 +731,11 @@ const ForensicTerminal = ({
         {/* Log lines */}
         <div style={{ flex: 1 }}>
           {steps.map((step, i) => {
-            if (i > activeIndex) return null;
-            const isComplete = i < activeIndex;
-            const isActiveStep = i === activeIndex;
+            // When cliffhanger starts, treat all steps as completed (effectiveIndex past the end).
+            const effectiveIndex = isCliffhanger ? steps.length : activeIndex;
+            if (i > effectiveIndex) return null;
+            const isComplete = i < effectiveIndex;
+            const isActiveStep = i === effectiveIndex;
 
             if (isComplete) {
               return (
