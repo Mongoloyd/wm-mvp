@@ -8,12 +8,23 @@
  * Returns { ok: true, metrics: DerivedMetrics }
  */
 
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
 // ── CORS ─────────────────────────────────────────────────────────────────────
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+// ── V2.0 SCHEMA ENUMS & TYPES ────────────────────────────────────────────────
+const PRODUCT_SUB_TYPES = [
+  "Single Hung", "Double Hung", "Casement", "Sliding Glass Door",
+  "French Door", "Picture Window", "Architectural Shape",
+  "Generic Window", "Generic Door", "Unknown"
+] as const;
+
+type ProductSubTypeEnum = typeof PRODUCT_SUB_TYPES[number];
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type NullableNumber = number | null | undefined;
@@ -99,7 +110,29 @@ function median(values: number[]): number | null {
     : round2(clean[mid]);
 }
 
-// ── Line item classification ─────────────────────────────────────────────────
+// ── V2.0 Line Item Granular Classification ───────────────────────────────────
+function classifyProductV2(desc: string): ProductSubTypeEnum {
+  const lowDesc = desc.toLowerCase();
+  if (lowDesc.includes("single hung")) return "Single Hung";
+  if (lowDesc.includes("double hung")) return "Double Hung";
+  if (lowDesc.includes("casement")) return "Casement";
+  if (lowDesc.includes("sliding glass") || lowDesc.includes("sgd")) return "Sliding Glass Door";
+  if (lowDesc.includes("french door")) return "French Door";
+  if (lowDesc.includes("picture") || lowDesc.includes("fixed")) return "Picture Window";
+  if (lowDesc.includes("shape") || lowDesc.includes("arch")) return "Architectural Shape";
+  if (lowDesc.includes("window")) return "Generic Window";
+  if (lowDesc.includes("door")) return "Generic Door";
+  return "Unknown";
+}
+
+function aggregateBrandV2(desc: string, existingBrand: string | null): string | null {
+  if (existingBrand) return existingBrand;
+  const knownBrands = ["PGT", "CGI", "ESW", "Andersen", "Pella", "WinDoor", "CWS"];
+  const lowDesc = desc.toLowerCase();
+  return knownBrands.find(b => lowDesc.includes(b.toLowerCase())) || null;
+}
+
+// ── Legacy Line item classification ──────────────────────────────────────────
 function classifyItem(description?: string): ItemBucket {
   const d = (description ?? "").toLowerCase().trim();
   if (!d) return "other";
@@ -408,7 +441,7 @@ function deriveMetrics(data: ExtractionResult) {
 }
 
 // ── Server ───────────────────────────────────────────────────────────────────
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -439,9 +472,64 @@ Deno.serve(async (req) => {
       );
     }
 
-    const metrics = deriveMetrics(extraction);
+    // 1. Generate the legacy metrics
+    const legacyMetrics = deriveMetrics(extraction);
 
-    return new Response(JSON.stringify({ ok: true, metrics }, null, 2), {
+    // 2. Generate the V2.0 Intelligence line items and math gates
+    const rawItems = extraction.line_items || [];
+    let runningSum = 0;
+    let mathIntegrityFailed = false;
+
+    const processed_line_items = rawItems.map((item) => {
+      const description = item.description || "";
+      const classified_sub_type = classifyProductV2(description);
+      const brand_identified = aggregateBrandV2(description, item.brand || null);
+      const is_impact_rated = /impact|hurricane|non-impact/i.test(description) 
+        ? !/non-impact/i.test(description) 
+        : null;
+
+      let computed_line_total = n(item.total_price);
+      if (computed_line_total === null && n(item.unit_price) !== null) {
+        computed_line_total = (n(item.unit_price) || 0) * (n(item.quantity) || 1);
+      }
+
+      const line_item_math_valid = typeof computed_line_total === "number";
+      if (line_item_math_valid) {
+        runningSum += (computed_line_total || 0);
+      } else {
+        mathIntegrityFailed = true;
+      }
+
+      return {
+        ...item,
+        classified_sub_type,
+        brand_identified,
+        is_impact_rated,
+        line_item_math_valid,
+        computed_line_total
+      };
+    });
+
+    const quotedTotal = n(extraction.total_quoted_price);
+    let math_discrepancy: boolean | null = null;
+    if (quotedTotal !== null && !mathIntegrityFailed && processed_line_items.length > 0) {
+      math_discrepancy = Math.abs(runningSum - quotedTotal) > 1.0;
+    }
+
+    // 3. Merge them additively
+    const finalMetrics = {
+      ...legacyMetrics,
+      line_items: processed_line_items,
+      math_validation: {
+        computed_sum: runningSum,
+        quoted_total: quotedTotal,
+        math_discrepancy,
+        trust_score: math_discrepancy === false ? 100 : (math_discrepancy === true ? 0 : 50)
+      },
+      engine_metadata: { version: "2.0.0-production", processed_at: new Date().toISOString() }
+    };
+
+    return new Response(JSON.stringify({ ok: true, metrics: finalMetrics }, null, 2), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
