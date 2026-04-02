@@ -67,7 +67,7 @@ export const tickerStrings = [
 
   // ⚡ Speed / Efficiency (20)
   "⚡ Average scan time: 48 seconds from upload to Truth Report.",
-  "⚡ Thousands of homeowner quotes analyzed across Florida.",
+  "⚡ Our AI has analyzed quotes from every Florida county.",
   "⚡ AI detected 4 red flags in a Palm Beach quote in 32 seconds.",
   "⚡ Instant Analysis: No waiting for a human to call you back.",
   "⚡ Thousands of Quotes Scanned: Our AI has seen every trick in the book.",
@@ -80,8 +80,8 @@ export const tickerStrings = [
   "⚡ 24/7 Access: Audit your quote at 2 AM or 2 PM.",
   "⚡ Priority Processing: No queue, no waiting, just immediate facts.",
   "⚡ 22 Seconds: Median time to identify the window brand and series.",
-  "⚡ Large Dataset: AI trained on millions of dollars in Florida window contracts.",
-  "⚡ High Accuracy: Consistently reliable results on handwritten quote detection.",
+  "⚡ Comprehensive Training: AI built on extensive Florida window contract data.",
+  "⚡ Robust Detection: Reads both printed and handwritten quotes effectively.",
   "⚡ Peak Performance: High throughput during busy periods for FL homeowners.",
   "⚡ Lightning Fast: Teaser results appear in as little as 11 seconds.",
   "⚡ Truth Unlocked: Full report generated in under 2 minutes.",
