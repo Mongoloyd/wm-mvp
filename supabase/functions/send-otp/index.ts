@@ -147,8 +147,14 @@ Deno.serve(async (req) => {
 
     if (!twilioRes.ok) {
       console.error("[send-otp] Twilio error:", twilioData);
+      const userMessage =
+        twilioData?.code === 60410
+          ? "This phone number has been temporarily blocked by our SMS provider. Please try a different number or wait and try again later."
+          : twilioData?.code === 60203
+            ? "This phone number has reached the maximum number of verification attempts. Please try again later."
+            : "Failed to send verification code. Please try again.";
       return new Response(
-        JSON.stringify({ error: "Failed to send verification code.", success: false }),
+        JSON.stringify({ error: userMessage, success: false, twilio_code: twilioData?.code }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
