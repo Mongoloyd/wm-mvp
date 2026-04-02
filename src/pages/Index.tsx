@@ -40,6 +40,7 @@ const Index = () => {
   const IS_DEV_MODE = import.meta.env.DEV;
 
   const variant = useHomepageVariant();
+  const { total, today } = useTickerStats();
 
   const [devState, setDevState] = useState<DevPreviewState>("none");
 
