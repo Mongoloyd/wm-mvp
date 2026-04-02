@@ -1,78 +1,70 @@
 
 
-# Apply Graduated Border + Float to Badge Elements Sitewide
+# Premium Hero Background: Frosted Glass + Grain + Parallax
 
 ## Summary
-Add the SocialProofStrip's 3-ring graduated border and subtle float animation to badge/chip elements across the site. Their existing colors stay the same — only their depth and dimensionality change.
+Three layered enhancements to the AuditHero background: frosted glass blur on the overlay, a subtle film grain texture, and scroll-based parallax depth on the background image.
 
-## Target Elements
+## Changes
 
-### 1. CriticalFlagCard — Severity Badge (`CRITICAL FLAG` / `HIGH FLAG`)
-**File**: `src/components/CriticalFlagCard.tsx` (lines 119-134)
+### 1. Frosted Glass Overlay
+**File**: `src/components/AuditHero.tsx` (line 64)
 
-Currently a flat `<span>` with 1px border. Wrap it in a 3-ring nested div structure where each ring uses the badge's own severity color at decreasing opacity:
-- Outer ring: `hsl(var(${cssVar}) / 0.5)`
-- Middle ring: `hsl(var(${cssVar}) / 0.3)`
-- Inner ring: `hsl(var(${cssVar}) / 0.15)`
-- Core: existing background (`hsl(var(${cssVar}) / 0.08)`)
+Add `backdrop-blur-lg` to the existing gradient overlay div. This blurs the drifting background image through the semi-transparent white gradient, creating a premium frosted glass effect.
 
-Add subtle float via `motion.div` wrapper: `y: [0, -1, 0, 1, 0]` over 5s, only on `isTopRanked` badges. Add uniform soft shadow: `0 1px 4px hsla(0 0% 0% / 0.08)`.
-
-### 2. CriticalFlagCard — Pillar Badge (`Safety & Code`, etc.)
-**File**: `src/components/CriticalFlagCard.tsx` (lines 135-147)
-
-Currently a flat `bg-secondary` span. Wrap in 3-ring structure using neutral border tones (same as SocialProofStrip):
-- Outer: `hsl(214 25% 75%)`
-- Middle: `hsl(214 22% 83%)`
-- Inner: `hsl(214 18% 90%)`
-- Core: existing `bg-secondary`
-
-No float animation (too small/subtle). Just the graduated border for depth.
-
-### 3. TopViolationSummaryStrip — Impact Chip
-**File**: `src/components/TopViolationSummaryStrip.tsx` (lines 94-111)
-
-Currently a flat span with `accentBorder`. Wrap in 3-ring structure using accent color at decreasing opacity:
-- Outer: `${accentColor}` at 0.45 opacity
-- Middle: at 0.25
-- Inner: at 0.12
-- Core: existing `accentBg`
-
-Add subtle float: `y: [0, -1, 0, 1, 0]` over 6s infinite.
-
-### 4. VerifyBanner — Lock Badge Label
-**File**: `src/components/TruthReportFindings/VerifyBanner.tsx` (lines 27-31)
-
-The `YOUR FULL REPORT IS READY` label line. Wrap the lock icon + text span in a small graduated-border pill using gold tones:
-- Outer: `hsl(38 72% 53% / 0.5)`
-- Middle: `hsl(38 72% 53% / 0.3)`
-- Inner: `hsl(38 72% 53% / 0.15)`
-- Core: `hsl(38 72% 53% / 0.06)`
-
-Add subtle float: `y: [0, -1, 0, 1, 0]` over 6s.
-
-## Pattern
-Each graduated badge follows the same nesting structure:
-```text
-<outer ring 1px pad, darkest accent>
-  <middle ring 1px pad, medium accent>
-    <inner ring 1px pad, lightest accent>
-      <core content — existing colors preserved>
-    </inner>
-  </middle>
-</outer>
+```
+before: "absolute inset-0 bg-gradient-to-b from-white/55 via-white/35 to-white/65 pointer-events-none"
+after:  "absolute inset-0 bg-gradient-to-b from-white/55 via-white/35 to-white/65 backdrop-blur-lg pointer-events-none"
 ```
 
-Border radius decreases by 1px per ring (e.g., 7px → 6px → 5px → 4px) to stay concentric. Uniform soft `boxShadow` on the outer ring only. Float animation is optional per element (only on prominent badges).
+### 2. Film Grain Texture Overlay
+**File**: `src/components/AuditHero.tsx` — new div after the gradient overlay (after line 64)
+
+Add a noise/grain layer using an inline SVG filter via CSS `background-image` with `url("data:image/svg+xml,...")` generating a `feTurbulence` noise pattern at ~3% opacity. This adds physical texture without any external asset.
+
+```text
+<div
+  className="absolute inset-0 pointer-events-none mix-blend-overlay"
+  style={{
+    opacity: 0.03,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+    backgroundRepeat: "repeat",
+    width: "100%",
+    height: "100%",
+  }}
+/>
+```
+
+### 3. Parallax Scroll Depth
+**File**: `src/components/AuditHero.tsx` — modify the `<section>` and the `<img>` element
+
+Two approaches (lightweight CSS-only preferred):
+
+- Add `style={{ perspective: "1px", overflowY: "hidden" }}` is not ideal since this section doesn't scroll independently.
+- **Better**: Use a small React `useEffect` + `useRef` with a `scroll` listener that applies a `translateY` transform to the background image at ~0.3× scroll speed. This is a ~10-line hook added directly in the component. On `window.scroll`, compute `const offset = window.scrollY * 0.3` and set `imgRef.current.style.transform = \`scale(1.08) translateY(\${offset}px)\``. The existing `animate-hero-drift` class would need to be replaced with a JS-driven approach that combines drift + parallax, OR we keep drift as CSS animation and layer parallax via a wrapper div.
+
+**Cleaner approach**: Wrap the `<img>` in a div, apply parallax translation to the wrapper, and keep the CSS drift animation on the img itself. The wrapper gets `will-change: transform` for GPU compositing.
+
+## Technical Detail
+
+```text
+┌─ <section> ──────────────────────────────────┐
+│  ┌─ parallax wrapper (translateY at 0.3×) ─┐ │
+│  │  <img animate-hero-drift />              │ │
+│  └──────────────────────────────────────────┘ │
+│  <div gradient + backdrop-blur-lg />          │
+│  <div grain noise overlay 3% opacity />       │
+│  <div z-10 content />                         │
+└───────────────────────────────────────────────┘
+```
 
 ## Files Changed
-- `src/components/CriticalFlagCard.tsx` — severity badge + pillar badge
-- `src/components/TopViolationSummaryStrip.tsx` — impact chip
-- `src/components/TruthReportFindings/VerifyBanner.tsx` — lock badge
+- `src/components/AuditHero.tsx` — frosted blur class, grain div, parallax wrapper + scroll hook
 
 ## What Does NOT Change
-- Badge text content
-- Badge colors (danger red, caution gold, primary cobalt, etc.)
-- Parent card layouts or spacing
-- SocialProofStrip (already done)
+- Background image file
+- Drift animation timing/keyframes
+- Gradient color stops or opacity values
+- Content layout, text, CTAs
+- Any other component
 
