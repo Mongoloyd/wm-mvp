@@ -181,11 +181,16 @@ useEffect(() => {
 
   const handleRetryFetchFull = useCallback(() => {
     const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
-    if (phone) {
-      trackEvent({ event_name: "fetch_stall_retry", session_id: props.scanSessionId, metadata: { phone_last4: phone.slice(-4) } });
-      setFetchStalled(false);
-      props.onVerified?.(phone);
+    if (!phone) {
+      toast.error("Unable to retry. Please resend your verification code.");
+      return;
     }
+    trackEvent({ event_name: "fetch_stall_retry", session_id: props.scanSessionId, metadata: { phone_last4: phone.slice(-4) } });
+    setFetchStalled(false);
+    props.onVerified?.(phone);
+    // Restart the stall timer so the retry button reappears if the fetch stalls again
+    if (stallTimerRef.current) clearTimeout(stallTimerRef.current);
+    stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);
   }, [capturedPhone, funnel?.phoneE164, pipeline.e164, props]);
 
   const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164, localGateOverride);

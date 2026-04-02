@@ -303,7 +303,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <div>
                 <span className="wm-eyebrow" style={{ color: "hsl(var(--color-danger))" }}>FORENSIC FINDINGS</span>
                 <h2 className="wm-title-section text-foreground" style={{ marginTop: 4 }}>
-                  {issueCount} Forensic Finding{issueCount !== 1 ? "s" : ""}
+                  {issueCount === 0 && !isFull ? "Findings Pending" : `${issueCount} Forensic Finding${issueCount !== 1 ? "s" : ""}`}
                 </h2>
                 <p className="font-body text-muted-foreground" style={{ fontSize: 14 }}>
                   {redCount} critical · {amberCount} review{greenCount > 0 ? ` · ${greenCount} clear` : ""}
@@ -437,7 +437,11 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           {/* Summary bar */}
           <div className="card-raised flex flex-col md:flex-row md:items-center md:justify-between gap-2" style={{ padding: "14px 20px", marginTop: 16 }}>
             <p className="font-body text-foreground" style={{ fontSize: 16 }}>
-              {redCount} critical, {amberCount} review{greenCount > 0 ? `, ${greenCount} clear` : ""} across 5 pillars.
+              {[
+                redCount > 0 ? `${redCount} critical` : null,
+                amberCount > 0 ? `${amberCount} review` : null,
+                greenCount > 0 ? `${greenCount} clear` : null,
+              ].filter(Boolean).join(", ")} across 5 pillars.
             </p>
             <div className="text-right">
               <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {issueCount} Issue{issueCount !== 1 ? "s" : ""}{greenCount > 0 ? ` · ${greenCount} Confirmed` : ""}</p>

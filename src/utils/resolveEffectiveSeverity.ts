@@ -57,7 +57,7 @@ const NEGATIVE_TRIGGERS = [
 function normalize(raw: string): { normalized: string; tokens: string[] } {
   let cleaned = raw.toLowerCase();
   for (const ch of PUNCTUATION) {
-    cleaned = cleaned.replaceAll(ch, " ");
+    cleaned = cleaned.split(ch).join(" ");
   }
   // collapse whitespace
   const parts = cleaned.split(" ").filter((t) => t.length > 0);
