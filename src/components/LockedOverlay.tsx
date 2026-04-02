@@ -113,7 +113,7 @@ export function LockedOverlay({
   const canSubmitPhone = phoneIsValid && tcpaConsent && !isLoading;
 
   return (
-    <div className="relative">
+    <div className="relative min-h-[500px]">
       {/* Blurred redacted findings behind */}
       <div className="flex flex-col gap-3" style={{ filter: "blur(6px)", pointerEvents: "none", userSelect: "none" }}>
         {[1, 2, 3].map((i) => (
@@ -397,6 +397,28 @@ export function LockedOverlay({
                 <RefreshCw size={14} />
                 Tap to Retry
               </button>
+              {onResend && (
+                <button
+                  onClick={onResend}
+                  disabled={resendCooldown > 0}
+                  className="font-body text-muted-foreground"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: resendCooldown > 0 ? "default" : "pointer",
+                    fontSize: 12,
+                    textDecoration: resendCooldown > 0 ? "none" : "underline",
+                    textUnderlineOffset: 2,
+                    marginTop: 8,
+                    display: "block",
+                    width: "100%",
+                  }}
+                >
+                  {resendCooldown > 0
+                    ? `Resend code (0:${String(resendCooldown).padStart(2, "0")})`
+                    : "Resend code instead"}
+                </button>
+              )}
             </div>
           )}
 

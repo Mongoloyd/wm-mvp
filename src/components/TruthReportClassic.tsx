@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { trackGtmEvent } from "@/lib/trackConversion";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
 import ForensicPillarSection from "@/components/report/ForensicPillarSection";
+import RiskSummaryHeader from "@/components/report/RiskSummaryHeader";
+import FixItCTA from "@/components/report/FixItCTA";
+import GapFixModule from "@/components/report/GapFixModule";
+import GreenChecklistModule from "@/components/report/GreenChecklistModule";
 import QuotePriceMath from "@/components/report/QuotePriceMath";
 import type { DerivedMetrics } from "@/components/report/QuotePriceMath";
 import { LockedOverlay } from "@/components/LockedOverlay";
@@ -11,6 +15,7 @@ import TopViolationSummaryStrip from "@/components/TopViolationSummaryStrip";
 import CriticalFlagCard from "@/components/CriticalFlagCard";
 import { selectTopViolation } from "@/utils/selectTopViolation";
 import { mapFlagToExhibit } from "@/utils/evidenceMapping";
+import { resolveEffectiveSeverity } from "@/utils/resolveEffectiveSeverity";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 import { MATCH_REASON_HOMEOWNER, type MatchReasonKey, type MatchConfidence } from "@/shared/matchReasons";
 
@@ -109,17 +114,27 @@ const TruthReportClassic = ({
   const isFull = accessLevel === "full";
   const [copied, setCopied] = useState(false);
   const [expandedFlags, setExpandedFlags] = useState<Set<number>>(new Set());
+  const [activeModule, setActiveModule] = useState<"none" | "gapFix" | "greenChecklist">("none");
+  const copyTimeoutRef = useRef<number | null>(null);
 
-  // In full mode, derive from actual flags array.
+  // In full mode, derive from actual flags array using effective severity.
   // In preview mode, flags is [] — use aggregate props from backend.
-  const flagsDerivedRed = flags.filter((f) => f.severity === "red").length;
-  const flagsDerivedAmber = flags.filter((f) => f.severity === "amber").length;
-  const flagsDerivedGreen = flags.filter((f) => f.severity === "green").length;
+  const flagsDerivedRed = flags.filter((f) => resolveEffectiveSeverity(f) === "red").length;
+  const flagsDerivedAmber = flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length;
+  const flagsDerivedGreen = flags.filter((f) => resolveEffectiveSeverity(f) === "green").length;
 
   const redCount = isFull ? flagsDerivedRed : (flagRedCountProp ?? flagsDerivedRed);
   const amberCount = isFull ? flagsDerivedAmber : (flagAmberCountProp ?? flagsDerivedAmber);
   const greenCount = isFull ? flagsDerivedGreen : Math.max(0, (flagCountProp ?? 0) - (flagRedCountProp ?? 0) - (flagAmberCountProp ?? 0));
   const issueCount = redCount + amberCount;
+
+  const summaryParts = [
+    redCount > 0 ? `${redCount} critical` : null,
+    amberCount > 0 ? `${amberCount} review` : null,
+    greenCount > 0 ? `${greenCount} clear` : null,
+  ].filter(Boolean);
+
+  const summaryText = summaryParts.length > 0 ? summaryParts.join(", ") : "no issues";
 
   const displayName = contractorName || "Your Contractor";
 
@@ -135,21 +150,33 @@ const TruthReportClassic = ({
     });
   };
 
+  const redFlags = flags.filter((f) => resolveEffectiveSeverity(f) === "red");
+  const amberFlags = flags.filter((f) => resolveEffectiveSeverity(f) === "amber");
+
   const scriptText = `Hi ${displayName},
 
 I've had a chance to review your quote in more detail and I have a few questions before I can move forward.
 
-${flags.filter((f) => f.severity === "red").map((f, i) => `${i + 1}. Regarding "${f.label}" — ${f.detail}`).join("\n\n")}
+${redFlags.map((f, i) => `${i + 1}. Regarding "${f.label}" — ${f.detail}`).join("\n\n")}
 
-${flags.filter((f) => f.severity === "amber").length > 0 ? `I also have ${flags.filter((f) => f.severity === "amber").length} additional item${flags.filter((f) => f.severity === "amber").length !== 1 ? "s" : ""} I'd like to discuss before finalizing.` : ""}
+${amberFlags.length > 0 ? `I also have ${amberFlags.length} additional item${amberFlags.length !== 1 ? "s" : ""} I'd like to discuss before finalizing.` : ""}
 
 I'm ready to move forward if we can get these items addressed. What's the fastest way to get a revised quote?`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(scriptText);
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
     setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    copyTimeoutRef.current = window.setTimeout(() => setCopied(false), 2500);
   };
+
+  useEffect(() => () => {
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+  }, []);
 
   const reportDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
@@ -171,7 +198,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {isFull && confidenceScore != null &&
+            {isFull && confidenceScore != null && confidenceScore >= 40 &&
             <div className="text-right hidden md:block">
                 <p className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.08em" }}>CONFIDENCE</p>
                 <p className="font-mono" style={{ fontSize: 20, fontWeight: 700, color: confidenceScore >= 70 ? "hsl(var(--color-emerald))" : "hsl(var(--color-caution))" }}>{Math.round(confidenceScore)}%</p>
@@ -203,41 +230,23 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <p className="font-body text-foreground/90" style={{ fontSize: 16 }}>{config.verdict}</p>
           </div>
 
-          {/* Summary chips — affirmative only, preview mode */}
+          {/* Summary chips — preview mode, no misleading green chips */}
           {!isFull && (
             <div className="flex flex-wrap gap-2 mt-3">
-              {qualityBand && (
-                <span className="font-mono" style={{
-                  fontSize: 12, fontWeight: 700,
-                  color: qualityBand === "good" ? "hsl(var(--color-emerald))" : qualityBand === "fair" ? "hsl(var(--color-caution))" : "hsl(var(--muted-foreground))",
-                  background: qualityBand === "good" ? "hsl(var(--color-emerald) / 0.12)" : qualityBand === "fair" ? "hsl(var(--color-caution) / 0.12)" : "hsl(var(--muted-foreground) / 0.12)",
-                  padding: "3px 10px", letterSpacing: "0.06em",
-                }}>
-                  {qualityBand === "good" ? "GOOD QUOTE STRUCTURE" : qualityBand === "fair" ? "FAIR QUOTE STRUCTURE" : "BASIC QUOTE STRUCTURE"}
-                </span>
-              )}
-              {hasWarranty === true && (
-                <span className="font-mono" style={{
-                  fontSize: 12, fontWeight: 700,
-                  color: "hsl(var(--color-emerald))", background: "hsl(var(--color-emerald) / 0.12)",
-                  padding: "3px 10px", letterSpacing: "0.06em",
-                }}>
-                  WARRANTY: FOUND
-                </span>
-              )}
-              {hasPermits === true && (
-                <span className="font-mono" style={{
-                  fontSize: 12, fontWeight: 700,
-                  color: "hsl(var(--color-emerald))", background: "hsl(var(--color-emerald) / 0.12)",
-                  padding: "3px 10px", letterSpacing: "0.06em",
-                }}>
-                  PERMITS: FOUND
-                </span>
-              )}
+              {/* qualityBand, hasWarranty, hasPermits chips removed —
+                  they created false confidence and duplicated findings */}
             </div>
           )}
         </div>
       </motion.section>
+
+      {/* ─── RISK SUMMARY HEADER ─── */}
+      <RiskSummaryHeader
+        flags={flags}
+        flagRedCount={flagRedCountProp}
+        flagAmberCount={flagAmberCountProp}
+        accessLevel={accessLevel}
+      />
 
       {/* ─── PROOF-OF-READ TRUST STRIP (preview only) ─── */}
       {!isFull && (pageCount != null || lineItemCount != null || contractorName) && (
@@ -246,7 +255,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <span className="wm-eyebrow text-primary">
               DOCUMENT VERIFIED
             </span>
-            {pageCount != null && (
+            {pageCount != null && pageCount > 1 && (
               <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
                 Multi-page document analyzed
               </span>
@@ -261,22 +270,22 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 · Contractor identified
               </span>
             )}
-            {confidenceScore != null && (
+            {confidenceScore != null && confidenceScore >= 55 && (
               <span className="font-mono" style={{
                 fontSize: 12, fontWeight: 700, marginLeft: "auto",
-                color: confidenceScore >= 55 ? "hsl(var(--color-emerald))" : "hsl(var(--color-caution))",
-                background: confidenceScore >= 55 ? "hsl(var(--color-emerald) / 0.12)" : "hsl(var(--color-caution) / 0.12)",
+                color: "hsl(var(--color-emerald))",
+                background: "hsl(var(--color-emerald) / 0.12)",
                 padding: "2px 10px", letterSpacing: "0.06em",
               }}>
-                READ QUALITY: {confidenceScore >= 85 ? "EXCELLENT" : confidenceScore >= 70 ? "GREAT" : confidenceScore >= 55 ? "GOOD" : "FAIR"}
+                READ QUALITY: {confidenceScore >= 90 ? "EXCELLENT" : confidenceScore >= 70 ? "GOOD" : "FAIR"}
               </span>
             )}
           </div>
         </motion.section>
       )}
 
-      {/* ─── TOP VIOLATION SUMMARY STRIP ─── */}
-      {(() => {
+      {/* ─── TOP VIOLATION SUMMARY STRIP (preview only — avoid chip+card duplication) ─── */}
+      {!isFull && (() => {
         const topViolation = selectTopViolation(flags, grade);
         if (!topViolation) return null;
         return (
@@ -315,10 +324,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <div>
                 <span className="wm-eyebrow" style={{ color: "hsl(var(--color-danger))" }}>FORENSIC FINDINGS</span>
                 <h2 className="wm-title-section text-foreground" style={{ marginTop: 4 }}>
-                  {issueCount} Issue{issueCount !== 1 ? "s" : ""} Identified
+                  {issueCount === 0 && !isFull ? "Findings Pending" : `${issueCount} Forensic Finding${issueCount !== 1 ? "s" : ""}`}
                 </h2>
                 <p className="font-body text-muted-foreground" style={{ fontSize: 14 }}>
-                  {redCount} critical · {amberCount} caution · {greenCount} confirmed
+                  {redCount} critical · {amberCount} review{greenCount > 0 ? ` · ${greenCount} clear` : ""}
                 </p>
               </div>
               <div className="hidden md:block" style={{ background: "hsl(var(--color-cyan) / 0.12)", border: "1px solid hsl(var(--color-cyan))", borderRadius: "var(--radius-btn)", padding: "6px 12px" }}>
@@ -335,7 +344,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               {(() => {
                 const MAX_CRITICAL = 2;
                 const criticals = flags
-                  .filter((f) => f.severity === "red")
+                  .filter((f) => resolveEffectiveSeverity(f) === "red")
                   .map((f) => ({ flag: f, exhibit: mapFlagToExhibit(f) }))
                   .filter((c) => c.exhibit && c.exhibit.hasHardEvidence)
                   .slice(0, MAX_CRITICAL);
@@ -363,7 +372,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
               {/* ── Regular flag cards ── */}
               {flags.map((flag, i) => {
-              const s = severityStyles[flag.severity];
+              const effectiveSev = resolveEffectiveSeverity(flag);
+              const s = severityStyles[effectiveSev];
               const isExpanded = expandedFlags.has(flag.id);
               const pillarLabel = pillarScores.find((p) => p.key === flag.pillar)?.label;
 
@@ -448,12 +458,34 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           {/* Summary bar */}
           <div className="card-raised flex flex-col md:flex-row md:items-center md:justify-between gap-2" style={{ padding: "14px 20px", marginTop: 16 }}>
             <p className="font-body text-foreground" style={{ fontSize: 16 }}>
-              {redCount} critical, {amberCount} caution, {greenCount} confirmed across 5 pillars.
+              {summaryText} across 5 pillars.
             </p>
-            <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {isFull ? flags.length : (flagCountProp ?? flags.length)} items reviewed</p>
+            <div className="text-right">
+              <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {issueCount} Issue{issueCount !== 1 ? "s" : ""}{greenCount > 0 ? ` · ${greenCount} Confirmed` : ""}</p>
+              <p className="font-mono text-muted-foreground" style={{ fontSize: 11, marginTop: 2 }}>Analyzed against 37 industry-standard safety signals.</p>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* ─── FIX-IT CTA ─── */}
+      <FixItCTA
+        redCount={redCount}
+        amberCount={amberCount}
+        accessLevel={accessLevel}
+        onGetGapFix={() => setActiveModule(activeModule === "gapFix" ? "none" : "gapFix")}
+        onGetGreenChecklist={() => setActiveModule(activeModule === "greenChecklist" ? "none" : "greenChecklist")}
+      />
+
+      {/* ─── GAP-FIX MODULE (full mode only) ─── */}
+      {activeModule === "gapFix" && isFull && (
+        <GapFixModule flags={flags} onClose={() => setActiveModule("none")} />
+      )}
+
+      {/* ─── GREEN CHECKLIST MODULE ─── */}
+      {activeModule === "greenChecklist" && isFull && (
+        <GreenChecklistModule onClose={() => setActiveModule("none")} />
+      )}
 
       {/* ─── NEGOTIATION SCRIPT ─── */}
       {isFull &&
