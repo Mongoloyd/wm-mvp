@@ -1,62 +1,73 @@
-import { motion, useInView } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
-import { useTickerStats } from "@/hooks/useTickerStats";
+import { useEffect, useMemo, useState } from "react";
 
-function useCountUp(end: number, duration: number, active: boolean) {
-  const [value, setValue] = useState(0);
-  const hasRun = useRef(false);
+import { tickerStrings } from "@/data/tickerStrings";
+import { cn } from "@/lib/utils";
+
+type SocialProofStripProps = {
+  className?: string;
+};
+
+const SocialProofStrip = ({ className }: SocialProofStripProps) => {
+  const [rotatedItems, setRotatedItems] = useState<string[]>(() => tickerStrings.slice(0, tickerStrings.length));
+
   useEffect(() => {
-    if (!active || hasRun.current) return;
-    hasRun.current = true;
-    const startTime = performance.now();
-    const step = (now: number) => {
-      const progress = Math.min((now - startTime) / duration, 1);
-      setValue(Math.round(end * progress));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [active, end, duration]);
-  return value;
-}
+    if (tickerStrings.length === 0) {
+      setRotatedItems([]);
+      return;
+    }
 
-const SocialProofStrip = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.5 });
-  const { total, today } = useTickerStats();
-  const totalCount = useCountUp(total, 2000, inView);
-  const todayCount = useCountUp(today, 1200, inView);
+    const randomStart = Math.floor(Math.random() * tickerStrings.length);
+    const nextItems = tickerStrings.slice(randomStart).concat(tickerStrings.slice(0, randomStart));
+    setRotatedItems(nextItems);
+  }, []);
+
+  const visibleItems = rotatedItems.length > 0 ? rotatedItems : tickerStrings;
+
+  const desktopTickerItems = useMemo(
+    () => visibleItems.map((item, index) => ({ id: `${item}-${index}-original`, label: item })),
+    [visibleItems],
+  );
+
+  const clonedTickerItems = useMemo(
+    () => visibleItems.map((item, index) => ({ id: `${item}-${index}-clone`, label: item })),
+    [visibleItems],
+  );
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 10 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.15, delay: 0.1 }}
-      className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-center wm-bridge-strip"
-    >
-      <div
-        className="inline-flex items-center divide-x divide-border overflow-hidden bg-white border border-border"
-        style={{ borderRadius: "var(--radius-btn)", boxShadow: "var(--shadow-sunken)" }}
-      >
-        <div className="flex items-center gap-2 px-4 py-2">
-          <span className="text-base flex-shrink-0 leading-none">🛡️</span>
-          <span className="font-bold tabular-nums font-mono text-base text-primary">{totalCount.toLocaleString()}</span>
-          <span className="font-body text-xs text-muted-foreground whitespace-nowrap">Quotes Scanned</span>
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-primary/5">
-          <div className="relative flex h-2 w-2 flex-shrink-0">
-            <span
-              className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
-              style={{ animationIterationCount: 3 }}
-            />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-          </div>
-          <span className="font-semibold tabular-nums font-mono text-sm text-foreground whitespace-nowrap">
-            +{todayCount} Today
+    <section className={cn("w-full overflow-hidden bg-secondary/30 border-y border-border py-3 flex items-center", className)}>
+      <p className="sr-only">Live feed of recent WindowMan AI scan statistics and alerts.</p>
+
+      <div className="hidden motion-reduce:flex w-full flex-wrap items-center gap-y-2 px-2">
+        {visibleItems.slice(0, 12).map((item, index) => (
+          <span key={`${item}-${index}-reduced`} className="text-xs sm:text-sm font-mono text-foreground/80 mx-3">
+            {item}
+            <span className="mx-3 text-foreground/50">•</span>
+          </span>
+        ))}
+      </div>
+
+      <div className="w-full overflow-hidden motion-reduce:hidden">
+        <div
+          className="flex min-w-max items-center text-xs sm:text-sm font-mono text-foreground/80 whitespace-nowrap will-change-transform [transform:translate3d(0,0,0)] animate-[ticker_50s_linear_infinite] hover:[animation-play-state:paused]"
+        >
+          {desktopTickerItems.map((item) => (
+            <span key={item.id} className="mx-6 flex items-center gap-3">
+              <span>{item.label}</span>
+              <span className="text-foreground/50">•</span>
+            </span>
+          ))}
+
+          <span aria-hidden="true" className="contents">
+            {clonedTickerItems.map((item) => (
+              <span key={item.id} className="mx-6 flex items-center gap-3">
+                <span>{item.label}</span>
+                <span className="text-foreground/50">•</span>
+              </span>
+            ))}
           </span>
         </div>
       </div>
-    </motion.div>
+    </section>
   );
 };
 
