@@ -27,7 +27,7 @@ const ScamConcernImage = () => {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setIdx((p) => (p + 1) % forensicImages.length), 3500);
+    const t = setInterval(() => setIdx((p) => (p + 1) % forensicImages.length), 5500);
     return () => clearInterval(t);
   }, []);
 
