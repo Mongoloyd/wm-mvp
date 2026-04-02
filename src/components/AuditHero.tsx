@@ -172,7 +172,7 @@ const AuditHero = ({
                 />
               </React.Suspense>
             </div>
-            <div className="mt-2 w-full md:w-auto">
+            <div className="mt-3 md:mt-4 w-full md:w-auto">
               <button
                 onClick={() => onFlowBClick?.()}
                 className="w-full md:w-auto btn-secondary-tactile cursor-pointer relative flex flex-col md:flex-row md:items-center md:gap-2 text-foreground"
