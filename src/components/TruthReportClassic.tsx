@@ -114,8 +114,7 @@ const TruthReportClassic = ({
   const isFull = accessLevel === "full";
   const [copied, setCopied] = useState(false);
   const [expandedFlags, setExpandedFlags] = useState<Set<number>>(new Set());
-  const [showGapFix, setShowGapFix] = useState(false);
-  const [showGreenChecklist, setShowGreenChecklist] = useState(false);
+  const [activeModule, setActiveModule] = useState<"none" | "gapFix" | "greenChecklist">("none");
 
   // In full mode, derive from actual flags array using effective severity.
   // In preview mode, flags is [] — use aggregate props from backend.
@@ -476,18 +475,18 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         redCount={redCount}
         amberCount={amberCount}
         accessLevel={accessLevel}
-        onGetGapFix={() => { setShowGreenChecklist(false); setShowGapFix(true); }}
-        onGetGreenChecklist={() => { setShowGapFix(false); setShowGreenChecklist(true); }}
+        onGetGapFix={() => setActiveModule(activeModule === "gapFix" ? "none" : "gapFix")}
+        onGetGreenChecklist={() => setActiveModule(activeModule === "greenChecklist" ? "none" : "greenChecklist")}
       />
 
       {/* ─── GAP-FIX MODULE (full mode only) ─── */}
-      {showGapFix && isFull && (
-        <GapFixModule flags={flags} onClose={() => setShowGapFix(false)} />
+      {activeModule === "gapFix" && isFull && (
+        <GapFixModule flags={flags} onClose={() => setActiveModule("none")} />
       )}
 
       {/* ─── GREEN CHECKLIST MODULE ─── */}
-      {showGreenChecklist && (
-        <GreenChecklistModule onClose={() => setShowGreenChecklist(false)} />
+      {activeModule === "greenChecklist" && (
+        <GreenChecklistModule onClose={() => setActiveModule("none")} />
       )}
 
       {/* ─── NEGOTIATION SCRIPT ─── */}

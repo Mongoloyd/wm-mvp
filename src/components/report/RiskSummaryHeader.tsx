@@ -27,31 +27,31 @@ const RiskSummaryHeader = ({
     ? flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length
     : (flagAmberCountProp ?? 0);
 
-  let verdict: string;
-  let Icon: typeof ShieldAlert;
-  let color: string;
-  let bg: string;
-  let borderColor: string;
+  const config = red > 0
+    ? {
+        verdict: `High Risk Detected: ${red} critical issue${red !== 1 ? "s" : ""} leave${red === 1 ? "s" : ""} you exposed.`,
+        Icon: ShieldAlert,
+        color: "hsl(var(--color-danger))",
+        bg: "hsl(var(--color-danger) / 0.06)",
+        borderColor: "hsl(var(--color-danger) / 0.25)",
+      }
+    : amber > 0
+    ? {
+        verdict: `Proceed with Caution: ${amber} protection${amber !== 1 ? "s are" : " is"} missing.`,
+        Icon: AlertTriangle,
+        color: "hsl(var(--color-caution))",
+        bg: "hsl(var(--color-caution) / 0.06)",
+        borderColor: "hsl(var(--color-caution) / 0.25)",
+      }
+    : {
+        verdict: "Clear & Transparent: This estimate follows best practices.",
+        Icon: ShieldCheck,
+        color: "hsl(var(--color-emerald))",
+        bg: "hsl(var(--color-emerald) / 0.06)",
+        borderColor: "hsl(var(--color-emerald) / 0.25)",
+      };
 
-  if (red > 0) {
-    verdict = `High Risk Detected: ${red} critical issue${red !== 1 ? "s" : ""} leave${red === 1 ? "s" : ""} you exposed.`;
-    Icon = ShieldAlert;
-    color = "hsl(var(--color-danger))";
-    bg = "hsl(var(--color-danger) / 0.06)";
-    borderColor = "hsl(var(--color-danger) / 0.25)";
-  } else if (amber > 0) {
-    verdict = `Proceed with Caution: ${amber} protection${amber !== 1 ? "s are" : " is"} missing.`;
-    Icon = AlertTriangle;
-    color = "hsl(var(--color-caution))";
-    bg = "hsl(var(--color-caution) / 0.06)";
-    borderColor = "hsl(var(--color-caution) / 0.25)";
-  } else {
-    verdict = "Clear & Transparent: This estimate follows best practices.";
-    Icon = ShieldCheck;
-    color = "hsl(var(--color-emerald))";
-    bg = "hsl(var(--color-emerald) / 0.06)";
-    borderColor = "hsl(var(--color-emerald) / 0.25)";
-  }
+  const { verdict, Icon, color, bg, borderColor } = config;
 
   return (
     <motion.section
