@@ -208,7 +208,7 @@ const SampleGradeCard = () => {
         style={{ transform: "rotate(-12deg)" }}
       >
         <span className="font-mono text-[22px] md:text-[28px] font-bold tracking-[0.3em] text-primary/10 uppercase border-2 border-primary/10 px-4 py-1 rounded-sm whitespace-nowrap">
-          CONFIDENTIAL — SAMPLE
+          CONFIDENTIAL
         </span>
       </div>
       <div className="flex items-center justify-between mb-5 relative">
