@@ -139,7 +139,7 @@ const ScanTheatrics = ({
 
   // Stable reduced-motion check — evaluated once on first render
   const prefersReducedMotion = useRef(
-    typeof window !== "undefined"
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
       : false
   ).current;
@@ -1106,7 +1106,7 @@ const PillarSlice = ({
         {isDone ? (
           <motion.div
             initial={{ width: "0%" }}
-            animate={{ width: score != null ? `${Math.max(0, Math.min(100, score))}%` : "100%" }}
+            animate={{ width: score != null ? `${Math.max(0, Math.min(100, score))}%` : "5%" }}
             transition={{ duration: reducedMotion ? 0.05 : 0.3, ease: "easeOut" }}
             style={{ height: 3, backgroundColor: resolvedColor }}
           />
@@ -1167,7 +1167,7 @@ const FindingsCounter = ({ issues }: { issues: number }) => {
     }}>
       <span style={{ color: "#DC2626", fontWeight: 700 }}>{displayIssues}</span>
       {" potential issue"}
-      {issues !== 1 ? "s" : ""}
+      {displayIssues !== 1 ? "s" : ""}
       {" detected"}
     </span>
   );
