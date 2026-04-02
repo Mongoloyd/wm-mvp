@@ -2,9 +2,12 @@ import { useState, useEffect, useRef, memo } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import homeownerImg from "@/assets/what-are-you-missing.avif";
 import scamImg from "@/assets/scam-concern.avif";
+import reportSalesmanImg from "@/assets/windowman_report_and_salesman.avif";
+import cellphonesImg from "@/assets/cellphones.avif";
+import windowScanImg from "@/assets/window-scan.avif";
+import reportSalesman2Img from "@/assets/windowman-report-salesman.avif";
 
-// Add more imports here and push to array to extend the carousel
-const forensicImages = [homeownerImg, scamImg];
+const forensicImages = [homeownerImg, scamImg, reportSalesmanImg, cellphonesImg, windowScanImg, reportSalesman2Img];
 
 const CtaButton = memo(() => (
   <figcaption className="mt-3 text-center">
