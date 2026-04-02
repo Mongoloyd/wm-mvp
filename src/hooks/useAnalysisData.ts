@@ -205,6 +205,7 @@ export function useAnalysisData(
     setData(null);
     setIsFullLoaded(false);
     setIsLoadingFull(false);
+    setIsLoading(false);
     setError(null);
     setIsResuming(false);
     previewFetchedRef.current = null;

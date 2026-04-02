@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Copy, Check, X } from "lucide-react";
 import { getGapFixQuestions } from "@/utils/gapFixScripts";
@@ -11,17 +11,35 @@ interface GapFixModuleProps {
 
 const GapFixModule = ({ flags, onClose }: GapFixModuleProps) => {
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const questions = getGapFixQuestions(flags);
 
   const fullText = questions
     .map((q, i) => `${i + 1}. ${q}`)
     .join("\n");
 
+  useEffect(() => {
+    // Cleanup timeout on unmount
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const scheduleCopiedReset = () => {
+    // Clear any existing timeout
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+    setCopied(true);
+    copyTimeoutRef.current = setTimeout(() => setCopied(false), 2500);
+  };
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(fullText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      scheduleCopiedReset();
     } catch {
       // Fallback for older browsers
       const textarea = document.createElement("textarea");
@@ -32,8 +50,7 @@ const GapFixModule = ({ flags, onClose }: GapFixModuleProps) => {
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      scheduleCopiedReset();
     }
   };
 

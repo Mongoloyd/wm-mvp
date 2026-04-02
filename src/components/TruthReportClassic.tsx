@@ -133,6 +133,8 @@ const TruthReportClassic = ({
     greenCount > 0 ? `${greenCount} clear` : null,
   ].filter(Boolean);
 
+  const summaryText = summaryParts.length > 0 ? summaryParts.join(", ") : "no issues";
+
   const displayName = contractorName || "Your Contractor";
 
   const toggleFlag = (id: number) => {
@@ -147,13 +149,16 @@ const TruthReportClassic = ({
     });
   };
 
+  const redFlags = flags.filter((f) => resolveEffectiveSeverity(f) === "red");
+  const amberFlags = flags.filter((f) => resolveEffectiveSeverity(f) === "amber");
+
   const scriptText = `Hi ${displayName},
 
 I've had a chance to review your quote in more detail and I have a few questions before I can move forward.
 
-${flags.filter((f) => resolveEffectiveSeverity(f) === "red").map((f, i) => `${i + 1}. Regarding "${f.label}" — ${f.detail}`).join("\n\n")}
+${redFlags.map((f, i) => `${i + 1}. Regarding "${f.label}" — ${f.detail}`).join("\n\n")}
 
-${flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length > 0 ? `I also have ${flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length} additional item${flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length !== 1 ? "s" : ""} I'd like to discuss before finalizing.` : ""}
+${amberFlags.length > 0 ? `I also have ${amberFlags.length} additional item${amberFlags.length !== 1 ? "s" : ""} I'd like to discuss before finalizing.` : ""}
 
 I'm ready to move forward if we can get these items addressed. What's the fastest way to get a revised quote?`;
 
@@ -443,7 +448,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           {/* Summary bar */}
           <div className="card-raised flex flex-col md:flex-row md:items-center md:justify-between gap-2" style={{ padding: "14px 20px", marginTop: 16 }}>
             <p className="font-body text-foreground" style={{ fontSize: 16 }}>
-              {summaryParts.join(", ")} across 5 pillars.
+              {summaryText} across 5 pillars.
             </p>
             <div className="text-right">
               <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {issueCount} Issue{issueCount !== 1 ? "s" : ""}{greenCount > 0 ? ` · ${greenCount} Confirmed` : ""}</p>
@@ -468,7 +473,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       )}
 
       {/* ─── GREEN CHECKLIST MODULE ─── */}
-      {activeModule === "greenChecklist" && (
+      {activeModule === "greenChecklist" && isFull && (
         <GreenChecklistModule onClose={() => setActiveModule("none")} />
       )}
 

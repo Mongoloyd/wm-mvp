@@ -185,9 +185,13 @@ useEffect(() => {
       toast.error("Unable to retry. Please resend your verification code.");
       return;
     }
+    if (!props.onVerified) {
+      toast.error("Unable to retry. Please refresh the page and try again.");
+      return;
+    }
     trackEvent({ event_name: "fetch_stall_retry", session_id: props.scanSessionId, metadata: { phone_last4: phone.slice(-4) } });
     setFetchStalled(false);
-    props.onVerified?.(phone);
+    props.onVerified(phone);
     // Restart the stall timer so the retry button reappears if the fetch stalls again
     if (stallTimerRef.current) clearTimeout(stallTimerRef.current);
     stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);

@@ -114,7 +114,12 @@ const Index = () => {
   const triggerTruthGate = (source: string) => {
     trackEvent({ event_name: "cta_scan_funnel", session_id: sessionId, metadata: { source } });
     // Destructive reset: clear previous scan state so a fresh scan starts clean
-    if (gradeRevealed) { setGradeRevealed(false); setFileUploaded(false); setScanSessionId(null); }
+    if (gradeRevealed) {
+      setGradeRevealed(false);
+      setFileUploaded(false);
+      setScanSessionId(null);
+      clearVerifiedAccess();
+    }
     if (flowMode !== 'A') {
       setFlowMode('A');
       pendingScrollRef.current = true;
