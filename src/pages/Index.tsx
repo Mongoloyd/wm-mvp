@@ -30,7 +30,7 @@ import { getVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTickerStats } from "@/hooks/useTickerStats";
+
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
 import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "@/dev/fixtures";
 import { AlertTriangle, RotateCcw, FileX } from "lucide-react";
@@ -40,7 +40,7 @@ const Index = () => {
   const IS_DEV_MODE = import.meta.env.DEV;
 
   const variant = useHomepageVariant();
-  const { total, today } = useTickerStats();
+  
 
   const [devState, setDevState] = useState<DevPreviewState>("none");
 
@@ -234,22 +234,6 @@ const Index = () => {
 
           {flowMode === 'A' && (
             <>
-              {/* ─── Stats Bar ─── */}
-              <div className="w-full py-3 px-4 bg-secondary/30 border-y border-border flex items-center justify-center gap-6">
-                <span className="flex items-center gap-2 font-mono text-sm">
-                  <span>🛡️</span>
-                  <span className="font-bold text-foreground">{total.toLocaleString()}</span>
-                  <span className="text-muted-foreground">Quotes Scanned</span>
-                </span>
-                <span className="text-border">·</span>
-                <span className="flex items-center gap-2 font-mono text-sm">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" style={{ animationIterationCount: 3 }} />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-                  </span>
-                  <span className="font-semibold text-primary">+{today} Today</span>
-                </span>
-              </div>
               <SocialProofStrip />
               <ScamConcernImage />
               <InteractiveDemoScan onScanClick={() => triggerTruthGate('demo_scan')} />
