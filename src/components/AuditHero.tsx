@@ -43,7 +43,7 @@ const AuditHero = ({
   useEffect(() => {
     const onScroll = () => {
       if (!parallaxRef.current) return;
-      const offset = window.scrollY * 0.3;
+      const offset = window.scrollY * 0.5;
       parallaxRef.current.style.transform = `translateY(${offset}px)`;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
