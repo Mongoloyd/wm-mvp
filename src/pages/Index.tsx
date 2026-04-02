@@ -30,6 +30,7 @@ import { getVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTickerStats } from "@/hooks/useTickerStats";
 import DevPreviewPanel from "@/dev/DevPreviewPanel";
 import { DEV_PREVIEW_CONFIGS, type DevPreviewState } from "@/dev/fixtures";
 import { AlertTriangle, RotateCcw, FileX } from "lucide-react";
