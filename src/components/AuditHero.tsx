@@ -110,11 +110,9 @@ const AuditHero = ({
             className="order-3 md:order-first md:flex-1 mt-8 md:mt-0 md:pt-20 flex flex-col items-center md:items-start"
           >
             {/* Pill — desktop only (mobile pill is rendered above as order-1) */}
-
             <div className="hidden md:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
               {trustPillContent}
             </div>
-
             <h1
               className="font-display uppercase leading-[1.08] mb-5"
               style={{
@@ -140,7 +138,6 @@ const AuditHero = ({
                 </>
               )}
             </h1>
-
             <p
               className="font-body mb-8"
               style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}
@@ -156,7 +153,6 @@ const AuditHero = ({
                 </>
               )}
             </p>
-
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">
               {/* Hero CTA — largest on page */}
 
@@ -176,7 +172,6 @@ const AuditHero = ({
                 />
               </React.Suspense>
             </div>
-
             <div className="mt-2 w-full md:w-auto">
               <button
                 onClick={() => onFlowBClick?.()}
@@ -187,15 +182,12 @@ const AuditHero = ({
                   <span className="inline-flex items-center justify-center bg-primary text-primary-foreground font-mono text-[9px] font-bold tracking-[0.05em] px-1.5 py-0.5">
                     NEW
                   </span>
-
                   <span>Getting Quotes Soon?</span>
                 </span>
-
-                <span className="ml-[4.5ch] md:ml-0">We Can Arm You 1st →</span>
               </button>
-            </div>
-
-            <TrustBullets />
+              <TrustBullets />
+            </div>{" "}
+            {/* This closes <div className="mt-2..."> */}
           </motion.div>
         </div>
       </div>
