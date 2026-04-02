@@ -34,89 +34,102 @@ const SocialProofStrip = () => {
       transition={{ duration: 0.15, delay: 0.1 }}
       className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-center wm-bridge-strip"
     >
-      <div
-        className="inline-flex items-center overflow-hidden relative"
+      {/* Ring 1 — outermost, darkest */}
+      <motion.div
+        animate={{ y: [0, -2, 0, 2, 0] }}
+        transition={{ duration: 6, ease: "easeInOut", repeat: Infinity, repeatType: "loop" }}
+        className="inline-flex rounded-[11px]"
         style={{
-          borderRadius: "var(--radius-btn)",
-          background: "linear-gradient(160deg, hsl(210 12% 88%) 0%, hsl(210 10% 82%) 40%, hsl(210 8% 78%) 100%)",
-          borderTop: "1px solid hsl(210 15% 92%)",
-          borderLeft: "1px solid hsl(210 12% 90%)",
-          borderBottom: "1px solid hsl(210 10% 62%)",
-          borderRight: "1px solid hsl(210 10% 65%)",
+          padding: "1px",
+          background: "hsl(214 25% 68%)",
           boxShadow: [
-            "0 1px 2px 0 hsla(210 20% 20% / 0.35)",
-            "0 4px 12px -2px hsla(210 20% 20% / 0.18)",
-            "0 8px 24px -4px hsla(210 15% 30% / 0.10)",
-            "inset 0 1px 0 0 hsla(0 0% 100% / 0.45)",
-            "inset 1px 0 0 0 hsla(0 0% 100% / 0.20)",
+            "0 1px 3px 0 hsla(210 20% 30% / 0.12)",
+            "0 2px 8px -1px hsla(210 20% 30% / 0.08)",
           ].join(", "),
         }}
       >
-        {/* Brushed metal texture overlay */}
+        {/* Ring 2 — middle */}
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="inline-flex rounded-[10px]"
           style={{
-            background: "repeating-linear-gradient(90deg, hsla(0 0% 100% / 0.04) 0px, hsla(0 0% 100% / 0) 1px, hsla(0 0% 0% / 0.02) 2px, hsla(0 0% 100% / 0) 3px)",
-            borderRadius: "inherit",
-          }}
-        />
-
-        <div className="flex items-center gap-2.5 px-4 py-2.5 relative">
-          {/* Icon with debossed cavity */}
-          <span
-            className="text-base flex-shrink-0 leading-none relative"
-            style={{
-              filter: "drop-shadow(0 -1px 1px hsla(0 0% 100% / 0.7)) drop-shadow(0 1.5px 1px hsla(210 20% 20% / 0.4))",
-            }}
-          >🛡️</span>
-          <span
-            className="font-bold tabular-nums font-mono text-base"
-            style={{
-              color: "hsl(var(--primary))",
-              textShadow: "0 1px 0 hsla(0 0% 100% / 0.6), 0 -1px 1px hsla(210 20% 20% / 0.15)",
-            }}
-          >{totalCount.toLocaleString()}</span>
-          <span
-            className="font-body text-xs whitespace-nowrap"
-            style={{
-              color: "hsl(210 15% 35%)",
-              textShadow: "0 1px 0 hsla(0 0% 100% / 0.5), 0 -1px 1px hsla(210 20% 20% / 0.10)",
-            }}
-          >Quotes Scanned</span>
-        </div>
-
-        {/* Divider — etched groove */}
-        <div
-          className="self-stretch w-[2px] flex-shrink-0"
-          style={{
-            background: "linear-gradient(180deg, hsla(0 0% 100% / 0.3) 0%, hsla(210 15% 55% / 0.5) 50%, hsla(0 0% 100% / 0.2) 100%)",
-          }}
-        />
-
-        <div
-          className="flex items-center gap-2 px-4 py-2.5 relative"
-          style={{
-            background: "linear-gradient(160deg, hsla(217 91% 53% / 0.06) 0%, hsla(217 91% 53% / 0.10) 100%)",
+            padding: "1px",
+            background: "hsl(214 22% 78%)",
           }}
         >
-          <div className="relative flex h-2 w-2 flex-shrink-0">
-            <span
-              className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
-              style={{ animationIterationCount: 3 }}
-            />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-          </div>
-          <span
-            className="font-semibold tabular-nums font-mono text-sm whitespace-nowrap"
+          {/* Ring 3 — innermost, lightest */}
+          <div
+            className="inline-flex rounded-[9px]"
             style={{
-              color: "hsl(var(--foreground))",
-              textShadow: "0 1px 0 hsla(0 0% 100% / 0.5), 0 -1px 1px hsla(210 20% 20% / 0.12)",
+              padding: "1px",
+              background: "hsl(214 18% 87%)",
             }}
           >
-            +{todayCount} Today
-          </span>
+            {/* Core pill — near-white center */}
+            <div
+              className="inline-flex items-center overflow-hidden relative"
+              style={{
+                borderRadius: "var(--radius-btn)",
+                background: "linear-gradient(180deg, hsl(214 30% 96%) 0%, hsl(214 25% 94%) 100%)",
+              }}
+            >
+              <div className="flex items-center gap-2.5 px-4 py-2.5 relative">
+                <span
+                  className="text-base flex-shrink-0 leading-none relative"
+                  style={{
+                    filter: "drop-shadow(0 1px 1px hsla(210 20% 20% / 0.25))",
+                  }}
+                >🛡️</span>
+                <span
+                  className="font-bold tabular-nums font-mono text-base"
+                  style={{
+                    color: "hsl(var(--primary))",
+                    textShadow: "0 1px 0 hsla(0 0% 100% / 0.5)",
+                  }}
+                >{totalCount.toLocaleString()}</span>
+                <span
+                  className="font-body text-xs whitespace-nowrap"
+                  style={{
+                    color: "hsl(215 20% 32%)",
+                    textShadow: "0 1px 0 hsla(0 0% 100% / 0.4)",
+                  }}
+                >Quotes Scanned</span>
+              </div>
+
+              {/* Etched groove divider */}
+              <div
+                className="self-stretch w-[1px] flex-shrink-0"
+                style={{
+                  background: "linear-gradient(180deg, hsla(214 20% 80% / 0.4) 0%, hsla(214 20% 70% / 0.6) 50%, hsla(214 20% 80% / 0.4) 100%)",
+                }}
+              />
+
+              <div
+                className="flex items-center gap-2 px-4 py-2.5 relative"
+                style={{
+                  background: "hsla(217 91% 53% / 0.04)",
+                }}
+              >
+                <div className="relative flex h-2 w-2 flex-shrink-0">
+                  <span
+                    className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
+                    style={{ animationIterationCount: 3 }}
+                  />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                </div>
+                <span
+                  className="font-semibold tabular-nums font-mono text-sm whitespace-nowrap"
+                  style={{
+                    color: "hsl(var(--foreground))",
+                    textShadow: "0 1px 0 hsla(0 0% 100% / 0.4)",
+                  }}
+                >
+                  +{todayCount} Today
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
