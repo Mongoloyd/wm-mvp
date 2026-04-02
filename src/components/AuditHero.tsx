@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 import { motion } from "framer-motion";
 
@@ -38,6 +38,18 @@ const AuditHero = ({
   variantSubheadline,
   variantBadgeText,
 }: AuditHeroProps) => {
+  const parallaxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (!parallaxRef.current) return;
+      const offset = window.scrollY * 0.3;
+      parallaxRef.current.style.transform = `translateY(${offset}px)`;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
@@ -52,16 +64,28 @@ const AuditHero = ({
 
   return (
     <section className="relative overflow-hidden bg-background">
-      {/* Drifting background image */}
-      <img
-        src={heroBg}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover animate-hero-drift pointer-events-none"
-      />
+      {/* Parallax wrapper for background image */}
+      <div ref={parallaxRef} className="absolute inset-0 will-change-transform" style={{ top: "-10%", bottom: "-10%" }}>
+        <img
+          src={heroBg}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover animate-hero-drift pointer-events-none"
+        />
+      </div>
 
-      {/* Gradient overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/35 to-white/65 pointer-events-none" />
+      {/* Frosted glass gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/35 to-white/65 backdrop-blur-lg pointer-events-none" />
+
+      {/* Film grain texture overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none mix-blend-overlay"
+        style={{
+          opacity: 0.03,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
 
       {/* ── HERO LAYOUT: flex-col on mobile, flex-row on md+ ── */}
 
