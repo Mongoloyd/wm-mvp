@@ -65,7 +65,7 @@ const AuditHero = ({
   return (
     <section className="relative overflow-hidden bg-background">
       {/* Parallax wrapper for background image */}
-      <div ref={parallaxRef} className="absolute inset-0 will-change-transform" style={{ top: "-10%", bottom: "-10%" }}>
+      <div ref={parallaxRef} className="absolute inset-0 will-change-transform" style={{ top: "-20%", bottom: "-20%" }}>
         <img
           src={heroBg}
           alt=""
