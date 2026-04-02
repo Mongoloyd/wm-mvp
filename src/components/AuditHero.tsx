@@ -61,7 +61,7 @@ const AuditHero = ({
       />
 
       {/* Gradient overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/50 to-white/80 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/35 to-white/65 pointer-events-none" />
 
       {/* ── HERO LAYOUT: flex-col on mobile, flex-row on md+ ── */}
 
