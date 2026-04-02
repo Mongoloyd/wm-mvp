@@ -116,34 +116,59 @@ export default function CriticalFlagCard({
       <div className="flex flex-col gap-3">
         {/* ── A. Header Row ── */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span
-            className="font-mono inline-block"
+          {/* Severity badge — graduated 3-ring border */}
+          <motion.div
+            animate={isTopRanked ? { y: [0, -1, 0, 1, 0] } : {}}
+            transition={isTopRanked ? { duration: 5, ease: "easeInOut", repeat: Infinity } : {}}
+            className="inline-flex rounded-[7px]"
             style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: `hsl(var(${cssVar}))`,
-              background: `hsl(var(${cssVar}) / 0.08)`,
-              border: `1px solid hsl(var(${cssVar}) / 0.35)`,
-              padding: "2px 6px",
-              borderRadius: 4,
+              padding: 1,
+              background: `hsl(var(${cssVar}) / 0.5)`,
+              boxShadow: "0 1px 4px hsla(0 0% 0% / 0.08)",
             }}
           >
-            {badgeLabel}
-          </span>
+            <div className="inline-flex rounded-[6px]" style={{ padding: 1, background: `hsl(var(${cssVar}) / 0.3)` }}>
+              <div className="inline-flex rounded-[5px]" style={{ padding: 1, background: `hsl(var(${cssVar}) / 0.15)` }}>
+                <span
+                  className="font-mono inline-block"
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: `hsl(var(${cssVar}))`,
+                    background: `hsl(var(${cssVar}) / 0.08)`,
+                    padding: "2px 6px",
+                    borderRadius: 4,
+                  }}
+                >
+                  {badgeLabel}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+          {/* Pillar badge — graduated neutral 3-ring border */}
           {PILLAR_LABELS[pillar] && (
-            <span
-              className="font-mono bg-secondary text-muted-foreground"
-              style={{
-                fontSize: 9,
-                letterSpacing: "0.06em",
-                padding: "2px 8px",
-                borderRadius: "var(--radius-btn)",
-              }}
+            <div
+              className="inline-flex rounded-[7px]"
+              style={{ padding: 1, background: "hsl(214 25% 75%)", boxShadow: "0 1px 4px hsla(0 0% 0% / 0.08)" }}
             >
-              {PILLAR_LABELS[pillar]}
-            </span>
+              <div className="inline-flex rounded-[6px]" style={{ padding: 1, background: "hsl(214 22% 83%)" }}>
+                <div className="inline-flex rounded-[5px]" style={{ padding: 1, background: "hsl(214 18% 90%)" }}>
+                  <span
+                    className="font-mono bg-secondary text-muted-foreground"
+                    style={{
+                      fontSize: 9,
+                      letterSpacing: "0.06em",
+                      padding: "2px 8px",
+                      borderRadius: 4,
+                    }}
+                  >
+                    {PILLAR_LABELS[pillar]}
+                  </span>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
