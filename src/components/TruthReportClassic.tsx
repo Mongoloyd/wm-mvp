@@ -127,6 +127,12 @@ const TruthReportClassic = ({
   const greenCount = isFull ? flagsDerivedGreen : Math.max(0, (flagCountProp ?? 0) - (flagRedCountProp ?? 0) - (flagAmberCountProp ?? 0));
   const issueCount = redCount + amberCount;
 
+  const summaryParts = [
+    redCount > 0 ? `${redCount} critical` : null,
+    amberCount > 0 ? `${amberCount} review` : null,
+    greenCount > 0 ? `${greenCount} clear` : null,
+  ].filter(Boolean);
+
   const displayName = contractorName || "Your Contractor";
 
   const toggleFlag = (id: number) => {
@@ -437,11 +443,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           {/* Summary bar */}
           <div className="card-raised flex flex-col md:flex-row md:items-center md:justify-between gap-2" style={{ padding: "14px 20px", marginTop: 16 }}>
             <p className="font-body text-foreground" style={{ fontSize: 16 }}>
-              {[
-                redCount > 0 ? `${redCount} critical` : null,
-                amberCount > 0 ? `${amberCount} review` : null,
-                greenCount > 0 ? `${greenCount} clear` : null,
-              ].filter(Boolean).join(", ")} across 5 pillars.
+              {summaryParts.join(", ")} across 5 pillars.
             </p>
             <div className="text-right">
               <p className="font-mono text-foreground" style={{ fontSize: 14 }}>Grade {grade} · {issueCount} Issue{issueCount !== 1 ? "s" : ""}{greenCount > 0 ? ` · ${greenCount} Confirmed` : ""}</p>

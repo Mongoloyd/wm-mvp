@@ -17,13 +17,6 @@ import type { AnalysisFlag } from "@/hooks/useAnalysisData";
 
 type EffectiveSeverity = "red" | "amber" | "green";
 
-const PUNCTUATION = [
-  ".", ",", ";", ":", "!", "?", "'", '"',
-  "(", ")", "[", "]", "{", "}", "/", "\\",
-  "-", "_", "&", "#", "@", "+", "=", "|",
-  "<", ">", "~", "`", "^", "%", "$",
-];
-
 const NEGATIVE_TRIGGERS = [
   "missing",
   "not found",
@@ -54,13 +47,10 @@ const NEGATIVE_TRIGGERS = [
   "lacking",
 ];
 
+const PUNCTUATION_RE = /[.,;:!?'"()\[\]{}\\/&#@+=|<>~`^%$_\-]/g;
+
 function normalize(raw: string): { normalized: string; tokens: string[] } {
-  let cleaned = raw.toLowerCase();
-  for (const ch of PUNCTUATION) {
-    cleaned = cleaned.split(ch).join(" ");
-  }
-  // collapse whitespace
-  const parts = cleaned.split(" ").filter((t) => t.length > 0);
+  const parts = raw.toLowerCase().replace(PUNCTUATION_RE, " ").split(" ").filter((t) => t.length > 0);
   return {
     normalized: parts.join(" "),
     tokens: parts,
