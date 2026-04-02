@@ -37,7 +37,7 @@ const SocialProofStrip = ({ className }: SocialProofStripProps) => {
 
   return (
     <section className={cn("w-full overflow-hidden bg-secondary/30 border-y border-border py-3 flex items-center", className)}>
-      <p className="sr-only">Live feed of recent WindowMan AI scan statistics and alerts.</p>
+      <p className="sr-only">WindowMan AI rotating social proof ticker with example quotes and case studies.</p>
 
       <div className="hidden motion-reduce:flex w-full flex-wrap items-center gap-y-2 px-2">
         {visibleItems.slice(0, 12).map((item, index) => (
