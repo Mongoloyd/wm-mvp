@@ -11,7 +11,7 @@ const SocialProofStrip = ({ className }: SocialProofStripProps) => {
   const [rotatedItems, setRotatedItems] = useState<string[]>(() => tickerStrings.slice(0, tickerStrings.length));
 
   useEffect(() => {
-    if (tickerStrings.length === 0) {
+    if ((tickerStrings as readonly string[]).length === 0) {
       setRotatedItems([]);
       return;
     }
