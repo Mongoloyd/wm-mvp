@@ -329,46 +329,31 @@ const ScanTheatrics = ({ isActive, selectedCounty = "your", scanSessionId = null
                       marginBottom: 12,
                     }}
                   >
-                    {/* Presence-based chips — only rendered when value is meaningful */}
+                    {/* Signs of Reading — truthful chips from preview-safe data only */}
                     <div className="flex flex-wrap gap-3 mb-3">
+                      {analysisData.documentType && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
+                          Detected: {analysisData.documentType.charAt(0).toUpperCase() + analysisData.documentType.slice(1)}
+                        </span>
+                      )}
                       {analysisData.contractorName && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          Contractor: {analysisData.contractorName}
+                          Identifying contractor: {analysisData.contractorName}
                         </span>
                       )}
                       {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.lineItemCount} {analysisData.lineItemCount === 1 ? "line item" : "line items"} detected
+                          Extracting {analysisData.lineItemCount} line item{analysisData.lineItemCount === 1 ? "" : "s"}...
                         </span>
                       )}
                       {analysisData.openingCount != null && analysisData.openingCount > 0 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.openingCount} {analysisData.openingCount === 1 ? "opening" : "openings"} identified
+                          Analyzing {analysisData.openingCount} opening{analysisData.openingCount === 1 ? "" : "s"}...
                         </span>
                       )}
                       {analysisData.pageCount != null && analysisData.pageCount > 1 && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          Multi-page document analyzed
-                        </span>
-                      )}
-                      {analysisData.hasWarranty === true && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          Warranty language found
-                        </span>
-                      )}
-                      {analysisData.hasPermits === true && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          Permit language found
-                        </span>
-                      )}
-                      {analysisData.flagRedCount > 0 && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.flagRedCount} critical {analysisData.flagRedCount === 1 ? "flag" : "flags"}
-                        </span>
-                      )}
-                      {analysisData.flagAmberCount > 0 && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF" }}>
-                          {analysisData.flagAmberCount} {analysisData.flagAmberCount === 1 ? "warning" : "warnings"} flagged
+                          Reading {analysisData.pageCount}-page document...
                         </span>
                       )}
                     </div>

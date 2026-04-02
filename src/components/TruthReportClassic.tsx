@@ -3,6 +3,10 @@ import { trackGtmEvent } from "@/lib/trackConversion";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
 import ForensicPillarSection from "@/components/report/ForensicPillarSection";
+import RiskSummaryHeader from "@/components/report/RiskSummaryHeader";
+import FixItCTA from "@/components/report/FixItCTA";
+import GapFixModule from "@/components/report/GapFixModule";
+import GreenChecklistModule from "@/components/report/GreenChecklistModule";
 import QuotePriceMath from "@/components/report/QuotePriceMath";
 import type { DerivedMetrics } from "@/components/report/QuotePriceMath";
 import { LockedOverlay } from "@/components/LockedOverlay";
@@ -11,6 +15,7 @@ import TopViolationSummaryStrip from "@/components/TopViolationSummaryStrip";
 import CriticalFlagCard from "@/components/CriticalFlagCard";
 import { selectTopViolation } from "@/utils/selectTopViolation";
 import { mapFlagToExhibit } from "@/utils/evidenceMapping";
+import { resolveEffectiveSeverity } from "@/utils/resolveEffectiveSeverity";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
 import { MATCH_REASON_HOMEOWNER, type MatchReasonKey, type MatchConfidence } from "@/shared/matchReasons";
 
@@ -109,12 +114,14 @@ const TruthReportClassic = ({
   const isFull = accessLevel === "full";
   const [copied, setCopied] = useState(false);
   const [expandedFlags, setExpandedFlags] = useState<Set<number>>(new Set());
+  const [showGapFix, setShowGapFix] = useState(false);
+  const [showGreenChecklist, setShowGreenChecklist] = useState(false);
 
-  // In full mode, derive from actual flags array.
+  // In full mode, derive from actual flags array using effective severity.
   // In preview mode, flags is [] — use aggregate props from backend.
-  const flagsDerivedRed = flags.filter((f) => f.severity === "red").length;
-  const flagsDerivedAmber = flags.filter((f) => f.severity === "amber").length;
-  const flagsDerivedGreen = flags.filter((f) => f.severity === "green").length;
+  const flagsDerivedRed = flags.filter((f) => resolveEffectiveSeverity(f) === "red").length;
+  const flagsDerivedAmber = flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length;
+  const flagsDerivedGreen = flags.filter((f) => resolveEffectiveSeverity(f) === "green").length;
 
   const redCount = isFull ? flagsDerivedRed : (flagRedCountProp ?? flagsDerivedRed);
   const amberCount = isFull ? flagsDerivedAmber : (flagAmberCountProp ?? flagsDerivedAmber);
@@ -139,9 +146,9 @@ const TruthReportClassic = ({
 
 I've had a chance to review your quote in more detail and I have a few questions before I can move forward.
 
-${flags.filter((f) => f.severity === "red").map((f, i) => `${i + 1}. Regarding "${f.label}" — ${f.detail}`).join("\n\n")}
+${flags.filter((f) => resolveEffectiveSeverity(f) === "red").map((f, i) => `${i + 1}. Regarding "${f.label}" — ${f.detail}`).join("\n\n")}
 
-${flags.filter((f) => f.severity === "amber").length > 0 ? `I also have ${flags.filter((f) => f.severity === "amber").length} additional item${flags.filter((f) => f.severity === "amber").length !== 1 ? "s" : ""} I'd like to discuss before finalizing.` : ""}
+${flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length > 0 ? `I also have ${flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length} additional item${flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length !== 1 ? "s" : ""} I'd like to discuss before finalizing.` : ""}
 
 I'm ready to move forward if we can get these items addressed. What's the fastest way to get a revised quote?`;
 
@@ -239,6 +246,14 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         </div>
       </motion.section>
 
+      {/* ─── RISK SUMMARY HEADER ─── */}
+      <RiskSummaryHeader
+        flags={flags}
+        flagRedCount={flagRedCountProp}
+        flagAmberCount={flagAmberCountProp}
+        accessLevel={accessLevel}
+      />
+
       {/* ─── PROOF-OF-READ TRUST STRIP (preview only) ─── */}
       {!isFull && (pageCount != null || lineItemCount != null || contractorName) && (
         <motion.section {...stagger(0.5)} className="card-raised py-3 px-4 md:px-8 border-b border-border">
@@ -246,7 +261,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <span className="wm-eyebrow text-primary">
               DOCUMENT VERIFIED
             </span>
-            {pageCount != null && (
+            {pageCount != null && pageCount > 1 && (
               <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
                 Multi-page document analyzed
               </span>
@@ -335,7 +350,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               {(() => {
                 const MAX_CRITICAL = 2;
                 const criticals = flags
-                  .filter((f) => f.severity === "red")
+                  .filter((f) => resolveEffectiveSeverity(f) === "red")
                   .map((f) => ({ flag: f, exhibit: mapFlagToExhibit(f) }))
                   .filter((c) => c.exhibit && c.exhibit.hasHardEvidence)
                   .slice(0, MAX_CRITICAL);
@@ -363,7 +378,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
               {/* ── Regular flag cards ── */}
               {flags.map((flag, i) => {
-              const s = severityStyles[flag.severity];
+              const effectiveSev = resolveEffectiveSeverity(flag);
+              const s = severityStyles[effectiveSev];
               const isExpanded = expandedFlags.has(flag.id);
               const pillarLabel = pillarScores.find((p) => p.key === flag.pillar)?.label;
 
@@ -454,6 +470,25 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           </div>
         </div>
       </section>
+
+      {/* ─── FIX-IT CTA ─── */}
+      <FixItCTA
+        redCount={redCount}
+        amberCount={amberCount}
+        accessLevel={accessLevel}
+        onGetGapFix={() => { setShowGreenChecklist(false); setShowGapFix(true); }}
+        onGetGreenChecklist={() => { setShowGapFix(false); setShowGreenChecklist(true); }}
+      />
+
+      {/* ─── GAP-FIX MODULE (full mode only) ─── */}
+      {showGapFix && isFull && (
+        <GapFixModule flags={flags} onClose={() => setShowGapFix(false)} />
+      )}
+
+      {/* ─── GREEN CHECKLIST MODULE ─── */}
+      {showGreenChecklist && (
+        <GreenChecklistModule onClose={() => setShowGreenChecklist(false)} />
+      )}
 
       {/* ─── NEGOTIATION SCRIPT ─── */}
       {isFull &&
