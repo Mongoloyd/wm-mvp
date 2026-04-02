@@ -150,6 +150,7 @@ export default {
         "glint": "glint 2.5s ease-in-out infinite",
         "status-pulse": "status-pulse 2s ease-in-out infinite",
         "holo-pulse": "holo-pulse 4s ease infinite",
+        "hero-drift": "hero-drift 25s ease-in-out infinite",
       },
     },
   },

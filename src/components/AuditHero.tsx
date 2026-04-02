@@ -51,12 +51,18 @@ const AuditHero = ({
   );
 
   return (
-    <section
-      className="relative bg-background"
-      style={{
-        background: "linear-gradient(168deg, hsl(214 35% 95%) 0%, hsl(216 38% 93%) 40%, hsl(218 32% 94%) 100%)",
-      }}
-    >
+    <section className="relative overflow-hidden bg-background">
+      {/* Drifting background image */}
+      <img
+        src={heroBg}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover animate-hero-drift pointer-events-none"
+      />
+
+      {/* Gradient overlay for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/50 to-white/80 pointer-events-none" />
+
       {/* ── HERO LAYOUT: flex-col on mobile, flex-row on md+ ── */}
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pb-16 md:pb-24">
