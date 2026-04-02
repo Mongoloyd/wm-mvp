@@ -21,7 +21,7 @@ function useCountUp(end: number, duration: number, active: boolean) {
 
 const SocialProofStrip = () => {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.5 });
+  const inView = useInView(ref, { once: true, amount: 0.1 });
   const { total, today } = useTickerStats();
   const totalCount = useCountUp(total, 2000, inView);
   const todayCount = useCountUp(today, 1200, inView);
