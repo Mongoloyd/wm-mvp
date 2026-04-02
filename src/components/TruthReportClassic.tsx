@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { trackGtmEvent } from "@/lib/trackConversion";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
@@ -115,6 +115,7 @@ const TruthReportClassic = ({
   const [copied, setCopied] = useState(false);
   const [expandedFlags, setExpandedFlags] = useState<Set<number>>(new Set());
   const [activeModule, setActiveModule] = useState<"none" | "gapFix" | "greenChecklist">("none");
+  const copyTimeoutRef = useRef<number | null>(null);
 
   // In full mode, derive from actual flags array using effective severity.
   // In preview mode, flags is [] — use aggregate props from backend.
@@ -164,9 +165,18 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
   const handleCopy = () => {
     navigator.clipboard.writeText(scriptText);
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
     setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    copyTimeoutRef.current = window.setTimeout(() => setCopied(false), 2500);
   };
+
+  useEffect(() => () => {
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+  }, []);
 
   const reportDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 

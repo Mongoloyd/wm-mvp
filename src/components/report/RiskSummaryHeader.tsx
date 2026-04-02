@@ -29,7 +29,7 @@ const RiskSummaryHeader = ({
 
   const config = red > 0
     ? {
-        verdict: `High Risk Detected: ${red} critical issue${red !== 1 ? "s" : ""} leave${red === 1 ? "" : "s"} you exposed.`,
+        verdict: `High Risk Detected: ${red} critical issue${red !== 1 ? "s" : ""} ${red === 1 ? "leaves" : "leave"} you exposed.`,
         Icon: ShieldAlert,
         color: "hsl(var(--color-danger))",
         bg: "hsl(var(--color-danger) / 0.06)",
