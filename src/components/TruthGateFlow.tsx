@@ -702,7 +702,7 @@ const TruthGateFlow = ({
   return (
     <section
       id="truth-gate"
-      className="bg-background h-full min-h-screen md:min-h-[85vh] flex flex-col justify-center py-12"
+      className="bg-background h-full min-h-screen md:min-h-[85vh] flex-col py-12 flex items-center justify-center"
     >
       <div
         className={`mx-auto w-full max-w-2xl px-4 md:px-8 py-10 md:py-16 transition-all duration-500 ${glowing ? "ring-2 ring-cobalt shadow-lg shadow-cobalt/20" : ""}`}
@@ -721,7 +721,7 @@ const TruthGateFlow = ({
         </div>
 
         <div
-          className="card-dominant p-7 md:p-8"
+          className="card-dominant p-7 md:p-8 shadow-2xl"
           style={{
             minHeight: 280,
             overflow: "hidden",
