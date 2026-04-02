@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { trackGtmEvent } from "@/lib/trackConversion";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
+import { Copy, Check, ChevronDown, ChevronUp, Users, Phone, Loader2, ChevronRight, MapPin, Wrench, Award } from "lucide-react";
 import ForensicPillarSection from "@/components/report/ForensicPillarSection";
 import RiskSummaryHeader from "@/components/report/RiskSummaryHeader";
 import FixItCTA from "@/components/report/FixItCTA";
@@ -711,9 +711,9 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         {/* ── HOW WINDOWMAN VETS (always visible in full mode) ── */}
         <div className="max-w-4xl mx-auto mt-10 card-raised border border-border" style={{ padding: "32px 28px" }}>
           <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-            <div className="flex flex-col items-center flex-shrink-0">
-              <ShieldCheck size={64} style={{ color: "hsl(var(--color-gold-accent))" }} strokeWidth={1.5} />
-              <p className="font-body text-foreground" style={{ fontSize: 20, fontWeight: 700, marginTop: 12, textAlign: "center" }}>How WindowMan vets these contractors</p>
+            <div className="flex flex-col items-center text-center flex-shrink-0 md:w-[280px]">
+              <p className="font-body text-foreground" style={{ fontSize: 20, fontWeight: 700, textAlign: "center" }}>How WindowMan vets these contractors</p>
+              <img src="/windowman-evaluates.avif" alt="WindowMan evaluating quote with a clipboard" loading="lazy" className="w-40 md:w-48 h-auto object-contain mx-auto mt-6" />
             </div>
             <div className="flex flex-col gap-3">
               {[
