@@ -234,6 +234,22 @@ const Index = () => {
 
           {flowMode === 'A' && (
             <>
+              {/* ─── Stats Bar ─── */}
+              <div className="w-full py-3 px-4 bg-secondary/30 border-y border-border flex items-center justify-center gap-6">
+                <span className="flex items-center gap-2 font-mono text-sm">
+                  <span>🛡️</span>
+                  <span className="font-bold text-foreground">{total.toLocaleString()}</span>
+                  <span className="text-muted-foreground">Quotes Scanned</span>
+                </span>
+                <span className="text-border">·</span>
+                <span className="flex items-center gap-2 font-mono text-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" style={{ animationIterationCount: 3 }} />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                  </span>
+                  <span className="font-semibold text-primary">+{today} Today</span>
+                </span>
+              </div>
               <SocialProofStrip />
               <ScamConcernImage />
               <InteractiveDemoScan onScanClick={() => triggerTruthGate('demo_scan')} />
