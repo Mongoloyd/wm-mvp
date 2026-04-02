@@ -90,24 +90,56 @@ export default function TopViolationSummaryStrip({
           {consequence}
         </p>
 
-        {/* Right: impact chip */}
+        {/* Right: impact chip — graduated 3-ring border + float */}
         <div className="flex-shrink-0">
-          <span
-            className="font-mono inline-block"
+          <motion.div
+            animate={{ y: [0, -1, 0, 1, 0] }}
+            transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
+            className="inline-flex rounded-[11px]"
             style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              color: accentColor,
-              background: accentBg,
-              border: `1px solid ${accentBorder}`,
-              padding: "4px 12px",
-              borderRadius: "var(--radius-btn)",
-              whiteSpace: "nowrap",
+              padding: 1,
+              background: isCritical
+                ? "hsl(var(--color-danger) / 0.45)"
+                : "hsl(var(--color-gold-accent) / 0.45)",
+              boxShadow: "0 1px 4px hsla(0 0% 0% / 0.08)",
             }}
           >
-            {impactLabel}
-          </span>
+            <div
+              className="inline-flex rounded-[10px]"
+              style={{
+                padding: 1,
+                background: isCritical
+                  ? "hsl(var(--color-danger) / 0.25)"
+                  : "hsl(var(--color-gold-accent) / 0.25)",
+              }}
+            >
+              <div
+                className="inline-flex rounded-[9px]"
+                style={{
+                  padding: 1,
+                  background: isCritical
+                    ? "hsl(var(--color-danger) / 0.12)"
+                    : "hsl(var(--color-gold-accent) / 0.12)",
+                }}
+              >
+                <span
+                  className="font-mono inline-block"
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    color: accentColor,
+                    background: accentBg,
+                    padding: "4px 12px",
+                    borderRadius: "var(--radius-btn)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {impactLabel}
+                </span>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
 
