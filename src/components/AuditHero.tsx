@@ -6,6 +6,8 @@ import { TrustBullets } from "./TrustBullets";
 
 import SampleGradeCard from "./SampleGradeCard";
 
+import heroBg from "@/assets/hero-background.avif";
+
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
 
 const MASCOT_URL =
