@@ -1,46 +1,78 @@
 
 
-# Add Cinematic Drifting Background to AuditHero
+# Apply Graduated Border + Float to Badge Elements Sitewide
 
-## What it looks like
-The uploaded `background.avif` fills the entire hero section edge-to-edge behind all content. It has a slow, continuous "Ken Burns" drift — scaled slightly larger than the container (~108%) and animated with a CSS keyframe that gently translates it ~15px over ~25 seconds in a smooth infinite loop. The content (headline, mascot, CTAs) stays perfectly still. A gradient overlay ensures text readability.
+## Summary
+Add the SocialProofStrip's 3-ring graduated border and subtle float animation to badge/chip elements across the site. Their existing colors stay the same — only their depth and dimensionality change.
 
-## Changes
+## Target Elements
 
-### 1. Copy the image asset
-Copy `user-uploads://background.avif` → `src/assets/hero-background.avif`
+### 1. CriticalFlagCard — Severity Badge (`CRITICAL FLAG` / `HIGH FLAG`)
+**File**: `src/components/CriticalFlagCard.tsx` (lines 119-134)
 
-### 2. Add a keyframe to `tailwind.config.ts`
-Add a `hero-drift` keyframe that slowly moves the background in a looping figure-eight-ish path:
-```
-"hero-drift": {
-  "0%, 100%": { transform: "scale(1.08) translate(0, 0)" },
-  "25%":      { transform: "scale(1.08) translate(-10px, 5px)" },
-  "50%":      { transform: "scale(1.08) translate(5px, -8px)" },
-  "75%":      { transform: "scale(1.08) translate(8px, 3px)" },
-}
-```
-Animation definition: `"hero-drift": "hero-drift 25s ease-in-out infinite"`
+Currently a flat `<span>` with 1px border. Wrap it in a 3-ring nested div structure where each ring uses the badge's own severity color at decreasing opacity:
+- Outer ring: `hsl(var(${cssVar}) / 0.5)`
+- Middle ring: `hsl(var(${cssVar}) / 0.3)`
+- Inner ring: `hsl(var(${cssVar}) / 0.15)`
+- Core: existing background (`hsl(var(${cssVar}) / 0.08)`)
 
-### 3. Update `src/components/AuditHero.tsx`
-- Import the background image from `@/assets/hero-background.avif`
-- Replace the inline gradient `background` on the `<section>` with just `position: relative; overflow: hidden`
-- Add an `<img>` element as the first child inside the section, absolutely positioned, covering the full area, with `animate-hero-drift` class and `object-cover`
-- Add a gradient overlay `<div>` on top of the image (before the content) for text contrast — something like `bg-gradient-to-b from-white/70 via-white/50 to-white/80`
-- The existing `relative z-10` content wrapper stays untouched
+Add subtle float via `motion.div` wrapper: `y: [0, -1, 0, 1, 0]` over 5s, only on `isTopRanked` badges. Add uniform soft shadow: `0 1px 4px hsla(0 0% 0% / 0.08)`.
 
-### Visual hierarchy (bottom to top)
+### 2. CriticalFlagCard — Pillar Badge (`Safety & Code`, etc.)
+**File**: `src/components/CriticalFlagCard.tsx` (lines 135-147)
+
+Currently a flat `bg-secondary` span. Wrap in 3-ring structure using neutral border tones (same as SocialProofStrip):
+- Outer: `hsl(214 25% 75%)`
+- Middle: `hsl(214 22% 83%)`
+- Inner: `hsl(214 18% 90%)`
+- Core: existing `bg-secondary`
+
+No float animation (too small/subtle). Just the graduated border for depth.
+
+### 3. TopViolationSummaryStrip — Impact Chip
+**File**: `src/components/TopViolationSummaryStrip.tsx` (lines 94-111)
+
+Currently a flat span with `accentBorder`. Wrap in 3-ring structure using accent color at decreasing opacity:
+- Outer: `${accentColor}` at 0.45 opacity
+- Middle: at 0.25
+- Inner: at 0.12
+- Core: existing `accentBg`
+
+Add subtle float: `y: [0, -1, 0, 1, 0]` over 6s infinite.
+
+### 4. VerifyBanner — Lock Badge Label
+**File**: `src/components/TruthReportFindings/VerifyBanner.tsx` (lines 27-31)
+
+The `YOUR FULL REPORT IS READY` label line. Wrap the lock icon + text span in a small graduated-border pill using gold tones:
+- Outer: `hsl(38 72% 53% / 0.5)`
+- Middle: `hsl(38 72% 53% / 0.3)`
+- Inner: `hsl(38 72% 53% / 0.15)`
+- Core: `hsl(38 72% 53% / 0.06)`
+
+Add subtle float: `y: [0, -1, 0, 1, 0]` over 6s.
+
+## Pattern
+Each graduated badge follows the same nesting structure:
 ```text
-┌─────────────────────────────────┐
-│  background.avif (drifting)     │  z-0, absolute, overflow hidden
-│  ┌───────────────────────────┐  │
-│  │  gradient overlay         │  │  z-5, pointer-events-none
-│  │  ┌─────────────────────┐  │  │
-│  │  │  all existing content│  │  │  z-10, unchanged
-│  │  └─────────────────────┘  │  │
-│  └───────────────────────────┘  │
-└─────────────────────────────────┘
+<outer ring 1px pad, darkest accent>
+  <middle ring 1px pad, medium accent>
+    <inner ring 1px pad, lightest accent>
+      <core content — existing colors preserved>
+    </inner>
+  </middle>
+</outer>
 ```
 
-No other files change. The mascot, headline, CTAs, and trust bullets remain exactly as they are.
+Border radius decreases by 1px per ring (e.g., 7px → 6px → 5px → 4px) to stay concentric. Uniform soft `boxShadow` on the outer ring only. Float animation is optional per element (only on prominent badges).
+
+## Files Changed
+- `src/components/CriticalFlagCard.tsx` — severity badge + pillar badge
+- `src/components/TopViolationSummaryStrip.tsx` — impact chip
+- `src/components/TruthReportFindings/VerifyBanner.tsx` — lock badge
+
+## What Does NOT Change
+- Badge text content
+- Badge colors (danger red, caution gold, primary cobalt, etc.)
+- Parent card layouts or spacing
+- SocialProofStrip (already done)
 
