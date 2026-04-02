@@ -252,8 +252,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             {confidenceScore != null && confidenceScore >= 55 && (
               <span className="font-mono" style={{
                 fontSize: 12, fontWeight: 700, marginLeft: "auto",
-                color: confidenceScore >= 55 ? "hsl(var(--color-emerald))" : "hsl(var(--color-caution))",
-                background: confidenceScore >= 55 ? "hsl(var(--color-emerald) / 0.12)" : "hsl(var(--color-caution) / 0.12)",
+                color: "hsl(var(--color-emerald))",
+                background: "hsl(var(--color-emerald) / 0.12)",
                 padding: "2px 10px", letterSpacing: "0.06em",
               }}>
                 READ QUALITY: {confidenceScore >= 90 ? "EXCELLENT" : confidenceScore >= 70 ? "GOOD" : "FAIR"}

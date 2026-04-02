@@ -68,7 +68,7 @@ function normalize(raw: string): { normalized: string; tokens: string[] } {
 }
 
 export function resolveEffectiveSeverity(flag: AnalysisFlag): EffectiveSeverity {
-  const raw = `${flag.label} ${flag.detail}`;
+  const raw = `${flag.label} ${flag.detail ?? ""}`;
   const { normalized, tokens } = normalize(raw);
 
   const hasToken = (token: string): boolean => tokens.includes(token);
