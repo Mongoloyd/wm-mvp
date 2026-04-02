@@ -121,13 +121,13 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           className="text-center mt-16 card-raised p-7 md:p-8"
         >
           <p
-            className="font-display text-foreground font-bold tracking-[0.01em] uppercase mb-4"
+            className="font-display text-foreground tracking-[0.01em] uppercase mb-4 text-2xl opacity-75 font-extrabold"
             style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
           >
             MOST HOMEOWNERS ASSUME THE QUOTE REFLECTS THE MARKET RATE.
           </p>
           <p
-            className="font-display text-destructive font-black tracking-[0.01em] uppercase"
+            className="font-display text-destructive tracking-[0.01em] uppercase font-semibold"
             style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
           >
             IT USUALLY DOESN'T.
