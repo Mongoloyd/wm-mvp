@@ -139,7 +139,7 @@ const AuditHero = ({
               )}
             </h1>
             <p
-              className="font-body mb-8"
+              className="font-body mb-8 text-xl"
               style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}
             >
               {variantSubheadline ? (
