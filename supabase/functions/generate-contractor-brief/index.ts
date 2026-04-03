@@ -268,6 +268,15 @@ function computeSuggestedMatch(params: {
     confidence = "high";
   }
 
+  console.log("[MATCH_FORENSIC]", JSON.stringify({
+    finalScore: topCandidate?.score ?? null,
+    matchReasons: topCandidate?.reasons ?? [],
+    confidence,
+    contractorId: topCandidate?.contractor_id ?? null,
+    candidateCount: candidates.length,
+    allScores: candidates.map(c => ({ id: c.contractor_id, score: c.score })),
+  }));
+
   return { topCandidate, topThree, confidence };
 }
 
