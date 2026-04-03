@@ -311,7 +311,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
         </div>
 
         <div
-          className="mx-auto max-w-[520px] rounded-none card-raised p-6 md:p-8 min-h-[480px] flex flex-col relative"
+          className="mx-auto max-w-[520px] rounded-none card-raised p-6 md:p-8 h-[520px] overflow-hidden flex flex-col relative"
           style={{ borderRadius: 0 }}
         >
           <AnimatePresence mode="wait">
