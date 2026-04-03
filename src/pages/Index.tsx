@@ -244,7 +244,7 @@ const Index = () => {
                 onHighlightDone={() => setTruthGateHighlight(false)}
               />
               <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={(_fileName, ssId) => { trackEvent({ event_name: "scan_started", session_id: ssId, metadata: { file_name: _fileName } }); setScanSessionId(ssId); setFileUploaded(true); }} />
-              <div className="mt-48">
+              <div className="mt-24">
                 <SocialProofStrip />
               </div>
             </>
