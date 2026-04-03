@@ -416,8 +416,6 @@ Deno.serve(async (req) => {
     const matchResult = computeSuggestedMatch({
       contractors: (allContractors || []) as ContractorRow[],
       county: lead?.county || null,
-      projectType: lead?.project_type || null,
-      windowCount: lead?.window_count || null,
       grade: analysis.grade,
     });
 

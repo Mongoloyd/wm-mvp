@@ -11,7 +11,10 @@ export type MatchReasonKey =
   | 'strong_local_coverage'
   | 'suitable_for_scope_complexity'
   | 'accepts_low_grade_leads'
-  | 'recommended_by_operator_rules';
+  | 'recommended_by_operator_rules'
+  | 'primary_market_partner'
+  | 'regional_service_coverage'
+  | 'target_vulnerability_specialist';
 
 /** Homeowner-friendly labels */
 export const MATCH_REASON_HOMEOWNER: Record<MatchReasonKey, string> = {
@@ -23,6 +26,9 @@ export const MATCH_REASON_HOMEOWNER: Record<MatchReasonKey, string> = {
   suitable_for_scope_complexity: 'Vetted for the type of issues flagged in your quote',
   accepts_low_grade_leads: 'Experienced with quotes that need significant improvement',
   recommended_by_operator_rules: 'Recommended by WindowMan operations',
+  primary_market_partner: "WindowMan's preferred market partner",
+  regional_service_coverage: 'Serves your region',
+  target_vulnerability_specialist: 'Specializes in quotes that need significant improvement',
 };
 
 /** Admin labels */
@@ -35,6 +41,9 @@ export const MATCH_REASON_ADMIN: Record<MatchReasonKey, string> = {
   suitable_for_scope_complexity: 'Scope complexity fit',
   accepts_low_grade_leads: 'Low-grade lead OK',
   recommended_by_operator_rules: 'Operator rule',
+  primary_market_partner: 'Primary partner',
+  regional_service_coverage: 'Regional coverage',
+  target_vulnerability_specialist: 'High-opportunity lead',
 };
 
 /** Call intent types */
