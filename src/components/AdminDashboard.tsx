@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { invokeAdminData } from '@/services/adminDataService';
 import { ROUTE_STATUS, RELEASE_STATUS, BILLING_STATUS, BILLING_MODEL, EVENTS, APPOINTMENT_STATUS, QUOTE_STATUS, DEAL_STATUS } from '@/lib/statusConstants';
 import VoiceFollowupsPanel from './admin/VoiceFollowupsPanel';
+import { MATCH_REASON_ADMIN, type MatchReasonKey } from '@/shared/matchReasons';
 import { useCurrentUserRole } from '@/hooks/useCurrentUserRole';
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -510,7 +511,7 @@ function OpportunityDetail({
             </div>
             {opp.suggested_match_reasons && Array.isArray(opp.suggested_match_reasons) && (
               <div style={{ marginTop: 8, fontFamily: monoFont, fontSize: 12, color: '#C8DEFF' }}>
-                Reasons: {(opp.suggested_match_reasons as string[]).join(', ')}
+                Reasons: {(opp.suggested_match_reasons as string[]).map(r => MATCH_REASON_ADMIN[r as MatchReasonKey] || r).join(', ')}
               </div>
             )}
           </div>
