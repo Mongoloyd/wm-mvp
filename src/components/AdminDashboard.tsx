@@ -511,7 +511,7 @@ function OpportunityDetail({
             </div>
             {opp.suggested_match_reasons && Array.isArray(opp.suggested_match_reasons) && (
               <div style={{ marginTop: 8, fontFamily: monoFont, fontSize: 12, color: '#C8DEFF' }}>
-                Reasons: {(opp.suggested_match_reasons as string[]).join(', ')}
+                Reasons: {(opp.suggested_match_reasons as string[]).map(r => MATCH_REASON_ADMIN[r as MatchReasonKey] || r).join(', ')}
               </div>
             )}
           </div>
