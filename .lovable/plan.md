@@ -1,26 +1,18 @@
 
 
-# Fix: InteractiveDemoScan Pushing UploadZone Down
+# Swap First and Third Evidence Blocks in IndustryTruth
 
-## Problem
-The demo scan card uses `min-h-[480px]`, which allows it to grow taller when phase-specific CTA buttons appear (during "reveal" and "hook" phases). This height change pushes the UploadZone and everything below it down the page.
+## What I Understand
+You want the **"Hidden Fee Structure"** block (excludes-labor image) and the **"Unspecified Brands"** block (hidden-contract image) to trade places. This makes "Hidden Fee Structure" the first thing users see on mobile in the carousel, and "Unspecified Brands" moves to the third/right position on desktop.
 
-## Root Cause
-- Line 314 in `InteractiveDemoScan.tsx`: the card container uses `min-h-[480px]` (minimum, not fixed)
-- During "reveal" phase (line 415-426): a "Scan My Quote" button animates in
-- During "hook" phase (lines 432-453): a larger CTA block with text + button animates in
-- These additions exceed 480px, causing the container to expand
+## Change — `src/components/IndustryTruth.tsx`
 
-## Fix — `src/components/InteractiveDemoScan.tsx`
+Swap the first and third objects in the `blocks` array (lines 12-38):
 
-**Change 1**: Convert the card from `min-h-[480px]` to a fixed height with `overflow-hidden` so phase transitions never change the outer dimensions:
+**Position 1 (currently "Unspecified Brands")** → becomes "Hidden Fee Structure"
+**Position 3 (currently "Hidden Fee Structure")** → becomes "Unspecified Brands"
 
-Line 314: Replace `min-h-[480px]` with `h-[520px] overflow-hidden`
+The middle block ("Vague Warranty Language") stays unchanged.
 
-This reserves enough space for the largest phase (hook CTA) while preventing any layout shift. The `overflow-hidden` ensures nothing bleeds out.
-
-**Change 2** (alternative if content gets clipped): Instead of fixed height, keep `min-h-[520px]` but increase it enough to fit the hook phase content so no growth occurs at runtime. 520px should accommodate all phases including the hook CTA.
-
-## Recommended Approach
-Fixed height (`h-[520px] overflow-hidden`) is cleanest — it guarantees zero layout shift regardless of phase.
+One array reorder, no logic changes.
 
