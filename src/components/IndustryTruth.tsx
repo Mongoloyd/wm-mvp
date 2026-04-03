@@ -9,14 +9,14 @@ import EvidenceLightbox from "./EvidenceLightbox";
 
 const blocks = [
   {
-    icon: "📝",
-    heading: "Unspecified Brands",
-    copy: "When no brand is named in your contract, your contractor can legally install any window at any quality level — while charging premium prices.",
-    badge: "Most common red flag we find",
-    badgeColor: "#F97316",
-    image: hiddenContractImg,
-    caption: "What fine print really looks like",
-    alt: "Close-up of confusing window contract fine print",
+    icon: "💰",
+    heading: "Hidden Fee Structure",
+    copy: "Permit costs, debris removal, and installation method often aren't line-itemed.",
+    badge: "Creates negotiation leverage when caught",
+    badgeColor: "#2563EB",
+    image: excludesLaborImg,
+    caption: "Good vs. bad — can you tell?",
+    alt: "Comparison of a good and bad impact window Notice of Acceptance letter",
   },
   {
     icon: "⚠️",
@@ -29,14 +29,14 @@ const blocks = [
     alt: "AI forensic analysis report highlighting hidden window warranty flaws",
   },
   {
-    icon: "💰",
-    heading: "Hidden Fee Structure",
-    copy: "Permit costs, debris removal, and installation method often aren't line-itemed.",
-    badge: "Creates negotiation leverage when caught",
-    badgeColor: "#2563EB",
-    image: excludesLaborImg,
-    caption: "Good vs. bad — can you tell?",
-    alt: "Comparison of a good and bad impact window Notice of Acceptance letter",
+    icon: "📝",
+    heading: "Unspecified Brands",
+    copy: "When no brand is named in your contract, your contractor can legally install any window at any quality level — while charging premium prices.",
+    badge: "Most common red flag we find",
+    badgeColor: "#F97316",
+    image: hiddenContractImg,
+    caption: "What fine print really looks like",
+    alt: "Close-up of confusing window contract fine print",
   },
 ];
 
