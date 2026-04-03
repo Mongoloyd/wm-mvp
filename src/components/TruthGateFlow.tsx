@@ -21,7 +21,7 @@ const stepConfig = [
     question: "What type of project is this?",
     sub: "This helps the AI focus on the right benchmarks for your scope.",
     key: "projectType",
-    options: ["Full home replacement", "Partial replacement", "New construction", "Single room / addition"],
+    options: ["Full Home Replacement", "Partial Replacement", "New Construction", "Single Room "],
   },
   {
     question: "Which Florida county is the project in?",
@@ -146,27 +146,51 @@ const formatPhoneDisplay = (val: string): string => {
 // SMALL COMPONENTS
 // ═══════════════════════════════════════════════════════════════════════════
 
-const OptionButton = ({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center justify-between p-4 border transition-all group text-left hover:-translate-y-px ${
-      selected
-        ? "border-primary bg-primary/10 text-primary"
-        : "border-border bg-card hover:border-primary/50 text-foreground"
-    }`}
-    style={{
-      borderRadius: "var(--radius-btn)",
-      boxShadow: selected ? "var(--shadow-pressed)" : "var(--shadow-resting)",
-    }}
-  >
-    <span className="font-body text-wm-body-soft">{label}</span>
-    <span
-      className={`text-base transition-colors ${selected ? "text-primary" : "text-muted-foreground group-hover:text-primary"}`}
+/** Split a label like "1–5 windows" into { number: "1–5", unit: "windows" } */
+const splitLabel = (label: string): { number: string; unit: string } | null => {
+  const match = label.match(/^([0-9+–\-]+)\s+(.+)$/);
+  if (!match) return null;
+  return { number: match[1], unit: match[2] };
+};
+
+const OptionButton = ({ label, selected, onClick, tile }: { label: string; selected: boolean; onClick: () => void; tile?: boolean }) => {
+  const parts = tile ? splitLabel(label) : null;
+
+  return (
+    <button
+      onClick={onClick}
+      className={`flex border transition-all group hover:-translate-y-px ${
+        tile
+          ? "flex-col items-center justify-center text-center p-5 min-h-[88px]"
+          : "items-center justify-between p-4 text-left"
+      } ${
+        selected
+          ? "border-primary bg-primary/10 text-primary scale-[1.02]"
+          : "border-border bg-card hover:border-primary/50 text-foreground"
+      }`}
+      style={{
+        borderRadius: "var(--radius-btn)",
+        boxShadow: selected ? "var(--shadow-pressed)" : "var(--shadow-resting)",
+      }}
     >
-      →
-    </span>
-  </button>
-);
+      {parts ? (
+        <>
+          <span className="font-heading text-2xl font-bold leading-none">{parts.number}</span>
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground mt-1">{parts.unit}</span>
+        </>
+      ) : (
+        <>
+          <span className="font-body text-wm-body-soft font-semibold text-[1.05rem]">{label}</span>
+          <span
+            className={`text-base transition-colors ${selected ? "text-primary" : "text-muted-foreground group-hover:text-primary"}`}
+          >
+            →
+          </span>
+        </>
+      )}
+    </button>
+  );
+};
 
 const Spinner = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" className="animate-spin" style={{ color: "#2563EB" }}>
@@ -511,6 +535,7 @@ const TruthGateFlow = ({
                 label={opt}
                 selected={selectedOption === opt}
                 onClick={() => handleOptionClick(cfg.key, opt)}
+                tile={cfg.key === "windowCount"}
               />
             ))}
           </div>
@@ -678,7 +703,7 @@ const TruthGateFlow = ({
         </form>
 
         <p className="font-body text-wm-body-soft text-muted-foreground leading-relaxed text-center mt-4">
-          The Free Report is Yours
+          Your Free Report is Yours
           <br />
           We Just Help You Understand It Better
         </p>
@@ -702,7 +727,7 @@ const TruthGateFlow = ({
   return (
     <section
       id="truth-gate"
-      className="bg-background h-full min-h-screen md:min-h-[85vh] flex flex-col justify-center py-12"
+      className="bg-background h-full min-h-screen md:min-h-[85vh] flex-col py-12 flex items-center justify-center"
     >
       <div
         className={`mx-auto w-full max-w-2xl px-4 md:px-8 py-10 md:py-16 transition-all duration-500 ${glowing ? "ring-2 ring-cobalt shadow-lg shadow-cobalt/20" : ""}`}
@@ -721,7 +746,7 @@ const TruthGateFlow = ({
         </div>
 
         <div
-          className="card-dominant p-7 md:p-8"
+          className="card-dominant p-7 md:p-8 shadow-2xl"
           style={{
             minHeight: 280,
             overflow: "hidden",

@@ -195,8 +195,8 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleDrop}
               onClick={handleDropzoneClick}
-              className={`upload-window-frame text-center py-12 px-8 ${
-                isDragOver ? "upload-window-frame--dragover" : ""
+              className={`border-2 border-dashed text-center cursor-pointer transition-all py-12 px-8 input-well ${
+                isDragOver ? "border-primary" : "border-border/60"
               }`}
             >
               <input

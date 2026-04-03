@@ -17,7 +17,6 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
 const AdminDashboard = lazy(() => import("./components/AdminDashboard.tsx"));
 const DevReportPreview = lazy(() => import("./pages/DevReportPreview.tsx"));
-const MockOtpGate = lazy(() => import("./dev/mockOtpGate.tsx"));
 
 // ── Static content pages ─────────────────────────────────────────────────────
 const About = lazy(() => import("./pages/About.tsx"));
@@ -65,7 +64,6 @@ const App = () => (
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/demo-classic" element={<DemoClassic />} />
               <Route path="/dev/report-preview" element={<DevReportPreview />} />
-              <Route path="/dev/otp-test" element={<MockOtpGate />} />
 
               {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
               <Route element={<PublicLayout />}>
