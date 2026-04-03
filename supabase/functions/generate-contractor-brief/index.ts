@@ -209,21 +209,11 @@ interface MatchCandidate {
 }
 
 /**
- * Intelligent contractor matching algorithm
- * Scores contractors based on geographic fit, capacity, and risk tolerance
+ * Single-client match logic — guarantees a match for every lead.
+ * Baseline 50pts + bonuses only (no penalties).
  * 
- * Scoring Breakdown:
- * - Vetted status: +20 (required baseline)
- * - County match: +30 (specialist) or -20 (mismatch)
- * - Project type fit: +20
- * - Window count capacity: +15
- * - Low-grade acceptance: +10
- * - Scope complexity bonus: +5
- * 
- * Confidence Tiers:
- * - High: score ≥ 70
- * - Medium: score ≥ 40
- * - Low: score < 40
+ * Scoring: Baseline 50 | Vetted +20 | County match +30 | D/F grade +20
+ * Confidence: high (≥70) or medium (all others)
  */
 function computeSuggestedMatch(params: {
   contractors: ContractorRow[];
