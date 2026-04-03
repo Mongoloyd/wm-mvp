@@ -560,8 +560,7 @@ const TruthGateFlow = ({
         transition={{ duration: 0.15 }}
       >
         <div
-          className="inline-flex items-center mb-5 px-3 py-1 bg-primary/10 border border-primary"
-          style={{ borderRadius: 0 }}
+          className="inline-flex items-center mb-5 px-3 py-1 bg-primary/10 border border-primary rounded-sm"
         >
           <span className="wm-eyebrow text-primary">✓ Your scan is configured</span>
         </div>
