@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { invokeAdminData } from '@/services/adminDataService';
 import { ROUTE_STATUS, RELEASE_STATUS, BILLING_STATUS, BILLING_MODEL, EVENTS, APPOINTMENT_STATUS, QUOTE_STATUS, DEAL_STATUS } from '@/lib/statusConstants';
 import VoiceFollowupsPanel from './admin/VoiceFollowupsPanel';
+import { MATCH_REASON_ADMIN, type MatchReasonKey } from '@/shared/matchReasons';
 import { useCurrentUserRole } from '@/hooks/useCurrentUserRole';
 
 // ══════════════════════════════════════════════════════════════════════════════
