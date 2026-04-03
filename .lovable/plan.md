@@ -1,39 +1,29 @@
 
 
-# ScamConcernImage — Premium Rotating Carousel
+# Add Second SocialProofStrip Below TruthGateFlow Questions
 
 ## Summary
-Convert the static image into a cycling carousel with fade+scale transitions, preloading, layout-shift prevention, and memoized children.
+Place a second instance of `SocialProofStrip` approximately 150px below the `UploadZone` (which sits right after the TruthGateFlow question cards), matching the reference screenshot layout.
 
-## Changes — `src/components/ScamConcernImage.tsx`
+## Changes
 
-### 1. Add asset + image array
-- Copy uploaded file to `src/assets/background_1.avif`
-- Import both images; define `forensicImages` array at module level
+### `src/pages/Index.tsx`
+- Add a second `<SocialProofStrip />` immediately after the `<UploadZone />` component, wrapped in a `<div className="mt-[150px]">` spacer to create the ~150px gap
+- The existing `SocialProofStrip` import is already present, so no new imports needed
 
-### 2. Layout-shift prevention
-- Replace the `<img>` with a container div using Tailwind `aspect-video md:aspect-video` (16/9) with `relative overflow-hidden` and the border-radius style
-- On mobile, use `aspect-[4/3]` for more breathing room: `className="relative overflow-hidden aspect-[4/3] md:aspect-video"` with `borderRadius: "var(--radius-card)"`
+```text
+Before:
+  <UploadZone ... />
+</>
 
-### 3. Cycling state + preloader
-- `useState(0)` for index, `useEffect` with 3.5s `setInterval`
-- Hidden preloader `<img>` for next index to prevent black flash:
-  ```
-  <img src={forensicImages[(idx + 1) % forensicImages.length]} className="hidden" alt="" />
-  ```
-
-### 4. Premium fade + scale transition
-- `AnimatePresence mode="wait"` wrapping a `motion.img` with:
-  - `initial={{ opacity: 0, scale: 1.02 }}`
-  - `animate={{ opacity: 1, scale: 1 }}`
-  - `exit={{ opacity: 0, scale: 0.98 }}`
-  - `transition={{ duration: 0.8, ease: "circOut" }}`
-  - `loading="eager"`, `className="absolute inset-0 w-full h-full object-cover"`
-
-### 5. Memoized CTA
-- Extract the `<figcaption>` button into a `React.memo`-wrapped component so it doesn't re-render on every 3.5s image swap
+After:
+  <UploadZone ... />
+  <div className="mt-[150px]">
+    <SocialProofStrip />
+  </div>
+</>
+```
 
 ## Files changed
-- `src/assets/background_1.avif` — new asset from upload
-- `src/components/ScamConcernImage.tsx` — rewritten with carousel logic
+- `src/pages/Index.tsx` — add second SocialProofStrip instance with 150px top margin after UploadZone
 
