@@ -65,6 +65,7 @@ const App = () => (
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/demo-classic" element={<DemoClassic />} />
               <Route path="/dev/report-preview" element={<DevReportPreview />} />
+              <Route path="/dev/otp-test" element={<MockOtpGate />} />
 
               {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
               <Route element={<PublicLayout />}>
