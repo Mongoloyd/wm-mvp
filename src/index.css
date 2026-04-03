@@ -572,6 +572,10 @@
     opacity: 1.3;
   }
 
+  .upload-window-frame:hover::after {
+    animation-duration: 2.5s;
+  }
+
   /* Drag-over: border transitions to cobalt */
   .upload-window-frame--dragover {
     border-color: hsl(var(--primary));
