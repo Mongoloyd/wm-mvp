@@ -228,8 +228,6 @@ interface MatchCandidate {
 function computeSuggestedMatch(params: {
   contractors: ContractorRow[];
   county: string | null;
-  projectType: string | null;
-  windowCount: number | null;
   grade: string | null;
 }): {
   topCandidate: MatchCandidate | null;
@@ -241,79 +239,31 @@ function computeSuggestedMatch(params: {
   for (const c of params.contractors) {
     if (c.status !== "active") continue;
 
-    let score = 0;
-    const reasons: string[] = [];
+    let score = 50; // High baseline — single client always enters pool
+    const reasons: string[] = ["primary_market_partner"];
 
-    // Vetted contractor requirement
     if (c.is_vetted) {
       score += 20;
       reasons.push("vetted_contractor");
+    }
+
+    // Geography: bonuses only, no penalties
+    if (params.county && c.service_counties.some(
+      (sc) => sc.toLowerCase() === params.county!.toLowerCase()
+    )) {
+      score += 30;
+      reasons.push("county_specialist");
     } else {
-      continue; // Skip non-vetted contractors
+      reasons.push("regional_service_coverage");
     }
 
-    // Geographic service area matching
-    if (params.county && c.service_counties.length > 0) {
-      const match = c.service_counties.some(
-        (sc) => sc.toLowerCase() === params.county!.toLowerCase()
-      );
-      if (match) {
-        score += 30;
-        reasons.push("county_specialist");
-      } else {
-        score -= 20; // Penalize non-matching county
-      }
-    } else if (c.service_counties.length === 0) {
-      score += 10; // No restrictions = broad coverage
-      reasons.push("strong_local_coverage");
+    // High-opportunity leads (D/F grades) get a bonus
+    if (params.grade === "F" || params.grade === "D") {
+      score += 20;
+      reasons.push("target_vulnerability_specialist");
     }
 
-    // Project type compatibility
-    if (params.projectType && c.project_types.length > 0) {
-      const match = c.project_types.some(
-        (pt) => pt.toLowerCase() === params.projectType!.toLowerCase()
-      );
-      if (match) {
-        score += 20;
-        reasons.push("project_type_fit");
-      }
-    } else if (c.project_types.length === 0) {
-      score += 10; // Handles all types
-      reasons.push("project_type_fit");
-    }
-
-    // Window count capacity fit
-    if (params.windowCount) {
-      const minOk = !c.min_window_count || params.windowCount >= c.min_window_count;
-      const maxOk = !c.max_window_count || params.windowCount <= c.max_window_count;
-      if (minOk && maxOk) {
-        score += 15;
-        reasons.push("window_count_fit");
-      } else {
-        score -= 10;
-      }
-    }
-
-    // Grade acceptance (risk tolerance)
-    const isLowGrade = params.grade === "D" || params.grade === "F";
-    if (isLowGrade) {
-      if (c.accepts_low_grade_leads) {
-        score += 10;
-        reasons.push("accepts_low_grade_leads");
-      } else {
-        score -= 15;
-      }
-    }
-
-    // Scope complexity bonus
-    if (isLowGrade) {
-      reasons.push("suitable_for_scope_complexity");
-      score += 5;
-    }
-
-    if (score > 0) {
-      candidates.push({ contractor_id: c.id, score, reasons });
-    }
+    candidates.push({ contractor_id: c.id, score, reasons });
   }
 
   // Sort by score descending
@@ -322,11 +272,10 @@ function computeSuggestedMatch(params: {
   const topThree = candidates.slice(0, 3);
   const topCandidate = topThree[0] || null;
 
-  // Confidence classification
-  let confidence: "high" | "medium" | "low" = "low";
-  if (topCandidate) {
-    if (topCandidate.score >= 70) confidence = "high";
-    else if (topCandidate.score >= 40) confidence = "medium";
+  // Confidence: high (≥70) or medium (everything else)
+  let confidence: "high" | "medium" | "low" = "medium";
+  if (topCandidate && topCandidate.score >= 70) {
+    confidence = "high";
   }
 
   return { topCandidate, topThree, confidence };
