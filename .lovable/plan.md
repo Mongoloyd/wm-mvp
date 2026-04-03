@@ -1,11 +1,10 @@
 
 
-# Adjust Spacing for Second SocialProofStrip
+# Reduce Second SocialProofStrip Spacing to ~1 Inch
 
 ## Summary
-Change the `mt-[150px]` spacer to approximately 2 inches (~192px) below the questions container. The current 150px value needs a bump to ~192px (2 inches at 96dpi).
+The current spacing (`mt-48` = 192px ≈ 2 inches) is too large. Change to `mt-24` (96px ≈ 1 inch).
 
 ## Change — `src/pages/Index.tsx`
-
-Line 247: Replace `mt-[150px]` with `mt-48` (Tailwind's 12rem = 192px ≈ 2 inches).
+Replace `mt-48` with `mt-24` on the wrapper div around the second `<SocialProofStrip />`.
 
