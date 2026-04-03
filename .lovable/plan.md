@@ -1,29 +1,11 @@
 
 
-# Add Second SocialProofStrip Below TruthGateFlow Questions
+# Adjust Spacing for Second SocialProofStrip
 
 ## Summary
-Place a second instance of `SocialProofStrip` approximately 150px below the `UploadZone` (which sits right after the TruthGateFlow question cards), matching the reference screenshot layout.
+Change the `mt-[150px]` spacer to approximately 2 inches (~192px) below the questions container. The current 150px value needs a bump to ~192px (2 inches at 96dpi).
 
-## Changes
+## Change — `src/pages/Index.tsx`
 
-### `src/pages/Index.tsx`
-- Add a second `<SocialProofStrip />` immediately after the `<UploadZone />` component, wrapped in a `<div className="mt-[150px]">` spacer to create the ~150px gap
-- The existing `SocialProofStrip` import is already present, so no new imports needed
-
-```text
-Before:
-  <UploadZone ... />
-</>
-
-After:
-  <UploadZone ... />
-  <div className="mt-[150px]">
-    <SocialProofStrip />
-  </div>
-</>
-```
-
-## Files changed
-- `src/pages/Index.tsx` — add second SocialProofStrip instance with 150px top margin after UploadZone
+Line 247: Replace `mt-[150px]` with `mt-48` (Tailwind's 12rem = 192px ≈ 2 inches).
 
