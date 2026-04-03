@@ -535,6 +535,8 @@ const TruthGateFlow = ({
                 label={opt}
                 selected={selectedOption === opt}
                 onClick={() => handleOptionClick(cfg.key, opt)}
+                tile={cfg.key === "windowCount"}
+              />
               />
             ))}
           </div>
