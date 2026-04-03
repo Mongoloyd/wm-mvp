@@ -1,49 +1,110 @@
 
 
-# Mock OTP Scratchpad Plan
+# Upload Zone "Window Frame" Redesign — 4 Options
 
-## What This Is
-A standalone scratchpad file (`src/dev/mockOtpGate.tsx`) containing a self-contained mock version of the Truth Gate OTP flow for local testing. It does **not** touch `TruthGateFlow.tsx`, `VerifyGate.tsx`, or any edge functions.
+## Reference Analysis
+The uploaded image shows an impact window pane: pure white thick frame with generous rounded corners, frosted/reflective glass interior, soft ambient shadow separating it from background. The goal is to make the dropzone inside UploadZone feel like a literal window — premium, physical, tactile.
 
-## File: `src/dev/mockOtpGate.tsx`
+## Current State
+The dropzone uses `.input-well` (sunken gradient background, 1px border, `--shadow-sunken`). It reads as a form field, not a window. The outer card uses `.card-raised`.
 
-A single React component (`MockTruthGateTest`) that:
+## Design System Constraints
+- Shadows: vertical-only (no x-offset), use existing shadow vars or define new ones inline
+- Radius: `--radius-card` (12px), `--radius-btn` (8px), `--radius-input` (7px)
+- Colors: semantic tokens only, no raw hex in components
+- The dropzone sits inside a `.card-raised` container
 
-1. **Renders a mini form** with Name, Email, Phone (optional) fields
-2. **Hardcodes OTP to `1234`** — no Supabase calls, no Twilio
-3. **Console logs** `[TEST MODE] OTP Sent: 1234` on submit
-4. **Two-tier reveal logic**:
-   - **Tier 1 (Partial)**: Name + Email only → verifying `1234` shows a mock "30% teaser" card (grade letter + issue count, everything else blurred/locked)
-   - **Tier 2 (Full)**: Name + Email + Phone → verifying `1234` shows a mock "100% reveal" card (all pillars, red flags, negotiation script placeholder)
-5. **0.8s "Analyzing..." loading state** between OTP entry and reveal for premium feel
-6. **State machine**: `idle → collecting → otp_challenge → analyzing → partial_reveal | full_reveal`
+---
 
-## File: `src/dev/mockOtpFixtures.ts`
+## Option A — "Thick White Frame" (Closest to Reference)
 
-Static mock data used by the test component:
-- `mockPartialPayload`: grade letter, issue count, 2-3 teaser fields
-- `mockFullPayload`: all 5 pillar scores, red flags array, negotiation script stub
+The most literal interpretation. A thick pure-white border creates a physical window frame around the drop area.
 
-## How to Access
+**Implementation:**
+- Remove `input-well` class from dropzone
+- Replace with a wrapper structure: outer `div` with 6px solid white border, `border-radius: 14px`, and a multi-layer shadow (inset top highlight + outer ambient drop shadow)
+- Inner area: subtle cool-gray gradient background (`#F4F6F9` → `#EAEFF5`) to simulate frosted glass
+- Two faint diagonal pseudo-element gradients (white at 5-8% opacity) crossing top-left to bottom-right for glass reflections
+- Shadow: `0 8px 22px rgba(10,25,55,0.12), 0 2px 4px rgba(10,25,55,0.06)` plus `inset 0 1px 0 rgba(255,255,255,0.9)` on the frame
+- Hover: shadow lifts to `y:4px blur:28px`, `translateY(-2px)`, inner gloss brightens
+- Drag-over: border transitions to cobalt primary color
 
-Add a route in `App.tsx` only in dev: `/dev/otp-test` pointing to `MockTruthGateTest`. Or simply import it in the existing `DevPreviewPanel.tsx`.
+**Pros:** Most "window-like." High-end feel. Strong visual metaphor for the product.
+**Cons:** Thick border is unusual for web — bold choice.
 
-## What It Does NOT Touch
-- `TruthGateFlow.tsx` — unchanged
-- `VerifyGate.tsx` — unchanged
-- `send-otp` / `verify-otp` edge functions — unchanged
-- No Supabase calls, no Twilio calls, no real API hits
+---
 
-## Technical Details
+## Option B — "Double-Ring Bevel" (3D Depth Frame)
 
-**State flow in mockOtpGate.tsx:**
-```text
-idle → [submit name/email/phone?] → otp_challenge
-  → [enter "1234"] → analyzing (0.8s timer)
-    → hasPhone? full_reveal : partial_reveal
-```
+A concentric double-border creates the illusion of a thick beveled window frame using the existing graduated-depth pattern from the design system.
 
-**Tier detection:** `const tier = phone.trim() ? "full" : "partial"`
+**Implementation:**
+- Outer ring: 3px solid white border, `border-radius: 14px`, with `box-shadow: 0 6px 18px rgba(10,25,55,0.1)`
+- Inner ring (1px inset): created with `box-shadow: inset 0 0 0 2px rgba(214,225,240,0.5)` — suggests frame thickness
+- Background: frosted gradient same as Option A
+- Top-left lighting: `inset 0 1px 0 rgba(255,255,255,0.95)` on outer, `inset 0 1px 2px rgba(10,25,55,0.06)` on inner for bevel
+- Glass reflection: single `::after` pseudo with `linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%)`
+- Hover: outer ring glows slightly, inner shadow deepens
 
-**OTP check:** `if (otpInput === "1234") { advance() } else { setError("Wrong code") }`
+**Pros:** More subtle than A. Fits the graduated-depth pattern already in use. Feels premium without being loud.
+**Cons:** Less immediately "window-like" than A.
+
+---
+
+## Option C — "Frosted Glass Pane" (Glass-Forward)
+
+Maximizes the glass metaphor. The frame is thin but the interior is the star — heavy frosted glass effect with visible reflections.
+
+**Implementation:**
+- Border: 2px solid white, `border-radius: 12px`
+- Background: `linear-gradient(180deg, rgba(240,244,250,0.95) 0%, rgba(228,234,244,0.9) 100%)`
+- Two glass reflection pseudo-elements: 
+  - `::before` — large diagonal highlight top-left (white 8% opacity, 40% coverage)
+  - `::after` — smaller secondary reflection bottom-right (white 4% opacity)
+- Shadow: `0 4px 16px rgba(10,25,55,0.1), 0 1px 3px rgba(10,25,55,0.08), inset 0 1px 0 rgba(255,255,255,0.9)`
+- Subtle inner bevel: `inset 0 -1px 2px rgba(10,25,55,0.04)` for bottom edge thickness
+- Hover: reflections shift slightly (2px translate), shadow deepens
+- Drag-over: glass brightens (background opacity increases)
+
+**Pros:** Beautiful, photorealistic. The reflections sell the "glass" concept perfectly for a window company.
+**Cons:** Multiple pseudo-elements add complexity. Reflections may look odd on very small screens.
+
+---
+
+## Option D — "Shadow-Cast Window" (Minimal Frame, Maximum Depth)
+
+Relies almost entirely on shadow layering to create the illusion of a thick, physically present object floating above the surface. The frame itself is minimal.
+
+**Implementation:**
+- Border: 1px solid white (barely visible — the shadow does the work)
+- Border-radius: 12px
+- Background: clean white-to-slate gradient
+- Shadow stack (5 layers):
+  1. `inset 0 2px 0 rgba(255,255,255,1)` — top edge catch light
+  2. `inset 0 -1px 2px rgba(10,25,55,0.04)` — bottom edge thickness
+  3. `0 1px 2px rgba(10,25,55,0.08)` — hard contact shadow
+  4. `0 8px 24px rgba(10,25,55,0.12)` — structural shadow
+  5. `0 20px 48px rgba(10,25,55,0.06)` — ambient halo
+- Single glass reflection: `::after` diagonal gradient
+- Hover: entire shadow stack intensifies, `translateY(-3px)` lift
+- Focus: `0 0 0 3px rgba(255,255,255,0.8), 0 0 12px rgba(37,99,235,0.15)` white glow ring
+
+**Pros:** Most sophisticated. Achieves depth without heavy borders. Cleanest on mobile. Best CRO — doesn't distract from the action.
+**Cons:** Least literal "window" interpretation. Subtlety may be lost on some users.
+
+---
+
+## My Recommendation
+
+**Option A** for maximum "wow" and brand metaphor alignment (you're literally selling windows — the upload zone IS a window). It's the boldest and most memorable. Option C is the runner-up if you want something more refined.
+
+## Files to Change
+- `src/index.css` — add new `.upload-window-frame` utility class (shadow + border + pseudo-elements)
+- `src/components/UploadZone.tsx` — replace `input-well` on the dropzone div with the new class, add wrapper structure for the frame
+
+## What Stays Untouched
+- Outer `.card-raised` container
+- All upload logic, file handling, scan invocation
+- Button styling (`.btn-depth-primary`)
+- Typography and copy
 
