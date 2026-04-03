@@ -21,7 +21,7 @@ const stepConfig = [
     question: "What type of project is this?",
     sub: "This helps the AI focus on the right benchmarks for your scope.",
     key: "projectType",
-    options: ["Full home replacement", "Partial replacement", "New construction", "Single room / addition"],
+    options: ["Full Home Replacement", "Partial Replacement", "New Construction", "Single Room "],
   },
   {
     question: "Which Florida county is the project in?",
