@@ -145,6 +145,7 @@ export interface LeadAnalysisData {
   dollar_delta: number | null;
   confidence_score: number | null;
   flags: AnalysisFlag[];
+  full_json: Record<string, unknown> | null;
 }
 
 // ─── Voice Followup Summary (for CRM table) ────────────────────────────
