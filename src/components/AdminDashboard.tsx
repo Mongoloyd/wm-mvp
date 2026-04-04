@@ -870,6 +870,15 @@ export default function AdminDashboard() {
   const [revDateFrom, setRevDateFrom] = useState('');
   const [revDateTo, setRevDateTo] = useState('');
 
+  // ── Webhook State ────
+  interface WebhookDelivery {
+    id: string; lead_id: string; event_type: string; status: string;
+    attempt_count: number; max_attempts: number; last_http_status: number | null;
+    last_error: string | null; created_at: string; updated_at: string;
+  }
+  const [webhookDeliveries, setWebhookDeliveries] = useState<WebhookDelivery[]>([]);
+  const [webhookLoading, setWebhookLoading] = useState(true);
+
   // ── Release model state (for the detail modal) ────
   const [releaseModel, setReleaseModel] = useState('flat_fee');
   const [releaseFee, setReleaseFee] = useState('');
