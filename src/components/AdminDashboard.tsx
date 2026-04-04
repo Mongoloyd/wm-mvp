@@ -1450,6 +1450,66 @@ export default function AdminDashboard() {
         />
       )}
 
+      {/* ═══ WEBHOOKS TAB ═══ */}
+      {activeTab === 'webhooks' && (() => {
+        const pending = webhookDeliveries.filter(d => d.status === 'pending');
+        const delivered = webhookDeliveries.filter(d => d.status === 'delivered' || d.status === 'mock_delivered');
+        const failed = webhookDeliveries.filter(d => d.status === 'failed');
+        const deadLetter = webhookDeliveries.filter(d => d.status === 'dead_letter');
+        return (
+          <>
+            {/* Summary Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, background: '#2E3A50', marginBottom: 20 }}>
+              {[
+                { label: 'PENDING', value: pending.length, color: '#F59E0B' },
+                { label: 'DELIVERED', value: delivered.length, color: '#10B981' },
+                { label: 'FAILED (RETRYING)', value: failed.length, color: '#F97316' },
+                { label: 'DEAD LETTER', value: deadLetter.length, color: '#DC2626' },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
+                  <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_MUTED, letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
+                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Delivery List */}
+            {webhookLoading ? (
+              <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_MEDIUM, color: COLOR_MUTED, padding: 40, textAlign: 'center' }}>LOADING WEBHOOK DATA…</div>
+            ) : webhookDeliveries.length === 0 ? (
+              <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_MEDIUM, color: COLOR_MUTED, padding: 40, textAlign: 'center' }}>NO WEBHOOK DELIVERIES YET — dual-gate trigger will queue leads automatically</div>
+            ) : (
+              <div>
+                <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_MUTED, letterSpacing: '0.12em', marginBottom: 10 }}>RECENT DELIVERIES ({webhookDeliveries.length})</div>
+                {webhookDeliveries.map(d => {
+                  const statusColor = d.status === 'delivered' || d.status === 'mock_delivered' ? '#10B981'
+                    : d.status === 'pending' ? '#F59E0B'
+                    : d.status === 'failed' ? '#F97316'
+                    : d.status === 'dead_letter' ? '#DC2626' : COLOR_MUTED;
+                  return (
+                    <div key={d.id} style={{ background: '#111418', border: '1px solid #2E3A50', borderLeft: `3px solid ${statusColor}`, marginBottom: 4, padding: '10px 14px', display: 'grid', gridTemplateColumns: '120px 1fr 80px 100px 120px', gap: 8, alignItems: 'center' }}>
+                      <StatusPill status={d.status} />
+                      <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_SECONDARY }}>
+                        {d.event_type} · Lead: {d.lead_id.slice(0, 8)}…
+                      </div>
+                      <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_MUTED, textAlign: 'center' }}>
+                        {d.attempt_count}/{d.max_attempts}
+                      </div>
+                      <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: d.last_http_status && d.last_http_status >= 200 && d.last_http_status < 300 ? '#10B981' : d.last_http_status ? '#F97316' : COLOR_MUTED, textAlign: 'center' }}>
+                        {d.last_http_status ? `HTTP ${d.last_http_status}` : '—'}
+                      </div>
+                      <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_MUTED, textAlign: 'right' }}>
+                        {new Date(d.created_at).toLocaleDateString()} {new Date(d.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        );
+      })()}
+
       {/* Outcome Editor Modal */}
       {outcomeEditorIntro && (
         <OutcomeEditor
