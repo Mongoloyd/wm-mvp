@@ -135,12 +135,30 @@ function DashboardContent() {
   const fetchAll = useCallback(async (silent = false) => {
     if (!silent) setIsLoading(true);
     try {
-      const [rawLeads, rawDeliveries] = await Promise.all([
+      const [rawLeads, rawDeliveries, rawFollowups] = await Promise.all([
         invokeAdminData("fetch_leads"),
         fetchWebhookDeliveries(),
+        invokeAdminData("fetch_voice_followups"),
       ]);
       setLeads((rawLeads ?? []).map(toLeadCRM));
       setDeliveries((rawDeliveries ?? []).map(toWebhookDelivery));
+
+      // Build latestFollowups map: most recent followup per lead_id
+      const followupsArr = (rawFollowups ?? []) as Array<Record<string, any>>;
+      const fMap: Record<string, VoiceFollowupSummary> = {};
+      for (const f of followupsArr) {
+        const lid = f.lead_id as string;
+        if (!lid) continue;
+        if (!fMap[lid] || new Date(f.created_at) > new Date(fMap[lid].created_at)) {
+          fMap[lid] = {
+            lead_id: lid,
+            status: f.status ?? "unknown",
+            call_outcome: f.call_outcome ?? null,
+            created_at: f.created_at,
+          };
+        }
+      }
+      setLatestFollowups(fMap);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to load data";
       if (!silent) toast.error(msg);
