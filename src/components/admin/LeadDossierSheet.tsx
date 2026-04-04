@@ -188,6 +188,19 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
 
   if (!lead) return null;
 
+  const name = [lead.first_name, lead.last_name].filter(Boolean).join(" ") || "Unknown";
+
+  // ── Pillar data from full_json ──
+  const fullJson = analysis?.full_json;
+  const pillarScores = (fullJson as any)?.pillar_scores as Record<string, number> | null ?? null;
+  const extraction = (fullJson as any)?.extraction as Record<string, any> | null ?? null;
+
+  // ── Sorted flags ──
+  const sortedFlags = [...(analysis?.flags ?? [])].sort(
+    (a, b) => (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9)
+  );
+  const visibleFlags = showAllFlags ? sortedFlags : sortedFlags.slice(0, 5);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
