@@ -70,7 +70,7 @@ interface InternalCRMDeskProps {
 
 /* ── Component ────────────────────────────────────────────────────────── */
 
-export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCRMDeskProps) {
+export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollowups = {} }: InternalCRMDeskProps) {
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
   const [dossierOpen, setDossierOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("default");
