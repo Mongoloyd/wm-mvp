@@ -57,6 +57,7 @@ export type AdminAction =
 export interface AdminActionPayloads {
   fetch_leads: Record<string, never>;
   update_lead_status: { lead_id: string; status: string };
+  update_lead_deal_status: { lead_id: string; deal_status: string };
   fetch_opportunities: Record<string, never>;
   fetch_contractors: Record<string, never>;
   fetch_routes: { opportunity_id?: string };
