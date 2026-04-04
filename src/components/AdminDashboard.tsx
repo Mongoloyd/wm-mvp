@@ -29,7 +29,7 @@ import {
   fetchWebhookDeliveries,
 } from "@/services/adminDataService";
 
-import type { CRMLead, LeadEvent, WebhookDelivery, CommandCenterKPIs, VoiceFollowupSummary } from "@/components/admin/types";
+import type { CRMLead, WebhookDelivery, CommandCenterKPIs, VoiceFollowupSummary } from "@/components/admin/types";
 
 const REFRESH_INTERVAL_MS = 30_000;
 
