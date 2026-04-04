@@ -375,6 +375,9 @@ const TruthGateFlow = ({
       // Normalize phone to E.164 before DB insert (matches server-side normalizePhone.ts)
       const phoneE164 = normalizePhoneToE164(answers.phone);
 
+      // Capture attribution data at moment of lead creation
+      const utm = getUtmData();
+
       const { error } = await supabase.from("leads").insert({
         session_id: sessionId,
         first_name: answers.firstName,
@@ -385,6 +388,18 @@ const TruthGateFlow = ({
         window_count: parseWindowCount(answers.windowCount),
         quote_range: answers.quoteRange,
         source: "truth-gate",
+        // Attribution fields from useUtmCapture
+        utm_source: utm.utm_source,
+        utm_medium: utm.utm_medium,
+        utm_campaign: utm.utm_campaign,
+        utm_term: utm.utm_term,
+        utm_content: utm.utm_content,
+        fbclid: utm.fbclid,
+        gclid: utm.gclid,
+        fbc: utm.fbc,
+        landing_page_url: utm.landing_page,
+        first_page_path: utm.landing_page,
+        initial_referrer: typeof document !== "undefined" ? document.referrer || null : null,
       });
 
       if (error) throw error;
