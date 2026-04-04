@@ -31,9 +31,12 @@ export type Database = {
           grade: string | null
           id: string
           lead_id: string | null
+          markup_estimate: string | null
+          negotiation_leverage: string | null
           negotiation_script: Json | null
           negotiation_script_generated_at: string | null
           preview_json: Json | null
+          price_fairness: string | null
           proof_of_read: Json | null
           rubric_version: string | null
           scan_session_id: string | null
@@ -56,9 +59,12 @@ export type Database = {
           grade?: string | null
           id?: string
           lead_id?: string | null
+          markup_estimate?: string | null
+          negotiation_leverage?: string | null
           negotiation_script?: Json | null
           negotiation_script_generated_at?: string | null
           preview_json?: Json | null
+          price_fairness?: string | null
           proof_of_read?: Json | null
           rubric_version?: string | null
           scan_session_id?: string | null
@@ -81,9 +87,12 @@ export type Database = {
           grade?: string | null
           id?: string
           lead_id?: string | null
+          markup_estimate?: string | null
+          negotiation_leverage?: string | null
           negotiation_script?: Json | null
           negotiation_script_generated_at?: string | null
           preview_json?: Json | null
+          price_fairness?: string | null
           proof_of_read?: Json | null
           rubric_version?: string | null
           scan_session_id?: string | null
