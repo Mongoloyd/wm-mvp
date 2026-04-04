@@ -301,6 +301,23 @@ export function useAnalysisData(
     return () => { cancelled = true; if (retryTimer) clearTimeout(retryTimer); };
   }, [scanSessionId, enabled]);
 
+  // ── Dev bypass helper ────────────────────────────────────────────────
+  const devBypassEnabled =
+    import.meta.env.DEV && !!import.meta.env.VITE_DEV_BYPASS_SECRET;
+
+  const fetchFullViaDevBypass = useCallback(
+    async (sessionId: string) => {
+      const { data: fnData, error: fnErr } = await supabase.functions.invoke(
+        "dev-report-unlock",
+        { body: { scan_session_id: sessionId, dev_secret: import.meta.env.VITE_DEV_BYPASS_SECRET } }
+      );
+      if (fnErr) throw fnErr;
+      // Edge function returns the row directly (not wrapped in array)
+      return fnData;
+    },
+    []
+  );
+
   // ── Phase 2: Full gated fetch ──────────────────────────────────────────
   const fetchFull = useCallback(async (phoneE164: string) => {
     
@@ -310,11 +327,19 @@ export function useAnalysisData(
     }
     setIsLoadingFull(true);
     try {
-      
-      const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
-        "get_analysis_full",
-        { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
-      );
+      let row: any;
+
+      if (devBypassEnabled) {
+        console.info("[fetchFull] 🔓 DEV BYPASS — skipping get_analysis_full RPC");
+        row = await fetchFullViaDevBypass(scanSessionId);
+      } else {
+        const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
+          "get_analysis_full",
+          { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
+        );
+        if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); return; }
+        row = Array.isArray(rows) ? rows[0] : rows;
+      }
       
       if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); return; }
       const row = Array.isArray(rows) ? rows[0] : rows;
