@@ -16,7 +16,7 @@ import {
   Select, SelectContent, SelectItem,
   SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Phone, PhoneCall, Users, CalendarCheck, Eye } from "lucide-react";
+import { Phone, PhoneCall, Users, CalendarCheck, Eye, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -38,14 +38,26 @@ const DEAL_STATUSES = [
 
 function gradeColor(grade: string | null): string {
   switch (grade) {
-    case "A": return "bg-green-600 text-white";
-    case "B": return "bg-emerald-500 text-white";
+    case "A": return "bg-green-500 text-white";
+    case "B": return "bg-teal-500 text-white";
     case "C": return "bg-amber-500 text-white";
-    case "D": return "bg-orange-600 text-white";
-    case "F": return "bg-destructive text-destructive-foreground";
-    default: return "bg-muted text-muted-foreground";
+    case "D": return "bg-orange-500 text-white";
+    case "F": return "bg-red-500 text-white";
+    default: return "bg-gray-400 text-white";
   }
 }
+
+/* ── Sort options ─────────────────────────────────────────────────────── */
+
+type SortMode = "default" | "grade_worst" | "flags_most";
+
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: "default", label: "Newest (Default)" },
+  { value: "grade_worst", label: "Grade: Worst First" },
+  { value: "flags_most", label: "Flags: Most First" },
+];
+
+const GRADE_WEIGHT: Record<string, number> = { F: 0, D: 1, C: 2, B: 3, A: 4 };
 
 /* ── Props ────────────────────────────────────────────────────────────── */
 
@@ -60,6 +72,7 @@ interface InternalCRMDeskProps {
 export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCRMDeskProps) {
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
   const [dossierOpen, setDossierOpen] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("default");
 
   // Filter to phone-verified leads only
   const verified = useMemo(
@@ -67,16 +80,27 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
     [leads],
   );
 
-  // Sort: null/new deal_status first, then most recent
+  // Sort: default preserves original logic, new modes layer on top
   const sorted = useMemo(() => {
     return [...verified].sort((a, b) => {
+      if (sortMode === "grade_worst") {
+        const wA = GRADE_WEIGHT[a.grade ?? ""] ?? 99;
+        const wB = GRADE_WEIGHT[b.grade ?? ""] ?? 99;
+        if (wA !== wB) return wA - wB;
+      }
+      if (sortMode === "flags_most") {
+        const fA = a.flag_count ?? 0;
+        const fB = b.flag_count ?? 0;
+        if (fA !== fB) return fB - fA;
+      }
+      // Default tiebreaker: new deal_status first, then newest
       const aIsNew = !a.deal_status || a.deal_status === "new";
       const bIsNew = !b.deal_status || b.deal_status === "new";
       if (aIsNew && !bIsNew) return -1;
       if (!aIsNew && bIsNew) return 1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  }, [verified]);
+  }, [verified, sortMode]);
 
   // KPIs
   const needsFirstCall = verified.filter((l) => !l.deal_status || l.deal_status === "new").length;
@@ -131,6 +155,22 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
         </Card>
       </div>
 
+      {/* ── Sort Control ─────────────────────────────────────────── */}
+      <div className="flex justify-end">
+        <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+          <SelectTrigger className="w-[200px] h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value} className="text-xs">
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* ── Power Dialer Table ─────────────────────────────────────── */}
       {isLoading && sorted.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">Loading leads…</div>
@@ -148,8 +188,7 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
                   <TableHead>Name</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>County</TableHead>
-                  <TableHead className="text-center">Grade</TableHead>
-                  <TableHead className="text-center">Red Flags</TableHead>
+                  <TableHead className="text-center">Grade / Flags</TableHead>
                   <TableHead className="text-center">Call Intent</TableHead>
                   <TableHead className="w-[180px]">Status</TableHead>
                   <TableHead className="w-[60px]" />
@@ -179,18 +218,23 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
                     </TableCell>
                     <TableCell className="text-sm">{lead.county || "—"}</TableCell>
                     <TableCell className="text-center">
-                      <Badge className={`${gradeColor(lead.grade)} text-xs px-2`}>
-                        {lead.grade || "—"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {lead.red_flag_count > 0 ? (
-                        <Badge variant="destructive" className="text-xs">
-                          {lead.red_flag_count}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">0</span>
-                      )}
+                      <div className="inline-flex items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${gradeColor(lead.grade)}`}
+                        >
+                          {lead.grade ?? "?"}
+                        </span>
+                        {(lead.flag_count ?? 0) > 0 && (
+                          <span
+                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 ${
+                              (lead.flag_count ?? 0) >= 3 ? "ring-2 ring-red-500 animate-pulse" : ""
+                            }`}
+                          >
+                            <Flag className="w-3 h-3" />
+                            {lead.flag_count}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       {lead.last_call_intent ? (
