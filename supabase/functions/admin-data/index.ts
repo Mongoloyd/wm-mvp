@@ -105,6 +105,18 @@ Deno.serve(async (req) => {
       return successResponse({ data: { success: true } });
     }
 
+    if (action === "update_lead_deal_status") {
+      const { lead_id, deal_status } = payload;
+      if (!lead_id || !deal_status) return errorResponse(400, "missing_param", "lead_id and deal_status are required");
+      const { error } = await supabaseAdmin.from("leads").update({ deal_status, updated_at: now }).eq("id", lead_id);
+      if (error) throw error;
+      await supabaseAdmin.from("lead_events").insert({
+        lead_id, event_name: "deal_status_changed", event_source: "admin_crm",
+        metadata: { deal_status, changed_by: userId, timestamp: now },
+      });
+      return successResponse({ data: { success: true } });
+    }
+
     if (action === "route_opportunity") {
       const { opportunity_id, contractor_id, scan_session_id } = payload;
       
