@@ -96,7 +96,15 @@ export default function ReportClassic() {
     fetchFull,
     isLoadingFull,
     isFullLoaded,
+    tryResume,
+    isResuming,
   } = useAnalysisData(sessionId ?? null, !!sessionId);
+
+  // ── Auto-resume: dev bypass or returning verified user ─────────────
+  useEffect(() => {
+    if (!sessionId || isFullLoaded || isResuming || isLoading) return;
+    tryResume();
+  }, [sessionId, isFullLoaded, isResuming, isLoading, tryResume]);
 
   // ── County resolution ──────────────────────────────────────────────────
   const county = useCountyForSession(sessionId);
