@@ -80,6 +80,7 @@ export interface AdminActionPayloads {
   get_role_audit_log: { limit?: number };
   fetch_lead_events: { lead_id: string; limit?: number };
   fetch_webhook_deliveries: { status?: string; limit?: number };
+  fetch_lead_analysis: { analysis_id: string };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
