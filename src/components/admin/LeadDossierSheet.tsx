@@ -8,7 +8,11 @@ import { useEffect, useState, useCallback } from "react";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,11 +21,13 @@ import {
   AlertTriangle, CheckCircle, ExternalLink, Globe,
   ChevronDown, ChevronUp, Flag, Info,
   PhoneCall, Calendar, CalendarCheck, RotateCcw, AlertCircle,
+  Send,
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 import type { CRMLead, AnalysisFlag, LeadAnalysisData } from "./types";
-import { fetchLeadAnalysis, fetchLeadVoiceFollowups, invokeAdminData } from "@/services/adminDataService";
+import { fetchLeadAnalysis, fetchLeadVoiceFollowups, invokeAdminData, sendContractorHandoff } from "@/services/adminDataService";
 import type { VoiceFollowup } from "@/services/adminDataService";
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
