@@ -8,7 +8,11 @@ import { useEffect, useState, useCallback } from "react";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,11 +21,13 @@ import {
   AlertTriangle, CheckCircle, ExternalLink, Globe,
   ChevronDown, ChevronUp, Flag, Info,
   PhoneCall, Calendar, CalendarCheck, RotateCcw, AlertCircle,
+  Send,
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 import type { CRMLead, AnalysisFlag, LeadAnalysisData } from "./types";
-import { fetchLeadAnalysis, fetchLeadVoiceFollowups, invokeAdminData } from "@/services/adminDataService";
+import { fetchLeadAnalysis, fetchLeadVoiceFollowups, invokeAdminData, sendContractorHandoff } from "@/services/adminDataService";
 import type { VoiceFollowup } from "@/services/adminDataService";
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
@@ -175,20 +181,39 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
   // ── Retry call handler ──
   const handleRetryCall = useCallback(async (entry: VoiceFollowup) => {
     if (!lead) return;
+    const scanSessionId = lead.latest_scan_session_id ?? entry.scan_session_id;
+    if (!scanSessionId) {
+      console.error("[Dossier] Cannot retry — no scan_session_id");
+      toast.error("Cannot retry — missing scan session data");
+      return;
+    }
     try {
       await invokeAdminData("trigger_voice_followup", {
-        scan_session_id: lead.latest_scan_session_id ?? entry.scan_session_id ?? "",
+        scan_session_id: scanSessionId,
         phone_e164: lead.phone_e164 ?? entry.phone_e164,
       });
       refetchCallHistory();
     } catch (err) {
       console.error("[Dossier] Retry call failed:", err);
+      toast.error("Retry call failed");
     }
   }, [lead, refetchCallHistory]);
+
+  // ── Handoff state ──
+  const [handoffModalOpen, setHandoffModalOpen] = useState(false);
+  const [handoffSending, setHandoffSending] = useState(false);
+  const [localSentToContractor, setLocalSentToContractor] = useState(false);
+
+  // Reset local sent state on lead change
+  useEffect(() => {
+    setLocalSentToContractor(false);
+    setHandoffModalOpen(false);
+  }, [lead?.id]);
 
   if (!lead) return null;
 
   const name = [lead.first_name, lead.last_name].filter(Boolean).join(" ") || "Unknown";
+  const alreadySent = !!lead.latest_opportunity_id || localSentToContractor;
 
   // ── Pillar data from full_json ──
   const fullJson = analysis?.full_json;
@@ -200,6 +225,34 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
     (a, b) => (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9)
   );
   const visibleFlags = showAllFlags ? sortedFlags : sortedFlags.slice(0, 5);
+
+  // ── Top HIGH flags for handoff preview ──
+  const topHighFlags = sortedFlags
+    .filter((f) => f.severity === "High" || f.severity === "Critical")
+    .slice(0, 3);
+
+  // ── Handoff confirm handler ──
+  const handleHandoffConfirm = async () => {
+    setHandoffSending(true);
+    try {
+      const result = await sendContractorHandoff(lead.id);
+      if (result.success && !result.warning) {
+        toast.success("Dossier sent to contractor");
+        setLocalSentToContractor(true);
+        setHandoffModalOpen(false);
+      } else if (result.success && result.warning) {
+        toast.warning(result.warning);
+        setLocalSentToContractor(true);
+        setHandoffModalOpen(false);
+      } else {
+        toast.error("Handoff failed");
+      }
+    } catch (err: any) {
+      toast.error(err?.message ?? "Handoff failed");
+    } finally {
+      setHandoffSending(false);
+    }
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -216,6 +269,30 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
           <SheetDescription>
             Lead ID: {lead.id.slice(0, 8)}… · Created {format(new Date(lead.created_at), "MMM d, yyyy")}
           </SheetDescription>
+          {/* ── Handoff Button ── */}
+          <div className="flex items-center gap-2 mt-1">
+            {alreadySent ? (
+              <Button variant="ghost" size="sm" disabled className="opacity-70 cursor-not-allowed gap-1.5 text-xs">
+                <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                Sent to Contractor
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs border-amber-500/40 text-amber-400 hover:bg-amber-400/10"
+                onClick={() => setHandoffModalOpen(true)}
+              >
+                <Send className="w-3.5 h-3.5" />
+                Send to Contractor
+              </Button>
+            )}
+            {alreadySent && (
+              <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[10px]">
+                Sent {localSentToContractor ? "just now" : ""}
+              </Badge>
+            )}
+          </div>
         </SheetHeader>
 
         {/* ── 1. Contact Info ──────────────────────────────────────── */}
@@ -644,6 +721,75 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
 
         <div className="h-8" />
       </SheetContent>
+
+      {/* ── Handoff Confirmation Dialog ── */}
+      <Dialog open={handoffModalOpen} onOpenChange={setHandoffModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Lead Handoff</DialogTitle>
+            <DialogDescription>
+              Review the lead details below before sending to contractor.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            {/* Homeowner */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">{name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {[lead.city, lead.zip].filter(Boolean).join(", ") || "Florida"}
+                </p>
+              </div>
+              {lead.grade && (
+                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${gradeColor(lead.grade)}`}>
+                  {lead.grade}
+                </span>
+              )}
+            </div>
+
+            {/* Issues */}
+            <div className="text-sm text-muted-foreground">
+              {lead.flag_count ?? 0} flagged issue{(lead.flag_count ?? 0) !== 1 ? "s" : ""}
+            </div>
+
+            {/* Top flags */}
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-1.5">
+              {topHighFlags.length > 0 ? (
+                topHighFlags.map((f, i) => (
+                  <div key={i} className="flex items-start gap-2 text-xs">
+                    <span>🚩</span>
+                    <span>{f.flag || f.detail || "Issue detected"}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center gap-2 text-xs text-green-500">
+                  <CheckCircle className="w-3 h-3" />
+                  No critical flags detected
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => setHandoffModalOpen(false)}
+              disabled={handoffSending}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="gap-1.5 bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={handleHandoffConfirm}
+              disabled={handoffSending}
+            >
+              <Send className="w-3.5 h-3.5" />
+              {handoffSending ? "Sending…" : "Send Dossier"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 }
