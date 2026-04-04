@@ -1,48 +1,58 @@
 
 
-# "Single Client" Match Logic — What It Fixes and What It Enables
+# Clean Up: Delete Outdated Documentation Files
 
-## What the current code does (the problem)
+## Keep
+- `README.md` — standard project readme
+- `AGENTS.md` — active project knowledge (mirrored in custom instructions)
+- `.lovable/` — Lovable system memory files (managed automatically)
+- `components.json` — shadcn/ui config (not documentation)
 
-The existing `computeSuggestedMatch` in `generate-contractor-brief/index.ts` was designed for a **multi-contractor marketplace**. It:
+## Delete — Root (18 files)
+| File | Reason |
+|------|--------|
+| `AUDIT_NOTES.md` | Stale audit artifact |
+| `AUDIT_REPORT.md` | Stale audit artifact |
+| `DOUBLE_OTP_DIAGNOSTIC_REPORT.md` | OTP debugging — resolved |
+| `FIX_VERIFICATION.md` | One-time verification log |
+| `OTP_MAGNUM_OPUS_AUDIT.md` | OTP debugging — resolved |
+| `OTP_MAGNUM_OPUS_REPORT.md` | OTP debugging — resolved |
+| `OTP_REPAIR_PASS.md` | OTP debugging — resolved |
+| `OTP_ROOT_CAUSE.md` | OTP debugging — resolved |
+| `OTP_TIMING_ANALYSIS.md` | OTP debugging — resolved |
+| `OTP_TOGGLE_BUG_AUDIT.md` | OTP debugging — resolved |
+| `POST_MIGRATION_BUG_AUDIT.md` | Migration complete |
+| `SECURITY_GAP_AND_FB_FUNNEL.md` | Outdated planning doc |
+| `STRATEGIC_ASSESSMENT.md` | Outdated planning doc |
+| `SUPABASE_MIGRATION_AUDIT.md` | Migration complete |
+| `TEST_FINDINGS.md` | Stale test artifact |
+| `TEST_LOG.md` | Stale test artifact |
+| `TRUSTED_DEVICE_OTP_PLAN.md` | OTP planning — resolved |
+| `implementation_plan.md` | Superseded by code |
+| `todo.md` | Superseded by code |
 
-1. **Skips non-vetted contractors entirely** (line 252: `continue`)
-2. **Penalizes county mismatches by -20** (line 264) — if your one contractor doesn't list the lead's county, their score drops, potentially below zero, meaning **no match is returned at all**
-3. **Penalizes window count out-of-range by -10** (line 293)
-4. **Penalizes low-grade leads by -15** if `accepts_low_grade_leads` is false (line 304)
-5. **Starts at score 0** — so penalties can push the contractor below the `score > 0` threshold (line 314), resulting in **zero candidates**
+## Delete — docs/ folder (9 files, then remove the directory)
+| File | Reason |
+|------|--------|
+| `docs/facebook-conversion-architecture.md` | Architecture doc |
+| `docs/funnel-events.md` | Planning doc |
+| `docs/phase-3-4a-inspection.md` | Phase complete |
+| `docs/pre-test-trust-audit.md` | Stale audit |
+| `docs/preview-payload-quality-audit.md` | Stale audit |
+| `docs/routes-and-states.md` | Planning doc |
+| `docs/scanner-rubric.md` | Rubric lives in code |
+| `docs/security-model.md` | Planning doc |
+| `docs/verification-notes.txt` | Stale notes |
 
-**Net effect**: With a single contractor, any mismatch (wrong county, wrong window count range, low grade without the flag set) can result in **no suggested match at all**. The homeowner sees no CTA, no match card, no momentum — lost conversion.
+## Delete — GitHub agents
+| File | Reason |
+|------|--------|
+| `.github/agents/ocr-audit-specialist.agent.md` | Unused agent config |
 
-## What the new logic fixes
+## Total: 28 files deleted, `docs/` and `.github/agents/` directories removed
 
-1. **Starts at 50 baseline** — your single contractor always enters the candidate pool
-2. **Removes all penalties** — county mismatch becomes a neutral "regional coverage" positive spin instead of -20
-3. **Removes the vetted-only gate** — still gives a +20 bonus for vetted, but doesn't skip non-vetted (future-proofing)
-4. **Reframes low-grade leads as high-opportunity** — D/F grades get +20 bonus ("target vulnerability specialist") instead of a potential -15 penalty
-5. **Guarantees a match** — every lead gets a suggested contractor, every report shows the CTA
-
-## What it enables
-
-- **100% match rate**: Every scanned quote produces a contractor suggestion
-- **Every Truth Report shows the "Get Matched" CTA** with a confident match card
-- **D/F grades become your best leads** — the worse the quote, the higher the match score and the stronger the CTA framing
-- **No dead-end reports** — removes the scenario where a homeowner verifies their phone, sees their report, but gets no next step
-
-## Implementation — 2 files to change
-
-### File 1: `supabase/functions/generate-contractor-brief/index.ts`
-- Replace `computeSuggestedMatch` (lines 228-333) with the new single-client logic
-- Remove `projectType` and `windowCount` params (simplified)
-- Confidence becomes binary: high (≥70) or medium (everything else)
-
-### File 2: `src/shared/matchReasons.ts`
-- Add two new reason keys to the taxonomy:
-  - `primary_market_partner` — "WindowMan's preferred market partner"
-  - `regional_service_coverage` — "Serves your region"
-  - `target_vulnerability_specialist` — "Specializes in quotes that need significant improvement"
-- Add corresponding homeowner-friendly and admin labels
-
-### Edge function redeploy
-- The `generate-contractor-brief` function will need redeployment after the change
+## What stays as source of truth
+- TypeScript source files (`src/`, `supabase/functions/`)
+- `.lovable/memory/` (Lovable's own context system)
+- `AGENTS.md` and `README.md`
 
