@@ -319,10 +319,11 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={lead.deal_status || "new"}
+                        value={effectiveStatus || "new"}
                         onValueChange={(val) => handleDealStatusChange(lead.id, val)}
+                        disabled={isUpdating}
                       >
-                        <SelectTrigger className="h-8 text-xs">
+                        <SelectTrigger className={`h-8 text-xs ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
