@@ -163,12 +163,24 @@ Deno.serve(async (req) => {
       console.error("[send-otp] failed to expire old pending rows:", expireErr);
     }
 
+    console.log("[SEND_OTP_FORENSIC_START]", JSON.stringify({
+      phone_masked: "xxx-xxx-" + phone_e164.slice(-4),
+      expireResult: expireErr ? { code: expireErr.code, message: expireErr.message } : "ok",
+      timestamp: new Date().toISOString(),
+    }));
+
     const { error: insertErr } = await supabase.from("phone_verifications").insert({
       phone_e164,
       status: "pending",
     });
     if (insertErr) {
-      console.error("[send-otp] failed to insert pending row:", insertErr);
+      console.error("[SEND_OTP_DB_ERROR]", JSON.stringify({
+        code: insertErr.code,
+        message: insertErr.message,
+        details: insertErr.details,
+        hint: insertErr.hint,
+        phone_masked: "xxx-xxx-" + phone_e164.slice(-4),
+      }));
       return new Response(
         JSON.stringify({ error: "Failed to create verification record.", success: false }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

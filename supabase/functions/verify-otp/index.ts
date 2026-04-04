@@ -49,6 +49,13 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
+    console.log("[VERIFY_OTP_FORENSIC]", JSON.stringify({
+      phone_masked: "xxx-xxx-" + phone_e164.slice(-4),
+      pendingRowFound: !!pendingRow,
+      pendingRowId: pendingRow?.id ?? null,
+      timestamp: new Date().toISOString(),
+    }));
+
     // The phone we send to Twilio: prefer DB value, fall back to normalized value
     const twilioPhone = pendingRow?.phone_e164 ?? phone_e164;
 
