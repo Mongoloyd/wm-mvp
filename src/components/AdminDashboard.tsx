@@ -44,6 +44,7 @@ function toLeadCRM(raw: Record<string, any>): CRMLead {
     email: raw.email ?? null,
     phone_e164: raw.phone_e164 ?? null,
     county: raw.county ?? null,
+    city: raw.city ?? null,
     state: raw.state ?? null,
     zip: raw.zip ?? null,
     grade: raw.grade ?? null,
