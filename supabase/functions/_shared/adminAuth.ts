@@ -215,6 +215,7 @@ async function validateAndExtractUser(
   // ── DEV BYPASS: Check X-Dev-Secret header ──────────────────────────
   const devSecret = req.headers.get("x-dev-secret");
   const expectedDevSecret = Deno.env.get("DEV_BYPASS_SECRET");
+  console.log(`[adminAuth] DEV BYPASS CHECK: header present=${!!devSecret}, env present=${!!expectedDevSecret}, match=${devSecret === expectedDevSecret}`);
   if (devSecret && expectedDevSecret && devSecret === expectedDevSecret) {
     console.log("[adminAuth] DEV BYPASS: Granting super_admin via X-Dev-Secret");
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
