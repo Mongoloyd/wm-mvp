@@ -1,10 +1,10 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * LEAD SNIPER CRM — Admin Dashboard v3.1
+ * LEAD SNIPER CRM — Admin Dashboard v4.0
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * 5-tab CRM: Command Center · Active Pipeline · Ghost Recovery ·
- *            Needs Review · Dialer Desk
+ * 6-tab CRM: Command Center · Active Pipeline · Ghost Recovery ·
+ *            Needs Review · Dialer Desk · Attribution
  */
 
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -18,9 +18,9 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { CommandCenter } from "@/components/admin/CommandCenter";
 import { ActivePipeline } from "@/components/admin/ActivePipeline";
 import { GhostRecovery } from "@/components/admin/GhostRecovery";
-import { EngineRoom } from "@/components/admin/EngineRoom";
 import { InternalCRMDesk } from "@/components/admin/InternalCRMDesk";
 import { NeedsReviewTab, type NeedsReviewLead } from "@/components/admin/NeedsReviewTab";
+import { AttributionTab } from "@/components/admin/AttributionTab";
 
 import {
   invokeAdminData,
@@ -209,7 +209,7 @@ function DashboardContent() {
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <Tabs defaultValue="command" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="command">Command Center</TabsTrigger>
             <TabsTrigger value="pipeline">Active Pipeline</TabsTrigger>
             <TabsTrigger value="ghosts" className="relative">
@@ -229,10 +229,11 @@ function DashboardContent() {
               )}
             </TabsTrigger>
             <TabsTrigger value="engine">Dialer Desk</TabsTrigger>
+            <TabsTrigger value="attribution">Attribution</TabsTrigger>
           </TabsList>
 
           <TabsContent value="command">
-            <CommandCenter kpis={kpis} isLoading={isLoading} />
+            <CommandCenter kpis={kpis} isLoading={isLoading} leads={leads} />
           </TabsContent>
 
           <TabsContent value="pipeline">
@@ -254,6 +255,10 @@ function DashboardContent() {
               onStatusChange={() => fetchAll(true)}
               latestFollowups={latestFollowups}
             />
+          </TabsContent>
+
+          <TabsContent value="attribution">
+            <AttributionTab leads={leads} isLoading={isLoading} />
           </TabsContent>
         </Tabs>
       </div>
