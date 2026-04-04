@@ -163,35 +163,54 @@ export async function invokeAdminData<T extends AdminAction>(
   action: T,
   payload: AdminActionPayloads[T] = {} as AdminActionPayloads[T],
 ): Promise<any> {
-  const headers: Record<string, string> = {};
-
-  // ── DEV BYPASS: Use dev secret instead of JWT in sandbox ──────────
+  // ── DEV BYPASS: Use direct fetch to avoid supabase auto-attaching anon key ──
   const devSecret = import.meta.env.DEV ? import.meta.env.VITE_DEV_BYPASS_SECRET : undefined;
   if (devSecret) {
-    headers["x-dev-secret"] = devSecret;
-    console.log(`[adminDataService] DEV BYPASS: Using X-Dev-Secret for action "${action}"`);
-  } else {
-    // Production: Grab the current user's session token
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
+    console.log(`[adminDataService] DEV BYPASS: Using direct fetch for action "${action}"`);
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const resp = await fetch(`${supabaseUrl}/functions/v1/admin-data`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-dev-secret": devSecret,
+      },
+      body: JSON.stringify({ action, payload }),
+    });
 
-    if (sessionError || !session?.access_token) {
-      const authError: AdminDataError = {
-        code: "auth_error",
-        message: "User is not authenticated or session has expired.",
-        status: 401,
+    if (!resp.ok) {
+      const body = await resp.json().catch(() => ({ error: resp.statusText }));
+      const adminError: AdminDataError = {
+        code: body.code || "invocation_error",
+        message: body.error || `Edge function returned ${resp.status}`,
+        status: resp.status,
       };
-      console.error(`[adminDataService] ${action} failed: No active session.`, authError);
-      throw authError;
+      console.error(`[adminDataService] ${action} failed:`, adminError);
+      throw adminError;
     }
-    headers["Authorization"] = `Bearer ${session.access_token}`;
+
+    const body = await resp.json();
+    return body.data;
+  }
+
+  // ── Production: Use supabase client with session JWT ──
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError || !session?.access_token) {
+    const authError: AdminDataError = {
+      code: "auth_error",
+      message: "User is not authenticated or session has expired.",
+      status: 401,
+    };
+    console.error(`[adminDataService] ${action} failed: No active session.`, authError);
+    throw authError;
   }
 
   const { data, error } = await supabase.functions.invoke("admin-data", {
     body: { action, payload },
-    headers,
+    headers: { Authorization: `Bearer ${session.access_token}` },
   });
 
   if (error) {
@@ -204,7 +223,6 @@ export async function invokeAdminData<T extends AdminAction>(
     throw adminError;
   }
 
-  // Backend v2.2 returns data wrapped in a { data: ... } object
   return data.data;
 }
 
