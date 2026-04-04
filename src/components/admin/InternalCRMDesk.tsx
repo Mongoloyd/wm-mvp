@@ -1,11 +1,10 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * INTERNAL CRM DESK — Power Dialer v1.1
+ * INTERNAL CRM DESK — Power Dialer v2.0 (P3: Autodial + Popover)
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import { useMemo, useCallback, useState, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo, useCallback, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,12 +16,15 @@ import {
   Select, SelectContent, SelectItem,
   SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import { Phone, PhoneCall, Users, CalendarCheck, Eye, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 import type { CRMLead, VoiceFollowupSummary } from "./types";
-import { updateLeadDealStatus } from "@/services/adminDataService";
+import { updateLeadDealStatus, dialLead } from "@/services/adminDataService";
 import { LeadDossierSheet } from "./LeadDossierSheet";
 import { formatPhoneDisplay, stripNonDigits } from "@/utils/formatPhone";
 
@@ -113,6 +115,7 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
   const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
   const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({});
   const [dialingLeadId, setDialingLeadId] = useState<string | null>(null);
+  const [followupOverrides, setFollowupOverrides] = useState<Record<string, Partial<VoiceFollowupSummary>>>({});
 
   // Filter to phone-verified leads only
   const verified = useMemo(
@@ -120,7 +123,7 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
     [leads],
   );
 
-  // Sort: default preserves original logic, new modes layer on top
+  // Sort
   const sorted = useMemo(() => {
     return [...verified].sort((a, b) => {
       if (sortMode === "grade_worst") {
@@ -133,7 +136,6 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
         const fB = b.flag_count ?? 0;
         if (fA !== fB) return fB - fA;
       }
-      // Default tiebreaker: new deal_status first, then newest
       const aStatus = statusOverrides[a.id] ?? a.deal_status;
       const bStatus = statusOverrides[b.id] ?? b.deal_status;
       const aIsNew = !aStatus || aStatus === "new";
@@ -162,7 +164,6 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
       toast.success(`Status updated to "${DEAL_STATUSES.find((s) => s.value === newStatus)?.label}"`);
       onStatusChange();
     } catch (err) {
-      // Rollback optimistic update
       setStatusOverrides(prev => {
         const next = { ...prev };
         delete next[leadId];
@@ -183,28 +184,15 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
   const handleAutodial = useCallback(async (lead: CRMLead) => {
     if (!lead.phone_e164 || dialingLeadId) return;
     setDialingLeadId(lead.id);
+
+    // Optimistic: set followup override so pipeline badge flips to "AI Calling"
+    setFollowupOverrides(prev => ({
+      ...prev,
+      [lead.id]: { status: "in_progress", call_intent: "operator_outbound" } as Partial<VoiceFollowupSummary>,
+    }));
+
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const devSecret = (import.meta as any).env?.VITE_DEV_BYPASS_SECRET;
-      if (devSecret) {
-        headers["x-dev-secret"] = devSecret;
-      }
-
-      const { data, error } = await supabase.functions.invoke("dial-lead", {
-        body: { lead_id: lead.id, call_intent: "operator_outbound" },
-        headers,
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
+      await dialLead(lead.id);
       toast.success(`Call queued for ${lead.first_name || "lead"}`);
 
       // Optimistically bump deal_status if new/null
@@ -215,12 +203,26 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
 
       onStatusChange();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to dial";
+      // Rollback followup override
+      setFollowupOverrides(prev => {
+        const next = { ...prev };
+        delete next[lead.id];
+        return next;
+      });
+      const msg = err instanceof Error ? err.message : typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : "Failed to dial";
       toast.error(`Autodial failed: ${msg}`);
     } finally {
       setDialingLeadId(null);
     }
   }, [dialingLeadId, onStatusChange, statusOverrides]);
+
+  // Merge followup sources: prop (server truth) + local overrides (optimistic)
+  const getFollowup = useCallback((leadId: string): VoiceFollowupSummary | undefined => {
+    const override = followupOverrides[leadId];
+    const server = latestFollowups[leadId];
+    if (override) return { ...server, ...override } as VoiceFollowupSummary;
+    return server;
+  }, [latestFollowups, followupOverrides]);
 
   return (
     <div className="space-y-6">
@@ -300,15 +302,21 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                 {sorted.map((lead) => {
                   const effectiveStatus = statusOverrides[lead.id] ?? lead.deal_status;
                   const leadWithOverride = { ...lead, deal_status: effectiveStatus };
-                  const badge = derivePipelineBadge(leadWithOverride, latestFollowups[lead.id]);
+                  const followup = getFollowup(lead.id);
+                  const badge = derivePipelineBadge(leadWithOverride, followup);
                   const isUpdating = updatingLeadId === lead.id;
+                  const isDialing = dialingLeadId === lead.id;
+                  const dialDisabled = !lead.phone_e164 || effectiveStatus === "dead" || !!dialingLeadId;
+                  const displayName = [lead.first_name, lead.last_name].filter(Boolean).join(" ") || "—";
+                  const displayPhone = lead.phone_e164 ? formatPhoneDisplay(stripNonDigits(lead.phone_e164)) : "";
+
                   return (
                   <TableRow key={lead.id} className={badge.rowClass ?? ""}>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                       {format(new Date(lead.created_at), "MMM d")}
                     </TableCell>
                     <TableCell className="font-medium whitespace-nowrap">
-                      {[lead.first_name, lead.last_name].filter(Boolean).join(" ") || "—"}
+                      {displayName}
                     </TableCell>
                     <TableCell>
                       {lead.phone_e164 ? (
@@ -318,18 +326,38 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                             className="inline-flex items-center gap-1.5 text-primary hover:underline font-mono text-sm"
                           >
                             <Phone className="h-3.5 w-3.5" />
-                            {formatPhoneDisplay(stripNonDigits(lead.phone_e164))}
+                            {displayPhone}
                           </a>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            disabled={dialingLeadId === lead.id}
-                            onClick={() => handleAutodial(lead)}
-                            title="Autodial via AI"
-                          >
-                            <PhoneCall className={`h-3.5 w-3.5 ${dialingLeadId === lead.id ? "animate-pulse text-blue-500" : "text-muted-foreground hover:text-primary"}`} />
-                          </Button>
+                          {/* ── Autodial Popover ── */}
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                disabled={dialDisabled}
+                                title="Autodial via AI"
+                              >
+                                <PhoneCall className={`h-3.5 w-3.5 ${isDialing ? "animate-pulse text-blue-500" : "text-muted-foreground hover:text-primary"}`} />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-3" align="end">
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium">{displayName}</p>
+                                <p className="text-xs text-muted-foreground font-mono">{displayPhone}</p>
+                                <div className="flex gap-2 pt-1">
+                                  <Button
+                                    size="sm"
+                                    className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
+                                    disabled={isDialing}
+                                    onClick={() => handleAutodial(lead)}
+                                  >
+                                    {isDialing ? "Dialing…" : "Dial Now"}
+                                  </Button>
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
