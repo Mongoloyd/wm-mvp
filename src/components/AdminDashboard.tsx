@@ -26,11 +26,10 @@ import { InternalCRMDesk } from "@/components/admin/InternalCRMDesk";
 
 import {
   invokeAdminData,
-  fetchLeadEvents,
   fetchWebhookDeliveries,
 } from "@/services/adminDataService";
 
-import type { CRMLead, LeadEvent, WebhookDelivery, CommandCenterKPIs, VoiceFollowupSummary } from "@/components/admin/types";
+import type { CRMLead, WebhookDelivery, CommandCenterKPIs, VoiceFollowupSummary } from "@/components/admin/types";
 
 const REFRESH_INTERVAL_MS = 30_000;
 
@@ -178,9 +177,6 @@ function DashboardContent() {
     };
   }, [fetchAll]);
 
-  const handleFetchLeadEvents = useCallback(async (leadId: string): Promise<LeadEvent[]> => {
-    return (await fetchLeadEvents(leadId)) ?? [];
-  }, []);
 
   const kpis = computeKPIs(leads, deliveries);
   const ghosts = leads.filter((l) => l.latest_analysis_id && !l.phone_verified);
@@ -238,7 +234,6 @@ function DashboardContent() {
             <ActivePipeline
               leads={leads}
               isLoading={isLoading}
-              onFetchLeadEvents={handleFetchLeadEvents}
             />
           </TabsContent>
 
