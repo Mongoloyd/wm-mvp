@@ -326,6 +326,9 @@ const Index = () => {
                 flagRedCount={activeData?.flagRedCount}
                 flagAmberCount={activeData?.flagAmberCount}
                 isFullLoaded={isFullLoaded}
+                priceFairness={activeData?.priceFairness}
+                markupEstimate={activeData?.markupEstimate}
+                negotiationLeverage={activeData?.negotiationLeverage}
                 onVerified={(phoneE164: string) => { fetchFull(phoneE164); }}
               />
           ) : null}
