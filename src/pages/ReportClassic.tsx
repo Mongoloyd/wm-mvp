@@ -253,10 +253,9 @@ export default function ReportClassic() {
 
     setIsCtaLoading(true);
     try {
-      await supabase.functions.invoke("voice-followup", {
+      await supabase.functions.invoke("request-callback", {
         body: {
           scan_session_id: sessionId,
-          phone_e164: phoneE164,
           call_intent: "report_explainer",
           cta_source: "report_help",
         },
