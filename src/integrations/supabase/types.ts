@@ -1576,6 +1576,57 @@ export type Database = {
           },
         ]
       }
+      webhook_deliveries: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          event_type: string
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          last_http_status: number | null
+          lead_id: string
+          max_attempts: number
+          next_retry_at: string | null
+          payload_json: Json | null
+          status: string
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          event_type: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          last_http_status?: number | null
+          lead_id: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload_json?: Json | null
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          event_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          last_http_status?: number | null
+          lead_id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload_json?: Json | null
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
