@@ -49,7 +49,8 @@ export type AdminAction =
   | "get_role_audit_log"
   | "fetch_lead_events"
   | "fetch_webhook_deliveries"
-  | "fetch_lead_analysis";
+  | "fetch_lead_analysis"
+  | "fetch_lead_voice_followups";
 
 /**
  * Payload shapes for each admin action.
@@ -81,6 +82,34 @@ export interface AdminActionPayloads {
   fetch_lead_events: { lead_id: string; limit?: number };
   fetch_webhook_deliveries: { status?: string; limit?: number };
   fetch_lead_analysis: { analysis_id: string };
+  fetch_lead_voice_followups: { lead_id: string };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Voice Followup Types
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface VoiceFollowup {
+  id: string;
+  lead_id: string;
+  call_intent: string;
+  status: string;
+  call_outcome: string | null;
+  failure_reason: string | null;
+  duration_seconds: number | null;
+  recording_url: string | null;
+  transcript_url: string | null;
+  transcript_text: string | null;
+  summary: string | null;
+  booking_intent_detected: boolean;
+  appointment_booked: boolean;
+  scan_session_id: string | null;
+  phone_e164: string;
+  queued_at: string;
+  started_at: string | null;
+  answered_at: string | null;
+  completed_at: string | null;
+  created_at: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -288,6 +317,14 @@ export async function updateLeadDealStatus(leadId: string, dealStatus: string): 
  */
 export async function fetchLeadAnalysis(analysisId: string): Promise<any> {
   return invokeAdminData("fetch_lead_analysis", { analysis_id: analysisId });
+}
+
+/**
+ * Fetch voice followups for a specific lead (call history).
+ */
+export async function fetchLeadVoiceFollowups(leadId: string): Promise<VoiceFollowup[]> {
+  const result = await invokeAdminData("fetch_lead_voice_followups", { lead_id: leadId });
+  return result ?? [];
 }
 
 /**

@@ -9,7 +9,7 @@ type ActionName =
   | "fetch_leads" | "update_lead_status" | "update_lead_deal_status"
   | "fetch_opportunities" | "fetch_contractors" | "fetch_routes" | "fetch_billable"
   | "route_opportunity" | "mark_dead"
-  | "fetch_voice_followups" | "trigger_voice_followup"
+  | "fetch_voice_followups" | "fetch_lead_voice_followups" | "trigger_voice_followup"
   | "manage_user_roles" | "list_user_roles" | "get_role_audit_log"
   | "fetch_lead_events" | "fetch_webhook_deliveries"
   | "fetch_lead_analysis";
@@ -25,6 +25,7 @@ const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   route_opportunity: ["super_admin", "operator"],
   mark_dead: ["super_admin", "operator"],
   fetch_voice_followups: ["super_admin", "operator", "viewer"],
+  fetch_lead_voice_followups: ["super_admin", "operator", "viewer"],
   trigger_voice_followup: ["super_admin", "operator"],
   manage_user_roles: ["super_admin"],
   list_user_roles: ["super_admin"],
@@ -94,6 +95,27 @@ Deno.serve(async (req) => {
 
     if (action === "fetch_voice_followups") {
       const { data, error } = await supabaseAdmin.from("voice_followups").select("*").order("created_at", { ascending: false }).limit(100);
+      if (error) throw error;
+      return successResponse({ data: data });
+    }
+
+    if (action === "fetch_lead_voice_followups") {
+      const { lead_id } = payload;
+      if (!lead_id) return errorResponse(400, "missing_param", "lead_id is required");
+      const { data, error } = await supabaseAdmin
+        .from("voice_followups")
+        .select(`
+          id, lead_id, call_intent, status,
+          call_outcome, failure_reason,
+          duration_seconds, recording_url,
+          transcript_url, transcript_text,
+          summary, booking_intent_detected,
+          appointment_booked, scan_session_id,
+          phone_e164, queued_at, started_at,
+          answered_at, completed_at, created_at
+        `)
+        .eq("lead_id", lead_id)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return successResponse({ data: data });
     }

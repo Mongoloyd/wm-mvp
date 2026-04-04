@@ -4,7 +4,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
@@ -16,11 +16,13 @@ import {
   Phone, Mail, MapPin, Hash, DollarSign, Clock,
   AlertTriangle, CheckCircle, ExternalLink, Globe,
   ChevronDown, ChevronUp, Flag, Info,
+  PhoneCall, Calendar, CalendarCheck, RotateCcw, AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 
 import type { CRMLead, AnalysisFlag, LeadAnalysisData } from "./types";
-import { fetchLeadAnalysis } from "@/services/adminDataService";
+import { fetchLeadAnalysis, fetchLeadVoiceFollowups, invokeAdminData } from "@/services/adminDataService";
+import type { VoiceFollowup } from "@/services/adminDataService";
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
@@ -112,6 +114,12 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
   const [auditOpen, setAuditOpen] = useState(true);
   const [showAllFlags, setShowAllFlags] = useState(false);
 
+  // ── Call History state ──
+  const [callHistory, setCallHistory] = useState<VoiceFollowup[]>([]);
+  const [callHistoryLoading, setCallHistoryLoading] = useState(false);
+  const [callHistoryError, setCallHistoryError] = useState<string | null>(null);
+  const [expandedTranscripts, setExpandedTranscripts] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (!open || !lead?.latest_analysis_id) {
       setAnalysis(null);
@@ -142,6 +150,41 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
 
     return () => { cancelled = true; };
   }, [open, lead?.latest_analysis_id]);
+
+  // ── Fetch call history on lead change ──
+  const refetchCallHistory = useCallback(() => {
+    if (!lead?.id) return;
+    setCallHistoryLoading(true);
+    setCallHistoryError(null);
+    fetchLeadVoiceFollowups(lead.id)
+      .then(setCallHistory)
+      .catch((err) => setCallHistoryError(err?.message ?? "Unknown error"))
+      .finally(() => setCallHistoryLoading(false));
+  }, [lead?.id]);
+
+  useEffect(() => {
+    if (!open || !lead?.id) {
+      setCallHistory([]);
+      setCallHistoryError(null);
+      return;
+    }
+    setExpandedTranscripts(new Set());
+    refetchCallHistory();
+  }, [open, lead?.id, refetchCallHistory]);
+
+  // ── Retry call handler ──
+  const handleRetryCall = useCallback(async (entry: VoiceFollowup) => {
+    if (!lead) return;
+    try {
+      await invokeAdminData("trigger_voice_followup", {
+        scan_session_id: lead.latest_scan_session_id ?? entry.scan_session_id ?? "",
+        phone_e164: lead.phone_e164 ?? entry.phone_e164,
+      });
+      refetchCallHistory();
+    } catch (err) {
+      console.error("[Dossier] Retry call failed:", err);
+    }
+  }, [lead, refetchCallHistory]);
 
   if (!lead) return null;
 
@@ -406,6 +449,162 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
             )}
           </CollapsibleContent>
         </Collapsible>
+
+        <Separator className="my-3" />
+
+        {/* ── 3b. Call History ──────────────────────────────────────── */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <PhoneCall className="w-4 h-4 text-amber-400" />
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-amber-400">
+                Call History
+              </h3>
+            </div>
+            <span className="bg-white/10 rounded-full px-2 py-0.5 text-xs">
+              {callHistory.length}
+            </span>
+          </div>
+
+          {callHistoryLoading ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse bg-white/5 rounded-lg h-14 w-full" />
+              ))}
+            </div>
+          ) : callHistoryError ? (
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-sm">Failed to load call history</span>
+              <button onClick={refetchCallHistory} className="text-xs underline ml-2">
+                Retry
+              </button>
+            </div>
+          ) : callHistory.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-6 text-muted-foreground">
+              <Phone className="w-5 h-5" />
+              <span className="text-sm">No calls logged yet.</span>
+            </div>
+          ) : (
+            <div className="max-h-[400px] overflow-y-auto space-y-2">
+              {callHistory.map((entry) => {
+                const isExpanded = expandedTranscripts.has(entry.id);
+                const showRetry = entry.call_outcome === "voicemail" || entry.call_outcome === "no_answer" || entry.status === "failed";
+
+                return (
+                  <div key={entry.id} className="rounded-lg border border-border/50 bg-muted/30 p-3">
+                    {/* Row 1: Meta strip */}
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        {/* Type badge */}
+                        {entry.call_intent === "operator_outbound" || entry.call_intent === "manual_dial" ? (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-blue-500/20 text-blue-400 border-blue-500/30">
+                            Manual
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-purple-500/20 text-purple-400 border-purple-500/30">
+                            AI Call
+                          </span>
+                        )}
+
+                        {/* Outcome badge */}
+                        {entry.call_outcome === "answered" ? (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-green-500/20 text-green-400 border-green-500/30">Answered</span>
+                        ) : entry.call_outcome === "voicemail" ? (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-amber-500/20 text-amber-400 border-amber-500/30">Voicemail</span>
+                        ) : entry.call_outcome === "no_answer" ? (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-orange-500/20 text-orange-400 border-orange-500/30">No Answer</span>
+                        ) : entry.status === "failed" ? (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-destructive/20 text-destructive border-destructive/30">Failed</span>
+                        ) : entry.status === "in_progress" ? (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-blue-500/20 text-blue-400 border-blue-500/30 animate-pulse">In Progress</span>
+                        ) : entry.status === "queued" ? (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-muted text-muted-foreground border-border">Queued</span>
+                        ) : null}
+
+                        {/* Duration */}
+                        {entry.duration_seconds != null && (
+                          <span className="text-xs text-muted-foreground">
+                            {Math.floor(entry.duration_seconds / 60)}m {entry.duration_seconds % 60}s
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {entry.booking_intent_detected && (
+                          <span title="Booking intent detected"><Calendar className="w-3 h-3 text-green-400" /></span>
+                        )}
+                        {entry.appointment_booked && (
+                          <span title="Appointment booked"><CalendarCheck className="w-3 h-3 text-green-500" /></span>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(entry.created_at), "MMM d 'at' h:mm a")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Row 2: Transcript / Audio / Retry */}
+                    <div className="mt-2">
+                      {entry.transcript_text ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              setExpandedTranscripts((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(entry.id)) next.delete(entry.id);
+                                else next.add(entry.id);
+                                return next;
+                              });
+                            }}
+                            className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+                          >
+                            {isExpanded ? "Hide Transcript" : "View Transcript"}
+                            {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          </button>
+                          {isExpanded && (
+                            <div className="mt-2 p-2 rounded bg-black/20 text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed max-h-[200px] overflow-y-auto">
+                              {entry.transcript_text}
+                            </div>
+                          )}
+                        </>
+                      ) : entry.transcript_url ? (
+                        <a
+                          href={entry.transcript_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-blue-400 hover:underline mt-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          View Transcript
+                        </a>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">No transcript available.</span>
+                      )}
+
+                      {entry.summary && !isExpanded && (
+                        <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">{entry.summary}</p>
+                      )}
+
+                      {entry.recording_url && (
+                        <audio controls src={entry.recording_url} className="w-full h-8 mt-2" preload="none" />
+                      )}
+
+                      {showRetry && (
+                        <button
+                          onClick={() => handleRetryCall(entry)}
+                          className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 mt-2"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Retry Call
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         <Separator className="my-3" />
 
