@@ -38,14 +38,26 @@ const DEAL_STATUSES = [
 
 function gradeColor(grade: string | null): string {
   switch (grade) {
-    case "A": return "bg-green-600 text-white";
-    case "B": return "bg-emerald-500 text-white";
+    case "A": return "bg-green-500 text-white";
+    case "B": return "bg-teal-500 text-white";
     case "C": return "bg-amber-500 text-white";
-    case "D": return "bg-orange-600 text-white";
-    case "F": return "bg-destructive text-destructive-foreground";
-    default: return "bg-muted text-muted-foreground";
+    case "D": return "bg-orange-500 text-white";
+    case "F": return "bg-red-500 text-white";
+    default: return "bg-gray-400 text-white";
   }
 }
+
+/* ── Sort options ─────────────────────────────────────────────────────── */
+
+type SortMode = "default" | "grade_worst" | "flags_most";
+
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: "default", label: "Newest (Default)" },
+  { value: "grade_worst", label: "Grade: Worst First" },
+  { value: "flags_most", label: "Flags: Most First" },
+];
+
+const GRADE_WEIGHT: Record<string, number> = { F: 0, D: 1, C: 2, B: 3, A: 4 };
 
 /* ── Props ────────────────────────────────────────────────────────────── */
 
