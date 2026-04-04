@@ -1202,6 +1202,9 @@ Deno.serve(async (req: Request) => {
         extraction: extraction,
         derived_metrics: derivedMetrics,
         rubric_version: RUBRIC_VERSION,
+        price_fairness: extraction.price_fairness || null,
+        markup_estimate: extraction.markup_estimate || null,
+        negotiation_leverage: extraction.negotiation_leverage || null,
       };
 
       // 13. Upsert full analyses row
