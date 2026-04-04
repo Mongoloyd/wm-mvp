@@ -112,6 +112,7 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
   const [sortMode, setSortMode] = useState<SortMode>("default");
   const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
   const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({});
+  const [dialingLeadId, setDialingLeadId] = useState<string | null>(null);
 
   // Filter to phone-verified leads only
   const verified = useMemo(
