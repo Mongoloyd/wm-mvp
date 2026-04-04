@@ -213,6 +213,7 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
   if (!lead) return null;
 
   const name = [lead.first_name, lead.last_name].filter(Boolean).join(" ") || "Unknown";
+  const alreadySent = !!lead.latest_opportunity_id || localSentToContractor;
 
   // ── Pillar data from full_json ──
   const fullJson = analysis?.full_json;
@@ -224,6 +225,34 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
     (a, b) => (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9)
   );
   const visibleFlags = showAllFlags ? sortedFlags : sortedFlags.slice(0, 5);
+
+  // ── Top HIGH flags for handoff preview ──
+  const topHighFlags = sortedFlags
+    .filter((f) => f.severity === "High" || f.severity === "Critical")
+    .slice(0, 3);
+
+  // ── Handoff confirm handler ──
+  const handleHandoffConfirm = async () => {
+    setHandoffSending(true);
+    try {
+      const result = await sendContractorHandoff(lead.id);
+      if (result.success && !result.warning) {
+        toast.success("Dossier sent to contractor");
+        setLocalSentToContractor(true);
+        setHandoffModalOpen(false);
+      } else if (result.success && result.warning) {
+        toast.warning(result.warning);
+        setLocalSentToContractor(true);
+        setHandoffModalOpen(false);
+      } else {
+        toast.error("Handoff failed");
+      }
+    } catch (err: any) {
+      toast.error(err?.message ?? "Handoff failed");
+    } finally {
+      setHandoffSending(false);
+    }
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
