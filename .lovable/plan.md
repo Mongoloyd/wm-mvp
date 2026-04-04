@@ -1,44 +1,55 @@
 
 
-## P1 Closure + Pre-P2 Assessment
+## P3: Outbound Calling — Autodial Button + `dial-lead` Edge Function
 
-### CHECK 1 — `red_flag_count` in InternalCRMDesk.tsx
-**PASSED** — zero occurrences found. The file uses only `flag_count`.
+### What We Have Today
 
-### CHECK 2 — Column header state
-**ISSUE CONFIRMED** — Line 191 has a single merged header: `<TableHead className="text-center">Grade / Flags</TableHead>`. This needs splitting into two `<th>` elements before P2 adds a Status column.
+Two existing Edge Functions fire webhooks to phonecall.bot:
+- `voice-followup` — admin-auth gated, takes `scan_session_id` + `phone_e164` + `call_intent`
+- `request-callback` — public-facing, takes `scan_session_id` + `call_intent`, looks up phone from lead
 
-### Pre-P2 Fix Required
-Split line 191 into two separate headers and split the corresponding `<TableCell>` (line 220-238) into two cells. Minimal change:
-- `<TableHead className="text-center">Grade</TableHead>` — contains only the circular pill
-- `<TableHead className="text-center">Flags</TableHead>` — contains only the flag badge
+Neither is suitable as a one-click "Dial" from the CRM table because:
+1. `voice-followup` requires the operator to know `scan_session_id` and `phone_e164` (not exposed in the row action)
+2. `request-callback` is public-facing with homeowner-level security (checks `phone_verified`)
+3. Both insert `voice_followups` rows + fire the webhook — good, but the CRM needs a simpler entry point keyed by `lead_id`
 
-### Test Data Seed
-Insert one lead with `grade='F'`, `flag_count=4`, `phone_verified=true`, `session_id` (required NOT NULL), then visually confirm badges. Delete after.
+### What P3 Builds
 
-### P2a vs P2b Assessment
+**1. New Edge Function: `dial-lead`**
+- Admin-auth gated (operator or super_admin via `validateAdminRequestWithRole`)
+- Input: `{ lead_id, call_intent }` (defaults to `"operator_outbound"`)
+- Looks up `lead.phone_e164`, `lead.latest_scan_session_id`, `lead.first_name`, `lead.county`, `lead.grade`, `lead.flag_count`
+- Validates lead exists and has a phone number
+- Inserts a `voice_followups` row with status `queued`, provider `phonecall.bot`
+- Fires `PHONECALL_BOT_WEBHOOK_URL` webhook (graceful skip if unset, same pattern as existing functions)
+- Updates `lead.deal_status` to `"attempted"` if currently `"new"` or null
+- Logs `voice_followup_queued` event to `lead_events`
+- Returns `{ success, followup_id, webhook_status }`
 
-**P2a is the better option.** Here's why:
+**2. Autodial Button in `InternalCRMDesk.tsx`**
+- Add a phone-dial icon button next to each lead's phone number cell (or as a new action)
+- On click: calls `dial-lead` Edge Function with `lead_id`
+- Shows loading spinner on the button during the call
+- On success: toast "Call queued for {first_name}", optimistically update pipeline badge to "AI Calling"
+- On failure: toast error, no state change
+- Disabled when: no `phone_e164`, or a dial is already in-flight for that lead
 
-1. **`fetch_voice_followups` already exists** — confirmed in `supabase/functions/admin-data/index.ts` line 95-97. It selects all voice_followups ordered by `created_at DESC`, limit 100. The action is already in the admin-data type union and permission map (viewer-level access).
+**3. No other changes**
+- No new DB tables or columns
+- No changes to `AdminDashboard.tsx` fetch cycle
+- No changes to types (uses existing `voice_followups` table shape)
 
-2. **P2a is a pure wiring task** — no new backend code, no new edge functions, no schema changes. It adds ~20 lines: one extra `Promise.all` call in `AdminDashboard.tsx`, a `latestFollowups` map built with a `reduce()`, and one new prop on `InternalCRMDesk`.
+### Files Modified
 
-3. **P2b (implied alternative)** would likely involve per-lead fetching or a new endpoint, which violates the "single fetch cycle" architecture of the dashboard and adds unnecessary complexity.
+| File | Change |
+|------|--------|
+| `supabase/functions/dial-lead/index.ts` | **New** — admin-auth dial proxy |
+| `src/components/admin/InternalCRMDesk.tsx` | Add Autodial button + invoke logic |
 
-### Recommended Execution Order
-
-**Step 1** — Split "Grade / Flags" header into two columns (2-minute fix)
-**Step 2** — Seed test lead, visually confirm badges, delete record
-**Step 3** — Close P1
-**Step 4** — Execute P2a (wire `fetch_voice_followups` into dashboard fetch cycle)
-
-### P2a Implementation Details
-
-Files to modify:
-- `src/components/AdminDashboard.tsx` — add `invokeAdminData("fetch_voice_followups")` to the `Promise.all`, build `latestFollowups` map, pass as prop
-- `src/components/admin/InternalCRMDesk.tsx` — accept new `latestFollowups` prop (used by future P2 badge rendering)
-- `src/components/admin/types.ts` — add `VoiceFollowupSummary` interface if not already present (lightweight: `lead_id`, `status`, `call_outcome`, `created_at`)
-
-No new edge functions. No new DB queries. No UI badge logic yet — that's a separate prompt.
+### Constraints Respected
+- No new Supabase queries in the frontend
+- No schema migrations
+- Admin-auth only (operator/super_admin)
+- Reuses existing `PHONECALL_BOT_WEBHOOK_URL` + `voice_followups` table
+- Pipeline badge already handles "AI Calling" state via `latestFollowups` (will reflect on next poll)
 
