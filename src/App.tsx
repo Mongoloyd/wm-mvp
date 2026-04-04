@@ -8,7 +8,7 @@ import { FacebookConversionProvider } from "@/components/FacebookConversionProvi
 import AdminSettings from "./pages/AdminSettings";
 import PublicLayout from "@/components/PublicLayout";
 
-// ── Lazy-loaded routes ───────────────────────────────────────────────────────
+// ── Lazy-loaded routes ──────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index.tsx"));
 const ReportClassic = lazy(() => import("./pages/ReportClassic.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
