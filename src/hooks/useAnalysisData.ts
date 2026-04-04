@@ -340,10 +340,7 @@ export function useAnalysisData(
         if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); return; }
         row = Array.isArray(rows) ? rows[0] : rows;
       }
-      
-      if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); return; }
-      const row = Array.isArray(rows) ? rows[0] : rows;
-      if (!row || !row.grade) { console.error("[fetchFull] get_analysis_full returned empty", { row }); return; }
+      if (!row || !row.grade) { console.error("[fetchFull] returned empty", { row }); return; }
 
       const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
       const previewJson = row.preview_json as Record<string, unknown> | null;
