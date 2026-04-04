@@ -532,10 +532,10 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
 
                       <div className="flex items-center gap-2">
                         {entry.booking_intent_detected && (
-                          <Calendar className="w-3 h-3 text-green-400" title="Booking intent detected" />
+                          <span title="Booking intent detected"><Calendar className="w-3 h-3 text-green-400" /></span>
                         )}
                         {entry.appointment_booked && (
-                          <CalendarCheck className="w-3 h-3 text-green-500" title="Appointment booked" />
+                          <span title="Appointment booked"><CalendarCheck className="w-3 h-3 text-green-500" /></span>
                         )}
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(entry.created_at), "MMM d 'at' h:mm a")}
