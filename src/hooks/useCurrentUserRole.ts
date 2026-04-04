@@ -30,6 +30,23 @@ interface UseCurrentUserRoleResult {
 }
 
 export function useCurrentUserRole(): UseCurrentUserRoleResult {
+  // ── DEV BYPASS: mock super_admin in Lovable sandbox ──────────────
+  if (import.meta.env.DEV) {
+    return {
+      role: "super_admin",
+      userId: "dev-sandbox-user",
+      email: "dev@windowman.pro",
+      isLoading: false,
+      error: null,
+      isSuperAdmin: true,
+      isOperator: false,
+      isViewer: false,
+      hasWriteAccess: true,
+      hasAnyRole: true,
+      refetch: async () => {},
+    };
+  }
+
   const [role, setRole] = useState<AppRole | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
