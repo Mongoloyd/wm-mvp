@@ -269,6 +269,30 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
           <SheetDescription>
             Lead ID: {lead.id.slice(0, 8)}… · Created {format(new Date(lead.created_at), "MMM d, yyyy")}
           </SheetDescription>
+          {/* ── Handoff Button ── */}
+          <div className="flex items-center gap-2 mt-1">
+            {alreadySent ? (
+              <Button variant="ghost" size="sm" disabled className="opacity-70 cursor-not-allowed gap-1.5 text-xs">
+                <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                Sent to Contractor
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs border-amber-500/40 text-amber-400 hover:bg-amber-400/10"
+                onClick={() => setHandoffModalOpen(true)}
+              >
+                <Send className="w-3.5 h-3.5" />
+                Send to Contractor
+              </Button>
+            )}
+            {alreadySent && (
+              <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[10px]">
+                Sent {localSentToContractor ? "just now" : ""}
+              </Badge>
+            )}
+          </div>
         </SheetHeader>
 
         {/* ── 1. Contact Info ──────────────────────────────────────── */}
