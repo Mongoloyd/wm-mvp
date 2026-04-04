@@ -109,6 +109,8 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
   const [dossierOpen, setDossierOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("default");
+  const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({});
 
   // Filter to phone-verified leads only
   const verified = useMemo(
@@ -130,26 +132,44 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
         if (fA !== fB) return fB - fA;
       }
       // Default tiebreaker: new deal_status first, then newest
-      const aIsNew = !a.deal_status || a.deal_status === "new";
-      const bIsNew = !b.deal_status || b.deal_status === "new";
+      const aStatus = statusOverrides[a.id] ?? a.deal_status;
+      const bStatus = statusOverrides[b.id] ?? b.deal_status;
+      const aIsNew = !aStatus || aStatus === "new";
+      const bIsNew = !bStatus || bStatus === "new";
       if (aIsNew && !bIsNew) return -1;
       if (!aIsNew && bIsNew) return 1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  }, [verified, sortMode]);
+  }, [verified, sortMode, statusOverrides]);
 
   // KPIs
-  const needsFirstCall = verified.filter((l) => !l.deal_status || l.deal_status === "new").length;
-  const appointmentsBooked = verified.filter((l) => l.deal_status === "appointment_booked").length;
+  const needsFirstCall = verified.filter((l) => {
+    const s = statusOverrides[l.id] ?? l.deal_status;
+    return !s || s === "new";
+  }).length;
+  const appointmentsBooked = verified.filter((l) => {
+    const s = statusOverrides[l.id] ?? l.deal_status;
+    return s === "appointment_booked";
+  }).length;
 
   const handleDealStatusChange = useCallback(async (leadId: string, newStatus: string) => {
+    setUpdatingLeadId(leadId);
+    setStatusOverrides(prev => ({ ...prev, [leadId]: newStatus }));
     try {
       await updateLeadDealStatus(leadId, newStatus);
       toast.success(`Status updated to "${DEAL_STATUSES.find((s) => s.value === newStatus)?.label}"`);
       onStatusChange();
     } catch (err) {
+      // Rollback optimistic update
+      setStatusOverrides(prev => {
+        const next = { ...prev };
+        delete next[leadId];
+        return next;
+      });
       const msg = err instanceof Error ? err.message : "Failed to update status";
-      toast.error(msg);
+      toast.error(`Status update failed — reverted. ${msg}`);
+    } finally {
+      setUpdatingLeadId(null);
     }
   }, [onStatusChange]);
 
