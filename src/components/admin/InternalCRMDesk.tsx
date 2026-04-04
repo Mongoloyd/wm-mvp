@@ -72,6 +72,7 @@ interface InternalCRMDeskProps {
 export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCRMDeskProps) {
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
   const [dossierOpen, setDossierOpen] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("default");
 
   // Filter to phone-verified leads only
   const verified = useMemo(
@@ -79,16 +80,27 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
     [leads],
   );
 
-  // Sort: null/new deal_status first, then most recent
+  // Sort: default preserves original logic, new modes layer on top
   const sorted = useMemo(() => {
     return [...verified].sort((a, b) => {
+      if (sortMode === "grade_worst") {
+        const wA = GRADE_WEIGHT[a.grade ?? ""] ?? 99;
+        const wB = GRADE_WEIGHT[b.grade ?? ""] ?? 99;
+        if (wA !== wB) return wA - wB;
+      }
+      if (sortMode === "flags_most") {
+        const fA = a.flag_count ?? 0;
+        const fB = b.flag_count ?? 0;
+        if (fA !== fB) return fB - fA;
+      }
+      // Default tiebreaker: new deal_status first, then newest
       const aIsNew = !a.deal_status || a.deal_status === "new";
       const bIsNew = !b.deal_status || b.deal_status === "new";
       if (aIsNew && !bIsNew) return -1;
       if (!aIsNew && bIsNew) return 1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  }, [verified]);
+  }, [verified, sortMode]);
 
   // KPIs
   const needsFirstCall = verified.filter((l) => !l.deal_status || l.deal_status === "new").length;
