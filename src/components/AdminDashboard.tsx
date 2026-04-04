@@ -841,7 +841,7 @@ function AdminPasswordGate({ children }: { children: React.ReactNode }) {
  */
 export default function AdminDashboard() {
   const { isSuperAdmin } = useCurrentUserRole();
-  const [activeTab, setActiveTab] = useState<'calls' | 'contractor' | 'release' | 'revenue'>('calls');
+  const [activeTab, setActiveTab] = useState<'calls' | 'contractor' | 'release' | 'revenue' | 'webhooks'>('calls');
 
   // ── Call Queue State ────
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -869,6 +869,15 @@ export default function AdminDashboard() {
   const [outcomeEditorIntro, setOutcomeEditorIntro] = useState<BillableIntro | null>(null);
   const [revDateFrom, setRevDateFrom] = useState('');
   const [revDateTo, setRevDateTo] = useState('');
+
+  // ── Webhook State ────
+  interface WebhookDelivery {
+    id: string; lead_id: string; event_type: string; status: string;
+    attempt_count: number; max_attempts: number; last_http_status: number | null;
+    last_error: string | null; created_at: string; updated_at: string;
+  }
+  const [webhookDeliveries, setWebhookDeliveries] = useState<WebhookDelivery[]>([]);
+  const [webhookLoading, setWebhookLoading] = useState(true);
 
   // ── Release model state (for the detail modal) ────
   const [releaseModel, setReleaseModel] = useState('flat_fee');
@@ -926,20 +935,33 @@ export default function AdminDashboard() {
     setRevenueLoading(false);
   }, []);
 
+  const fetchWebhookDeliveries = useCallback(async () => {
+    setWebhookLoading(true);
+    const { data } = await supabase
+      .from("webhook_deliveries")
+      .select("id, lead_id, event_type, status, attempt_count, max_attempts, last_http_status, last_error, created_at, updated_at")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (data) setWebhookDeliveries(data as WebhookDelivery[]);
+    setWebhookLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchLeads();
     fetchOpportunities();
     fetchAllRoutes();
     fetchBillableIntros();
+    fetchWebhookDeliveries();
     channelRef.current = supabase
       .channel('admin-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => fetchLeads())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'contractor_opportunities' }, () => fetchOpportunities())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'contractor_opportunity_routes' }, () => { fetchAllRoutes(); if (selectedOpp) fetchRoutesForOpp(selectedOpp.id); })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'billable_intros' }, () => fetchBillableIntros())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'webhook_deliveries' }, () => fetchWebhookDeliveries())
       .subscribe();
     return () => { channelRef.current?.unsubscribe(); };
-  }, [fetchLeads, fetchOpportunities, fetchAllRoutes, fetchBillableIntros]);
+  }, [fetchLeads, fetchOpportunities, fetchAllRoutes, fetchBillableIntros, fetchWebhookDeliveries]);
 
   useEffect(() => { if (selectedOpp) fetchRoutesForOpp(selectedOpp.id); }, [selectedOpp, fetchRoutesForOpp]);
 
@@ -1107,6 +1129,7 @@ export default function AdminDashboard() {
           ['contractor', 'CONTRACTOR QUEUE', pendingOppCount] as const,
           ['release', 'RELEASE REVIEW', pendingReleaseCount] as const,
           ['revenue', 'REVENUE', activeBillingCount] as const,
+          ['webhooks', 'WEBHOOKS', webhookDeliveries.filter(d => d.status === 'failed' || d.status === 'dead_letter').length] as const,
         ]).map(([key, label, badge]) => (
           <button key={key} onClick={() => setActiveTab(key)}
             style={{
@@ -1426,6 +1449,66 @@ export default function AdminDashboard() {
           onRefresh={fetchOpportunities}
         />
       )}
+
+      {/* ═══ WEBHOOKS TAB ═══ */}
+      {activeTab === 'webhooks' && (() => {
+        const pending = webhookDeliveries.filter(d => d.status === 'pending');
+        const delivered = webhookDeliveries.filter(d => d.status === 'delivered' || d.status === 'mock_delivered');
+        const failed = webhookDeliveries.filter(d => d.status === 'failed');
+        const deadLetter = webhookDeliveries.filter(d => d.status === 'dead_letter');
+        return (
+          <>
+            {/* Summary Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, background: '#2E3A50', marginBottom: 20 }}>
+              {[
+                { label: 'PENDING', value: pending.length, color: '#F59E0B' },
+                { label: 'DELIVERED', value: delivered.length, color: '#10B981' },
+                { label: 'FAILED (RETRYING)', value: failed.length, color: '#F97316' },
+                { label: 'DEAD LETTER', value: deadLetter.length, color: '#DC2626' },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ background: '#111418', padding: '14px 16px' }}>
+                  <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_MUTED, letterSpacing: '0.12em', marginBottom: 6 }}>{label}</div>
+                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 26, color, lineHeight: 1 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Delivery List */}
+            {webhookLoading ? (
+              <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_MEDIUM, color: COLOR_MUTED, padding: 40, textAlign: 'center' }}>LOADING WEBHOOK DATA…</div>
+            ) : webhookDeliveries.length === 0 ? (
+              <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_MEDIUM, color: COLOR_MUTED, padding: 40, textAlign: 'center' }}>NO WEBHOOK DELIVERIES YET — dual-gate trigger will queue leads automatically</div>
+            ) : (
+              <div>
+                <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_MUTED, letterSpacing: '0.12em', marginBottom: 10 }}>RECENT DELIVERIES ({webhookDeliveries.length})</div>
+                {webhookDeliveries.map(d => {
+                  const statusColor = d.status === 'delivered' || d.status === 'mock_delivered' ? '#10B981'
+                    : d.status === 'pending' ? '#F59E0B'
+                    : d.status === 'failed' ? '#F97316'
+                    : d.status === 'dead_letter' ? '#DC2626' : COLOR_MUTED;
+                  return (
+                    <div key={d.id} style={{ background: '#111418', border: '1px solid #2E3A50', borderLeft: `3px solid ${statusColor}`, marginBottom: 4, padding: '10px 14px', display: 'grid', gridTemplateColumns: '120px 1fr 80px 100px 120px', gap: 8, alignItems: 'center' }}>
+                      <StatusPill status={d.status} />
+                      <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_SECONDARY }}>
+                        {d.event_type} · Lead: {d.lead_id.slice(0, 8)}…
+                      </div>
+                      <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_MUTED, textAlign: 'center' }}>
+                        {d.attempt_count}/{d.max_attempts}
+                      </div>
+                      <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: d.last_http_status && d.last_http_status >= 200 && d.last_http_status < 300 ? '#10B981' : d.last_http_status ? '#F97316' : COLOR_MUTED, textAlign: 'center' }}>
+                        {d.last_http_status ? `HTTP ${d.last_http_status}` : '—'}
+                      </div>
+                      <div style={{ fontFamily: monoFont, fontSize: FONT_SIZE_SMALL, color: COLOR_MUTED, textAlign: 'right' }}>
+                        {new Date(d.created_at).toLocaleDateString()} {new Date(d.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {/* Outcome Editor Modal */}
       {outcomeEditorIntro && (
