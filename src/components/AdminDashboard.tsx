@@ -935,20 +935,33 @@ export default function AdminDashboard() {
     setRevenueLoading(false);
   }, []);
 
+  const fetchWebhookDeliveries = useCallback(async () => {
+    setWebhookLoading(true);
+    const { data } = await supabase
+      .from("webhook_deliveries")
+      .select("id, lead_id, event_type, status, attempt_count, max_attempts, last_http_status, last_error, created_at, updated_at")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (data) setWebhookDeliveries(data as WebhookDelivery[]);
+    setWebhookLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchLeads();
     fetchOpportunities();
     fetchAllRoutes();
     fetchBillableIntros();
+    fetchWebhookDeliveries();
     channelRef.current = supabase
       .channel('admin-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => fetchLeads())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'contractor_opportunities' }, () => fetchOpportunities())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'contractor_opportunity_routes' }, () => { fetchAllRoutes(); if (selectedOpp) fetchRoutesForOpp(selectedOpp.id); })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'billable_intros' }, () => fetchBillableIntros())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'webhook_deliveries' }, () => fetchWebhookDeliveries())
       .subscribe();
     return () => { channelRef.current?.unsubscribe(); };
-  }, [fetchLeads, fetchOpportunities, fetchAllRoutes, fetchBillableIntros]);
+  }, [fetchLeads, fetchOpportunities, fetchAllRoutes, fetchBillableIntros, fetchWebhookDeliveries]);
 
   useEffect(() => { if (selectedOpp) fetchRoutesForOpp(selectedOpp.id); }, [selectedOpp, fetchRoutesForOpp]);
 
