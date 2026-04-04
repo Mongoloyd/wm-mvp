@@ -96,10 +96,6 @@ describe("usePhonePipeline submitOtp", () => {
         scan_session_id: "session_abc",
       },
     });
-    expect(verifyResult).toMatchObject({
-      status: "verified",
-      e164: expect.any(String),
-    });
     expect(verifyResult).toEqual({
       status: "verified",
       e164: "+13055550000",
