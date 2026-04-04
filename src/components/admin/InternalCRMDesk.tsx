@@ -155,6 +155,22 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
         </Card>
       </div>
 
+      {/* ── Sort Control ─────────────────────────────────────────── */}
+      <div className="flex justify-end">
+        <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+          <SelectTrigger className="w-[200px] h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value} className="text-xs">
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* ── Power Dialer Table ─────────────────────────────────────── */}
       {isLoading && sorted.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">Loading leads…</div>
