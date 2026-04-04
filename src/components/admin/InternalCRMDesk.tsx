@@ -4,7 +4,8 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useState, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,6 +112,7 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
   const [sortMode, setSortMode] = useState<SortMode>("default");
   const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
   const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({});
+  const [dialingLeadId, setDialingLeadId] = useState<string | null>(null);
 
   // Filter to phone-verified leads only
   const verified = useMemo(
@@ -177,6 +179,48 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
     setSelectedLead(lead);
     setDossierOpen(true);
   }, []);
+
+  const handleAutodial = useCallback(async (lead: CRMLead) => {
+    if (!lead.phone_e164 || dialingLeadId) return;
+    setDialingLeadId(lead.id);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const devSecret = (import.meta as any).env?.VITE_DEV_BYPASS_SECRET;
+      if (devSecret) {
+        headers["x-dev-secret"] = devSecret;
+      }
+
+      const { data, error } = await supabase.functions.invoke("dial-lead", {
+        body: { lead_id: lead.id, call_intent: "operator_outbound" },
+        headers,
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(`Call queued for ${lead.first_name || "lead"}`);
+
+      // Optimistically bump deal_status if new/null
+      const currentStatus = statusOverrides[lead.id] ?? lead.deal_status;
+      if (!currentStatus || currentStatus === "new") {
+        setStatusOverrides(prev => ({ ...prev, [lead.id]: "attempted" }));
+      }
+
+      onStatusChange();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to dial";
+      toast.error(`Autodial failed: ${msg}`);
+    } finally {
+      setDialingLeadId(null);
+    }
+  }, [dialingLeadId, onStatusChange, statusOverrides]);
 
   return (
     <div className="space-y-6">
@@ -268,13 +312,25 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                     </TableCell>
                     <TableCell>
                       {lead.phone_e164 ? (
-                        <a
-                          href={`tel:${lead.phone_e164}`}
-                          className="inline-flex items-center gap-1.5 text-primary hover:underline font-mono text-sm"
-                        >
-                          <Phone className="h-3.5 w-3.5" />
-                          {formatPhoneDisplay(stripNonDigits(lead.phone_e164))}
-                        </a>
+                        <div className="inline-flex items-center gap-1.5">
+                          <a
+                            href={`tel:${lead.phone_e164}`}
+                            className="inline-flex items-center gap-1.5 text-primary hover:underline font-mono text-sm"
+                          >
+                            <Phone className="h-3.5 w-3.5" />
+                            {formatPhoneDisplay(stripNonDigits(lead.phone_e164))}
+                          </a>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            disabled={dialingLeadId === lead.id}
+                            onClick={() => handleAutodial(lead)}
+                            title="Autodial via AI"
+                          >
+                            <PhoneCall className={`h-3.5 w-3.5 ${dialingLeadId === lead.id ? "animate-pulse text-blue-500" : "text-muted-foreground hover:text-primary"}`} />
+                          </Button>
+                        </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
