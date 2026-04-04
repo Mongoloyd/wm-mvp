@@ -16,6 +16,7 @@ type ActionName =
 const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_leads: ["super_admin", "operator", "viewer"],
   update_lead_status: ["super_admin", "operator"],
+  update_lead_deal_status: ["super_admin", "operator"],
   fetch_opportunities: ["super_admin", "operator", "viewer"],
   fetch_contractors: ["super_admin", "operator", "viewer"],
   fetch_routes: ["super_admin", "operator", "viewer"],
