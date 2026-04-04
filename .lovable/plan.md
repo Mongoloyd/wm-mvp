@@ -1,58 +1,50 @@
 
 
-# Clean Up: Delete Outdated Documentation Files
+# Add Forensic Logging to send-otp and verify-otp
 
-## Keep
-- `README.md` — standard project readme
-- `AGENTS.md` — active project knowledge (mirrored in custom instructions)
-- `.lovable/` — Lovable system memory files (managed automatically)
-- `components.json` — shadcn/ui config (not documentation)
+No logic changes — instrumentation only.
 
-## Delete — Root (18 files)
-| File | Reason |
-|------|--------|
-| `AUDIT_NOTES.md` | Stale audit artifact |
-| `AUDIT_REPORT.md` | Stale audit artifact |
-| `DOUBLE_OTP_DIAGNOSTIC_REPORT.md` | OTP debugging — resolved |
-| `FIX_VERIFICATION.md` | One-time verification log |
-| `OTP_MAGNUM_OPUS_AUDIT.md` | OTP debugging — resolved |
-| `OTP_MAGNUM_OPUS_REPORT.md` | OTP debugging — resolved |
-| `OTP_REPAIR_PASS.md` | OTP debugging — resolved |
-| `OTP_ROOT_CAUSE.md` | OTP debugging — resolved |
-| `OTP_TIMING_ANALYSIS.md` | OTP debugging — resolved |
-| `OTP_TOGGLE_BUG_AUDIT.md` | OTP debugging — resolved |
-| `POST_MIGRATION_BUG_AUDIT.md` | Migration complete |
-| `SECURITY_GAP_AND_FB_FUNNEL.md` | Outdated planning doc |
-| `STRATEGIC_ASSESSMENT.md` | Outdated planning doc |
-| `SUPABASE_MIGRATION_AUDIT.md` | Migration complete |
-| `TEST_FINDINGS.md` | Stale test artifact |
-| `TEST_LOG.md` | Stale test artifact |
-| `TRUSTED_DEVICE_OTP_PLAN.md` | OTP planning — resolved |
-| `implementation_plan.md` | Superseded by code |
-| `todo.md` | Superseded by code |
+## Changes
 
-## Delete — docs/ folder (9 files, then remove the directory)
-| File | Reason |
-|------|--------|
-| `docs/facebook-conversion-architecture.md` | Architecture doc |
-| `docs/funnel-events.md` | Planning doc |
-| `docs/phase-3-4a-inspection.md` | Phase complete |
-| `docs/pre-test-trust-audit.md` | Stale audit |
-| `docs/preview-payload-quality-audit.md` | Stale audit |
-| `docs/routes-and-states.md` | Planning doc |
-| `docs/scanner-rubric.md` | Rubric lives in code |
-| `docs/security-model.md` | Planning doc |
-| `docs/verification-notes.txt` | Stale notes |
+### 1. `supabase/functions/send-otp/index.ts`
 
-## Delete — GitHub agents
-| File | Reason |
-|------|--------|
-| `.github/agents/ocr-audit-specialist.agent.md` | Unused agent config |
+**Before the insert (line ~166):** Add `[SEND_OTP_FORENSIC_START]` log with phone (masked), expire result, and timestamp.
 
-## Total: 28 files deleted, `docs/` and `.github/agents/` directories removed
+**After failed insert (line ~170-171):** Replace generic error log with `[SEND_OTP_DB_ERROR]` that captures the full PostgREST error object (code, message, details, hint).
 
-## What stays as source of truth
-- TypeScript source files (`src/`, `supabase/functions/`)
-- `.lovable/memory/` (Lovable's own context system)
-- `AGENTS.md` and `README.md`
+```typescript
+// Before insert
+console.log("[SEND_OTP_FORENSIC_START]", JSON.stringify({
+  phone_masked: "xxx-xxx-" + phone_e164.slice(-4),
+  expireResult: expireErr ? { code: expireErr.code, message: expireErr.message } : "ok",
+  timestamp: new Date().toISOString(),
+}));
+
+// On insert failure
+console.error("[SEND_OTP_DB_ERROR]", JSON.stringify({
+  code: insertErr.code,
+  message: insertErr.message,
+  details: insertErr.details,
+  hint: insertErr.hint,
+  phone_masked: "xxx-xxx-" + phone_e164.slice(-4),
+}));
+```
+
+### 2. `supabase/functions/verify-otp/index.ts`
+
+**After the pending row query (line ~50):** Add `[VERIFY_OTP_FORENSIC]` log showing whether a row was found.
+
+```typescript
+console.log("[VERIFY_OTP_FORENSIC]", JSON.stringify({
+  phone_masked: "xxx-xxx-" + phone_e164.slice(-4),
+  pendingRowFound: !!pendingRow,
+  pendingRowId: pendingRow?.id ?? null,
+  timestamp: new Date().toISOString(),
+}));
+```
+
+## Impact
+- Zero logic changes
+- 3 log statements added total
+- Next real OTP attempt will produce a clear audit trail in Supabase Edge Function logs
 
