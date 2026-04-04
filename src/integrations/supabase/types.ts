@@ -1234,6 +1234,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          ip_address: string | null
           lead_id: string | null
           phone_e164: string
           status: string
@@ -1244,6 +1245,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          ip_address?: string | null
           lead_id?: string | null
           phone_e164: string
           status?: string
@@ -1254,6 +1256,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          ip_address?: string | null
           lead_id?: string | null
           phone_e164?: string
           status?: string

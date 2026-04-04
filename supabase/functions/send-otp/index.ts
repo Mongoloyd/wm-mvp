@@ -57,6 +57,8 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const phone_e164 = normalizePhone(body.phone_e164);
+    const scan_session_id = body.scan_session_id || null;
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
     if (!phone_e164) {
       return new Response(
