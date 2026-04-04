@@ -52,8 +52,11 @@ Deno.serve(async (req) => {
     // ─── READ ACTIONS ──────────────────────────────────────────────
 
     if (action === "fetch_leads") {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const { data, error } = await supabaseAdmin.from("leads").select("*").gte("created_at", today.toISOString()).order("created_at", { ascending: false });
+      const { data, error } = await supabaseAdmin
+        .from("leads")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
       if (error) throw error;
       return successResponse({ data: data });
     }
