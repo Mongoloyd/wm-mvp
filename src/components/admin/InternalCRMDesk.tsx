@@ -47,6 +47,40 @@ function gradeColor(grade: string | null): string {
   }
 }
 
+/* ── Pipeline status badge ────────────────────────────────────────────── */
+
+interface StatusBadge {
+  label: string;
+  className: string;
+  rowClass?: string;
+}
+
+function derivePipelineBadge(
+  lead: CRMLead,
+  followup?: VoiceFollowupSummary,
+): StatusBadge {
+  const pill = "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium whitespace-nowrap";
+
+  if (lead.deal_status === "dead")
+    return { label: "Dead", className: `${pill} bg-gray-200 text-gray-500`, rowClass: "opacity-40" };
+  if (lead.deal_status === "appointment_booked")
+    return { label: "Appt Booked", className: `${pill} bg-green-100 text-green-800 ring-1 ring-green-500` };
+  if (lead.latest_opportunity_id != null)
+    return { label: "Sent to Client", className: `${pill} bg-purple-100 text-purple-800` };
+  if (lead.intro_requested_at != null)
+    return { label: "Intro Requested", className: `${pill} bg-blue-100 text-blue-800` };
+  if (lead.deal_status === "ghosted")
+    return { label: "Ghosted", className: `${pill} bg-slate-200 text-slate-600` };
+  if (followup?.status === "queued" || followup?.status === "in_progress")
+    return { label: "AI Calling", className: `${pill} bg-blue-100 text-blue-700 animate-pulse` };
+  if (followup?.call_outcome === "voicemail")
+    return { label: "Left Voicemail", className: `${pill} bg-amber-100 text-amber-800` };
+  if (followup?.status === "failed" || followup?.call_outcome === "no_answer")
+    return { label: "No Answer", className: `${pill} bg-orange-100 text-orange-800` };
+
+  return { label: "New Lead", className: `${pill} border border-border bg-background text-muted-foreground` };
+}
+
 /* ── Sort options ─────────────────────────────────────────────────────── */
 
 type SortMode = "default" | "grade_worst" | "flags_most";
@@ -191,14 +225,17 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                   <TableHead>County</TableHead>
                   <TableHead className="text-center">Grade</TableHead>
                   <TableHead className="text-center">Flags</TableHead>
+                  <TableHead className="text-center">Pipeline</TableHead>
                   <TableHead className="text-center">Call Intent</TableHead>
-                  <TableHead className="w-[180px]">Status</TableHead>
+                  <TableHead className="w-[180px]">Deal Status</TableHead>
                   <TableHead className="w-[60px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sorted.map((lead) => (
-                  <TableRow key={lead.id}>
+                {sorted.map((lead) => {
+                  const badge = derivePipelineBadge(lead, latestFollowups[lead.id]);
+                  return (
+                  <TableRow key={lead.id} className={badge.rowClass ?? ""}>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                       {format(new Date(lead.created_at), "MMM d")}
                     </TableCell>
@@ -241,6 +278,9 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                       )}
                     </TableCell>
                     <TableCell className="text-center">
+                      <span className={badge.className}>{badge.label}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
                       {lead.last_call_intent ? (
                         <Badge variant="secondary" className="text-xs">
                           Requested
@@ -278,7 +318,8 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                       </Button>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
