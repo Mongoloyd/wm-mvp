@@ -216,11 +216,39 @@ async function validateAndExtractUser(
   const normalizeSecretValue = (value: string | null): string | null =>
     value ? value.trim().replace(/^['"]+|['"]+$/g, "") : null;
 
-  const devSecret = normalizeSecretValue(req.headers.get("x-dev-secret"));
-  const expectedDevSecret = normalizeSecretValue(Deno.env.get("DEV_BYPASS_SECRET"));
+  const devSecretRaw = req.headers.get("x-dev-secret");
+  const expectedDevSecretRaw = Deno.env.get("DEV_BYPASS_SECRET");
+  const devSecret = normalizeSecretValue(devSecretRaw);
+  const expectedDevSecret = normalizeSecretValue(expectedDevSecretRaw);
 
-  if (devSecret && expectedDevSecret && devSecret === expectedDevSecret) {
-    console.log("[adminAuth] DEV BYPASS: Granting super_admin via X-Dev-Secret");
+  // Diagnostic logging (never logs actual secret values)
+  console.log("[adminAuth] Dev bypass check:", {
+    headerPresent: !!devSecretRaw,
+    envPresent: !!expectedDevSecretRaw,
+    headerLen: devSecret?.length ?? 0,
+    envLen: expectedDevSecret?.length ?? 0,
+    match: devSecret !== null && devSecret === expectedDevSecret,
+  });
+
+  if (devSecretRaw) {
+    // Header was sent — resolve bypass decisively (never fall through to JWT)
+    if (!expectedDevSecret) {
+      console.error("[adminAuth] DEV BYPASS FAIL: DEV_BYPASS_SECRET env var is not set on server");
+      return {
+        ok: false,
+        response: errorResponse(500, "config_error", "Server missing DEV_BYPASS_SECRET"),
+      };
+    }
+    if (devSecret !== expectedDevSecret) {
+      console.error("[adminAuth] DEV BYPASS FAIL: secret mismatch (lengths: header=" +
+        (devSecret?.length ?? 0) + " env=" + expectedDevSecret.length + ")");
+      return {
+        ok: false,
+        response: errorResponse(401, "dev_bypass_mismatch", "Dev bypass secret does not match server"),
+      };
+    }
+    // Match — grant super_admin
+    console.log("[adminAuth] DEV BYPASS GRANTED: super_admin");
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
     return {
