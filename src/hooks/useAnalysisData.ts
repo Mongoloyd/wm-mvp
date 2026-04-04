@@ -467,7 +467,7 @@ export function useAnalysisData(
     } finally {
       setIsResuming(false);
     }
-  }, [scanSessionId, isFullLoaded]);
+  }, [scanSessionId, isFullLoaded, devBypassEnabled, fetchFullViaDevBypass]);
 
   return { data, isLoading, error, fetchFull, isLoadingFull, isFullLoaded, tryResume, isResuming };
 }
