@@ -341,10 +341,15 @@ export function useAnalysisData(
           "get_analysis_full",
           { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
         );
-        if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); return; }
+        if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); setError("Failed to unlock report."); return; }
         row = Array.isArray(rows) ? rows[0] : rows;
       }
-      if (!row || !row.grade) { console.error("[fetchFull] returned empty", { row }); return; }
+      if (!row || !row.grade) { console.error("[fetchFull] returned empty", { row }); setError("Report data not found."); return; }
+      if (row.grade === "__UNAUTHORIZED__") {
+        console.error("[fetchFull] unauthorized — phone not verified for this session");
+        setError("Verification failed. Please re-verify your phone number.");
+        return;
+      }
 
       const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
       const previewJson = row.preview_json as Record<string, unknown> | null;
