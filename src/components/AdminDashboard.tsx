@@ -177,9 +177,6 @@ function DashboardContent() {
     };
   }, [fetchAll]);
 
-  const handleFetchLeadEvents = useCallback(async (leadId: string): Promise<LeadEvent[]> => {
-    return (await fetchLeadEvents(leadId)) ?? [];
-  }, []);
 
   const kpis = computeKPIs(leads, deliveries);
   const ghosts = leads.filter((l) => l.latest_analysis_id && !l.phone_verified);
