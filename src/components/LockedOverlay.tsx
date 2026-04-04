@@ -125,8 +125,8 @@ export function LockedOverlay({
           "Enter your mobile number and we'll send your secure unlock code.",
         ]
       : maskedPhone
-        ? [`Your impact window grade is ready. We sent a code to ${maskedPhone}.`, "Enter it below to unlock your counter-offer."]
-        : ["Your impact window grade is ready.", "Enter the code we just texted you to unlock your counter-offer."];
+        ? [`Your Impact Window Audit is Ready. We sent a code to ${maskedPhone}.`, "Enter it below to unlock your counter-offer."]
+        : ["Your Impact Window Audit is Ready.", "Enter the code we just texted you to unlock your counter-offer."];
 
   const progressPercent =
     gateMode === "enter_phone" ? 50 + (phoneDigitCount / 10) * 40 : gateMode === "send_code" ? 85 : 95;

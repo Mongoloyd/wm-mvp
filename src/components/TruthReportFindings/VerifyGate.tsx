@@ -270,7 +270,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
             className="flex flex-col items-start gap-3"
           >
             <p className="text-sm text-muted-foreground" id="otp-instructions">
-              Your impact window grade is ready. Enter the code we just texted you to unlock your counter-offer.
+              Your Impact Window Audit is Ready. Enter the code we just texted you to unlock your counter-offer.
             </p>
             <div key={shakeKey} ref={otpContainerRef} className={shakeKey > 0 ? "otp-shake" : ""}>
               <InputOTP maxLength={6} value={otpValue} onChange={handleOtpChange} aria-describedby="otp-instructions" autoFocus>
