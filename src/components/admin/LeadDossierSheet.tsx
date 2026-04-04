@@ -4,7 +4,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
@@ -16,11 +16,13 @@ import {
   Phone, Mail, MapPin, Hash, DollarSign, Clock,
   AlertTriangle, CheckCircle, ExternalLink, Globe,
   ChevronDown, ChevronUp, Flag, Info,
+  PhoneCall, Calendar, CalendarCheck, RotateCcw, AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 
 import type { CRMLead, AnalysisFlag, LeadAnalysisData } from "./types";
-import { fetchLeadAnalysis } from "@/services/adminDataService";
+import { fetchLeadAnalysis, fetchLeadVoiceFollowups, invokeAdminData } from "@/services/adminDataService";
+import type { VoiceFollowup } from "@/services/adminDataService";
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
