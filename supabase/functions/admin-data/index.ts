@@ -25,6 +25,7 @@ const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   route_opportunity: ["super_admin", "operator"],
   mark_dead: ["super_admin", "operator"],
   fetch_voice_followups: ["super_admin", "operator", "viewer"],
+  fetch_lead_voice_followups: ["super_admin", "operator", "viewer"],
   trigger_voice_followup: ["super_admin", "operator"],
   manage_user_roles: ["super_admin"],
   list_user_roles: ["super_admin"],
