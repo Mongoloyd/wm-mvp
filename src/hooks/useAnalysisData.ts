@@ -381,7 +381,7 @@ export function useAnalysisData(
     } finally {
       setIsLoadingFull(false);
     }
-  }, [scanSessionId, isFullLoaded]);
+  }, [scanSessionId, isFullLoaded, devBypassEnabled, fetchFullViaDevBypass]);
 
   // ── Phase 3: Auto-resume for returning verified users ─────────────────
   const tryResume = useCallback(async (): Promise<boolean> => {
