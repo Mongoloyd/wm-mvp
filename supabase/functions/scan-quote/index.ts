@@ -707,8 +707,14 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
     "scope_detail": "string | null",
     "disposal_included": boolean | null,
     "accessories_mentioned": boolean | null
-  } | null
-}`;
+  } | null,
+  "price_fairness": "string | null — 2-3 sentences assessing total price objectivity. Compare against standard Florida wholesale costs ($500-$800/window + $250-$400 labor per opening). Identify inflated retail tactics like fake 'Buy 1 Get 1' deals.",
+  "markup_estimate": "string | null — Estimated dealer markup as percentage range or dollar amount (e.g., '45%-55%' or '~$8,500 over wholesale'). Calculate based on line item count and total quoted price vs wholesale baseline.",
+  "negotiation_leverage": "string | null — 1-2 punchy, actionable talking points the homeowner can use to negotiate a lower price. Reference specific weaknesses found in the quote."
+}
+
+Financial Forensics Protocol:
+Assume standard Florida wholesale costs of $500-$800 per impact window unit and $250-$400 per opening for installation labor. Use these baselines to calculate markup estimates. Identify inflated retail tactics such as fake "Buy 1 Get 1 Free" promotions, bundled admin fees, or permit cost padding. If you cannot determine pricing from the document, set these three fields to null.`;
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
