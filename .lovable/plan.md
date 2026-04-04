@@ -1,46 +1,86 @@
 
 
-# Fix: "Failed to fetch dynamically imported module: Index.tsx"
+# Harden `get_analysis_full` with Access Token Binding
 
-## Investigation Results
+## The Real Security Gap
 
-I performed a deep audit of every import in `src/pages/Index.tsx` and its child components. **There are zero references to old admin components or deleted marketplace files.** The Index module graph is completely clean:
+The current RPC already binds phone → lead → scan_session via joins. The actual gap is:
 
-- All 25+ component imports resolve to existing files
-- No imports reference `@/components/admin/*`, `ContractorMatch`, or any legacy dashboard modules
-- The only "marketplace" mention is a harmless comment on line 15: `// ContractorMatch removed`
-- `useCurrentUserRole` does not appear anywhere in the Index tree
+1. The RPC is callable by `anon` (no JWT required — correct for this anonymous flow)
+2. The only credentials needed are `scan_session_id` (UUID, may leak in URLs) + `phone_e164` (10 digits)
+3. An attacker who obtains both values (e.g., shoulder-surfing a URL + knowing the phone number) can call the RPC directly and receive the full report
 
-## Root Cause
+Since this is an anonymous user flow (no Supabase auth session), we cannot bind to a JWT. Instead, we introduce a **cryptographic access token (nonce)** generated at OTP verification time.
 
-The error is **not a broken import path**. It is a Vite dynamic chunk-fetch failure caused by the preview environment's WebSocket/HMR proxy mismatch. When AuthGuard redirects from `/admin` to `/`, the browser tries to fetch the lazily-loaded `Index.tsx` chunk via a stale or misconfigured HMR connection, and the fetch rejects.
+## How It Works
 
-Cache-bust comments cannot fix this because the issue is at the transport layer, not the module graph.
+```text
+verify-otp succeeds
+  → generate crypto-random access_token (UUID)
+  → store in phone_verifications row
+  → return to client alongside { verified: true }
 
-## Fix Plan
+Client stores access_token in localStorage (verifiedAccess record)
 
-### Step 1: Convert Index to a static import in App.tsx
-The home route (`/`) is the most critical page and should never fail to load. Change it from `lazy()` to a direct import:
+get_analysis_full(scan_session_id, phone_e164, access_token)
+  → JOIN now also checks pv.access_token = p_access_token
+  → Without the token, RPC returns empty even with correct phone + session
+```
 
-**File: `src/App.tsx`**
-- Line 12: Change `const Index = lazy(() => import("./pages/Index.tsx"));` to `import Index from "./pages/Index";`
-- This eliminates the dynamic chunk fetch entirely for the home route
-- All other routes remain lazy-loaded (they are secondary pages)
+## Changes
 
-### Step 2: Remove stale cache-bust comment from Index.tsx
-**File: `src/pages/Index.tsx`**
-- Line 1: Delete `// cache-bust-v2` (no longer needed, adds confusion)
+### 1. Database Migration — Add `access_token` column + update RPC
 
-### Step 3: Add a route-level error boundary
-Wrap the `<Suspense>` in App.tsx with an error boundary so that if any other lazy route fails to load, the user sees a retry button instead of a white screen.
+- Add `access_token TEXT` column to `phone_verifications`
+- Replace `get_analysis_full` RPC to require a third parameter `p_access_token TEXT`
+- The authorization check adds: `AND pv.access_token = p_access_token`
 
-**File: `src/App.tsx`**
-- Add a small `RouteErrorBoundary` component that catches chunk-load errors and shows "Something went wrong. Click to reload."
-- Wrap `<Suspense fallback={<PageLoader />}>` with this boundary
+### 2. Edge Function — `verify-otp/index.ts`
 
-### Acceptance Criteria
-- Navigating to `/` always renders the homepage (no dynamic import involved)
-- Navigating to `/admin` without auth redirects to `/` without a white screen
-- Other lazy routes (`/about`, `/faq`, etc.) still load normally
-- If a lazy route fails, the error boundary shows a retry UI instead of a blank page
+- After Twilio approval, generate `crypto.randomUUID()` as the access token
+- Store it in the `phone_verifications` update payload
+- Return it in the response: `{ verified: true, phone_e164, access_token }`
+
+### 3. Frontend — `verifiedAccess.ts`
+
+- Add `access_token` to the `VerifiedAccessRecord` interface
+- `saveVerifiedAccess` accepts and stores the token
+- `getVerifiedAccess` returns it
+
+### 4. Frontend — `useAnalysisData.ts`
+
+- `fetchFull` accepts `accessToken` as second parameter alongside `phoneE164`
+- Passes `p_access_token` to the RPC call
+- `tryResume` reads `access_token` from the localStorage record and passes it
+
+### 5. Frontend — Callers of `fetchFull`
+
+- Update `VerifyGate.tsx` (or wherever verify-otp response is handled) to extract `access_token` from the response and pass it through to `fetchFull`
+
+### 6. Edge Functions using `get_analysis_full` as auth gate
+
+- `generate-contractor-brief` and `generate-negotiation-script` both call the RPC
+- Update them to accept and forward `access_token`
+- `compare-quotes` also calls it — same treatment
+
+## Security Properties After This Change
+
+- **scan_session_id + phone alone = insufficient** (token required)
+- **Token is single-use per verification** (one token per verify-otp success)
+- **Token never leaves the verifying browser** (stored in localStorage, not in URLs)
+- **Resume flow preserved** (token stored alongside phone in the 24h record)
+- **Production RPC stays anon-callable** (correct for the anonymous upload flow)
+
+## Files Modified
+
+| File | Change |
+|------|--------|
+| Migration SQL | Add column + replace RPC |
+| `supabase/functions/verify-otp/index.ts` | Generate + store + return token |
+| `src/lib/verifiedAccess.ts` | Store/retrieve token |
+| `src/hooks/useAnalysisData.ts` | Pass token to RPC |
+| `src/components/TruthReportFindings/VerifyGate.tsx` | Forward token from verify response |
+| `supabase/functions/generate-contractor-brief/index.ts` | Accept + forward token |
+| `supabase/functions/generate-negotiation-script/index.ts` | Accept + forward token |
+| `supabase/functions/compare-quotes/index.ts` | Accept + forward token |
 
