@@ -1,15 +1,16 @@
 /**
- * dial-lead — P3 Outbound Calling: one-click autodial from CRM Desk.
+ * dial-lead — P3a: One-click autodial from CRM Desk.
  *
  * Admin-auth gated (operator / super_admin).
- * Input:  { lead_id, call_intent? }
+ * Input:  { lead_id }
  * Output: { success, followup_id, webhook_status }
  *
- * - Looks up lead metadata (phone, name, county, grade, flags)
- * - Inserts a voice_followups row (status: queued)
- * - Fires PHONECALL_BOT_WEBHOOK_URL (graceful skip if unset)
- * - Bumps lead.deal_status → "attempted" when currently new/null
- * - Logs voice_followup_queued to lead_events
+ * 1. Looks up lead metadata (phone, name, county, grade, flags, scan session)
+ * 2. Inserts a voice_followups row BEFORE firing webhook (audit-first)
+ * 3. Fires PHONECALL_BOT_WEBHOOK_URL (graceful skip if unset)
+ * 4. Updates followup status based on webhook result
+ * 5. Bumps lead.deal_status → "attempted" ONLY when currently new/null
+ * 6. Logs voice_followup_queued to lead_events
  */
 
 import { corsHeaders, validateAdminRequestWithRole } from "../_shared/adminAuth.ts";
@@ -27,7 +28,6 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const lead_id: string | undefined = body.lead_id;
-    const call_intent: string = body.call_intent || "operator_outbound";
 
     if (!lead_id) {
       return new Response(
@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     // ── 1. Look up lead ──────────────────────────────────────────────────
     const { data: lead, error: leadErr } = await supabase
       .from("leads")
-      .select("id, phone_e164, first_name, county, grade, flag_count, latest_scan_session_id, deal_status")
+      .select("id, phone_e164, first_name, county, grade, flag_count, latest_scan_session_id, deal_status, project_type, window_count, quote_range")
       .eq("id", lead_id)
       .maybeSingle();
 
@@ -58,8 +58,27 @@ Deno.serve(async (req) => {
     }
 
     const now = new Date().toISOString();
+    const call_intent = "operator_outbound";
 
-    // ── 2. Insert voice_followups row ────────────────────────────────────
+    // ── 2. Build webhook payload (mirrors voice-followup shape) ──────────
+    const webhookPayload = {
+      to: lead.phone_e164,
+      info: {
+        lead_id: lead.id,
+        scan_session_id: lead.latest_scan_session_id || null,
+        first_name: lead.first_name || null,
+        cta_source: "crm_autodial",
+        call_intent,
+        county: lead.county || null,
+        project_type: lead.project_type || null,
+        window_count: lead.window_count || null,
+        quote_range: lead.quote_range || null,
+        grade: lead.grade || null,
+        flag_count: lead.flag_count || 0,
+      },
+    };
+
+    // ── 3. INSERT voice_followups BEFORE webhook (audit-first) ───────────
     const { data: followup, error: insertErr } = await supabase
       .from("voice_followups")
       .insert({
@@ -70,17 +89,7 @@ Deno.serve(async (req) => {
         provider: "phonecall_bot",
         scan_session_id: lead.latest_scan_session_id || null,
         cta_source: "crm_autodial",
-        payload_json: {
-          to: lead.phone_e164,
-          info: {
-            lead_id: lead.id,
-            first_name: lead.first_name || null,
-            county: lead.county || null,
-            grade: lead.grade || null,
-            flag_count: lead.flag_count || 0,
-            call_intent,
-          },
-        },
+        payload_json: webhookPayload,
       })
       .select("id")
       .single();
@@ -93,62 +102,59 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── 3. Fire webhook ──────────────────────────────────────────────────
+    // ── 4. Fire webhook (mirrors voice-followup pattern) ─────────────────
     const webhookUrl = Deno.env.get("PHONECALL_BOT_WEBHOOK_URL");
     let webhookStatus = "queued";
 
     if (webhookUrl) {
       try {
-        const payload = (followup as any)?.payload_json ?? {
-          to: lead.phone_e164,
-          info: { lead_id: lead.id, call_intent },
-        };
-
-        // Re-read the payload we just inserted (it's in the insert above)
         const resp = await fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            to: lead.phone_e164,
-            info: {
-              lead_id: lead.id,
-              first_name: lead.first_name || null,
-              county: lead.county || null,
-              grade: lead.grade || null,
-              flag_count: lead.flag_count || 0,
-              call_intent,
-              cta_source: "crm_autodial",
-            },
-          }),
+          body: JSON.stringify(webhookPayload),
         });
 
-        webhookStatus = resp.ok ? "sent" : "failed";
-        if (!resp.ok) {
-          console.error("[dial-lead] webhook failed:", resp.status);
+        if (resp.ok) {
+          webhookStatus = "sent";
+          console.log("[dial-lead] webhook sent successfully");
+        } else {
+          webhookStatus = "failed";
+          const errText = await resp.text().catch(() => "unknown");
+          console.error("[dial-lead] webhook failed:", `HTTP ${resp.status}: ${errText}`);
         }
       } catch (err) {
         webhookStatus = "failed";
         console.error("[dial-lead] webhook error:", err instanceof Error ? err.message : err);
       }
 
-      // Update followup status
+      // Update followup status based on webhook result
       await supabase
         .from("voice_followups")
         .update({ status: webhookStatus === "sent" ? "in_progress" : "failed" })
         .eq("id", followup.id);
     } else {
-      console.log("[dial-lead] PHONECALL_BOT_WEBHOOK_URL not set — skipping");
+      console.log("[dial-lead] PHONECALL_BOT_WEBHOOK_URL not set — skipping webhook fire");
     }
 
-    // ── 4. Bump deal_status if new/null ──────────────────────────────────
+    // ── 5. Bump deal_status ONLY if null or 'new' (.in() guard) ──────────
     if (!lead.deal_status || lead.deal_status === "new") {
       await supabase
         .from("leads")
         .update({ deal_status: "attempted" })
-        .eq("id", lead.id);
+        .eq("id", lead.id)
+        .in("deal_status", ["new"]);
+
+      // Separate update for NULL — .in() doesn't match NULL
+      if (!lead.deal_status) {
+        await supabase
+          .from("leads")
+          .update({ deal_status: "attempted" })
+          .eq("id", lead.id)
+          .is("deal_status", null);
+      }
     }
 
-    // ── 5. Log event ─────────────────────────────────────────────────────
+    // ── 6. Log to lead_events (canonical event table) ────────────────────
     await supabase.from("lead_events").insert({
       lead_id: lead.id,
       event_name: "voice_followup_queued",
