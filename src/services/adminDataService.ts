@@ -45,7 +45,9 @@ export type AdminAction =
   | "trigger_voice_followup"
   | "manage_user_roles"
   | "list_user_roles"
-  | "get_role_audit_log";
+  | "get_role_audit_log"
+  | "fetch_lead_events"
+  | "fetch_webhook_deliveries";
 
 /**
  * Payload shapes for each admin action.
