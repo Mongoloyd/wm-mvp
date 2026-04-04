@@ -2,11 +2,9 @@
  * request-callback — Public-facing callback request bridge.
  *
  * Allows verified homeowners to request a voice callback without admin auth.
- * Security: Validates that the lead's phone is verified before triggering.
+ * Security: Looks up lead from scan_session_id, validates phone_verified.
  *
- * Inputs: { lead_id, scan_session_id, call_intent, cta_source? }
- * Security: Checks leads.phone_verified === true AND scan_session matches lead.
- * Action: Inserts a voice_followups row and fires the phonecall.bot webhook.
+ * Inputs: { scan_session_id, call_intent, cta_source? }
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -23,17 +21,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { lead_id, scan_session_id, call_intent, cta_source } = await req.json();
+    const { scan_session_id, call_intent, cta_source } = await req.json();
 
-    // ── Input validation ─────────────────────────────────────────────────
-    if (!lead_id || !scan_session_id || !call_intent) {
+    if (!scan_session_id || !call_intent) {
       return new Response(
-        JSON.stringify({ error: "lead_id, scan_session_id, and call_intent are required" }),
+        JSON.stringify({ error: "scan_session_id and call_intent are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Validate call_intent values
     const validIntents = ["contractor_intro", "report_explainer", "general_callback"];
     if (!validIntents.includes(call_intent)) {
       return new Response(
@@ -42,20 +38,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Service-role client (bypasses RLS) ────────────────────────────────
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // ── Security check: lead must be phone-verified ──────────────────────
-    const { data: lead, error: leadErr } = await supabase
-      .from("leads")
-      .select("id, phone_e164, phone_verified, first_name, county, project_type, window_count, quote_range")
-      .eq("id", lead_id)
+    // ── Look up session → lead ───────────────────────────────────────────
+    const { data: session } = await supabase
+      .from("scan_sessions")
+      .select("id, lead_id")
+      .eq("id", scan_session_id)
       .maybeSingle();
 
-    if (leadErr || !lead) {
+    if (!session?.lead_id) {
+      return new Response(
+        JSON.stringify({ error: "Session not found or not linked to a lead" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: lead } = await supabase
+      .from("leads")
+      .select("id, phone_e164, phone_verified, first_name, county, project_type, window_count, quote_range")
+      .eq("id", session.lead_id)
+      .maybeSingle();
+
+    if (!lead) {
       return new Response(
         JSON.stringify({ error: "Lead not found" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -64,27 +72,19 @@ Deno.serve(async (req) => {
 
     if (!lead.phone_verified) {
       return new Response(
-        JSON.stringify({ error: "Phone not verified. Please verify your phone number first." }),
+        JSON.stringify({ error: "Phone not verified" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // ── Verify scan_session belongs to this lead ─────────────────────────
-    const { data: session } = await supabase
-      .from("scan_sessions")
-      .select("id, lead_id")
-      .eq("id", scan_session_id)
-      .eq("lead_id", lead_id)
-      .maybeSingle();
-
-    if (!session) {
+    if (!lead.phone_e164) {
       return new Response(
-        JSON.stringify({ error: "Session does not match lead" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "No phone on file" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // ── Get analysis context ─────────────────────────────────────────────
+    // ── Get analysis + opportunity context ────────────────────────────────
     const { data: analysis } = await supabase
       .from("analyses")
       .select("grade, flags, confidence_score")
@@ -98,10 +98,9 @@ Deno.serve(async (req) => {
       .slice(0, 5)
       .map((f: any) => f.title || f.name || "Unknown");
 
-    // ── Get or create opportunity ────────────────────────────────────────
     const { data: opp } = await supabase
       .from("contractor_opportunities")
-      .select("id, suggested_contractor_id, suggested_match_confidence, flag_count, red_flag_count")
+      .select("id, flag_count, red_flag_count")
       .eq("scan_session_id", scan_session_id)
       .maybeSingle();
 
@@ -111,21 +110,20 @@ Deno.serve(async (req) => {
     const { data: followup, error: followupErr } = await supabase
       .from("voice_followups")
       .insert({
-        lead_id,
+        lead_id: lead.id,
         scan_session_id,
         opportunity_id: opp?.id || null,
-        phone_e164: lead.phone_e164!,
+        phone_e164: lead.phone_e164,
         call_intent,
         cta_source: cta_source || call_intent,
         status: "queued",
         payload_json: {
           to: lead.phone_e164,
           info: {
-            lead_id,
+            lead_id: lead.id,
             scan_session_id,
             first_name: lead.first_name,
             call_intent,
-            cta_source: cta_source || call_intent,
             county: lead.county,
             project_type: lead.project_type,
             window_count: lead.window_count,
@@ -141,7 +139,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (followupErr) {
-      console.error("[request-callback] followup insert failed:", followupErr);
+      console.error("[request-callback] insert failed:", followupErr);
       return new Response(
         JSON.stringify({ error: "Failed to queue callback" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -151,10 +149,10 @@ Deno.serve(async (req) => {
     console.log("[request-callback] queued", {
       followup_id: followup.id,
       call_intent,
-      phone: lead.phone_e164!.slice(0, 4) + "****",
+      phone: lead.phone_e164.slice(0, 4) + "****",
     });
 
-    // ── Update opportunity with call intent ──────────────────────────────
+    // ── Update opportunity ───────────────────────────────────────────────
     if (opp?.id) {
       await supabase
         .from("contractor_opportunities")
@@ -167,7 +165,7 @@ Deno.serve(async (req) => {
         .eq("id", opp.id);
     }
 
-    // ── Fire webhook to phonecall.bot ────────────────────────────────────
+    // ── Fire webhook ─────────────────────────────────────────────────────
     const webhookUrl = Deno.env.get("PHONECALL_BOT_WEBHOOK_URL");
     let webhookStatus = "queued";
 
@@ -179,7 +177,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             to: lead.phone_e164,
             info: {
-              lead_id,
+              lead_id: lead.id,
               scan_session_id,
               followup_id: followup.id,
               first_name: lead.first_name,
@@ -192,13 +190,8 @@ Deno.serve(async (req) => {
         });
 
         webhookStatus = resp.ok ? "sent" : "failed";
-        const body = await resp.text();
+        await resp.text(); // consume body
 
-        if (!resp.ok) {
-          console.error("[request-callback] webhook failed", resp.status, body);
-        }
-
-        // Update followup status
         await supabase
           .from("voice_followups")
           .update({ status: webhookStatus })
@@ -218,27 +211,18 @@ Deno.serve(async (req) => {
       console.log("[request-callback] PHONECALL_BOT_WEBHOOK_URL not set — skipping");
     }
 
-    // ── Log event ────────────────────────────────────────────────────────
+    // ── Audit trail ──────────────────────────────────────────────────────
     await supabase.from("lead_events").insert({
-      lead_id,
+      lead_id: lead.id,
       scan_session_id,
       event_name: "voice_followup_queued",
       event_source: "edge_function",
       voice_followup_id: followup.id,
-      metadata: {
-        call_intent,
-        cta_source,
-        webhook_status: webhookStatus,
-        timestamp: now,
-      },
+      metadata: { call_intent, cta_source, webhook_status: webhookStatus, timestamp: now },
     });
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        followup_id: followup.id,
-        webhook_status: webhookStatus,
-      }),
+      JSON.stringify({ success: true, followup_id: followup.id, webhook_status: webhookStatus }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
