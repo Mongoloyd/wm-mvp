@@ -129,9 +129,11 @@ const TruthReportClassic = ({
   const flagsDerivedAmber = flags.filter((f) => resolveEffectiveSeverity(f) === "amber").length;
   const flagsDerivedGreen = flags.filter((f) => resolveEffectiveSeverity(f) === "green").length;
 
-  const redCount = isFull ? flagsDerivedRed : (flagRedCountProp ?? flagsDerivedRed);
-  const amberCount = isFull ? flagsDerivedAmber : (flagAmberCountProp ?? flagsDerivedAmber);
-  const greenCount = isFull ? flagsDerivedGreen : Math.max(0, (flagCountProp ?? 0) - (flagRedCountProp ?? 0) - (flagAmberCountProp ?? 0));
+  // Preview mode: ALWAYS use aggregate props — flags array is intentionally empty
+  const redCount = isFull ? flagsDerivedRed : (flagRedCountProp ?? 0);
+  const amberCount = isFull ? flagsDerivedAmber : (flagAmberCountProp ?? 0);
+  const totalFlagCount = isFull ? flags.length : (flagCountProp ?? 0);
+  const greenCount = isFull ? flagsDerivedGreen : Math.max(0, totalFlagCount - redCount - amberCount);
   const issueCount = redCount + amberCount;
 
   const summaryParts = [
