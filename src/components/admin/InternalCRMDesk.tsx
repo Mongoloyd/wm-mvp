@@ -318,7 +318,8 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                       </Button>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
