@@ -1,58 +1,59 @@
 
 
-# P5 — Dossier Unification
+# P5a + Voice Call Log — Implementation Plan
 
-## Why P5 and Why This
+## Overview
 
-P4 built the Truth Engine Audit panel inside `LeadDossierSheet.tsx`. But during verification we found it only renders in the **Dialer Desk** tab. The **Active Pipeline** tab still opens the lightweight `LeadProfileSheet` — a simpler slide-out with no analysis data, no pillar cards, no flags. This means operators using the Pipeline tab (the default workflow for scanning new leads) never see the intelligence P4 built.
+Two-phase delivery: (1) add `fetch_lead_voice_followups` action to the admin-data edge function + frontend service helper, then (2) render a Call History panel inside LeadDossierSheet.
 
-P5 closes that gap: replace `LeadProfileSheet` with `LeadDossierSheet` in the Active Pipeline tab so every lead click, in every tab, opens the full intelligence dossier.
+---
 
-## Current State
+## Phase 1: P5a — Backend (fetch_lead_voice_followups)
 
-```text
-Tab              Click a lead →    Component              Has Truth Engine?
-─────────────    ──────────────    ─────────────────────  ─────────────────
-Active Pipeline  Row click         LeadProfileSheet       No
-Dialer Desk      Row click         LeadDossierSheet       Yes (P4)
-Ghost Recovery   No click handler  —                      —
-```
+### File 1: `supabase/functions/admin-data/index.ts`
 
-## What Changes
+1. Add `"fetch_lead_voice_followups"` to the `ActionName` union (line 8-15)
+2. Add entry in `ACTION_ROLES`: `fetch_lead_voice_followups: ["super_admin", "operator", "viewer"]`
+3. Add new action handler after the existing `fetch_voice_followups` block (after line 99), with specific column SELECT (no `select('*')` — omits `payload_json` and `result_json`), filtered by `lead_id`, ordered by `created_at desc`
 
-### File: `src/components/admin/ActivePipeline.tsx`
+### File 2: `src/services/adminDataService.ts`
 
-1. Replace `LeadProfileSheet` import with `LeadDossierSheet`
-2. Replace the `<Sheet>` + `<LeadProfileSheet>` block with `<LeadDossierSheet open={…} onOpenChange={…} lead={…} />`
-3. Remove the local `leadEvents` / `eventsLoading` state and the `handleRowClick` async event-fetching logic — `LeadDossierSheet` handles its own data fetching internally
-4. Remove the `onFetchLeadEvents` prop from the component interface (no longer needed)
+1. Add `"fetch_lead_voice_followups"` to `AdminAction` union type
+2. Add payload type: `fetch_lead_voice_followups: { lead_id: string }`
+3. Add `VoiceFollowup` interface (exported) with all 20 fields from the spec
+4. Add convenience wrapper `fetchLeadVoiceFollowups(leadId: string): Promise<VoiceFollowup[]>` using `invokeAdminData`
 
-### File: `src/components/AdminDashboard.tsx`
+No changes to existing `fetch_voice_followups` action.
 
-1. Remove `fetchLeadEvents` import (no longer passed to ActivePipeline)
-2. Remove `handleFetchLeadEvents` callback
-3. Remove `onFetchLeadEvents` prop from `<ActivePipeline>`
+---
 
-### File: `src/components/admin/LeadProfileSheet.tsx`
+## Phase 2: Voice Call Log — Frontend
 
-Leave in place for now (no deletion) — it may be useful as a lightweight fallback later.
+### File: `src/components/admin/LeadDossierSheet.tsx`
 
-## Scope
+1. Import `fetchLeadVoiceFollowups` and `VoiceFollowup` from adminDataService
+2. Import additional Lucide icons: `PhoneCall`, `Calendar`, `CalendarCheck`, `RotateCcw`, `AlertCircle`
+3. Add state: `callHistory`, `callHistoryLoading`, `callHistoryError`, `expandedTranscripts`
+4. Add useEffect to fetch on `currentLead?.id` change
+5. Add "Call History" section below Truth Engine Audit with:
+   - Header with PhoneCall icon + count pill
+   - Loading: 3 skeleton rows
+   - Error: AlertCircle + retry button
+   - Empty: Phone icon + "No calls logged yet."
+   - Entries: scrollable container (max-h-[400px]) with per-entry cards containing:
+     - Row 1: Type badge (Manual/AI Call), outcome badge (color-coded), duration, booking icons, timestamp
+     - Row 2: 3-case transcript fallback (inline text → external link → "No transcript"), summary, audio player (`preload="none"`), retry button (only on voicemail/no_answer/failed)
+6. Retry handler calls `invokeAdminData("trigger_voice_followup", ...)` then refetches
 
-- 2 files modified (`ActivePipeline.tsx`, `AdminDashboard.tsx`)
-- 0 files deleted
-- No backend changes, no schema changes, no new queries
-- LeadDossierSheet already fetches its own analysis data via `fetchLeadAnalysis` when opened
+---
 
-## Result
+## Files Modified
 
-```text
-Tab              Click a lead →    Component              Has Truth Engine?
-─────────────    ──────────────    ─────────────────────  ─────────────────
-Active Pipeline  Row click         LeadDossierSheet       Yes
-Dialer Desk      Row click         LeadDossierSheet       Yes
-Ghost Recovery   (future P6)       —                      —
-```
+| File | Change |
+|------|--------|
+| `supabase/functions/admin-data/index.ts` | +1 action type, +1 role entry, +1 handler (~20 lines) |
+| `src/services/adminDataService.ts` | +1 union member, +1 payload type, +1 interface, +1 helper function |
+| `src/components/admin/LeadDossierSheet.tsx` | +Call History section (~150 lines) |
 
-Every operator path now surfaces the same forensic intelligence panel.
+No schema changes. No new edge functions. Existing `fetch_voice_followups` untouched.
 
