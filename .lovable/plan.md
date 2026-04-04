@@ -1,86 +1,61 @@
 
 
-# Harden `get_analysis_full` with Access Token Binding
+# Dev Bypass for the Truth Report Gate
 
-## The Real Security Gap
+## Problem
+You're locked out of the full report view during development because:
+1. The OTP rate limiter (3 sends/15min) blocks you after a few test runs
+2. The `get_analysis_full` RPC requires a verified `phone_verifications` row
+3. Every preview refresh resets state, forcing re-verification
 
-The current RPC already binds phone → lead → scan_session via joins. The actual gap is:
+## Solution: Client-Side Dev Bypass in `useAnalysisData`
 
-1. The RPC is callable by `anon` (no JWT required — correct for this anonymous flow)
-2. The only credentials needed are `scan_session_id` (UUID, may leak in URLs) + `phone_e164` (10 digits)
-3. An attacker who obtains both values (e.g., shoulder-surfing a URL + knowing the phone number) can call the RPC directly and receive the full report
+The cleanest approach is a single check in `useAnalysisData.ts` that, in DEV mode, skips the OTP-gated `get_analysis_full` RPC and instead calls the ungated `get_analysis_preview` RPC to populate the full data shape. This means you never need to touch the OTP flow at all while designing the report.
 
-Since this is an anonymous user flow (no Supabase auth session), we cannot bind to a JWT. Instead, we introduce a **cryptographic access token (nonce)** generated at OTP verification time.
+### How it works
 
-## How It Works
+When `import.meta.env.DEV` is true, `fetchFull()` and `tryResume()` will bypass the `get_analysis_full` RPC entirely. Instead, they'll call `get_analysis_preview` (which requires no phone verification) and then directly query the `analyses` table via a service-level Edge Function to get the flags and full_json. 
 
-```text
-verify-otp succeeds
-  → generate crypto-random access_token (UUID)
-  → store in phone_verifications row
-  → return to client alongside { verified: true }
+**Actually, simpler approach**: Since the `scan-quote` Edge Function already uses `DEV_BYPASS_SECRET` for test bypasses, we add a tiny new Edge Function `dev-report-unlock` that:
+- Accepts `scan_session_id` + `dev_secret`
+- Validates `dev_secret === DEV_BYPASS_SECRET`
+- Returns the same columns as `get_analysis_full` but without phone verification
+- Only works when the secret matches (production has no `VITE_DEV_BYPASS_SECRET`)
 
-Client stores access_token in localStorage (verifiedAccess record)
+### Changes
 
-get_analysis_full(scan_session_id, phone_e164, access_token)
-  → JOIN now also checks pv.access_token = p_access_token
-  → Without the token, RPC returns empty even with correct phone + session
-```
+**1. New Edge Function: `supabase/functions/dev-report-unlock/index.ts`**
+- Accepts `{ scan_session_id, dev_secret }`
+- Validates `dev_secret` against `DEV_BYPASS_SECRET` env var
+- If match: queries `analyses` table directly (service role) and returns grade, flags, full_json, proof_of_read, preview_json, confidence_score, document_type, rubric_version
+- If no match: returns 403
+- CORS headers included
 
-## Changes
+**2. Update `src/hooks/useAnalysisData.ts` — `fetchFull()` method**
+- At the top of `fetchFull`, check `import.meta.env.DEV` and whether `VITE_DEV_BYPASS_SECRET` is set
+- If both true: call `dev-report-unlock` Edge Function instead of `get_analysis_full` RPC
+- Parse the response identically (same data shape)
+- Still calls `saveVerifiedAccess` so resume works within the session
 
-### 1. Database Migration — Add `access_token` column + update RPC
+**3. Update `src/hooks/useAnalysisData.ts` — `tryResume()` method**
+- Same DEV check: if in dev mode with bypass secret, use `dev-report-unlock` instead of the RPC
+- This means page refreshes auto-resume without needing a real verified record
 
-- Add `access_token TEXT` column to `phone_verifications`
-- Replace `get_analysis_full` RPC to require a third parameter `p_access_token TEXT`
-- The authorization check adds: `AND pv.access_token = p_access_token`
+**4. Update `src/components/TruthReportFindings/VerifyGate.tsx`**
+- In DEV mode with bypass secret: auto-call `onVerified()` immediately (skip the phone input entirely)
+- Show a small "DEV BYPASS ACTIVE" badge so you know the gate is skipped
 
-### 2. Edge Function — `verify-otp/index.ts`
+### Security Properties
+- `DEV_BYPASS_SECRET` is a server-side secret — production callers can't guess it
+- `VITE_DEV_BYPASS_SECRET` only exists in your local `.env` — production builds don't bundle it
+- The Edge Function rejects all requests without a matching secret
+- No changes to the production `get_analysis_full` RPC
+- No changes to rate limiting or OTP logic
 
-- After Twilio approval, generate `crypto.randomUUID()` as the access token
-- Store it in the `phone_verifications` update payload
-- Return it in the response: `{ verified: true, phone_e164, access_token }`
-
-### 3. Frontend — `verifiedAccess.ts`
-
-- Add `access_token` to the `VerifiedAccessRecord` interface
-- `saveVerifiedAccess` accepts and stores the token
-- `getVerifiedAccess` returns it
-
-### 4. Frontend — `useAnalysisData.ts`
-
-- `fetchFull` accepts `accessToken` as second parameter alongside `phoneE164`
-- Passes `p_access_token` to the RPC call
-- `tryResume` reads `access_token` from the localStorage record and passes it
-
-### 5. Frontend — Callers of `fetchFull`
-
-- Update `VerifyGate.tsx` (or wherever verify-otp response is handled) to extract `access_token` from the response and pass it through to `fetchFull`
-
-### 6. Edge Functions using `get_analysis_full` as auth gate
-
-- `generate-contractor-brief` and `generate-negotiation-script` both call the RPC
-- Update them to accept and forward `access_token`
-- `compare-quotes` also calls it — same treatment
-
-## Security Properties After This Change
-
-- **scan_session_id + phone alone = insufficient** (token required)
-- **Token is single-use per verification** (one token per verify-otp success)
-- **Token never leaves the verifying browser** (stored in localStorage, not in URLs)
-- **Resume flow preserved** (token stored alongside phone in the 24h record)
-- **Production RPC stays anon-callable** (correct for the anonymous upload flow)
-
-## Files Modified
-
+### Files Modified
 | File | Change |
 |------|--------|
-| Migration SQL | Add column + replace RPC |
-| `supabase/functions/verify-otp/index.ts` | Generate + store + return token |
-| `src/lib/verifiedAccess.ts` | Store/retrieve token |
-| `src/hooks/useAnalysisData.ts` | Pass token to RPC |
-| `src/components/TruthReportFindings/VerifyGate.tsx` | Forward token from verify response |
-| `supabase/functions/generate-contractor-brief/index.ts` | Accept + forward token |
-| `supabase/functions/generate-negotiation-script/index.ts` | Accept + forward token |
-| `supabase/functions/compare-quotes/index.ts` | Accept + forward token |
+| `supabase/functions/dev-report-unlock/index.ts` | New Edge Function |
+| `src/hooks/useAnalysisData.ts` | DEV bypass in `fetchFull` and `tryResume` |
+| `src/components/TruthReportFindings/VerifyGate.tsx` | Auto-skip gate in DEV mode |
 
