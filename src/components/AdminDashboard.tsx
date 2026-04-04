@@ -66,6 +66,8 @@ function toLeadCRM(raw: Record<string, any>): CRMLead {
     scan_count: raw.scan_count ?? 0,
     created_at: raw.created_at,
     updated_at: raw.updated_at,
+    deal_status: raw.deal_status ?? null,
+    last_call_intent: raw.last_call_intent ?? null,
     assigned_partner: "Primary Client",
   };
 }

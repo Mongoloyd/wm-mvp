@@ -251,6 +251,13 @@ export async function fetchWebhookDeliveries(status?: string, limit = 200): Prom
 }
 
 /**
+ * Update lead deal_status (operator+). Used by the Power Dialer.
+ */
+export async function updateLeadDealStatus(leadId: string, dealStatus: string): Promise<{ success: boolean }> {
+  return invokeAdminData("update_lead_deal_status", { lead_id: leadId, deal_status: dealStatus });
+}
+
+/**
  * Response type map for admin actions.
  */
 export type AdminActionResponses = {
