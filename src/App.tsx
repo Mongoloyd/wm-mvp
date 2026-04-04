@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, Component, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -8,8 +8,10 @@ import { FacebookConversionProvider } from "@/components/FacebookConversionProvi
 import AdminSettings from "./pages/AdminSettings";
 import PublicLayout from "@/components/PublicLayout";
 
+// ── Static import for critical home route ────────────────────────────────────
+import Index from "./pages/Index";
+
 // ── Lazy-loaded routes ──────────────────────────────────────────────────────
-const Index = lazy(() => import("./pages/Index.tsx"));
 const ReportClassic = lazy(() => import("./pages/ReportClassic.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -44,6 +46,42 @@ function PageLoader() {
   );
 }
 
+// ── Error boundary for lazy-loaded route chunk failures ───────────────────────
+class RouteErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4 text-center px-6">
+            <p className="text-sm text-muted-foreground font-mono">
+              Something went wrong loading this page.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              Click to reload
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -53,32 +91,34 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <FacebookConversionProvider>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/report/classic/:sessionId" element={<ReportClassic />} />
-              {/* Legacy V2 route → permanent redirect to Classic */}
-              <Route path="/report/:sessionId" element={<ReportRedirect />} />
-              {/* Internal/dev only — zero production CTAs point here */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/settings" element={<AdminSettings />} />
-              <Route path="/demo-classic" element={<DemoClassic />} />
-              <Route path="/dev/report-preview" element={<DevReportPreview />} />
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/report/classic/:sessionId" element={<ReportClassic />} />
+                {/* Legacy V2 route → permanent redirect to Classic */}
+                <Route path="/report/:sessionId" element={<ReportRedirect />} />
+                {/* Internal/dev only — zero production CTAs point here */}
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/settings" element={<AdminSettings />} />
+                <Route path="/demo-classic" element={<DemoClassic />} />
+                <Route path="/dev/report-preview" element={<DevReportPreview />} />
 
-              {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
-              <Route element={<PublicLayout />}>
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/disclaimer" element={<Disclaimer />} />
-                <Route path="/how-we-beat-window-quotes" element={<HowWeBeatWindowQuotes />} />
-              </Route>
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+                {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/disclaimer" element={<Disclaimer />} />
+                  <Route path="/how-we-beat-window-quotes" element={<HowWeBeatWindowQuotes />} />
+                </Route>
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </RouteErrorBoundary>
         </FacebookConversionProvider>
       </BrowserRouter>
     </TooltipProvider>
