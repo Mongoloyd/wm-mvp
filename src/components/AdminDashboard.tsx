@@ -250,6 +250,7 @@ function DashboardContent() {
               leads={leads}
               isLoading={isLoading}
               onStatusChange={() => fetchAll(true)}
+              latestFollowups={latestFollowups}
             />
           </TabsContent>
         </Tabs>
