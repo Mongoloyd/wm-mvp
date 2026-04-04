@@ -1281,8 +1281,8 @@ Deno.serve(async (req: Request) => {
               lead_id: session.lead_id,
               scan_session_id: scan_session_id,
               analysis_id: analysisId,
-              event_name: "wm_scan_completed",
-              event_source: "backend",
+              event_name: "scan_completed",
+              event_source: "edge_function",
               metadata: {
                 grade: gradeResult.letterGrade,
                 flag_count: flags.length,
