@@ -36,6 +36,16 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
   const [errorMsg, setErrorMsg] = useState("");
   const [cooldown, setCooldown] = useState(0);
 
+  // ── Dev bypass: auto-skip the entire gate in DEV mode ──────────────
+  const devBypassActive = import.meta.env.DEV && !!import.meta.env.VITE_DEV_BYPASS_SECRET;
+
+  useEffect(() => {
+    if (devBypassActive) {
+      console.info("[VerifyGate] 🔓 DEV BYPASS — auto-verifying");
+      onVerified();
+    }
+  }, [devBypassActive, onVerified]);
+
   const isPhoneStep = step === "phone" || step === "sending";
   const isOtpStep = step === "otp" || step === "verifying";
   const digitCount = rawDigits.length;

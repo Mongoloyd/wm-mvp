@@ -301,6 +301,23 @@ export function useAnalysisData(
     return () => { cancelled = true; if (retryTimer) clearTimeout(retryTimer); };
   }, [scanSessionId, enabled]);
 
+  // ── Dev bypass helper ────────────────────────────────────────────────
+  const devBypassEnabled =
+    import.meta.env.DEV && !!import.meta.env.VITE_DEV_BYPASS_SECRET;
+
+  const fetchFullViaDevBypass = useCallback(
+    async (sessionId: string) => {
+      const { data: fnData, error: fnErr } = await supabase.functions.invoke(
+        "dev-report-unlock",
+        { body: { scan_session_id: sessionId, dev_secret: import.meta.env.VITE_DEV_BYPASS_SECRET } }
+      );
+      if (fnErr) throw fnErr;
+      // Edge function returns the row directly (not wrapped in array)
+      return fnData;
+    },
+    []
+  );
+
   // ── Phase 2: Full gated fetch ──────────────────────────────────────────
   const fetchFull = useCallback(async (phoneE164: string) => {
     
@@ -310,15 +327,20 @@ export function useAnalysisData(
     }
     setIsLoadingFull(true);
     try {
-      
-      const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
-        "get_analysis_full",
-        { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
-      );
-      
-      if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); return; }
-      const row = Array.isArray(rows) ? rows[0] : rows;
-      if (!row || !row.grade) { console.error("[fetchFull] get_analysis_full returned empty", { row }); return; }
+      let row: any;
+
+      if (devBypassEnabled) {
+        console.info("[fetchFull] 🔓 DEV BYPASS — skipping get_analysis_full RPC");
+        row = await fetchFullViaDevBypass(scanSessionId);
+      } else {
+        const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
+          "get_analysis_full",
+          { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
+        );
+        if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); return; }
+        row = Array.isArray(rows) ? rows[0] : rows;
+      }
+      if (!row || !row.grade) { console.error("[fetchFull] returned empty", { row }); return; }
 
       const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
       const previewJson = row.preview_json as Record<string, unknown> | null;
@@ -359,7 +381,7 @@ export function useAnalysisData(
     } finally {
       setIsLoadingFull(false);
     }
-  }, [scanSessionId, isFullLoaded]);
+  }, [scanSessionId, isFullLoaded, devBypassEnabled, fetchFullViaDevBypass]);
 
   // ── Phase 3: Auto-resume for returning verified users ─────────────────
   const tryResume = useCallback(async (): Promise<boolean> => {
@@ -368,26 +390,37 @@ export function useAnalysisData(
     resumeAttemptedRef.current = scanSessionId;
 
     const record = getVerifiedAccess(scanSessionId);
-    if (!record) {
-      
+    if (!record && !devBypassEnabled) {
       return false;
     }
 
 
     setIsResuming(true);
     try {
-      const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
-        "get_analysis_full",
-        { p_scan_session_id: scanSessionId, p_phone_e164: record.phone_e164 }
-      );
+      let row: any;
 
-      if (rpcErr) {
-        console.warn("[tryResume] RPC error — clearing stale record", rpcErr);
-        clearVerifiedAccess();
-        return false;
+      if (devBypassEnabled) {
+        console.info("[tryResume] 🔓 DEV BYPASS — skipping get_analysis_full RPC");
+        try {
+          row = await fetchFullViaDevBypass(scanSessionId);
+        } catch (e) {
+          console.warn("[tryResume] dev bypass error", e);
+          return false;
+        }
+      } else {
+        const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
+          "get_analysis_full",
+          { p_scan_session_id: scanSessionId, p_phone_e164: record.phone_e164 }
+        );
+
+        if (rpcErr) {
+          console.warn("[tryResume] RPC error — clearing stale record", rpcErr);
+          clearVerifiedAccess();
+          return false;
+        }
+        row = Array.isArray(rows) ? rows[0] : rows;
       }
 
-      const row = Array.isArray(rows) ? rows[0] : rows;
       if (!row || !row.grade) {
         console.warn("[tryResume] empty result — clearing stale record");
         clearVerifiedAccess();
@@ -434,7 +467,7 @@ export function useAnalysisData(
     } finally {
       setIsResuming(false);
     }
-  }, [scanSessionId, isFullLoaded]);
+  }, [scanSessionId, isFullLoaded, devBypassEnabled, fetchFullViaDevBypass]);
 
   return { data, isLoading, error, fetchFull, isLoadingFull, isFullLoaded, tryResume, isResuming };
 }
