@@ -627,10 +627,11 @@ export async function upsertAnalysisRecord(
   logMessage: string,
   failureBody: Record<string, unknown>,
   status = 500,
-): Promise<{ success: true } | { success: false; response: Response }> {
-  const { error } = await supabase
+): Promise<{ success: true; analysisId: string | null } | { success: false; response: Response }> {
+  const { data, error } = await supabase
     .from("analyses")
-    .upsert(payload, { onConflict: "scan_session_id" });
+    .upsert(payload, { onConflict: "scan_session_id" })
+    .select("id");
 
   if (error) {
     console.error(logMessage, error);
@@ -640,7 +641,8 @@ export async function upsertAnalysisRecord(
     };
   }
 
-  return { success: true };
+  const analysisId = data?.[0]?.id ?? null;
+  return { success: true, analysisId };
 }
 
 function mimeFromPath(path: string): string {
