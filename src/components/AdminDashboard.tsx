@@ -22,6 +22,7 @@ import { CommandCenter } from "@/components/admin/CommandCenter";
 import { ActivePipeline } from "@/components/admin/ActivePipeline";
 import { GhostRecovery } from "@/components/admin/GhostRecovery";
 import { EngineRoom } from "@/components/admin/EngineRoom";
+import { InternalCRMDesk } from "@/components/admin/InternalCRMDesk";
 
 import {
   invokeAdminData,
