@@ -52,6 +52,9 @@ interface TruthReportProps {
   isCtaLoading?: boolean;
   suggestedMatch?: SuggestedMatch | null;
   derivedMetrics?: DerivedMetrics;
+  priceFairness?: string | null;
+  markupEstimate?: string | null;
+  negotiationLeverage?: string | null;
 }
 
 const gradeConfig: Record<string, { color: string; bg: string; glow: string; label: string; verdict: string }> = {
