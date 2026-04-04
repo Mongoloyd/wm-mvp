@@ -5,9 +5,13 @@
  *   enter_phone — phone capture + TCPA consent (primary path, Just-in-Time)
  *   enter_code  — OTP input (after send succeeds)
  *
+ * Phase 3: auto-submit on 6th digit, error shake + auto-clear,
+ *          CRO micro-copy, autoComplete="one-time-code".
+ *
  * All business logic lives in the parent orchestrator (PostScanReportSwitcher).
  */
 
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, AlertCircle, Clock, RefreshCw } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
