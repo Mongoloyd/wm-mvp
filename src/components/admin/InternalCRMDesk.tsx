@@ -188,8 +188,7 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
                   <TableHead>Name</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>County</TableHead>
-                  <TableHead className="text-center">Grade</TableHead>
-                  <TableHead className="text-center">Red Flags</TableHead>
+                  <TableHead className="text-center">Grade / Flags</TableHead>
                   <TableHead className="text-center">Call Intent</TableHead>
                   <TableHead className="w-[180px]">Status</TableHead>
                   <TableHead className="w-[60px]" />
