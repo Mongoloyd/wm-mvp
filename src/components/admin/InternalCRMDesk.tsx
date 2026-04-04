@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import type { CRMLead, VoiceFollowupSummary } from "./types";
 import { updateLeadDealStatus } from "@/services/adminDataService";
 import { LeadDossierSheet } from "./LeadDossierSheet";
+import { formatPhoneDisplay, stripNonDigits } from "@/utils/formatPhone";
 
 /* ── Constants ────────────────────────────────────────────────────────── */
 
