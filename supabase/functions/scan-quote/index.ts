@@ -627,10 +627,11 @@ export async function upsertAnalysisRecord(
   logMessage: string,
   failureBody: Record<string, unknown>,
   status = 500,
-): Promise<{ success: true } | { success: false; response: Response }> {
-  const { error } = await supabase
+): Promise<{ success: true; analysisId: string | null } | { success: false; response: Response }> {
+  const { data, error } = await supabase
     .from("analyses")
-    .upsert(payload, { onConflict: "scan_session_id" });
+    .upsert(payload, { onConflict: "scan_session_id" })
+    .select("id");
 
   if (error) {
     console.error(logMessage, error);
@@ -640,7 +641,8 @@ export async function upsertAnalysisRecord(
     };
   }
 
-  return { success: true };
+  const analysisId = data?.[0]?.id ?? null;
+  return { success: true, analysisId };
 }
 
 function mimeFromPath(path: string): string {
@@ -1238,6 +1240,64 @@ Deno.serve(async (req: Request) => {
         scan_session_status: "processing",
       });
       if (!completeAnalysisUpsert.success) return completeAnalysisUpsert.response;
+
+      const analysisId = completeAnalysisUpsert.analysisId;
+
+      // 13b. LEAD SNAPSHOT SYNC — update leads table with analysis results
+      if (session.lead_id && analysisId) {
+        const criticalCount = flags.filter(f => f.severity === "Critical").length;
+        const redCount = flags.filter(f => f.severity === "High").length;
+        const amberCount = flags.filter(f => f.severity === "Medium").length;
+
+        try {
+          const { error: leadUpdateErr } = await supabase
+            .from("leads")
+            .update({
+              latest_analysis_id: analysisId,
+              latest_scan_session_id: scan_session_id,
+              grade: gradeResult.letterGrade,
+              flag_count: flags.length,
+              critical_flag_count: criticalCount,
+              red_flag_count: redCount,
+              amber_flag_count: amberCount,
+              funnel_stage: "scanned",
+            })
+            .eq("id", session.lead_id);
+
+          if (leadUpdateErr) {
+            console.error("Lead snapshot sync failed (non-fatal):", leadUpdateErr);
+          } else {
+            console.log(`[LEAD_SNAPSHOT_SYNC] lead_id=${session.lead_id} analysis_id=${analysisId} grade=${gradeResult.letterGrade}`);
+          }
+        } catch (leadSyncErr) {
+          console.error("Lead snapshot sync unexpected error (non-fatal):", leadSyncErr);
+        }
+
+        // 13c. LEAD EVENT — append operational timeline entry
+        try {
+          const { error: eventErr } = await supabase
+            .from("lead_events")
+            .insert({
+              lead_id: session.lead_id,
+              scan_session_id: scan_session_id,
+              analysis_id: analysisId,
+              event_name: "wm_scan_completed",
+              event_source: "backend",
+              metadata: {
+                grade: gradeResult.letterGrade,
+                flag_count: flags.length,
+                confidence_score: extraction.confidence,
+                rubric_version: RUBRIC_VERSION,
+              },
+            });
+
+          if (eventErr) {
+            console.error("Lead event insert failed (non-fatal):", eventErr);
+          }
+        } catch (eventInsertErr) {
+          console.error("Lead event insert unexpected error (non-fatal):", eventInsertErr);
+        }
+      }
 
       // 14. Update session to preview_ready
       const previewReadyStatusUpdate = await updateScanSessionStatus(
