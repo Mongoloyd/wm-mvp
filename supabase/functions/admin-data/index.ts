@@ -241,6 +241,38 @@ Deno.serve(async (req) => {
       return successResponse({ data: { entries: enriched } });
     }
 
+    // ─── CRM: LEAD EVENTS ─────────────────────────────────────────────
+
+    if (action === "fetch_lead_events") {
+      const { lead_id, limit: rawLimit } = payload;
+      if (!lead_id) return errorResponse(400, "missing_param", "lead_id is required");
+      const limit = Math.min(200, Math.max(1, Number.isInteger(rawLimit) ? rawLimit : 50));
+      const { data, error } = await supabaseAdmin
+        .from("lead_events")
+        .select("*")
+        .eq("lead_id", lead_id)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return successResponse({ data: data });
+    }
+
+    // ─── CRM: WEBHOOK DELIVERIES ───────────────────────────────────────
+
+    if (action === "fetch_webhook_deliveries") {
+      const { status: filterStatus, limit: rawLimit } = payload;
+      const limit = Math.min(500, Math.max(1, Number.isInteger(rawLimit) ? rawLimit : 200));
+      let query = supabaseAdmin
+        .from("webhook_deliveries")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (filterStatus) query = query.eq("status", filterStatus);
+      const { data, error } = await query;
+      if (error) throw error;
+      return successResponse({ data: data });
+    }
+
     return errorResponse(400, "unhandled_action", `Action ${action} not implemented`);
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
