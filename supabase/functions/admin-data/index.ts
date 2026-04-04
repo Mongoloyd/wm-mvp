@@ -9,7 +9,7 @@ type ActionName =
   | "fetch_leads" | "update_lead_status" | "update_lead_deal_status"
   | "fetch_opportunities" | "fetch_contractors" | "fetch_routes" | "fetch_billable"
   | "route_opportunity" | "mark_dead"
-  | "fetch_voice_followups" | "trigger_voice_followup"
+  | "fetch_voice_followups" | "fetch_lead_voice_followups" | "trigger_voice_followup"
   | "manage_user_roles" | "list_user_roles" | "get_role_audit_log"
   | "fetch_lead_events" | "fetch_webhook_deliveries"
   | "fetch_lead_analysis";
