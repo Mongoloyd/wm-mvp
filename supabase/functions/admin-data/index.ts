@@ -1,8 +1,9 @@
 import { corsHeaders, errorResponse, successResponse, validateAdminRequestWithRole, type AppRole } from "../_shared/adminAuth.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 /**
- * admin-data v2.2 (Final Unified Version)
- * Restores event_logs tracking and all original contractor/voice logic.
+ * admin-data v2.3
+ * Added: fetch_needs_review, rescan_lead, update_lead_manual_entry
  */
 
 type ActionName = 
@@ -12,7 +13,8 @@ type ActionName =
   | "fetch_voice_followups" | "fetch_lead_voice_followups" | "trigger_voice_followup"
   | "manage_user_roles" | "list_user_roles" | "get_role_audit_log"
   | "fetch_lead_events" | "fetch_webhook_deliveries"
-  | "fetch_lead_analysis";
+  | "fetch_lead_analysis"
+  | "fetch_needs_review" | "rescan_lead" | "update_lead_manual_entry";
 
 const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_leads: ["super_admin", "operator", "viewer"],
@@ -33,6 +35,9 @@ const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_lead_events: ["super_admin", "operator", "viewer"],
   fetch_webhook_deliveries: ["super_admin", "operator", "viewer"],
   fetch_lead_analysis: ["super_admin", "operator", "viewer"],
+  fetch_needs_review: ["super_admin", "operator", "viewer"],
+  rescan_lead: ["super_admin", "operator"],
+  update_lead_manual_entry: ["super_admin", "operator"],
 };
 
 Deno.serve(async (req) => {
@@ -118,6 +123,212 @@ Deno.serve(async (req) => {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return successResponse({ data: data });
+    }
+
+    // ─── NEEDS REVIEW ──────────────────────────────────────────────
+
+    if (action === "fetch_needs_review") {
+      // Query A: Leads with no analysis, not manually reviewed
+      const { data: noAnalysis } = await supabaseAdmin
+        .from("leads")
+        .select(`
+          id, first_name, last_name, city, created_at,
+          latest_analysis_id, latest_scan_session_id,
+          grade, flag_count
+        `)
+        .is("latest_analysis_id", null)
+        .or("manually_reviewed.is.null,manually_reviewed.eq.false")
+        .order("created_at", { ascending: false });
+
+      const taggedNoAnalysis = (noAnalysis ?? []).map((l: any) => ({
+        ...l,
+        review_reason: "no_scan",
+        analysis_status: null,
+        confidence_score: null,
+        analysis_error: null,
+        full_json: null,
+        quote_image_url: null,
+      }));
+
+      // Query B: Analyses that failed or have low confidence
+      const { data: failedAnalyses } = await supabaseAdmin
+        .from("analyses")
+        .select("id, analysis_status, confidence_score, full_json, lead_id, scan_session_id")
+        .or("analysis_status.eq.invalid_document,analysis_status.eq.needs_better_upload,confidence_score.lt.0.6")
+        .not("lead_id", "is", null)
+        .order("created_at", { ascending: false });
+
+      const failedLeadIds = (failedAnalyses ?? []).map((a: any) => a.lead_id).filter(Boolean);
+
+      let failedLeads: any[] = [];
+      if (failedLeadIds.length > 0) {
+        const { data: leads } = await supabaseAdmin
+          .from("leads")
+          .select(`
+            id, first_name, last_name, city, created_at,
+            latest_analysis_id, latest_scan_session_id,
+            grade, flag_count, manually_reviewed
+          `)
+          .in("id", failedLeadIds)
+          .or("manually_reviewed.is.null,manually_reviewed.eq.false");
+
+        failedLeads = (leads ?? []).map((lead: any) => {
+          const analysis = (failedAnalyses ?? []).find((a: any) => a.lead_id === lead.id);
+          const isFailed = analysis?.analysis_status === "invalid_document" || analysis?.analysis_status === "needs_better_upload";
+          return {
+            ...lead,
+            review_reason: isFailed ? "parse_failed" : "low_confidence",
+            analysis_status: analysis?.analysis_status ?? null,
+            confidence_score: analysis?.confidence_score ?? null,
+            analysis_error: (analysis?.full_json as any)?.error ?? null,
+            full_json: analysis?.full_json ?? null,
+            quote_image_url: null,
+          };
+        });
+      }
+
+      // Merge + deduplicate
+      const allLeadIds = new Set<string>();
+      const merged = [...taggedNoAnalysis, ...failedLeads]
+        .filter((lead: any) => {
+          if (allLeadIds.has(lead.id)) return false;
+          allLeadIds.add(lead.id);
+          return true;
+        })
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      // Generate signed URLs for quote images
+      // Need a storage client with service role
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const storageClient = createClient(supabaseUrl, serviceRoleKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      // Collect scan_session_ids that need image URLs
+      const sessionIds = merged
+        .map((l: any) => l.latest_scan_session_id)
+        .filter(Boolean);
+
+      if (sessionIds.length > 0) {
+        // Fetch scan_sessions to get quote_file_ids
+        const { data: sessions } = await supabaseAdmin
+          .from("scan_sessions")
+          .select("id, quote_file_id")
+          .in("id", sessionIds);
+
+        const fileIds = (sessions ?? [])
+          .map((s: any) => s.quote_file_id)
+          .filter(Boolean);
+
+        let fileMap: Record<string, string> = {};
+        if (fileIds.length > 0) {
+          const { data: files } = await supabaseAdmin
+            .from("quote_files")
+            .select("id, storage_path")
+            .in("id", fileIds);
+
+          for (const f of files ?? []) {
+            fileMap[f.id] = f.storage_path;
+          }
+        }
+
+        // Build session_id → storage_path map
+        const sessionToPath: Record<string, string> = {};
+        for (const s of sessions ?? []) {
+          if (s.quote_file_id && fileMap[s.quote_file_id]) {
+            sessionToPath[s.id] = fileMap[s.quote_file_id];
+          }
+        }
+
+        // Generate signed URLs
+        for (const lead of merged) {
+          const path = sessionToPath[lead.latest_scan_session_id];
+          if (path) {
+            const { data: signedData } = await storageClient.storage
+              .from("quotes")
+              .createSignedUrl(path, 3600);
+            if (signedData?.signedUrl) {
+              lead.quote_image_url = signedData.signedUrl;
+            }
+          }
+        }
+      }
+
+      return successResponse({ data: merged });
+    }
+
+    // ─── RESCAN LEAD ───────────────────────────────────────────────
+
+    if (action === "rescan_lead") {
+      const { lead_id } = payload;
+      if (!lead_id) return errorResponse(400, "missing_param", "lead_id required");
+
+      // Step 1: Get latest_scan_session_id
+      const { data: lead, error: leadErr } = await supabaseAdmin
+        .from("leads")
+        .select("latest_scan_session_id")
+        .eq("id", lead_id)
+        .single();
+
+      if (leadErr || !lead?.latest_scan_session_id) {
+        return errorResponse(400, "no_session", "No scan session found for this lead");
+      }
+
+      const ssId = lead.latest_scan_session_id;
+
+      // Step 2: Reset scan_sessions.status to 'idle' (clears idempotency guard)
+      await supabaseAdmin
+        .from("scan_sessions")
+        .update({ status: "idle" })
+        .eq("id", ssId);
+
+      // Step 3: Delete existing analyses for this scan session
+      await supabaseAdmin
+        .from("analyses")
+        .delete()
+        .eq("scan_session_id", ssId);
+
+      // Step 4: Re-invoke scan-quote with { scan_session_id }
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+      const scanResp = await fetch(`${supabaseUrl}/functions/v1/scan-quote`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${serviceRoleKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ scan_session_id: ssId }),
+      });
+
+      if (scanResp.ok) {
+        return successResponse({ data: { success: true } });
+      } else {
+        const err = await scanResp.json().catch(() => ({}));
+        return errorResponse(500, "rescan_failed", err.error ?? `scan-quote returned ${scanResp.status}`);
+      }
+    }
+
+    // ─── UPDATE LEAD MANUAL ENTRY ──────────────────────────────────
+
+    if (action === "update_lead_manual_entry") {
+      const { lead_id, manual_entry_data } = payload;
+      if (!lead_id || !manual_entry_data) {
+        return errorResponse(400, "missing_param", "lead_id and manual_entry_data required");
+      }
+
+      const { error } = await supabaseAdmin
+        .from("leads")
+        .update({
+          manually_reviewed: true,
+          manual_entry_data: manual_entry_data,
+          updated_at: now,
+        })
+        .eq("id", lead_id);
+
+      if (error) throw error;
+      return successResponse({ data: { success: true } });
     }
 
     // ─── WRITE ACTIONS ─────────────────────────────────────────────
