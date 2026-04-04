@@ -181,16 +181,34 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
   // ── Retry call handler ──
   const handleRetryCall = useCallback(async (entry: VoiceFollowup) => {
     if (!lead) return;
+    const scanSessionId = lead.latest_scan_session_id ?? entry.scan_session_id;
+    if (!scanSessionId) {
+      console.error("[Dossier] Cannot retry — no scan_session_id");
+      toast.error("Cannot retry — missing scan session data");
+      return;
+    }
     try {
       await invokeAdminData("trigger_voice_followup", {
-        scan_session_id: lead.latest_scan_session_id ?? entry.scan_session_id ?? "",
+        scan_session_id: scanSessionId,
         phone_e164: lead.phone_e164 ?? entry.phone_e164,
       });
       refetchCallHistory();
     } catch (err) {
       console.error("[Dossier] Retry call failed:", err);
+      toast.error("Retry call failed");
     }
   }, [lead, refetchCallHistory]);
+
+  // ── Handoff state ──
+  const [handoffModalOpen, setHandoffModalOpen] = useState(false);
+  const [handoffSending, setHandoffSending] = useState(false);
+  const [localSentToContractor, setLocalSentToContractor] = useState(false);
+
+  // Reset local sent state on lead change
+  useEffect(() => {
+    setLocalSentToContractor(false);
+    setHandoffModalOpen(false);
+  }, [lead?.id]);
 
   if (!lead) return null;
 
