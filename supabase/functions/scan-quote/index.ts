@@ -1223,14 +1223,14 @@ Deno.serve(async (req: Request) => {
         confidence_score: extraction.confidence,
         grade: gradeResult.letterGrade,
         flags: flags,
-        // dollar_delta: intentionally set to null.
-        // The column exists for future benchmark comparison (quoted price vs market avg).
-        // extraction.total_quoted_price is stored in full_json.extraction.total_quoted_price.
         dollar_delta: null,
         proof_of_read: proofOfRead,
         preview_json: previewJson,
         full_json: fullJson,
         rubric_version: RUBRIC_VERSION,
+        price_fairness: extraction.price_fairness || null,
+        markup_estimate: extraction.markup_estimate || null,
+        negotiation_leverage: extraction.negotiation_leverage || null,
       }, "analyses upsert failed", {
         error: "Failed to persist analysis state",
         scan_session_id,
