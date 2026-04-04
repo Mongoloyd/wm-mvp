@@ -23,6 +23,15 @@ interface AuthGuardProps {
  * @param children - Content to render when an authenticated session is present
  */
 export function AuthGuard({ children }: AuthGuardProps) {
+  // ── DEV BYPASS: skip auth entirely in Lovable sandbox ──────────────
+  if (import.meta.env.DEV) {
+    return <>{children}</>;
+  }
+
+  return <ProductionAuthGuard>{children}</ProductionAuthGuard>;
+}
+
+function ProductionAuthGuard({ children }: AuthGuardProps) {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
