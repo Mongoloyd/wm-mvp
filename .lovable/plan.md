@@ -1,70 +1,62 @@
 
+Goal: eliminate the admin-data 401s by making the dev bypass secret consistent everywhere and confirming the deployed edge function is actually using the bypass path.
 
-## Plan: Real Data Sandbox Bypass + Lead Dossier Panel
+What I found
+- `src/services/adminDataService.ts` is already correct:
+  - in DEV it reads `import.meta.env.VITE_DEV_BYPASS_SECRET`
+  - it sends that value as the `x-dev-secret` header
+- `supabase/functions/_shared/adminAuth.ts` is already correct:
+  - it checks `req.headers.get("x-dev-secret")`
+  - it compares it to `Deno.env.get("DEV_BYPASS_SECRET")`
+  - that check happens before JWT validation
+- The actual mismatches in the repo are:
+  - `.env.example` still uses the old `dev-bypass-windowman-2024`
+  - `.env` still has `VITE_ADMIN_SECRET="wm-operator-2024"`
+- `VITE_ADMIN_SECRET` is not referenced anywhere in `src/` or `supabase/`, so it is currently just a config/documentation value, not the thing causing the 401.
+- The network logs prove the frontend is already sending `x-dev-secret: WM_SANDBOX_MASTER_2026`, yet the function still returns `invalid_token`. That strongly suggests the deployed `admin-data` function is not honoring the bypass at runtime yet, either because:
+  1. the runtime secret `DEV_BYPASS_SECRET` is still different, or
+  2. `admin-data` is running an older deployment.
 
-### Task 1: DEV Bypass for Real Data in `adminDataService.ts`
+Implementation plan
+1. Normalize both env files
+- Update `.env` so both values are:
+  - `VITE_DEV_BYPASS_SECRET="WM_SANDBOX_MASTER_2026"`
+  - `VITE_ADMIN_SECRET="WM_SANDBOX_MASTER_2026"`
+- Update `.env.example` to match exactly and remove the old `dev-bypass-windowman-2024` string.
+- Add `VITE_ADMIN_SECRET` to `.env.example` too so the example file matches the real local config.
 
-**Problem:** `invokeAdminData` requires a Supabase auth session to call the edge function. No session exists in the Lovable sandbox.
+2. Keep the frontend bypass logic as-is
+- Do not change the main flow in `src/services/adminDataService.ts` because it already matches the requested behavior.
+- Optionally add a small defensive comment/log so future debugging is clearer, but no functional rewrite is needed there.
 
-**Solution:** When `import.meta.env.DEV` is true, bypass the edge function entirely and query tables directly using `supabase.from(...)` with the anon key. The `leads` table already has an RLS policy allowing authenticated SELECT, but in DEV there's no auth session. Two options:
+3. Keep the backend bypass logic as-is, but verify deployment state
+- `supabase/functions/_shared/adminAuth.ts` already contains the correct explicit comparison against `Deno.env.get("DEV_BYPASS_SECRET")`.
+- The key action is to ensure the deployed `admin-data` function is rebuilt with this helper and that Supabase runtime secrets are synced.
 
-**Approach: Add temporary anon SELECT policies for admin tables in DEV queries, OR use the service role.**
+4. Redeploy the edge function
+- Redeploy `admin-data` so the live function definitely includes the current `_shared/adminAuth.ts` bypass logic.
+- If we touch `_shared/adminAuth.ts` at all during cleanup, I would also redeploy any other admin functions importing it for consistency, but `admin-data` is the urgent one.
 
-Actually, the simplest secure approach: The `analyses` table has NO RLS policies at all (empty policies = default deny for anon, but service_role bypasses). The `leads` table only allows authenticated SELECT via scan_sessions join. So direct `supabase.from("leads")` with anon key will return nothing.
+5. Verify the fix end-to-end
+- Trigger `/admin` again in the sandbox.
+- Confirm the `admin-data` requests return 200 instead of 401.
+- Confirm live rows load in the CRM.
+- If it still fails, check edge logs for one of these two signals:
+  - expected: `DEV BYPASS: Granting super_admin via X-Dev-Secret`
+  - failure: JWT validation runs, which means the secret still does not match at runtime
 
-**Revised approach:** Add a new edge function action `fetch_leads_dev` that skips JWT validation and instead checks a `DEV_BYPASS_SECRET` (same pattern as `dev-report-unlock`). This keeps data access server-side and secure.
+Technical details
+- Files to update:
+  - `.env`
+  - `.env.example`
+- Files to verify but likely not change:
+  - `src/services/adminDataService.ts`
+  - `supabase/functions/_shared/adminAuth.ts`
+- Important note:
+  - unifying `VITE_ADMIN_SECRET` helps consistency, but it does not fix the current 401 by itself because that variable is unused in the codebase today
+  - the real fix path is: frontend `VITE_DEV_BYPASS_SECRET` = backend `DEV_BYPASS_SECRET` = redeployed `admin-data`
 
-**Simpler revised approach:** Modify `invokeAdminData` so in DEV mode, it passes the `DEV_BYPASS_SECRET` as a header instead of a JWT. Then in `admin-data/index.ts`, add a dev bypass check: if the `X-Dev-Secret` header matches `DEV_BYPASS_SECRET` env var, skip JWT validation and proceed with supabaseAdmin. This reuses the existing edge function with all its logic intact.
-
-**Final approach chosen:**
-1. In `adminDataService.ts`: when `import.meta.env.DEV`, read `VITE_DEV_BYPASS_SECRET` from env and pass it as `X-Dev-Secret` header instead of requiring a session JWT.
-2. In `admin-data/index.ts` (`validateAdminRequestWithRole` or inline): before JWT validation, check if `X-Dev-Secret` header matches `DEV_BYPASS_SECRET` env var. If so, grant super_admin access.
-
-This is secure (secret is only in `.env` locally + Supabase secrets), and gives full real data access.
-
-**Files changed:**
-- `supabase/functions/_shared/adminAuth.ts` — add dev bypass check at the top of `validateAdminRequestWithRole`
-- `src/services/adminDataService.ts` — in DEV mode, skip session check and pass dev secret header instead
-- `supabase/functions/admin-data/index.ts` — no changes needed if adminAuth handles it
-
-### Task 2: Lead Dossier Sheet in InternalCRMDesk
-
-**What:** Add a "View" button to each row in the Power Dialer table. Clicking it opens a `Sheet` (side panel) with the complete lead dossier.
-
-**Dossier sections:**
-1. **Contact Info** — Name, Email, Phone (clickable tel:), County/State/Zip
-2. **Project Specs** — Window Count, Project Type, Quote Range, Quote Amount
-3. **Attribution** — utm_source, utm_medium, utm_campaign, gclid, fbclid, landing_page_url, initial_referrer
-4. **Analysis Results** — Grade, Dollar Delta, flag text for red/amber flags (fetched from `analyses.flags` via a new edge function action `fetch_lead_analysis`)
-5. **Activity Timeline** — Key timestamps: created_at, phone_verified_at, report_unlocked_at, last_call_intent timestamps, plus lead_events
-
-**Data gaps to fill:**
-- CRMLead type needs additional fields: `project_type`, `quote_range`, `utm_source`, `utm_medium`, `utm_campaign`, `gclid`, `fbclid`, `landing_page_url`, `initial_referrer`, `report_unlocked_at`, `intro_requested_at`
-- Need a new edge function action `fetch_lead_analysis` that returns the analysis row (including `flags`, `dollar_delta`, `full_json`) for a given lead's `latest_analysis_id`
-- The `toLeadCRM` mapper in AdminDashboard needs to pass these additional fields through
-
-**Files changed:**
-- `src/components/admin/types.ts` — extend CRMLead with attribution + project fields
-- `src/components/AdminDashboard.tsx` — extend `toLeadCRM` mapper
-- `src/components/admin/InternalCRMDesk.tsx` — add View button, Sheet with dossier, fetch analysis on open
-- `supabase/functions/admin-data/index.ts` — add `fetch_lead_analysis` action
-- `src/services/adminDataService.ts` — add action type + wrapper
-
-### New Component: `LeadDossierSheet.tsx`
-
-A new file `src/components/admin/LeadDossierSheet.tsx` containing the full dossier layout with 5 sections (Contact, Project, Attribution, Analysis, Timeline). Uses shadcn `Sheet` component for the slide-out panel.
-
----
-
-### Files Changed Summary
-
-| File | Change |
-|---|---|
-| `supabase/functions/_shared/adminAuth.ts` | Add dev secret bypass in `validateAdminRequestWithRole` |
-| `src/services/adminDataService.ts` | DEV mode: skip JWT, pass dev secret header |
-| `supabase/functions/admin-data/index.ts` | Add `fetch_lead_analysis` action |
-| `src/components/admin/types.ts` | Extend CRMLead with attribution/project/timeline fields |
-| `src/components/AdminDashboard.tsx` | Extend `toLeadCRM` to map new fields |
-| `src/components/admin/LeadDossierSheet.tsx` | **New** — Full dossier side panel |
-| `src/components/admin/InternalCRMDesk.tsx` | Add "View" button per row, open dossier sheet, fetch analysis data |
-
+Expected outcome
+- The sandbox keeps sending `x-dev-secret: WM_SANDBOX_MASTER_2026`
+- `admin-data` accepts the bypass before JWT validation
+- The CRM loads real data without requiring a logged-in Supabase session
