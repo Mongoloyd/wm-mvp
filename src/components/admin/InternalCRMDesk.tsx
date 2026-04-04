@@ -225,8 +225,9 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                   <TableHead>County</TableHead>
                   <TableHead className="text-center">Grade</TableHead>
                   <TableHead className="text-center">Flags</TableHead>
+                  <TableHead className="text-center">Pipeline</TableHead>
                   <TableHead className="text-center">Call Intent</TableHead>
-                  <TableHead className="w-[180px]">Status</TableHead>
+                  <TableHead className="w-[180px]">Deal Status</TableHead>
                   <TableHead className="w-[60px]" />
                 </TableRow>
               </TableHeader>
