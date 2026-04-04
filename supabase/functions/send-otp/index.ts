@@ -9,8 +9,9 @@ const corsHeaders = {
 
 /* ── Rate-limit constants ────────────────────────────────────────────── */
 const COOLDOWN_SECONDS = 30;        // min gap between sends for same phone
-const WINDOW_MINUTES = 10;          // rolling window
-const MAX_SENDS_PER_WINDOW = 5;     // max sends in that window
+const WINDOW_MINUTES = 15;          // rolling window
+const MAX_SENDS_PER_WINDOW = 3;     // max sends in that window
+const MAX_IP_SENDS_PER_WINDOW = 10; // max sends per IP in the window
 
 async function runPhoneLookup(phoneE164: string): Promise<{ ok: true } | { ok: false; reason: string }> {
   const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
@@ -56,6 +57,8 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const phone_e164 = normalizePhone(body.phone_e164);
+    const scan_session_id = body.scan_session_id || null;
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
     if (!phone_e164) {
       return new Response(
@@ -126,6 +129,26 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Secondary: IP-based rate limit (catches phone-cycling bots) ─────
+    if (clientIp !== "unknown") {
+      const { data: ipRows } = await supabase
+        .from("phone_verifications")
+        .select("id")
+        .eq("ip_address", clientIp)
+        .gte("created_at", windowStart);
+
+      if (ipRows && ipRows.length >= MAX_IP_SENDS_PER_WINDOW) {
+        console.warn("[send-otp] IP rate limit hit:", { ip: clientIp, count: ipRows.length });
+        return new Response(
+          JSON.stringify({
+            error: "Too many requests from this network. Please wait a few minutes.",
+            success: false,
+            retry_after: WINDOW_MINUTES * 60,
+          }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
     // ── Twilio Verify: send code ────────────────────────────────────────
     const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID")!;
     const authToken = Deno.env.get("TWILIO_AUTH_TOKEN")!;
@@ -172,6 +195,7 @@ Deno.serve(async (req) => {
     const { error: insertErr } = await supabase.from("phone_verifications").insert({
       phone_e164,
       status: "pending",
+      ip_address: clientIp,
     });
     if (insertErr) {
       console.error("[SEND_OTP_DB_ERROR]", JSON.stringify({

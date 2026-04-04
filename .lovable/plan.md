@@ -1,69 +1,39 @@
 
+# Enterprise Lockdown & Monetization — 6-Step Execution Plan
 
-# Fix: Database Trigger Column Mismatch Crashing OTP Inserts
+## Status: Steps 1 & 2 ✅ Complete — Awaiting approval for Steps 3 & 4
 
-## Root Cause
+---
 
-The `send-otp` Edge Function insert is correct — it uses `phone_e164`. The crash originates from a **PostgreSQL trigger function** `log_phone_verification_event()` attached to the `phone_verifications` table. This trigger references `NEW.phone_number`, which does not exist. Postgres error `42703` fires on every insert attempt.
+## Step 1: Add `ip_address` column to `phone_verifications` ✅
+- Migration deployed — column added for IP-based rate limiting.
 
-From the DB functions dump:
-```sql
-phone_masked := 'xxx-xxx-' || RIGHT(NEW.phone_number, 4);
--- should be:
-phone_masked := 'xxx-xxx-' || RIGHT(NEW.phone_e164, 4);
-```
+## Step 2: Tighten rate limiter + session/IP binding ✅
+- `MAX_SENDS_PER_WINDOW`: 5 → **3**
+- `WINDOW_MINUTES`: 10 → **15**
+- Added `MAX_IP_SENDS_PER_WINDOW = 10` (secondary layer)
+- `send-otp` now parses `scan_session_id` and `x-forwarded-for` from request
+- IP stored on each `phone_verifications` insert
+- `usePhonePipeline.ts` now sends `scan_session_id` in the `send-otp` payload
 
-The trigger also references `NEW.verified` but the table uses a `status` column (text), not a boolean `verified` column.
+### Rate Limit Layers
+| Dimension | Threshold | Window |
+|-----------|-----------|--------|
+| Per phone_e164 | 3 sends | 15 min |
+| Per IP (secondary) | 10 sends | 15 min |
+| Cooldown (per phone) | 30 sec | — |
 
-## Fix (Single Migration)
+## Step 3: Create `webhook_deliveries` table ⏳
+- Table with RLS (internal operators only)
+- Tracks: lead_id, event_type, status, payload_json, attempt_count, retry schedule
 
-Run one SQL migration that replaces the trigger function, fixing all column references:
+## Step 4: `fire_crm_handoff` trigger on `leads` ⏳
+- Dual-gate: fires only when `phone_verified = true` AND `latest_analysis_id IS NOT NULL`
+- Inserts row into `webhook_deliveries` with status `pending`
 
-```sql
-CREATE OR REPLACE FUNCTION public.log_phone_verification_event()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-  phone_masked TEXT;
-BEGIN
-  phone_masked := 'xxx-xxx-' || RIGHT(NEW.phone_e164, 4);
+## Step 5: `process-webhook` Edge Function ⏳
+- HMAC-SHA256 signing
+- Dry-run mode: if `CRM_WEBHOOK_URL` is missing or `'mock'`, logs payload and sets status to `mock_delivered`
+- Exponential backoff retries (5 max)
 
-  IF (TG_OP = 'INSERT') THEN
-    RAISE LOG '[OTP:DB:VERIFICATION_CREATED] {"phone": "%", "status": "%", "timestamp": "%"}',
-      phone_masked, NEW.status, NOW();
-
-  ELSIF (TG_OP = 'UPDATE') THEN
-    IF (NEW.status = 'verified' AND OLD.status = 'pending') THEN
-      RAISE LOG '[OTP:DB:VERIFICATION_SUCCESS] {"phone": "%", "lead_id": "%", "timestamp": "%"}',
-        phone_masked, NEW.lead_id, NOW();
-    ELSIF (NEW.status = 'expired' AND OLD.status = 'pending') THEN
-      RAISE LOG '[OTP:DB:VERIFICATION_EXPIRED] {"phone": "%", "timestamp": "%"}',
-        phone_masked, NOW();
-    END IF;
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-```
-
-## Changes Summary
-
-| What | Before | After |
-|------|--------|-------|
-| `NEW.phone_number` | undefined column (crash) | `NEW.phone_e164` |
-| `NEW.verified` (boolean) | undefined column | `NEW.status` (text) checks |
-| `NEW.lead_id` reference | kept | kept (column exists) |
-
-## No Edge Function Changes Needed
-
-The `send-otp/index.ts` insert is already correct. All forensic logging stays intact.
-
-## Impact
-
-- Fixes the 500 error on every OTP send attempt
-- SMS was already sending successfully via Twilio — now the DB record will persist
-- `verify-otp` will find the pending row and verification will complete
-
+## Step 6: CRM secrets + end-to-end test 🔒 Deferred
