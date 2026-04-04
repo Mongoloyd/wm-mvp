@@ -180,6 +180,48 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
     setDossierOpen(true);
   }, []);
 
+  const handleAutodial = useCallback(async (lead: CRMLead) => {
+    if (!lead.phone_e164 || dialingLeadId) return;
+    setDialingLeadId(lead.id);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const devSecret = (import.meta as any).env?.VITE_DEV_BYPASS_SECRET;
+      if (devSecret) {
+        headers["x-dev-secret"] = devSecret;
+      }
+
+      const { data, error } = await supabase.functions.invoke("dial-lead", {
+        body: { lead_id: lead.id, call_intent: "operator_outbound" },
+        headers,
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(`Call queued for ${lead.first_name || "lead"}`);
+
+      // Optimistically bump deal_status if new/null
+      const currentStatus = statusOverrides[lead.id] ?? lead.deal_status;
+      if (!currentStatus || currentStatus === "new") {
+        setStatusOverrides(prev => ({ ...prev, [lead.id]: "attempted" }));
+      }
+
+      onStatusChange();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to dial";
+      toast.error(`Autodial failed: ${msg}`);
+    } finally {
+      setDialingLeadId(null);
+    }
+  }, [dialingLeadId, onStatusChange, statusOverrides]);
+
   return (
     <div className="space-y-6">
       {/* ── Summary Strip ──────────────────────────────────────────── */}
