@@ -224,18 +224,16 @@ export default function ReportClassic() {
         setSuggestedMatch(data.suggested_match);
       }
 
-      // Fire voice followup webhook
+      // Fire public callback request (phone-verified gate, no admin auth needed)
       supabase.functions
-        .invoke("voice-followup", {
+        .invoke("request-callback", {
           body: {
             scan_session_id: sessionId,
-            phone_e164: phoneE164,
             call_intent: "contractor_intro",
             cta_source: "intro_request",
-            opportunity_id: data.opportunity_id,
           },
         })
-        .catch((err) => console.warn("[ReportClassic] voice followup failed", err));
+        .catch((err) => console.warn("[ReportClassic] callback request failed", err));
 
       setIntroRequested(true);
     } catch (err) {
