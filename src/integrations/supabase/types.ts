@@ -256,6 +256,7 @@ export type Database = {
           release_ready: boolean
           routed_at: string | null
           scan_session_id: string
+          sent_at: string | null
           status: string
           suggested_contractor_id: string | null
           suggested_match_confidence: string | null
@@ -300,6 +301,7 @@ export type Database = {
           release_ready?: boolean
           routed_at?: string | null
           scan_session_id: string
+          sent_at?: string | null
           status?: string
           suggested_contractor_id?: string | null
           suggested_match_confidence?: string | null
@@ -344,6 +346,7 @@ export type Database = {
           release_ready?: boolean
           routed_at?: string | null
           scan_session_id?: string
+          sent_at?: string | null
           status?: string
           suggested_contractor_id?: string | null
           suggested_match_confidence?: string | null
@@ -885,6 +888,8 @@ export type Database = {
           lead_source: string | null
           lead_type: string | null
           li_fat_id: string | null
+          manual_entry_data: Json | null
+          manually_reviewed: boolean
           metro_area: string | null
           msclkid: string | null
           otp_failure_count: number
@@ -1012,6 +1017,8 @@ export type Database = {
           lead_source?: string | null
           lead_type?: string | null
           li_fat_id?: string | null
+          manual_entry_data?: Json | null
+          manually_reviewed?: boolean
           metro_area?: string | null
           msclkid?: string | null
           otp_failure_count?: number
@@ -1139,6 +1146,8 @@ export type Database = {
           lead_source?: string | null
           lead_type?: string | null
           li_fat_id?: string | null
+          manual_entry_data?: Json | null
+          manually_reviewed?: boolean
           metro_area?: string | null
           msclkid?: string | null
           otp_failure_count?: number
