@@ -234,7 +234,6 @@ function DashboardContent() {
             <ActivePipeline
               leads={leads}
               isLoading={isLoading}
-              onFetchLeadEvents={handleFetchLeadEvents}
             />
           </TabsContent>
 
