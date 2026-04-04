@@ -51,6 +51,9 @@ interface ExtractionResult {
   opening_count?: number;
   contractor_name?: string;
   hvhz_zone?: boolean;
+  price_fairness?: string;
+  markup_estimate?: string;
+  negotiation_leverage?: string;
 }
 
 /**
