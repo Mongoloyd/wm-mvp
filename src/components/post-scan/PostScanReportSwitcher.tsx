@@ -35,6 +35,9 @@ type Props = {
   flagCount?: number;
   flagRedCount?: number;
   flagAmberCount?: number;
+  priceFairness?: string | null;
+  markupEstimate?: string | null;
+  negotiationLeverage?: string | null;
   onSecondScan: () => void;
   scanSessionId?: string | null;
   /** Called after real OTP verification succeeds. Parent should call fetchFull(). */

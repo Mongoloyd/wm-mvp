@@ -56,6 +56,10 @@ export interface AnalysisData {
   analysisStatus: string | null;
   /** Financial metrics from calculate-estimate-metrics (full only) */
   derivedMetrics?: Record<string, unknown> | null;
+  /** Financial forensics fields (full only) */
+  priceFairness?: string | null;
+  markupEstimate?: string | null;
+  negotiationLeverage?: string | null;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -370,6 +374,9 @@ export function useAnalysisData(
         hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
         analysisStatus: "complete",
         derivedMetrics,
+        priceFairness: (fullJsonRaw?.price_fairness as string) || null,
+        markupEstimate: (fullJsonRaw?.markup_estimate as string) || null,
+        negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
       });
       setIsFullLoaded(true);
       // Save resume record for returning users
@@ -454,6 +461,9 @@ export function useAnalysisData(
         hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
         analysisStatus: "complete",
         derivedMetrics,
+        priceFairness: (fullJsonRaw?.price_fairness as string) || null,
+        markupEstimate: (fullJsonRaw?.markup_estimate as string) || null,
+        negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
       });
       previewFetchedRef.current = scanSessionId;
       setIsFullLoaded(true);

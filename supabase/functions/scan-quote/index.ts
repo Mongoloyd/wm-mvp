@@ -51,6 +51,9 @@ interface ExtractionResult {
   opening_count?: number;
   contractor_name?: string;
   hvhz_zone?: boolean;
+  price_fairness?: string;
+  markup_estimate?: string;
+  negotiation_leverage?: string;
 }
 
 /**
@@ -704,8 +707,14 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
     "scope_detail": "string | null",
     "disposal_included": boolean | null,
     "accessories_mentioned": boolean | null
-  } | null
-}`;
+  } | null,
+  "price_fairness": "string | null — 2-3 sentences assessing total price objectivity. Compare against standard Florida wholesale costs ($500-$800/window + $250-$400 labor per opening). Identify inflated retail tactics like fake 'Buy 1 Get 1' deals.",
+  "markup_estimate": "string | null — Estimated dealer markup as percentage range or dollar amount (e.g., '45%-55%' or '~$8,500 over wholesale'). Calculate based on line item count and total quoted price vs wholesale baseline.",
+  "negotiation_leverage": "string | null — 1-2 punchy, actionable talking points the homeowner can use to negotiate a lower price. Reference specific weaknesses found in the quote."
+}
+
+Financial Forensics Protocol:
+Assume standard Florida wholesale costs of $500-$800 per impact window unit and $250-$400 per opening for installation labor. Use these baselines to calculate markup estimates. Identify inflated retail tactics such as fake "Buy 1 Get 1 Free" promotions, bundled admin fees, or permit cost padding. If you cannot determine pricing from the document, set these three fields to null.`;
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -1199,6 +1208,9 @@ Deno.serve(async (req: Request) => {
         extraction: extraction,
         derived_metrics: derivedMetrics,
         rubric_version: RUBRIC_VERSION,
+        price_fairness: extraction.price_fairness || null,
+        markup_estimate: extraction.markup_estimate || null,
+        negotiation_leverage: extraction.negotiation_leverage || null,
       };
 
       // 13. Upsert full analyses row
@@ -1211,14 +1223,14 @@ Deno.serve(async (req: Request) => {
         confidence_score: extraction.confidence,
         grade: gradeResult.letterGrade,
         flags: flags,
-        // dollar_delta: intentionally set to null.
-        // The column exists for future benchmark comparison (quoted price vs market avg).
-        // extraction.total_quoted_price is stored in full_json.extraction.total_quoted_price.
         dollar_delta: null,
         proof_of_read: proofOfRead,
         preview_json: previewJson,
         full_json: fullJson,
         rubric_version: RUBRIC_VERSION,
+        price_fairness: extraction.price_fairness || null,
+        markup_estimate: extraction.markup_estimate || null,
+        negotiation_leverage: extraction.negotiation_leverage || null,
       }, "analyses upsert failed", {
         error: "Failed to persist analysis state",
         scan_session_id,
