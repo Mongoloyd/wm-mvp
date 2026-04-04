@@ -707,7 +707,7 @@ function DemoScanPage({ lead, onUploadQuote, onClose, onCalibrationComplete }) {
 /* ============================================================
    PowerToolFlow — top-level orchestrator
    ============================================================ */
-export default function PowerToolFlow({ onUploadQuote, triggerOpen, onToolClose }) {
+const PowerToolFlow = React.forwardRef(function PowerToolFlow({ onUploadQuote, triggerOpen, onToolClose }, _ref) {
   const [state, setState] = useState("idle");
   const [lead, setLead] = useState(null);
   const [calibrationData, setCalibrationData] = useState(null);
