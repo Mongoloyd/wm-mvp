@@ -506,4 +506,50 @@
   .otp-shake {
     animation: otp-shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   }
+
+  /* ═══════════════════════════════════════════════════════════
+     CONTRACTORS PAGE — Scoped dark theme for /contractors route
+     ═══════════════════════════════════════════════════════════ */
+  .contractors-page {
+    --background: 216 43% 8%;
+    --foreground: 210 40% 92%;
+    --card: 216 43% 10%;
+    --card-foreground: 210 40% 92%;
+    --popover: 216 43% 10%;
+    --popover-foreground: 210 40% 92%;
+    --primary: 30 100% 56%;
+    --primary-foreground: 216 43% 8%;
+    --secondary: 216 30% 16%;
+    --secondary-foreground: 210 40% 88%;
+    --muted: 216 30% 14%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 30 100% 56%;
+    --accent-foreground: 216 43% 8%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 216 20% 20%;
+    --input: 216 20% 20%;
+    --ring: 30 100% 56%;
+
+    --c-glass-bg: 216 43% 12%;
+    --c-glass-border: 0 0% 100%;
+    --c-glow-orange: 30 100% 56%;
+    --c-audit-pass: 142 71% 45%;
+    --c-audit-warn: 43 96% 56%;
+    --c-audit-fail: 0 84% 60%;
+
+    background: hsl(216 43% 8%);
+    color: hsl(210 40% 92%);
+  }
+
+  .contractors-glass-panel {
+    background: hsl(var(--c-glass-bg) / 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid hsl(var(--c-glass-border) / 0.18);
+    box-shadow:
+      inset 0 1px 0 0 hsl(var(--c-glass-border) / 0.08),
+      inset 0 -1px 0 0 hsl(0 0% 0% / 0.15),
+      0 20px 60px -12px hsl(0 0% 0% / 0.5);
+  }
 }
