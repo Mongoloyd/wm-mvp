@@ -129,6 +129,7 @@ function computeKPIs(leads: CRMLead[], deliveries: WebhookDelivery[]): CommandCe
 function DashboardContent() {
   const [leads, setLeads] = useState<CRMLead[]>([]);
   const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([]);
+  const [latestFollowups, setLatestFollowups] = useState<Record<string, VoiceFollowupSummary>>({});
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
