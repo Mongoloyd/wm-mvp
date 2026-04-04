@@ -27,6 +27,8 @@ const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   manage_user_roles: ["super_admin"],
   list_user_roles: ["super_admin"],
   get_role_audit_log: ["super_admin"],
+  fetch_lead_events: ["super_admin", "operator", "viewer"],
+  fetch_webhook_deliveries: ["super_admin", "operator", "viewer"],
 };
 
 Deno.serve(async (req) => {
