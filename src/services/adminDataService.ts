@@ -48,7 +48,8 @@ export type AdminAction =
   | "list_user_roles"
   | "get_role_audit_log"
   | "fetch_lead_events"
-  | "fetch_webhook_deliveries";
+  | "fetch_webhook_deliveries"
+  | "fetch_lead_analysis";
 
 /**
  * Payload shapes for each admin action.
@@ -79,6 +80,7 @@ export interface AdminActionPayloads {
   get_role_audit_log: { limit?: number };
   fetch_lead_events: { lead_id: string; limit?: number };
   fetch_webhook_deliveries: { status?: string; limit?: number };
+  fetch_lead_analysis: { analysis_id: string };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -161,29 +163,35 @@ export async function invokeAdminData<T extends AdminAction>(
   action: T,
   payload: AdminActionPayloads[T] = {} as AdminActionPayloads[T],
 ): Promise<any> {
-  // 1. Grab the current user's session token
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
+  const headers: Record<string, string> = {};
 
-  // 2. If there's no session, throw a 401 early before hitting the backend
-  if (sessionError || !session?.access_token) {
-    const authError: AdminDataError = {
-      code: "auth_error",
-      message: "User is not authenticated or session has expired.",
-      status: 401,
-    };
-    console.error(`[adminDataService] ${action} failed: No active session.`, authError);
-    throw authError;
+  // ── DEV BYPASS: Use dev secret instead of JWT in sandbox ──────────
+  const devSecret = import.meta.env.DEV ? import.meta.env.VITE_DEV_BYPASS_SECRET : undefined;
+  if (devSecret) {
+    headers["x-dev-secret"] = devSecret;
+    console.log(`[adminDataService] DEV BYPASS: Using X-Dev-Secret for action "${action}"`);
+  } else {
+    // Production: Grab the current user's session token
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      const authError: AdminDataError = {
+        code: "auth_error",
+        message: "User is not authenticated or session has expired.",
+        status: 401,
+      };
+      console.error(`[adminDataService] ${action} failed: No active session.`, authError);
+      throw authError;
+    }
+    headers["Authorization"] = `Bearer ${session.access_token}`;
   }
 
-  // 3. Explicitly attach the session token to the request headers
   const { data, error } = await supabase.functions.invoke("admin-data", {
     body: { action, payload },
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-    },
+    headers,
   });
 
   if (error) {
@@ -255,6 +263,13 @@ export async function fetchWebhookDeliveries(status?: string, limit = 200): Prom
  */
 export async function updateLeadDealStatus(leadId: string, dealStatus: string): Promise<{ success: boolean }> {
   return invokeAdminData("update_lead_deal_status", { lead_id: leadId, deal_status: dealStatus });
+}
+
+/**
+ * Fetch analysis data (flags, grade, dollar_delta) for a specific analysis ID.
+ */
+export async function fetchLeadAnalysis(analysisId: string): Promise<any> {
+  return invokeAdminData("fetch_lead_analysis", { analysis_id: analysisId });
 }
 
 /**

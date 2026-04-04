@@ -11,7 +11,8 @@ type ActionName =
   | "route_opportunity" | "mark_dead"
   | "fetch_voice_followups" | "trigger_voice_followup"
   | "manage_user_roles" | "list_user_roles" | "get_role_audit_log"
-  | "fetch_lead_events" | "fetch_webhook_deliveries";
+  | "fetch_lead_events" | "fetch_webhook_deliveries"
+  | "fetch_lead_analysis";
 
 const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_leads: ["super_admin", "operator", "viewer"],
@@ -30,6 +31,7 @@ const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   get_role_audit_log: ["super_admin"],
   fetch_lead_events: ["super_admin", "operator", "viewer"],
   fetch_webhook_deliveries: ["super_admin", "operator", "viewer"],
+  fetch_lead_analysis: ["super_admin", "operator", "viewer"],
 };
 
 Deno.serve(async (req) => {
@@ -282,6 +284,20 @@ Deno.serve(async (req) => {
         .limit(limit);
       if (filterStatus) query = query.eq("status", filterStatus);
       const { data, error } = await query;
+      if (error) throw error;
+      return successResponse({ data: data });
+    }
+
+    // ─── CRM: FETCH LEAD ANALYSIS ────────────────────────────────────────
+
+    if (action === "fetch_lead_analysis") {
+      const { analysis_id } = payload;
+      if (!analysis_id) return errorResponse(400, "missing_param", "analysis_id is required");
+      const { data, error } = await supabaseAdmin
+        .from("analyses")
+        .select("grade, dollar_delta, confidence_score, flags")
+        .eq("id", analysis_id)
+        .maybeSingle();
       if (error) throw error;
       return successResponse({ data: data });
     }

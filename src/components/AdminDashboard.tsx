@@ -70,6 +70,20 @@ function toLeadCRM(raw: Record<string, any>): CRMLead {
     deal_status: raw.deal_status ?? null,
     last_call_intent: raw.last_call_intent ?? null,
     assigned_partner: "Primary Client",
+    // Project specs
+    project_type: raw.project_type ?? null,
+    quote_range: raw.quote_range ?? null,
+    // Attribution
+    utm_source: raw.utm_source ?? null,
+    utm_medium: raw.utm_medium ?? null,
+    utm_campaign: raw.utm_campaign ?? null,
+    gclid: raw.gclid ?? null,
+    fbclid: raw.fbclid ?? null,
+    landing_page_url: raw.landing_page_url ?? null,
+    initial_referrer: raw.initial_referrer ?? null,
+    // Timeline
+    report_unlocked_at: raw.report_unlocked_at ?? null,
+    intro_requested_at: raw.intro_requested_at ?? null,
   };
 }
 

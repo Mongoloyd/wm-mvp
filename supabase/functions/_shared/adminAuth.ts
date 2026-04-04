@@ -73,7 +73,7 @@ export type ValidationResult = ValidationSuccess | ValidationFailure;
 export const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-dev-secret",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 };
 
@@ -209,6 +209,23 @@ async function validateAndExtractUser(
         "config_error",
         "Server configuration error"
       ),
+    };
+  }
+
+  // ── DEV BYPASS: Check X-Dev-Secret header ──────────────────────────
+  const devSecret = req.headers.get("x-dev-secret");
+  const expectedDevSecret = Deno.env.get("DEV_BYPASS_SECRET");
+  if (devSecret && expectedDevSecret && devSecret === expectedDevSecret) {
+    console.log("[adminAuth] DEV BYPASS: Granting super_admin via X-Dev-Secret");
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+    return {
+      ok: true,
+      email: "dev-sandbox@windowman.pro",
+      userId: "dev-sandbox-bypass",
+      role: "super_admin",
+      supabaseAdmin,
+      supabaseAuth,
     };
   }
 

@@ -1,15 +1,13 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * INTERNAL CRM DESK — Power Dialer v1.0
+ * INTERNAL CRM DESK — Power Dialer v1.1
  * ═══════════════════════════════════════════════════════════════════════════
- *
- * Speed-to-lead operator view for phone-verified leads.
- * Shows grade, red flags, call intent, and a workflow status dropdown.
  */
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
@@ -18,12 +16,13 @@ import {
   Select, SelectContent, SelectItem,
   SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Phone, PhoneCall, Users, CalendarCheck } from "lucide-react";
+import { Phone, PhoneCall, Users, CalendarCheck, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 import type { CRMLead } from "./types";
 import { updateLeadDealStatus } from "@/services/adminDataService";
+import { LeadDossierSheet } from "./LeadDossierSheet";
 
 /* ── Constants ────────────────────────────────────────────────────────── */
 
@@ -34,8 +33,6 @@ const DEAL_STATUSES = [
   { value: "appointment_booked", label: "Appointment Booked" },
   { value: "dead", label: "Dead" },
 ] as const;
-
-type DealStatusValue = (typeof DEAL_STATUSES)[number]["value"];
 
 /* ── Grade badge colors ───────────────────────────────────────────────── */
 
@@ -55,12 +52,15 @@ function gradeColor(grade: string | null): string {
 interface InternalCRMDeskProps {
   leads: CRMLead[];
   isLoading: boolean;
-  onStatusChange: () => void; // trigger parent refresh
+  onStatusChange: () => void;
 }
 
 /* ── Component ────────────────────────────────────────────────────────── */
 
 export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCRMDeskProps) {
+  const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
+  const [dossierOpen, setDossierOpen] = useState(false);
+
   // Filter to phone-verified leads only
   const verified = useMemo(
     () => leads.filter((l) => l.phone_verified && l.latest_analysis_id),
@@ -92,6 +92,11 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
       toast.error(msg);
     }
   }, [onStatusChange]);
+
+  const openDossier = useCallback((lead: CRMLead) => {
+    setSelectedLead(lead);
+    setDossierOpen(true);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -147,6 +152,7 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
                   <TableHead className="text-center">Red Flags</TableHead>
                   <TableHead className="text-center">Call Intent</TableHead>
                   <TableHead className="w-[180px]">Status</TableHead>
+                  <TableHead className="w-[60px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -212,6 +218,17 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
                         </SelectContent>
                       </Select>
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => openDossier(lead)}
+                        title="View Lead Dossier"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -219,6 +236,13 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
           </div>
         </Card>
       )}
+
+      {/* ── Dossier Sheet ──────────────────────────────────────────── */}
+      <LeadDossierSheet
+        lead={selectedLead}
+        open={dossierOpen}
+        onOpenChange={setDossierOpen}
+      />
     </div>
   );
 }
