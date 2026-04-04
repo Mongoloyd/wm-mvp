@@ -194,7 +194,7 @@ function DashboardContent() {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="engine">Engine Room</TabsTrigger>
+            <TabsTrigger value="engine">Dialer Desk</TabsTrigger>
           </TabsList>
 
           <TabsContent value="command">
