@@ -50,7 +50,10 @@ export type AdminAction =
   | "fetch_lead_events"
   | "fetch_webhook_deliveries"
   | "fetch_lead_analysis"
-  | "fetch_lead_voice_followups";
+  | "fetch_lead_voice_followups"
+  | "fetch_needs_review"
+  | "rescan_lead"
+  | "update_lead_manual_entry";
 
 /**
  * Payload shapes for each admin action.
@@ -83,6 +86,9 @@ export interface AdminActionPayloads {
   fetch_webhook_deliveries: { status?: string; limit?: number };
   fetch_lead_analysis: { analysis_id: string };
   fetch_lead_voice_followups: { lead_id: string };
+  fetch_needs_review: Record<string, never>;
+  rescan_lead: { lead_id: string };
+  update_lead_manual_entry: { lead_id: string; manual_entry_data: Record<string, unknown> };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
