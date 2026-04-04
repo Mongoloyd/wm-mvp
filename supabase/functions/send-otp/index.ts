@@ -195,6 +195,7 @@ Deno.serve(async (req) => {
     const { error: insertErr } = await supabase.from("phone_verifications").insert({
       phone_e164,
       status: "pending",
+      ip_address: clientIp,
     });
     if (insertErr) {
       console.error("[SEND_OTP_DB_ERROR]", JSON.stringify({
