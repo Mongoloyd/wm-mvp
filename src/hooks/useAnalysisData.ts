@@ -390,8 +390,7 @@ export function useAnalysisData(
     resumeAttemptedRef.current = scanSessionId;
 
     const record = getVerifiedAccess(scanSessionId);
-    if (!record) {
-      
+    if (!record && !devBypassEnabled) {
       return false;
     }
 
