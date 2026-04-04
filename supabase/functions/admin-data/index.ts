@@ -10,7 +10,8 @@ type ActionName =
   | "fetch_opportunities" | "fetch_contractors" | "fetch_routes" | "fetch_billable"
   | "route_opportunity" | "mark_dead"
   | "fetch_voice_followups" | "trigger_voice_followup"
-  | "manage_user_roles" | "list_user_roles" | "get_role_audit_log";
+  | "manage_user_roles" | "list_user_roles" | "get_role_audit_log"
+  | "fetch_lead_events" | "fetch_webhook_deliveries";
 
 const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_leads: ["super_admin", "operator", "viewer"],
