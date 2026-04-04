@@ -254,7 +254,10 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
               </TableHeader>
               <TableBody>
                 {sorted.map((lead) => {
-                  const badge = derivePipelineBadge(lead, latestFollowups[lead.id]);
+                  const effectiveStatus = statusOverrides[lead.id] ?? lead.deal_status;
+                  const leadWithOverride = { ...lead, deal_status: effectiveStatus };
+                  const badge = derivePipelineBadge(leadWithOverride, latestFollowups[lead.id]);
+                  const isUpdating = updatingLeadId === lead.id;
                   return (
                   <TableRow key={lead.id} className={badge.rowClass ?? ""}>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
