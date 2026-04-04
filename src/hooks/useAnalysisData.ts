@@ -461,6 +461,9 @@ export function useAnalysisData(
         hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
         analysisStatus: "complete",
         derivedMetrics,
+        priceFairness: (fullJsonRaw?.price_fairness as string) || null,
+        markupEstimate: (fullJsonRaw?.markup_estimate as string) || null,
+        negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
       });
       previewFetchedRef.current = scanSessionId;
       setIsFullLoaded(true);
