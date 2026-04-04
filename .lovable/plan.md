@@ -1,49 +1,74 @@
 
 
-# P5a + Voice Call Log — Implementation Plan
+# Micro-Fix + P6a + P6 — Implementation Plan
 
-## Overview
+## Three deliverables in sequence
 
-Two-phase delivery: (1) add `fetch_lead_voice_followups` action to the admin-data edge function + frontend service helper, then (2) render a Call History panel inside LeadDossierSheet.
-
----
-
-## Phase 1: P5a — Backend (fetch_lead_voice_followups)
-
-### File 1: `supabase/functions/admin-data/index.ts`
-
-1. Add `"fetch_lead_voice_followups"` to the `ActionName` union (line 8-15)
-2. Add entry in `ACTION_ROLES`: `fetch_lead_voice_followups: ["super_admin", "operator", "viewer"]`
-3. Add new action handler after the existing `fetch_voice_followups` block (after line 99), with specific column SELECT (no `select('*')` — omits `payload_json` and `result_json`), filtered by `lead_id`, ordered by `created_at desc`
-
-### File 2: `src/services/adminDataService.ts`
-
-1. Add `"fetch_lead_voice_followups"` to `AdminAction` union type
-2. Add payload type: `fetch_lead_voice_followups: { lead_id: string }`
-3. Add `VoiceFollowup` interface (exported) with all 20 fields from the spec
-4. Add convenience wrapper `fetchLeadVoiceFollowups(leadId: string): Promise<VoiceFollowup[]>` using `invokeAdminData`
-
-No changes to existing `fetch_voice_followups` action.
+1. **Micro-fix**: Retry null guard in LeadDossierSheet
+2. **P6a**: send-contractor-handoff Edge Function
+3. **P6**: Contractor Handoff Button in LeadDossierSheet
 
 ---
 
-## Phase 2: Voice Call Log — Frontend
+## 1. Micro-Fix — Retry null guard
+
+**File**: `src/components/admin/LeadDossierSheet.tsx` (line 176-187)
+
+Replace the `handleRetryCall` function to exit early when no `scan_session_id` is available, instead of passing an empty string. Add a `toast.error()` for operator feedback.
+
+---
+
+## 2. P6a — send-contractor-handoff Edge Function
+
+### Schema constraint issue (CRITICAL)
+
+The `contractor_opportunities` table has:
+- `scan_session_id uuid NOT NULL` — required
+- `analysis_id uuid NOT NULL` — required
+- `status` CHECK constraint allows: `intro_requested`, `brief_generating`, `brief_ready`, `queued`, `assigned_internal`, `sent_to_contractor`, `viewed_by_contractor`, `contractor_interested`, `contractor_declined`, `homeowner_contact_released`, `intro_completed`, `closed_won`, `closed_lost`, `dead`
+
+The spec says `status: 'sent'` — this value is NOT in the CHECK constraint. We must use `'sent_to_contractor'` instead. Also, inserts require `scan_session_id` and `analysis_id` from the lead.
+
+### File: `supabase/functions/send-contractor-handoff/index.ts`
+
+New Edge Function following the exact `dial-lead` pattern:
+- Auth via `validateAdminRequestWithRole(req, ["super_admin", "operator"])`
+- Input: `{ lead_id }`
+- Step 1: Fetch lead (including `latest_scan_session_id`, `latest_analysis_id`)
+- Step 2: Fetch analysis `full_json` for pillar scores and flags
+- Step 3: Upsert `contractor_opportunities` using `status: 'sent_to_contractor'` (valid CHECK value), with required `scan_session_id` and `analysis_id`
+- Step 4: Send email via Resend API (direct, matching existing `send-report-email` pattern — no connector gateway since RESEND_API_KEY is already a direct secret)
+- Step 5: Return with partial success shape (DB ok + email fail = 200 with warning)
+
+### File: `supabase/config.toml`
+
+Add: `[functions.send-contractor-handoff]` with `verify_jwt = false`
+
+### Secrets needed
+
+- `RESEND_API_KEY` — already exists
+- `CONTRACTOR_EMAIL` — needs to be added (recipient address)
+- `CONTRACTOR_NAME` — needs to be added (display name)
+
+### File: `src/services/adminDataService.ts`
+
+No changes needed — the handoff button will call the edge function directly (like `dialLead`), not through `admin-data`. Add a `sendContractorHandoff(leadId)` helper that follows the same dev-bypass + session JWT pattern as `dialLead`.
+
+---
+
+## 3. P6 — Contractor Handoff Button
 
 ### File: `src/components/admin/LeadDossierSheet.tsx`
 
-1. Import `fetchLeadVoiceFollowups` and `VoiceFollowup` from adminDataService
-2. Import additional Lucide icons: `PhoneCall`, `Calendar`, `CalendarCheck`, `RotateCcw`, `AlertCircle`
-3. Add state: `callHistory`, `callHistoryLoading`, `callHistoryError`, `expandedTranscripts`
-4. Add useEffect to fetch on `currentLead?.id` change
-5. Add "Call History" section below Truth Engine Audit with:
-   - Header with PhoneCall icon + count pill
-   - Loading: 3 skeleton rows
-   - Error: AlertCircle + retry button
-   - Empty: Phone icon + "No calls logged yet."
-   - Entries: scrollable container (max-h-[400px]) with per-entry cards containing:
-     - Row 1: Type badge (Manual/AI Call), outcome badge (color-coded), duration, booking icons, timestamp
-     - Row 2: 3-case transcript fallback (inline text → external link → "No transcript"), summary, audio player (`preload="none"`), retry button (only on voicemail/no_answer/failed)
-6. Retry handler calls `invokeAdminData("trigger_voice_followup", ...)` then refetches
+Add to the sheet header area (alongside the grade badge):
+
+1. **State**: `handoffSending`, `handoffModalOpen`, `handoffSent` (derived from `lead.latest_opportunity_id`)
+2. **Button**: "Send to Contractor" (amber) or "Sent to Contractor" (green, disabled) based on `latest_opportunity_id`
+3. **Confirmation Dialog**: Shows homeowner name, city, grade badge, flag count, top 3 HIGH-severity flags from existing `analysisData`
+4. **On confirm**: Call `sendContractorHandoff(lead.id)`, handle success/partial/failure with appropriate toasts
+5. **Optimistic update**: Set local `sentToContractor` flag to disable button immediately after success
+
+Import Dialog components from `@/components/ui/dialog`. Add `Send` icon from lucide-react.
 
 ---
 
@@ -51,9 +76,20 @@ No changes to existing `fetch_voice_followups` action.
 
 | File | Change |
 |------|--------|
-| `supabase/functions/admin-data/index.ts` | +1 action type, +1 role entry, +1 handler (~20 lines) |
-| `src/services/adminDataService.ts` | +1 union member, +1 payload type, +1 interface, +1 helper function |
-| `src/components/admin/LeadDossierSheet.tsx` | +Call History section (~150 lines) |
+| `src/components/admin/LeadDossierSheet.tsx` | Retry null guard + handoff button + confirmation dialog |
+| `supabase/functions/send-contractor-handoff/index.ts` | New edge function |
+| `supabase/config.toml` | Add verify_jwt config |
+| `src/services/adminDataService.ts` | Add `sendContractorHandoff()` helper |
 
-No schema changes. No new edge functions. Existing `fetch_voice_followups` untouched.
+## Secrets to request
+
+- `CONTRACTOR_EMAIL` — recipient email for handoff reports
+- `CONTRACTOR_NAME` — contractor display name
+
+## Key corrections from spec
+
+- Use `'sent_to_contractor'` not `'sent'` (CHECK constraint)
+- Include `scan_session_id` and `analysis_id` in insert (NOT NULL columns)
+- Use Resend directly (not connector gateway) — matches existing pattern
+- Guard against leads without `latest_scan_session_id` or `latest_analysis_id`
 
