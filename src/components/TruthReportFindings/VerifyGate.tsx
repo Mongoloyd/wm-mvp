@@ -2,10 +2,11 @@
  * VerifyGate — Inline phone/OTP form placed between findings and evidence.
  * Includes Zeigarnik progress bar ("STEP 2 OF 2").
  *
- * Phase 2: resend cooldown, error-clearing on input, ARIA labels.
+ * Phase 3: auto-submit on 6th digit, error shake + auto-clear,
+ *          CRO micro-copy, autoComplete="one-time-code".
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Loader2 } from "lucide-react";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
@@ -35,6 +36,8 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
   const [step, setStep] = useState<Step>("phone");
   const [errorMsg, setErrorMsg] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [shakeKey, setShakeKey] = useState(0);
+  const otpContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Dev bypass: auto-skip the entire gate in DEV mode ──────────────
   const devBypassActive = import.meta.env.DEV && !!import.meta.env.VITE_DEV_BYPASS_SECRET;
@@ -115,8 +118,8 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
     }
   };
 
-  const handleVerify = async () => {
-    if (otpValue.length < 6 || !e164) return;
+  const handleVerify = useCallback(async () => {
+    if (otpValue.length < 6 || !e164 || step === "verifying") return;
     setStep("verifying");
     setErrorMsg("");
     try {
@@ -126,6 +129,11 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
       if (error || !data?.verified) {
         setErrorMsg(data?.error || "Invalid or expired code.");
         setStep("otp");
+        // Shake + auto-clear
+        setShakeKey((k) => k + 1);
+        setTimeout(() => {
+          setOtpValue("");
+        }, 600);
         return;
       }
       trackGtmEvent("otp_verified", {
@@ -139,8 +147,19 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
     } catch {
       setErrorMsg("Network error. Try again.");
       setStep("otp");
+      setShakeKey((k) => k + 1);
+      setTimeout(() => {
+        setOtpValue("");
+      }, 600);
     }
-  };
+  }, [otpValue, e164, step, scanSessionId, onVerified]);
+
+  // Auto-submit when 6th digit entered
+  useEffect(() => {
+    if (otpValue.length === 6 && step === "otp") {
+      handleVerify();
+    }
+  }, [otpValue, step, handleVerify]);
 
   return (
     <motion.div
@@ -251,37 +270,28 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
             className="flex flex-col items-start gap-3"
           >
             <p className="text-sm text-muted-foreground" id="otp-instructions">
-              Enter the 6-digit code sent to your phone
+              Your impact window grade is ready. Enter the code we just texted you to unlock your counter-offer.
             </p>
-            <InputOTP maxLength={6} value={otpValue} onChange={handleOtpChange} aria-describedby="otp-instructions">
-              <InputOTPGroup>
-                {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <InputOTPSlot
-                    key={i}
-                    index={i}
-                    className="!border-surface-border !bg-surface/60 !text-foreground !w-12 !h-14 !text-xl !font-bold"
-                  />
-                ))}
-              </InputOTPGroup>
-            </InputOTP>
+            <div key={shakeKey} ref={otpContainerRef} className={shakeKey > 0 ? "otp-shake" : ""}>
+              <InputOTP maxLength={6} value={otpValue} onChange={handleOtpChange} aria-describedby="otp-instructions" autoFocus>
+                <InputOTPGroup>
+                  {[0, 1, 2, 3, 4, 5].map((i) => (
+                    <InputOTPSlot
+                      key={i}
+                      index={i}
+                      className="!border-surface-border !bg-surface/60 !text-foreground !w-12 !h-14 !text-xl !font-bold"
+                    />
+                  ))}
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
             <div className="flex flex-col items-start gap-3 w-full">
-              <button
-                onClick={handleVerify}
-                disabled={otpValue.length < 6 || step === "verifying"}
-                aria-label="Verify code and unlock report"
-                className="h-[50px] px-6 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.97]"
-                style={{
-                  background: otpValue.length === 6 ? "linear-gradient(135deg, hsl(var(--gold)), #E2B04A)" : "hsl(var(--gold) / 0.2)",
-                  color: otpValue.length === 6 ? "white" : "hsl(var(--foreground) / 0.4)",
-                  cursor: otpValue.length === 6 && step !== "verifying" ? "pointer" : "not-allowed",
-                }}
-              >
-                {step === "verifying" ? (
-                  <><Loader2 size={16} className="animate-spin" aria-hidden="true" /> Verifying…</>
-                ) : (
-                  "Verify & Unlock Report"
-                )}
-              </button>
+              {/* Verifying spinner (replaces removed button) */}
+              {step === "verifying" && (
+                <div className="h-[50px] px-6 font-bold text-sm flex items-center justify-center gap-2">
+                  <Loader2 size={16} className="animate-spin" aria-hidden="true" /> Verifying…
+                </div>
+              )}
               <div className="flex items-center gap-4">
                 <button
                   type="button"

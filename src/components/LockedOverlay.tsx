@@ -5,9 +5,13 @@
  *   enter_phone — phone capture + TCPA consent (primary path, Just-in-Time)
  *   enter_code  — OTP input (after send succeeds)
  *
+ * Phase 3: auto-submit on 6th digit, error shake + auto-clear,
+ *          CRO micro-copy, autoComplete="one-time-code".
+ *
  * All business logic lives in the parent orchestrator (PostScanReportSwitcher).
  */
 
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, AlertCircle, Clock, RefreshCw } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -90,6 +94,26 @@ export function LockedOverlay({
 }: LockedOverlayProps) {
   const issueCount = flagCount;
   const redCount = flagRedCount ?? flagCount;
+  const [shakeKey, setShakeKey] = useState(0);
+  const prevErrorType = useRef<string | undefined>(undefined);
+
+  // Shake + auto-clear on invalid_code error
+  useEffect(() => {
+    if (errorType === "invalid_code" && errorType !== prevErrorType.current) {
+      setShakeKey((k) => k + 1);
+      setTimeout(() => {
+        onOtpChange("");
+      }, 600);
+    }
+    prevErrorType.current = errorType;
+  }, [errorType, onOtpChange]);
+
+  // Auto-submit when 6th digit entered
+  useEffect(() => {
+    if (otpValue.length === 6 && gateMode === "enter_code" && !isLoading) {
+      onOtpSubmit();
+    }
+  }, [otpValue, gateMode, isLoading, onOtpSubmit]);
 
   // Header text per mode
   const header = gateMode === "enter_phone" ? "Unlock Your Full Report" : "Enter Your Secure Code";
@@ -101,8 +125,8 @@ export function LockedOverlay({
           "Enter your mobile number and we'll send your secure unlock code.",
         ]
       : maskedPhone
-        ? [`We sent a 6-digit code to ${maskedPhone}.`, "Enter it below to unlock your full report."]
-        : ["Enter the code we texted you", "to unlock your full report."];
+        ? [`Your impact window grade is ready. We sent a code to ${maskedPhone}.`, "Enter it below to unlock your counter-offer."]
+        : ["Your impact window grade is ready.", "Enter the code we just texted you to unlock your counter-offer."];
 
   const progressPercent =
     gateMode === "enter_phone" ? 50 + (phoneDigitCount / 10) * 40 : gateMode === "send_code" ? 85 : 95;
@@ -433,7 +457,7 @@ export function LockedOverlay({
                 transition={{ duration: 0.25 }}
                 className="flex flex-col items-center gap-4"
               >
-                <div className="[&_input]:!bg-transparent [&_input]:!text-foreground">
+                <div key={shakeKey} className={`[&_input]:!bg-transparent [&_input]:!text-foreground ${shakeKey > 0 ? "otp-shake" : ""}`}>
                   <InputOTP maxLength={6} value={otpValue} onChange={onOtpChange} autoFocus>
                     <InputOTPGroup>
                       {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -447,24 +471,13 @@ export function LockedOverlay({
                   </InputOTP>
                 </div>
 
-                <motion.button
-                  whileHover={otpValue.length === 6 ? { scale: 1.02 } : {}}
-                  whileTap={otpValue.length === 6 ? { scale: 0.97 } : {}}
-                  onClick={onOtpSubmit}
-                  disabled={otpValue.length < 6 || isLoading}
-                  className={`w-full max-w-[320px] h-[54px] text-[17px] font-extrabold flex items-center justify-center gap-2 ${
-                    otpValue.length === 6 ? "btn-depth-gold" : "btn-depth-gold--pending"
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      Verifying…
-                    </>
-                  ) : (
-                    "Unlock Full Report"
-                  )}
-                </motion.button>
+                {/* Verifying spinner (auto-submit removes the button) */}
+                {isLoading && (
+                  <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+                    <Loader2 size={18} className="animate-spin" />
+                    Verifying…
+                  </div>
+                )}
 
                 {/* Resend + Wrong number */}
                 <div className="flex flex-col items-center gap-2">
