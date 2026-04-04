@@ -20,7 +20,7 @@ import { Phone, PhoneCall, Users, CalendarCheck, Eye, Flag } from "lucide-react"
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-import type { CRMLead } from "./types";
+import type { CRMLead, VoiceFollowupSummary } from "./types";
 import { updateLeadDealStatus } from "@/services/adminDataService";
 import { LeadDossierSheet } from "./LeadDossierSheet";
 
