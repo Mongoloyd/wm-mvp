@@ -114,6 +114,12 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
   const [auditOpen, setAuditOpen] = useState(true);
   const [showAllFlags, setShowAllFlags] = useState(false);
 
+  // ── Call History state ──
+  const [callHistory, setCallHistory] = useState<VoiceFollowup[]>([]);
+  const [callHistoryLoading, setCallHistoryLoading] = useState(false);
+  const [callHistoryError, setCallHistoryError] = useState<string | null>(null);
+  const [expandedTranscripts, setExpandedTranscripts] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (!open || !lead?.latest_analysis_id) {
       setAnalysis(null);
