@@ -1,71 +1,64 @@
 
 
-## P0 Bug Squash Plan — Two Critical Fixes
+## Internal CRM Desk — Power Dialer Plan
 
-### Task 1: Fix `get_analysis_full` Cross-Session Bug (Backend)
+### What We're Building
+A "Power Dialer" tab replacing the Engine Room in the admin dashboard. It shows only phone-verified leads with their analysis grade, red flag count, and voice followup status — optimized for speed-to-lead calling.
 
-**Current behavior:** The RPC checks `phone_verifications.status = 'verified'` joined through leads/scan_sessions. When authorization fails, it returns zero rows silently — the frontend sees an empty result and doesn't know why.
+### Architecture Decision
+**No new edge function action needed.** The existing `fetch_leads` action already returns all leads (including `phone_verified`, `grade`, `red_flag_count`, `funnel_stage`, `deal_status`). The existing `update_lead_status` action can update `leads.status`. We just need to also update `leads.deal_status` — which the edge function already writes to `leads` via a generic update. We'll add a new `update_lead_deal_status` action to the edge function for this specific column.
 
-**Actual issues to fix:**
-1. The RPC should also check `leads.phone_verified = true` for belt-and-suspenders verification.
-2. On authorization failure, the frontend gets `null` from `row`, logs "returned empty" and silently returns — the OTP modal never dismisses and the user is stuck.
+### Task 1: Edge Function Update — `admin-data/index.ts`
 
-**Fix:**
-- **Migration:** Replace `get_analysis_full` with a version that:
-  - Checks `leads.phone_verified = true` in addition to the phone_verifications join
-  - Returns a structured error row (e.g., `grade = '__UNAUTHORIZED__'`) when auth fails, instead of returning nothing
-- **Frontend (`useAnalysisData.ts`):** In `fetchFull`, detect the `__UNAUTHORIZED__` sentinel and set an explicit error state instead of silently returning.
+Add a new action `update_lead_deal_status` (operator+) that updates `leads.deal_status` for a given lead ID. The `deal_status` column already exists on the `leads` table.
 
-### Task 2: Fix "Zero Flags" Ghost in TruthReportClassic (Frontend)
+Also add `update_lead_funnel_stage` to update `leads.funnel_stage`.
 
-**Current behavior (lines 128-135 of TruthReportClassic.tsx):**
-```typescript
-const flagsDerivedRed = flags.filter(f => resolveEffectiveSeverity(f) === "red").length;
-// In preview: flags is [], so flagsDerivedRed = 0
-const redCount = isFull ? flagsDerivedRed : (flagRedCountProp ?? flagsDerivedRed);
-// If flagRedCountProp is 0 (falsy!), ?? treats it as defined, so it's fine.
-// But if flagRedCountProp is undefined, fallback is flagsDerivedRed = 0. Bug!
-```
+### Task 2: Frontend Service Update — `adminDataService.ts`
 
-Wait — `0 ?? 0` is `0`, which is correct. The `??` operator only falls through on `null`/`undefined`. So if `flagRedCountProp` is `3`, it stays `3`. The actual data flow: `activeData.flagRedCount` comes from `useAnalysisData` which sets it from `row.flag_red_count ?? 0` in preview. This should work.
+Add the new action types and convenience wrappers.
 
-**Real bug:** The `summaryText` on line 143 shows "no issues" when all counts are 0. But in preview mode, the counts should be non-zero if the backend preview returned them. Let me re-check — the `greenCount` calculation on line 134:
-```typescript
-const greenCount = isFull ? flagsDerivedGreen : Math.max(0, (flagCountProp ?? 0) - (flagRedCountProp ?? 0) - (flagAmberCountProp ?? 0));
-```
-If `flagCountProp` is passed as the total flag count (say 5), and red=3, amber=2, then green=0. The `issueCount = redCount + amberCount` on line 135. This should be 5 in that case.
+### Task 3: Create `InternalCRMDesk.tsx`
 
-The props ARE being passed from Index.tsx (lines 325-327). So the issue might be that `flagCount`/`flagRedCount`/`flagAmberCount` are `undefined` when first rendered (before preview data loads). But `activeData` guard on line 308 means we only render when data exists.
+New file: `src/components/admin/InternalCRMDesk.tsx`
 
-**Possible real bug:** `PostScanReportSwitcher` receives `flagCount` etc. as optional props, and spreads them to `TruthReportClassic` via `{...props}`. But `TruthReportClassic` receives them as `flagCount: flagCountProp` which could be `undefined` if not in `PostScanReportSwitcher.Props`.
+**Data:** Filter `leads` array where `phone_verified === true`. For each lead, the grade/red_flag_count/deal_status are already on the CRMLead object (synced in Phase 1). Voice followup intent comes from `leads.last_call_intent`.
 
-Looking at PostScanReportSwitcher's Props type — it has `flagCount?: number`, `flagRedCount?: number`, `flagAmberCount?: number`. These are spread as `{...props}` to TruthReportClassic. So they flow through correctly.
+**Summary strip (3 cards):**
+- Total Verified Leads
+- Needs First Call (deal_status is null or 'new')
+- Appointments Booked (deal_status === 'appointment_booked')
 
-**The actual fix the user wants:** Stop relying on the `flags.length` fallback entirely. In preview mode, ALWAYS use the aggregate prop counts, never derive from the empty flags array. This makes the code more resilient.
+**Table columns:**
+- Date (created_at, formatted)
+- Name (first_name + last_name)
+- Phone (clickable `tel:` link, full number visible to operators)
+- County
+- Grade (color-coded badge)
+- Red Flags (count)
+- Call Intent (from last_call_intent — shows "Requested" badge if present)
+- Status (dropdown: New, Attempted, In-Conversation, Appointment Booked, Dead)
 
-**Fix in `TruthReportClassic.tsx`:**
-```typescript
-// Preview mode: NEVER derive from flags array (it's intentionally empty)
-const redCount = isFull ? flagsDerivedRed : (flagRedCountProp ?? 0);
-const amberCount = isFull ? flagsDerivedAmber : (flagAmberCountProp ?? 0);
-const totalFlagCount = isFull ? flags.length : (flagCountProp ?? 0);
-const greenCount = isFull ? flagsDerivedGreen : Math.max(0, totalFlagCount - redCount - amberCount);
-```
+**Sort:** Most recent first by default. Leads with `deal_status` null/new float to top.
 
-Also fix `RiskSummaryHeader.tsx` — it already uses `flagRedCountProp ?? 0` in preview mode, so it's correct.
+**Status dropdown:** On change, calls `update_lead_deal_status` via the edge function, then shows a toast.
 
----
+### Task 4: Admin Dashboard Integration — `AdminDashboard.tsx`
+
+- Replace Engine Room tab label "Engine Room" with "Dialer Desk"
+- Replace `<EngineRoom>` with `<InternalCRMDesk>`
+- Pass `leads` and a `handleDealStatusUpdate` callback
+- Keep EngineRoom.tsx file (not deleted, just unused for now)
 
 ### Files Changed
 
 | File | Change |
 |---|---|
-| **Migration** | Replace `get_analysis_full` RPC — add `leads.phone_verified` check + return error sentinel on auth failure |
-| `src/hooks/useAnalysisData.ts` | Detect `__UNAUTHORIZED__` sentinel in `fetchFull`, set error state |
-| `src/components/TruthReportClassic.tsx` | Lines 128-134: Remove `flagsDerivedRed`/`flagsDerivedAmber` fallback in preview mode; always use aggregate props |
+| `supabase/functions/admin-data/index.ts` | Add `update_lead_deal_status` action |
+| `src/services/adminDataService.ts` | Add action type + wrapper |
+| `src/components/admin/InternalCRMDesk.tsx` | **New** — Power Dialer component |
+| `src/components/AdminDashboard.tsx` | Swap Engine Room for InternalCRMDesk, rename tab |
 
-### What does NOT change
-- `RiskSummaryHeader.tsx` — already correctly uses prop counts in preview mode
-- `PostScanReportSwitcher.tsx` — prop passthrough is correct
-- `Index.tsx` — already passes all three aggregate count props
+### No Migration Needed
+The `leads.deal_status` column already exists. The edge function uses `supabaseAdmin` (service role) so no RLS changes are needed for the update.
 
