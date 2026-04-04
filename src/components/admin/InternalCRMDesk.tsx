@@ -232,8 +232,10 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sorted.map((lead) => (
-                  <TableRow key={lead.id}>
+                {sorted.map((lead) => {
+                  const badge = derivePipelineBadge(lead, latestFollowups[lead.id]);
+                  return (
+                  <TableRow key={lead.id} className={badge.rowClass ?? ""}>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                       {format(new Date(lead.created_at), "MMM d")}
                     </TableCell>
