@@ -146,3 +146,12 @@ export interface LeadAnalysisData {
   confidence_score: number | null;
   flags: AnalysisFlag[];
 }
+
+// ─── Voice Followup Summary (for CRM table) ────────────────────────────
+
+export interface VoiceFollowupSummary {
+  lead_id: string;
+  status: string;
+  call_outcome: string | null;
+  created_at: string;
+}

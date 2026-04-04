@@ -20,7 +20,7 @@ import { Phone, PhoneCall, Users, CalendarCheck, Eye, Flag } from "lucide-react"
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-import type { CRMLead } from "./types";
+import type { CRMLead, VoiceFollowupSummary } from "./types";
 import { updateLeadDealStatus } from "@/services/adminDataService";
 import { LeadDossierSheet } from "./LeadDossierSheet";
 
@@ -65,11 +65,12 @@ interface InternalCRMDeskProps {
   leads: CRMLead[];
   isLoading: boolean;
   onStatusChange: () => void;
+  latestFollowups?: Record<string, VoiceFollowupSummary>;
 }
 
 /* ── Component ────────────────────────────────────────────────────────── */
 
-export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCRMDeskProps) {
+export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollowups = {} }: InternalCRMDeskProps) {
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
   const [dossierOpen, setDossierOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("default");
@@ -188,7 +189,8 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
                   <TableHead>Name</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>County</TableHead>
-                  <TableHead className="text-center">Grade / Flags</TableHead>
+                  <TableHead className="text-center">Grade</TableHead>
+                  <TableHead className="text-center">Flags</TableHead>
                   <TableHead className="text-center">Call Intent</TableHead>
                   <TableHead className="w-[180px]">Status</TableHead>
                   <TableHead className="w-[60px]" />
@@ -218,23 +220,25 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
                     </TableCell>
                     <TableCell className="text-sm">{lead.county || "—"}</TableCell>
                     <TableCell className="text-center">
-                      <div className="inline-flex items-center gap-1.5">
+                      <span
+                        className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${gradeColor(lead.grade)}`}
+                      >
+                        {lead.grade ?? "?"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {(lead.flag_count ?? 0) > 0 ? (
                         <span
-                          className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${gradeColor(lead.grade)}`}
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 ${
+                            (lead.flag_count ?? 0) >= 3 ? "ring-2 ring-red-500 animate-pulse" : ""
+                          }`}
                         >
-                          {lead.grade ?? "?"}
+                          <Flag className="w-3 h-3" />
+                          {lead.flag_count}
                         </span>
-                        {(lead.flag_count ?? 0) > 0 && (
-                          <span
-                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 ${
-                              (lead.flag_count ?? 0) >= 3 ? "ring-2 ring-red-500 animate-pulse" : ""
-                            }`}
-                          >
-                            <Flag className="w-3 h-3" />
-                            {lead.flag_count}
-                          </span>
-                        )}
-                      </div>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       {lead.last_call_intent ? (
