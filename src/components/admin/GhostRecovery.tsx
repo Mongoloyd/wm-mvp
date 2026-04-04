@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, Ghost, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { LeadDossierSheet } from "./LeadDossierSheet";
 import type { CRMLead } from "./types";
 
 interface GhostRecoveryProps {
@@ -29,6 +30,8 @@ function timeAgo(dateStr: string): string {
 }
 
 export function GhostRecovery({ ghosts, isLoading }: GhostRecoveryProps) {
+  const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copied to clipboard`);
@@ -78,7 +81,11 @@ export function GhostRecovery({ ghosts, isLoading }: GhostRecoveryProps) {
               </TableHeader>
               <TableBody>
                 {ghosts.map((lead) => (
-                  <TableRow key={lead.id}>
+                  <TableRow
+                    key={lead.id}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setSelectedLead(lead)}
+                  >
                     <TableCell>
                       <div className="font-medium text-sm truncate max-w-[220px]">
                         {lead.first_name ?? lead.email ?? `Lead ${lead.id.slice(0, 8)}`}
@@ -111,7 +118,7 @@ export function GhostRecovery({ ghosts, isLoading }: GhostRecoveryProps) {
                             size="sm"
                             variant="ghost"
                             className="h-7 text-xs gap-1"
-                            onClick={() => copyToClipboard(lead.email!, "Email")}
+                            onClick={(e) => { e.stopPropagation(); copyToClipboard(lead.email!, "Email"); }}
                           >
                             <Mail className="h-3 w-3" /> Email
                           </Button>
@@ -121,7 +128,7 @@ export function GhostRecovery({ ghosts, isLoading }: GhostRecoveryProps) {
                             size="sm"
                             variant="ghost"
                             className="h-7 text-xs gap-1"
-                            onClick={() => copyToClipboard(lead.phone_e164!, "Phone")}
+                            onClick={(e) => { e.stopPropagation(); copyToClipboard(lead.phone_e164!, "Phone"); }}
                           >
                             <Copy className="h-3 w-3" /> Phone
                           </Button>
@@ -135,6 +142,12 @@ export function GhostRecovery({ ghosts, isLoading }: GhostRecoveryProps) {
           </div>
         </CardContent>
       </Card>
+
+      <LeadDossierSheet
+        lead={selectedLead}
+        open={!!selectedLead}
+        onOpenChange={(open) => !open && setSelectedLead(null)}
+      />
     </div>
   );
 }
