@@ -214,7 +214,11 @@ function DashboardContent() {
           </TabsContent>
 
           <TabsContent value="engine">
-            <EngineRoom deliveries={deliveries} isLoading={isLoading} />
+            <InternalCRMDesk
+              leads={leads}
+              isLoading={isLoading}
+              onStatusChange={() => fetchAll(true)}
+            />
           </TabsContent>
         </Tabs>
       </div>
