@@ -99,6 +99,27 @@ Deno.serve(async (req) => {
       return successResponse({ data: data });
     }
 
+    if (action === "fetch_lead_voice_followups") {
+      const { lead_id } = payload;
+      if (!lead_id) return errorResponse(400, "missing_param", "lead_id is required");
+      const { data, error } = await supabaseAdmin
+        .from("voice_followups")
+        .select(`
+          id, lead_id, call_intent, status,
+          call_outcome, failure_reason,
+          duration_seconds, recording_url,
+          transcript_url, transcript_text,
+          summary, booking_intent_detected,
+          appointment_booked, scan_session_id,
+          phone_e164, queued_at, started_at,
+          answered_at, completed_at, created_at
+        `)
+        .eq("lead_id", lead_id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return successResponse({ data: data });
+    }
+
     // ─── WRITE ACTIONS ─────────────────────────────────────────────
 
     if (action === "update_lead_status") {

@@ -320,6 +320,14 @@ export async function fetchLeadAnalysis(analysisId: string): Promise<any> {
 }
 
 /**
+ * Fetch voice followups for a specific lead (call history).
+ */
+export async function fetchLeadVoiceFollowups(leadId: string): Promise<VoiceFollowup[]> {
+  const result = await invokeAdminData("fetch_lead_voice_followups", { lead_id: leadId });
+  return result ?? [];
+}
+
+/**
  * Autodial a lead via the dial-lead Edge Function.
  * Uses the same dev-bypass / session JWT pattern as invokeAdminData.
  */
