@@ -398,18 +398,30 @@ export function useAnalysisData(
 
     setIsResuming(true);
     try {
-      const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
-        "get_analysis_full",
-        { p_scan_session_id: scanSessionId, p_phone_e164: record.phone_e164 }
-      );
+      let row: any;
 
-      if (rpcErr) {
-        console.warn("[tryResume] RPC error — clearing stale record", rpcErr);
-        clearVerifiedAccess();
-        return false;
+      if (devBypassEnabled) {
+        console.info("[tryResume] 🔓 DEV BYPASS — skipping get_analysis_full RPC");
+        try {
+          row = await fetchFullViaDevBypass(scanSessionId);
+        } catch (e) {
+          console.warn("[tryResume] dev bypass error", e);
+          return false;
+        }
+      } else {
+        const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
+          "get_analysis_full",
+          { p_scan_session_id: scanSessionId, p_phone_e164: record.phone_e164 }
+        );
+
+        if (rpcErr) {
+          console.warn("[tryResume] RPC error — clearing stale record", rpcErr);
+          clearVerifiedAccess();
+          return false;
+        }
+        row = Array.isArray(rows) ? rows[0] : rows;
       }
 
-      const row = Array.isArray(rows) ? rows[0] : rows;
       if (!row || !row.grade) {
         console.warn("[tryResume] empty result — clearing stale record");
         clearVerifiedAccess();
