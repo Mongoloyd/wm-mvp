@@ -370,6 +370,48 @@ export async function dialLead(leadId: string): Promise<{ success: boolean; foll
 }
 
 /**
+ * Send contractor handoff dossier via the send-contractor-handoff Edge Function.
+ * Uses the same dev-bypass / session JWT pattern as dialLead.
+ */
+export async function sendContractorHandoff(leadId: string): Promise<{ success: boolean; opportunity_id?: string; warning?: string }> {
+  const devSecret = import.meta.env.DEV ? import.meta.env.VITE_DEV_BYPASS_SECRET : undefined;
+
+  if (devSecret) {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const resp = await fetch(`${supabaseUrl}/functions/v1/send-contractor-handoff`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-dev-secret": devSecret,
+      },
+      body: JSON.stringify({ lead_id: leadId }),
+    });
+    if (!resp.ok) {
+      const body = await resp.json().catch(() => ({ error: resp.statusText }));
+      throw { code: "handoff_error", message: body.error || `send-contractor-handoff returned ${resp.status}`, status: resp.status } as AdminDataError;
+    }
+    return resp.json();
+  }
+
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !session?.access_token) {
+    throw { code: "auth_error", message: "Not authenticated", status: 401 } as AdminDataError;
+  }
+
+  const { data, error } = await supabase.functions.invoke("send-contractor-handoff", {
+    body: { lead_id: leadId },
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  if (error) {
+    throw { code: "handoff_error", message: error.message || "Failed to send handoff", status: 500 } as AdminDataError;
+  }
+  if (data?.error) {
+    throw { code: "handoff_error", message: data.error, status: 400 } as AdminDataError;
+  }
+  return data;
+}
+
+/**
  * Response type map for admin actions.
  */
 export type AdminActionResponses = {
