@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { useTickerStats } from "@/hooks/useTickerStats";
 import { supabase } from "@/integrations/supabase/client";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
+import { getUtmData } from "@/lib/useUtmCapture";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP CONFIGURATION
