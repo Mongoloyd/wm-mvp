@@ -235,6 +235,20 @@ export async function updateLeadStatus(leadId: string, status: string): Promise<
 }
 
 /**
+ * Fetch lead events for a specific lead (timeline view).
+ */
+export async function fetchLeadEvents(leadId: string, limit = 50): Promise<any[]> {
+  return invokeAdminData("fetch_lead_events", { lead_id: leadId, limit });
+}
+
+/**
+ * Fetch webhook deliveries, optionally filtered by status.
+ */
+export async function fetchWebhookDeliveries(status?: string, limit = 200): Promise<any[]> {
+  return invokeAdminData("fetch_webhook_deliveries", { status, limit } as any);
+}
+
+/**
  * Response type map for admin actions.
  */
 export type AdminActionResponses = {
