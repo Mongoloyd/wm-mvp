@@ -65,6 +65,7 @@ interface InternalCRMDeskProps {
   leads: CRMLead[];
   isLoading: boolean;
   onStatusChange: () => void;
+  latestFollowups?: Record<string, VoiceFollowupSummary>;
 }
 
 /* ── Component ────────────────────────────────────────────────────────── */
