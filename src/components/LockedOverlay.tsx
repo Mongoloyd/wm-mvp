@@ -457,7 +457,7 @@ export function LockedOverlay({
                 transition={{ duration: 0.25 }}
                 className="flex flex-col items-center gap-4"
               >
-                <div className="[&_input]:!bg-transparent [&_input]:!text-foreground">
+                <div key={shakeKey} className={`[&_input]:!bg-transparent [&_input]:!text-foreground ${shakeKey > 0 ? "otp-shake" : ""}`}>
                   <InputOTP maxLength={6} value={otpValue} onChange={onOtpChange} autoFocus>
                     <InputOTPGroup>
                       {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -471,24 +471,13 @@ export function LockedOverlay({
                   </InputOTP>
                 </div>
 
-                <motion.button
-                  whileHover={otpValue.length === 6 ? { scale: 1.02 } : {}}
-                  whileTap={otpValue.length === 6 ? { scale: 0.97 } : {}}
-                  onClick={onOtpSubmit}
-                  disabled={otpValue.length < 6 || isLoading}
-                  className={`w-full max-w-[320px] h-[54px] text-[17px] font-extrabold flex items-center justify-center gap-2 ${
-                    otpValue.length === 6 ? "btn-depth-gold" : "btn-depth-gold--pending"
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      Verifying…
-                    </>
-                  ) : (
-                    "Unlock Full Report"
-                  )}
-                </motion.button>
+                {/* Verifying spinner (auto-submit removes the button) */}
+                {isLoading && (
+                  <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+                    <Loader2 size={18} className="animate-spin" />
+                    Verifying…
+                  </div>
+                )}
 
                 {/* Resend + Wrong number */}
                 <div className="flex flex-col items-center gap-2">
