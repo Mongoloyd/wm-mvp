@@ -26,3 +26,18 @@
 ### Check Constraints Discovered
 - `lead_events.event_name` restricted to: lead_created, lead_captured, scan_started, scan_completed, otp_*, report_unlocked, intro_requested, voice_followup_*, booking_intent_detected, appointment_booked, contractor_intro_routed, billable_intro_created, deal_outcome_updated
 - `lead_events.event_source` restricted to: web, edge_function, admin, phonecall_bot, system
+
+### E2E UTM Test (2026-04-04)
+- Loaded app with `?utm_source=test_source&utm_medium=cpc&utm_campaign=spring_sale`
+- Submitted TruthGateFlow form as "UTMTest / utmtest@windowman.test"
+- Verified leads row `e3103329-...`: `utm_source=test_source`, `utm_medium=cpc`, `utm_campaign=spring_sale`
+- `landing_page_url=/`, `first_page_path=/` — all attribution fields persisted correctly
+
+### Voice-Followup Auth Fix (request-callback)
+- Created `supabase/functions/request-callback/index.ts` — public-facing callback bridge
+- Security: looks up lead via scan_session_id, asserts `phone_verified === true`
+- Uses SUPABASE_SERVICE_ROLE_KEY to bypass RLS for voice_followups insert
+- Inserts voice_followups row, fires phonecall.bot webhook, logs lead_event
+- Updated `ReportClassic.tsx` to invoke `request-callback` instead of `voice-followup`
+- No admin auth required — safe for public report page usage
+
