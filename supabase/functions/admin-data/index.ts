@@ -6,7 +6,7 @@ import { corsHeaders, errorResponse, successResponse, validateAdminRequestWithRo
  */
 
 type ActionName = 
-  | "fetch_leads" | "update_lead_status"
+  | "fetch_leads" | "update_lead_status" | "update_lead_deal_status"
   | "fetch_opportunities" | "fetch_contractors" | "fetch_routes" | "fetch_billable"
   | "route_opportunity" | "mark_dead"
   | "fetch_voice_followups" | "trigger_voice_followup"
