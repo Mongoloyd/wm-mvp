@@ -15,6 +15,7 @@ export interface CRMLead {
   email: string | null;
   phone_e164: string | null;
   county: string | null;
+  city: string | null;
   state: string | null;
   zip: string | null;
   grade: string | null;
