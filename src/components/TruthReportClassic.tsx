@@ -112,6 +112,9 @@ const TruthReportClassic = ({
   isCtaLoading = false,
   suggestedMatch = null,
   derivedMetrics,
+  priceFairness,
+  markupEstimate,
+  negotiationLeverage,
 }: TruthReportProps) => {
   const config = gradeConfig[grade] || gradeConfig.C;
   const isFull = accessLevel === "full";
