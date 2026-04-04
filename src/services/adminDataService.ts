@@ -163,29 +163,35 @@ export async function invokeAdminData<T extends AdminAction>(
   action: T,
   payload: AdminActionPayloads[T] = {} as AdminActionPayloads[T],
 ): Promise<any> {
-  // 1. Grab the current user's session token
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
+  const headers: Record<string, string> = {};
 
-  // 2. If there's no session, throw a 401 early before hitting the backend
-  if (sessionError || !session?.access_token) {
-    const authError: AdminDataError = {
-      code: "auth_error",
-      message: "User is not authenticated or session has expired.",
-      status: 401,
-    };
-    console.error(`[adminDataService] ${action} failed: No active session.`, authError);
-    throw authError;
+  // ── DEV BYPASS: Use dev secret instead of JWT in sandbox ──────────
+  const devSecret = import.meta.env.DEV ? import.meta.env.VITE_DEV_BYPASS_SECRET : undefined;
+  if (devSecret) {
+    headers["x-dev-secret"] = devSecret;
+    console.log(`[adminDataService] DEV BYPASS: Using X-Dev-Secret for action "${action}"`);
+  } else {
+    // Production: Grab the current user's session token
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      const authError: AdminDataError = {
+        code: "auth_error",
+        message: "User is not authenticated or session has expired.",
+        status: 401,
+      };
+      console.error(`[adminDataService] ${action} failed: No active session.`, authError);
+      throw authError;
+    }
+    headers["Authorization"] = `Bearer ${session.access_token}`;
   }
 
-  // 3. Explicitly attach the session token to the request headers
   const { data, error } = await supabase.functions.invoke("admin-data", {
     body: { action, payload },
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-    },
+    headers,
   });
 
   if (error) {
