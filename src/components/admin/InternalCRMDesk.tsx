@@ -218,18 +218,23 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange }: InternalCR
                     </TableCell>
                     <TableCell className="text-sm">{lead.county || "—"}</TableCell>
                     <TableCell className="text-center">
-                      <Badge className={`${gradeColor(lead.grade)} text-xs px-2`}>
-                        {lead.grade || "—"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {lead.red_flag_count > 0 ? (
-                        <Badge variant="destructive" className="text-xs">
-                          {lead.red_flag_count}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">0</span>
-                      )}
+                      <div className="inline-flex items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${gradeColor(lead.grade)}`}
+                        >
+                          {lead.grade ?? "?"}
+                        </span>
+                        {(lead.flag_count ?? 0) > 0 && (
+                          <span
+                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 ${
+                              (lead.flag_count ?? 0) >= 3 ? "ring-2 ring-red-500 animate-pulse" : ""
+                            }`}
+                          >
+                            <Flag className="w-3 h-3" />
+                            {lead.flag_count}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       {lead.last_call_intent ? (
