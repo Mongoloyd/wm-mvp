@@ -273,7 +273,11 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                           className="inline-flex items-center gap-1.5 text-primary hover:underline font-mono text-sm"
                         >
                           <Phone className="h-3.5 w-3.5" />
-                          {lead.phone_e164}
+                          {formatPhoneDisplay(stripNonDigits(lead.phone_e164))}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                         </a>
                       ) : (
                         <span className="text-muted-foreground">—</span>
