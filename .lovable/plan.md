@@ -1,62 +1,68 @@
 
-Goal: eliminate the admin-data 401s by making the dev bypass secret consistent everywhere and confirming the deployed edge function is actually using the bypass path.
+Goal: explain the `/admin` 401 and outline the clean fix.
 
-What I found
-- `src/services/adminDataService.ts` is already correct:
-  - in DEV it reads `import.meta.env.VITE_DEV_BYPASS_SECRET`
-  - it sends that value as the `x-dev-secret` header
-- `supabase/functions/_shared/adminAuth.ts` is already correct:
-  - it checks `req.headers.get("x-dev-secret")`
-  - it compares it to `Deno.env.get("DEV_BYPASS_SECRET")`
-  - that check happens before JWT validation
-- The actual mismatches in the repo are:
-  - `.env.example` still uses the old `dev-bypass-windowman-2024`
-  - `.env` still has `VITE_ADMIN_SECRET="wm-operator-2024"`
-- `VITE_ADMIN_SECRET` is not referenced anywhere in `src/` or `supabase/`, so it is currently just a config/documentation value, not the thing causing the 401.
-- The network logs prove the frontend is already sending `x-dev-secret: WM_SANDBOX_MASTER_2026`, yet the function still returns `invalid_token`. That strongly suggests the deployed `admin-data` function is not honoring the bypass at runtime yet, either because:
-  1. the runtime secret `DEV_BYPASS_SECRET` is still different, or
-  2. `admin-data` is running an older deployment.
+What’s actually happening
+- The frontend is already sending the right dev header: `x-dev-secret: WM_SANDBOX_MASTER_2026`.
+- The same request also carries `Authorization: Bearer <anon key>` because `supabase.functions.invoke()` auto-attaches it.
+- `supabase/functions/_shared/adminAuth.ts` is supposed to accept the dev secret before any JWT check.
+- But your edge logs show only `JWT validation failed: invalid claim: missing sub claim` and never the bypass success log.
+- That means the live function is not accepting the dev bypass, so it falls through to JWT validation and tries to treat the anon key like a user JWT. That key has no `sub`, so you get `invalid_token`.
+
+Why you still see it even if `.env` is correct
+- `/admin` is not failing because of `.env.example`.
+- The browser-side env is already correct; the network request proves it.
+- The actual source of truth on the server is `Deno.env.get("DEV_BYPASS_SECRET")` inside the edge function runtime.
+- So a correct local env can still produce this exact 401 if the live edge function does not match or does not take the bypass branch.
+
+What I verified in code
+- `src/services/adminDataService.ts` sends `x-dev-secret` in DEV.
+- `supabase/functions/_shared/adminAuth.ts` checks `x-dev-secret` before JWT validation.
+- `supabase/config.toml` already has `verify_jwt = false` for `admin-data`, so this is not the platform blocking the request before your code runs.
+- The error body matches your own `errorResponse(...)`, which confirms the request is reaching function code and failing inside your auth helper.
+
+Do I know what the issue is?
+- Yes. The request reaches `admin-data`, but the server-side dev-bypass comparison is not resolving true. Because of that, the function falls back to validating the auto-attached anon key and returns the 401 you see.
 
 Implementation plan
-1. Normalize both env files
-- Update `.env` so both values are:
-  - `VITE_DEV_BYPASS_SECRET="WM_SANDBOX_MASTER_2026"`
-  - `VITE_ADMIN_SECRET="WM_SANDBOX_MASTER_2026"`
-- Update `.env.example` to match exactly and remove the old `dev-bypass-windowman-2024` string.
-- Add `VITE_ADMIN_SECRET` to `.env.example` too so the example file matches the real local config.
+1. Make the failure explicit in `supabase/functions/_shared/adminAuth.ts`
+- If `x-dev-secret` is present but does not match `DEV_BYPASS_SECRET`, return a dedicated `dev_bypass_mismatch` error instead of falling through to JWT validation.
+- Log only safe diagnostics: header present, env present, normalized length, match yes/no.
 
-2. Keep the frontend bypass logic as-is
-- Do not change the main flow in `src/services/adminDataService.ts` because it already matches the requested behavior.
-- Optionally add a small defensive comment/log so future debugging is clearer, but no functional rewrite is needed there.
+2. Harden the bypass matching
+- Keep the trim/quote normalization already in place.
+- Centralize the normalization helper so all admin functions use the exact same comparison path.
+- This shared helper matters because `admin-data`, `voice-followup`, and `contractor-actions` all rely on it.
 
-3. Keep the backend bypass logic as-is, but verify deployment state
-- `supabase/functions/_shared/adminAuth.ts` already contains the correct explicit comparison against `Deno.env.get("DEV_BYPASS_SECRET")`.
-- The key action is to ensure the deployed `admin-data` function is rebuilt with this helper and that Supabase runtime secrets are synced.
+3. Make the dev request path more deterministic
+- Keep sending `x-dev-secret`.
+- Also send the same dev secret in the request body for `admin-data`, or switch the DEV path to a direct `fetch` call so the request shape is fully controlled.
+- Keep production behavior unchanged: real session JWT only.
 
-4. Redeploy the edge function
-- Redeploy `admin-data` so the live function definitely includes the current `_shared/adminAuth.ts` bypass logic.
-- If we touch `_shared/adminAuth.ts` at all during cleanup, I would also redeploy any other admin functions importing it for consistency, but `admin-data` is the urgent one.
+4. Re-verify the runtime secret path
+- Confirm the live function is using the Supabase runtime secret `DEV_BYPASS_SECRET`, not just the repo env file.
+- Re-check logs for one of these exact outcomes:
+  - success: bypass-granted log
+  - failure: explicit `dev_bypass_mismatch`
 
-5. Verify the fix end-to-end
-- Trigger `/admin` again in the sandbox.
-- Confirm the `admin-data` requests return 200 instead of 401.
-- Confirm live rows load in the CRM.
-- If it still fails, check edge logs for one of these two signals:
-  - expected: `DEV BYPASS: Granting super_admin via X-Dev-Secret`
-  - failure: JWT validation runs, which means the secret still does not match at runtime
+5. Re-test `/admin` end to end
+- Open `/admin`
+- Confirm `fetch_leads` and `fetch_webhook_deliveries` return 200
+- Confirm the CRM renders data instead of blanking on the auth error
+
+Secondary issue I found
+- There is an unrelated React warning on `/admin`: `Badge` is a plain function component and is being used where a ref is passed through `TabsTrigger` / card UI.
+- That should be fixed separately by converting `src/components/ui/badge.tsx` to `React.forwardRef`, but it is not the cause of the 401.
 
 Technical details
 - Files to update:
-  - `.env`
-  - `.env.example`
-- Files to verify but likely not change:
-  - `src/services/adminDataService.ts`
   - `supabase/functions/_shared/adminAuth.ts`
-- Important note:
-  - unifying `VITE_ADMIN_SECRET` helps consistency, but it does not fix the current 401 by itself because that variable is unused in the codebase today
-  - the real fix path is: frontend `VITE_DEV_BYPASS_SECRET` = backend `DEV_BYPASS_SECRET` = redeployed `admin-data`
+  - `src/services/adminDataService.ts`
+  - possibly `supabase/functions/admin-data/index.ts` if we add a body-based dev bypass
+  - optionally `src/components/ui/badge.tsx` for the unrelated warning
+- No database migration needed.
+- No RLS changes needed.
 
 Expected outcome
-- The sandbox keeps sending `x-dev-secret: WM_SANDBOX_MASTER_2026`
-- `admin-data` accepts the bypass before JWT validation
-- The CRM loads real data without requiring a logged-in Supabase session
+- `/admin` stops falling through to anon-key JWT validation
+- the sandbox bypass becomes deterministic
+- if the secret ever drifts again, the error becomes explicit instead of the misleading `invalid_token`
