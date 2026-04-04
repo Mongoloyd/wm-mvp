@@ -312,13 +312,25 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                     </TableCell>
                     <TableCell>
                       {lead.phone_e164 ? (
-                        <a
-                          href={`tel:${lead.phone_e164}`}
-                          className="inline-flex items-center gap-1.5 text-primary hover:underline font-mono text-sm"
-                        >
-                          <Phone className="h-3.5 w-3.5" />
-                          {formatPhoneDisplay(stripNonDigits(lead.phone_e164))}
-                        </a>
+                        <div className="inline-flex items-center gap-1.5">
+                          <a
+                            href={`tel:${lead.phone_e164}`}
+                            className="inline-flex items-center gap-1.5 text-primary hover:underline font-mono text-sm"
+                          >
+                            <Phone className="h-3.5 w-3.5" />
+                            {formatPhoneDisplay(stripNonDigits(lead.phone_e164))}
+                          </a>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            disabled={dialingLeadId === lead.id}
+                            onClick={() => handleAutodial(lead)}
+                            title="Autodial via AI"
+                          >
+                            <PhoneCall className={`h-3.5 w-3.5 ${dialingLeadId === lead.id ? "animate-pulse text-blue-500" : "text-muted-foreground hover:text-primary"}`} />
+                          </Button>
+                        </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
