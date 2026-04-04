@@ -1,14 +1,60 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, ShieldCheck, Ghost, ArrowDown } from "lucide-react";
-import type { CommandCenterKPIs } from "./types";
+import { Activity, ShieldCheck, Ghost, ArrowDown, Target } from "lucide-react";
+import { ConversionFunnel } from "./ConversionFunnel";
+import type { CommandCenterKPIs, CRMLead } from "./types";
 
 interface CommandCenterProps {
   kpis: CommandCenterKPIs;
   isLoading?: boolean;
+  leads: CRMLead[];
 }
 
-export function CommandCenter({ kpis, isLoading }: CommandCenterProps) {
+export function CommandCenter({ kpis, isLoading, leads }: CommandCenterProps) {
+  /* ── North Star KPI ──────────────────────────────────────────────── */
+  const northStar = useMemo(() => {
+    const verified = leads.filter((l) => l.phone_verified === true);
+    const converted = leads.filter(
+      (l) => l.deal_status === "appointment_booked" || l.deal_status === "won"
+    );
+    const rate =
+      verified.length > 0
+        ? ((converted.length / verified.length) * 100).toFixed(1) + "%"
+        : "—";
+
+    // 7-day trend
+    const now = Date.now();
+    const day7 = now - 7 * 24 * 60 * 60 * 1000;
+    const day14 = now - 14 * 24 * 60 * 60 * 1000;
+
+    const thisWeekVerified = verified.filter((l) => new Date(l.created_at).getTime() >= day7);
+    const lastWeekVerified = verified.filter((l) => {
+      const t = new Date(l.created_at).getTime();
+      return t >= day14 && t < day7;
+    });
+
+    const calcRate = (arr: CRMLead[]) => {
+      if (arr.length === 0) return 0;
+      const conv = arr.filter(
+        (l) => l.deal_status === "appointment_booked" || l.deal_status === "won"
+      ).length;
+      return (conv / arr.length) * 100;
+    };
+
+    const showTrend = thisWeekVerified.length >= 5 && lastWeekVerified.length >= 5;
+    let trendDelta = 0;
+    let trendUp = true;
+    if (showTrend) {
+      const thisRate = calcRate(thisWeekVerified);
+      const lastRate = calcRate(lastWeekVerified);
+      trendDelta = parseFloat((thisRate - lastRate).toFixed(1));
+      trendUp = trendDelta >= 0;
+    }
+
+    return { rate, converted: converted.length, verified: verified.length, showTrend, trendDelta, trendUp };
+  }, [leads]);
+
   const cards = [
     {
       title: "Total Scans",
@@ -41,8 +87,31 @@ export function CommandCenter({ kpis, isLoading }: CommandCenterProps) {
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* KPI Cards — North Star hero + 3 standard */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* North Star — span 2 */}
+        <Card className="relative overflow-hidden sm:col-span-2 border-l-4 border-l-[#C8952A]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+              Lead → Appointment Rate
+            </CardTitle>
+            <Target className="h-5 w-5" style={{ color: "#C8952A" }} />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-5xl font-bold tracking-tight ${isLoading ? "animate-pulse text-muted-foreground" : ""}`}>
+              {isLoading ? "—" : northStar.rate}
+            </div>
+            {!isLoading && northStar.showTrend && (
+              <p className={`text-xs mt-1 ${northStar.trendUp ? "text-emerald-400" : "text-destructive"}`}>
+                {northStar.trendUp ? "↑" : "↓"} {Math.abs(northStar.trendDelta)}% vs last 7d
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground mt-1">
+              {isLoading ? "" : `${northStar.converted} of ${northStar.verified} verified leads`}
+            </p>
+          </CardContent>
+        </Card>
+
         {cards.map((card) => (
           <Card key={card.title} className="relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -60,6 +129,18 @@ export function CommandCenter({ kpis, isLoading }: CommandCenterProps) {
           </Card>
         ))}
       </div>
+
+      {/* Conversion Funnel */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            Conversion Funnel
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ConversionFunnel leads={leads} />
+        </CardContent>
+      </Card>
 
       {/* Funnel Progress */}
       <Card>
