@@ -322,7 +322,65 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         <QuotePriceMath metrics={derivedMetrics} county={county} />
       )}
 
-      {/* ─── FORENSIC FINDINGS ─── */}
+      {/* ─── FINANCIAL FORENSICS (full only) ─── */}
+      {isFull && (priceFairness || markupEstimate || negotiationLeverage) && (
+        <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
+          <div className="max-w-4xl mx-auto space-y-4">
+            <motion.div {...stagger(2.5)}>
+              <span className="wm-eyebrow" style={{ color: "hsl(var(--color-gold-accent))" }}>FINANCIAL FORENSICS</span>
+              <h2 className="wm-title-section text-foreground" style={{ marginTop: 4, marginBottom: 16 }}>
+                What You're Really Paying
+              </h2>
+            </motion.div>
+
+            {markupEstimate && (
+              <motion.div {...stagger(2.6)} className="card-raised" style={{
+                borderLeft: "4px solid hsl(var(--color-danger))",
+                padding: "24px 28px",
+              }}>
+                <p className="font-mono" style={{ fontSize: 10, color: "hsl(var(--color-danger))", letterSpacing: "0.1em", marginBottom: 8 }}>
+                  ESTIMATED MARKUP
+                </p>
+                <p className="font-display text-foreground" style={{ fontSize: "clamp(28px, 5vw, 40px)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                  {markupEstimate}
+                </p>
+                <p className="font-body text-muted-foreground" style={{ fontSize: 13, marginTop: 8 }}>
+                  Over standard Florida wholesale + labor baseline
+                </p>
+              </motion.div>
+            )}
+
+            {priceFairness && (
+              <motion.div {...stagger(2.7)} className="card-raised" style={{
+                borderLeft: "4px solid hsl(var(--color-caution))",
+                padding: "24px 28px",
+              }}>
+                <p className="font-mono" style={{ fontSize: 10, color: "hsl(var(--color-caution))", letterSpacing: "0.1em", marginBottom: 8 }}>
+                  PRICE FAIRNESS ASSESSMENT
+                </p>
+                <p className="font-body text-foreground" style={{ fontSize: 15, lineHeight: 1.7 }}>
+                  {priceFairness}
+                </p>
+              </motion.div>
+            )}
+
+            {negotiationLeverage && (
+              <motion.div {...stagger(2.8)} className="card-raised" style={{
+                borderLeft: "4px solid hsl(var(--color-cyan))",
+                padding: "24px 28px",
+              }}>
+                <p className="font-mono" style={{ fontSize: 10, color: "hsl(var(--color-cyan))", letterSpacing: "0.1em", marginBottom: 8 }}>
+                  USE THIS SCRIPT
+                </p>
+                <p className="font-body text-foreground" style={{ fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-line" }}>
+                  {negotiationLeverage}
+                </p>
+              </motion.div>
+            )}
+          </div>
+        </section>
+      )}
+
       <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
           <motion.div {...stagger(3)}>
