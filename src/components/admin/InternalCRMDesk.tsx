@@ -278,10 +278,6 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
                     </TableCell>
                     <TableCell className="text-sm">{lead.county || "—"}</TableCell>
                     <TableCell className="text-center">
