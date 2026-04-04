@@ -278,6 +278,9 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                       )}
                     </TableCell>
                     <TableCell className="text-center">
+                      <span className={badge.className}>{badge.label}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
                       {lead.last_call_intent ? (
                         <Badge variant="secondary" className="text-xs">
                           Requested
