@@ -35,6 +35,7 @@ export interface AdminDataError {
 export type AdminAction =
   | "fetch_leads"
   | "update_lead_status"
+  | "update_lead_deal_status"
   | "fetch_opportunities"
   | "fetch_contractors"
   | "fetch_routes"
@@ -56,6 +57,7 @@ export type AdminAction =
 export interface AdminActionPayloads {
   fetch_leads: Record<string, never>;
   update_lead_status: { lead_id: string; status: string };
+  update_lead_deal_status: { lead_id: string; deal_status: string };
   fetch_opportunities: Record<string, never>;
   fetch_contractors: Record<string, never>;
   fetch_routes: { opportunity_id?: string };
@@ -246,6 +248,13 @@ export async function fetchLeadEvents(leadId: string, limit = 50): Promise<any[]
  */
 export async function fetchWebhookDeliveries(status?: string, limit = 200): Promise<any[]> {
   return invokeAdminData("fetch_webhook_deliveries", { status, limit } as any);
+}
+
+/**
+ * Update lead deal_status (operator+). Used by the Power Dialer.
+ */
+export async function updateLeadDealStatus(leadId: string, dealStatus: string): Promise<{ success: boolean }> {
+  return invokeAdminData("update_lead_deal_status", { lead_id: leadId, deal_status: dealStatus });
 }
 
 /**

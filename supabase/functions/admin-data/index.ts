@@ -6,7 +6,7 @@ import { corsHeaders, errorResponse, successResponse, validateAdminRequestWithRo
  */
 
 type ActionName = 
-  | "fetch_leads" | "update_lead_status"
+  | "fetch_leads" | "update_lead_status" | "update_lead_deal_status"
   | "fetch_opportunities" | "fetch_contractors" | "fetch_routes" | "fetch_billable"
   | "route_opportunity" | "mark_dead"
   | "fetch_voice_followups" | "trigger_voice_followup"
@@ -16,6 +16,7 @@ type ActionName =
 const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_leads: ["super_admin", "operator", "viewer"],
   update_lead_status: ["super_admin", "operator"],
+  update_lead_deal_status: ["super_admin", "operator"],
   fetch_opportunities: ["super_admin", "operator", "viewer"],
   fetch_contractors: ["super_admin", "operator", "viewer"],
   fetch_routes: ["super_admin", "operator", "viewer"],
@@ -101,6 +102,18 @@ Deno.serve(async (req) => {
       const { lead_id, status } = payload;
       const { error } = await supabaseAdmin.from("leads").update({ status, updated_at: now }).eq("id", lead_id);
       if (error) throw error;
+      return successResponse({ data: { success: true } });
+    }
+
+    if (action === "update_lead_deal_status") {
+      const { lead_id, deal_status } = payload;
+      if (!lead_id || !deal_status) return errorResponse(400, "missing_param", "lead_id and deal_status are required");
+      const { error } = await supabaseAdmin.from("leads").update({ deal_status, updated_at: now }).eq("id", lead_id);
+      if (error) throw error;
+      await supabaseAdmin.from("lead_events").insert({
+        lead_id, event_name: "deal_status_changed", event_source: "admin_crm",
+        metadata: { deal_status, changed_by: userId, timestamp: now },
+      });
       return successResponse({ data: { success: true } });
     }
 

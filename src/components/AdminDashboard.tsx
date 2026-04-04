@@ -22,6 +22,7 @@ import { CommandCenter } from "@/components/admin/CommandCenter";
 import { ActivePipeline } from "@/components/admin/ActivePipeline";
 import { GhostRecovery } from "@/components/admin/GhostRecovery";
 import { EngineRoom } from "@/components/admin/EngineRoom";
+import { InternalCRMDesk } from "@/components/admin/InternalCRMDesk";
 
 import {
   invokeAdminData,
@@ -66,6 +67,8 @@ function toLeadCRM(raw: Record<string, any>): CRMLead {
     scan_count: raw.scan_count ?? 0,
     created_at: raw.created_at,
     updated_at: raw.updated_at,
+    deal_status: raw.deal_status ?? null,
+    last_call_intent: raw.last_call_intent ?? null,
     assigned_partner: "Primary Client",
   };
 }
@@ -191,7 +194,7 @@ function DashboardContent() {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="engine">Engine Room</TabsTrigger>
+            <TabsTrigger value="engine">Dialer Desk</TabsTrigger>
           </TabsList>
 
           <TabsContent value="command">
@@ -211,7 +214,11 @@ function DashboardContent() {
           </TabsContent>
 
           <TabsContent value="engine">
-            <EngineRoom deliveries={deliveries} isLoading={isLoading} />
+            <InternalCRMDesk
+              leads={leads}
+              isLoading={isLoading}
+              onStatusChange={() => fetchAll(true)}
+            />
           </TabsContent>
         </Tabs>
       </div>

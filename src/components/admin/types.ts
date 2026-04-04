@@ -38,6 +38,11 @@ export interface CRMLead {
   created_at: string;
   updated_at: string;
 
+  /** CRM deal workflow status */
+  deal_status: string | null;
+  /** Last call intent from voice followup */
+  last_call_intent: string | null;
+
   /** Future-proofing: defaults to 'Primary Client' in the UI layer */
   assigned_partner: string;
 }
