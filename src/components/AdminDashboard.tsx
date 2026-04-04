@@ -1,13 +1,10 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * LEAD SNIPER CRM — Admin Dashboard v3.0
+ * LEAD SNIPER CRM — Admin Dashboard v3.1
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * Clean 4-tab CRM replacing the legacy multi-contractor marketplace dashboard.
- * Tabs: Command Center · Active Pipeline · Ghost Recovery · Engine Room
- *
- * Data flows through a single fetch cycle with 30-second auto-refresh.
- * All leads are mapped to CRMLead with an assigned_partner default.
+ * 5-tab CRM: Command Center · Active Pipeline · Ghost Recovery ·
+ *            Needs Review · Dialer Desk
  */
 
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -23,6 +20,7 @@ import { ActivePipeline } from "@/components/admin/ActivePipeline";
 import { GhostRecovery } from "@/components/admin/GhostRecovery";
 import { EngineRoom } from "@/components/admin/EngineRoom";
 import { InternalCRMDesk } from "@/components/admin/InternalCRMDesk";
+import { NeedsReviewTab, type NeedsReviewLead } from "@/components/admin/NeedsReviewTab";
 
 import {
   invokeAdminData,
@@ -70,10 +68,8 @@ function toLeadCRM(raw: Record<string, any>): CRMLead {
     deal_status: raw.deal_status ?? null,
     last_call_intent: raw.last_call_intent ?? null,
     assigned_partner: "Primary Client",
-    // Project specs
     project_type: raw.project_type ?? null,
     quote_range: raw.quote_range ?? null,
-    // Attribution
     utm_source: raw.utm_source ?? null,
     utm_medium: raw.utm_medium ?? null,
     utm_campaign: raw.utm_campaign ?? null,
@@ -81,7 +77,6 @@ function toLeadCRM(raw: Record<string, any>): CRMLead {
     fbclid: raw.fbclid ?? null,
     landing_page_url: raw.landing_page_url ?? null,
     initial_referrer: raw.initial_referrer ?? null,
-    // Timeline
     report_unlocked_at: raw.report_unlocked_at ?? null,
     intro_requested_at: raw.intro_requested_at ?? null,
   };
@@ -130,21 +125,24 @@ function DashboardContent() {
   const [leads, setLeads] = useState<CRMLead[]>([]);
   const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([]);
   const [latestFollowups, setLatestFollowups] = useState<Record<string, VoiceFollowupSummary>>({});
+  const [needsReview, setNeedsReview] = useState<NeedsReviewLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchAll = useCallback(async (silent = false) => {
     if (!silent) setIsLoading(true);
     try {
-      const [rawLeads, rawDeliveries, rawFollowups] = await Promise.all([
+      const [rawLeads, rawDeliveries, rawFollowups, rawNeedsReview] = await Promise.all([
         invokeAdminData("fetch_leads"),
         fetchWebhookDeliveries(),
         invokeAdminData("fetch_voice_followups"),
+        invokeAdminData("fetch_needs_review"),
       ]);
       setLeads((rawLeads ?? []).map(toLeadCRM));
       setDeliveries((rawDeliveries ?? []).map(toWebhookDelivery));
+      setNeedsReview((rawNeedsReview ?? []) as NeedsReviewLead[]);
 
-      // Build latestFollowups map: most recent followup per lead_id
+      // Build latestFollowups map
       const followupsArr = (rawFollowups ?? []) as Array<Record<string, any>>;
       const fMap: Record<string, VoiceFollowupSummary> = {};
       for (const f of followupsArr) {
@@ -169,7 +167,6 @@ function DashboardContent() {
     }
   }, []);
 
-  // Initial load + 30s polling
   useEffect(() => {
     fetchAll();
     intervalRef.current = setInterval(() => fetchAll(true), REFRESH_INTERVAL_MS);
@@ -177,7 +174,6 @@ function DashboardContent() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [fetchAll]);
-
 
   const kpis = computeKPIs(leads, deliveries);
   const ghosts = leads.filter((l) => l.latest_analysis_id && !l.phone_verified);
@@ -213,7 +209,7 @@ function DashboardContent() {
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <Tabs defaultValue="command" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="command">Command Center</TabsTrigger>
             <TabsTrigger value="pipeline">Active Pipeline</TabsTrigger>
             <TabsTrigger value="ghosts" className="relative">
@@ -224,6 +220,14 @@ function DashboardContent() {
                 </Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="needs-review" className="relative">
+              Needs Review
+              {needsReview.length > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold bg-destructive text-destructive-foreground">
+                  {needsReview.length > 9 ? "9+" : needsReview.length}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="engine">Dialer Desk</TabsTrigger>
           </TabsList>
 
@@ -232,14 +236,15 @@ function DashboardContent() {
           </TabsContent>
 
           <TabsContent value="pipeline">
-            <ActivePipeline
-              leads={leads}
-              isLoading={isLoading}
-            />
+            <ActivePipeline leads={leads} isLoading={isLoading} />
           </TabsContent>
 
           <TabsContent value="ghosts">
             <GhostRecovery ghosts={ghosts} isLoading={isLoading} />
+          </TabsContent>
+
+          <TabsContent value="needs-review">
+            <NeedsReviewTab needsReview={needsReview} isLoading={isLoading} />
           </TabsContent>
 
           <TabsContent value="engine">
