@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import type { CRMLead, VoiceFollowupSummary } from "./types";
 import { updateLeadDealStatus } from "@/services/adminDataService";
 import { LeadDossierSheet } from "./LeadDossierSheet";
+import { formatPhoneDisplay, stripNonDigits } from "@/utils/formatPhone";
 
 /* ── Constants ────────────────────────────────────────────────────────── */
 
@@ -108,6 +109,8 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
   const [dossierOpen, setDossierOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("default");
+  const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({});
 
   // Filter to phone-verified leads only
   const verified = useMemo(
@@ -129,26 +132,44 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
         if (fA !== fB) return fB - fA;
       }
       // Default tiebreaker: new deal_status first, then newest
-      const aIsNew = !a.deal_status || a.deal_status === "new";
-      const bIsNew = !b.deal_status || b.deal_status === "new";
+      const aStatus = statusOverrides[a.id] ?? a.deal_status;
+      const bStatus = statusOverrides[b.id] ?? b.deal_status;
+      const aIsNew = !aStatus || aStatus === "new";
+      const bIsNew = !bStatus || bStatus === "new";
       if (aIsNew && !bIsNew) return -1;
       if (!aIsNew && bIsNew) return 1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  }, [verified, sortMode]);
+  }, [verified, sortMode, statusOverrides]);
 
   // KPIs
-  const needsFirstCall = verified.filter((l) => !l.deal_status || l.deal_status === "new").length;
-  const appointmentsBooked = verified.filter((l) => l.deal_status === "appointment_booked").length;
+  const needsFirstCall = verified.filter((l) => {
+    const s = statusOverrides[l.id] ?? l.deal_status;
+    return !s || s === "new";
+  }).length;
+  const appointmentsBooked = verified.filter((l) => {
+    const s = statusOverrides[l.id] ?? l.deal_status;
+    return s === "appointment_booked";
+  }).length;
 
   const handleDealStatusChange = useCallback(async (leadId: string, newStatus: string) => {
+    setUpdatingLeadId(leadId);
+    setStatusOverrides(prev => ({ ...prev, [leadId]: newStatus }));
     try {
       await updateLeadDealStatus(leadId, newStatus);
       toast.success(`Status updated to "${DEAL_STATUSES.find((s) => s.value === newStatus)?.label}"`);
       onStatusChange();
     } catch (err) {
+      // Rollback optimistic update
+      setStatusOverrides(prev => {
+        const next = { ...prev };
+        delete next[leadId];
+        return next;
+      });
       const msg = err instanceof Error ? err.message : "Failed to update status";
-      toast.error(msg);
+      toast.error(`Status update failed — reverted. ${msg}`);
+    } finally {
+      setUpdatingLeadId(null);
     }
   }, [onStatusChange]);
 
@@ -233,7 +254,10 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
               </TableHeader>
               <TableBody>
                 {sorted.map((lead) => {
-                  const badge = derivePipelineBadge(lead, latestFollowups[lead.id]);
+                  const effectiveStatus = statusOverrides[lead.id] ?? lead.deal_status;
+                  const leadWithOverride = { ...lead, deal_status: effectiveStatus };
+                  const badge = derivePipelineBadge(leadWithOverride, latestFollowups[lead.id]);
+                  const isUpdating = updatingLeadId === lead.id;
                   return (
                   <TableRow key={lead.id} className={badge.rowClass ?? ""}>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
@@ -249,7 +273,7 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                           className="inline-flex items-center gap-1.5 text-primary hover:underline font-mono text-sm"
                         >
                           <Phone className="h-3.5 w-3.5" />
-                          {lead.phone_e164}
+                          {formatPhoneDisplay(stripNonDigits(lead.phone_e164))}
                         </a>
                       ) : (
                         <span className="text-muted-foreground">—</span>
@@ -291,10 +315,11 @@ export function InternalCRMDesk({ leads, isLoading, onStatusChange, latestFollow
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={lead.deal_status || "new"}
+                        value={effectiveStatus || "new"}
                         onValueChange={(val) => handleDealStatusChange(lead.id, val)}
+                        disabled={isUpdating}
                       >
-                        <SelectTrigger className="h-8 text-xs">
+                        <SelectTrigger className={`h-8 text-xs ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
