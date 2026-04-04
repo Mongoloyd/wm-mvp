@@ -10,7 +10,8 @@ type ActionName =
   | "fetch_opportunities" | "fetch_contractors" | "fetch_routes" | "fetch_billable"
   | "route_opportunity" | "mark_dead"
   | "fetch_voice_followups" | "trigger_voice_followup"
-  | "manage_user_roles" | "list_user_roles" | "get_role_audit_log";
+  | "manage_user_roles" | "list_user_roles" | "get_role_audit_log"
+  | "fetch_lead_events" | "fetch_webhook_deliveries";
 
 const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_leads: ["super_admin", "operator", "viewer"],
@@ -26,6 +27,8 @@ const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   manage_user_roles: ["super_admin"],
   list_user_roles: ["super_admin"],
   get_role_audit_log: ["super_admin"],
+  fetch_lead_events: ["super_admin", "operator", "viewer"],
+  fetch_webhook_deliveries: ["super_admin", "operator", "viewer"],
 };
 
 Deno.serve(async (req) => {
@@ -49,8 +52,11 @@ Deno.serve(async (req) => {
     // ─── READ ACTIONS ──────────────────────────────────────────────
 
     if (action === "fetch_leads") {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const { data, error } = await supabaseAdmin.from("leads").select("*").gte("created_at", today.toISOString()).order("created_at", { ascending: false });
+      const { data, error } = await supabaseAdmin
+        .from("leads")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
       if (error) throw error;
       return successResponse({ data: data });
     }
@@ -233,6 +239,38 @@ Deno.serve(async (req) => {
       }));
 
       return successResponse({ data: { entries: enriched } });
+    }
+
+    // ─── CRM: LEAD EVENTS ─────────────────────────────────────────────
+
+    if (action === "fetch_lead_events") {
+      const { lead_id, limit: rawLimit } = payload;
+      if (!lead_id) return errorResponse(400, "missing_param", "lead_id is required");
+      const limit = Math.min(200, Math.max(1, Number.isInteger(rawLimit) ? rawLimit : 50));
+      const { data, error } = await supabaseAdmin
+        .from("lead_events")
+        .select("*")
+        .eq("lead_id", lead_id)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return successResponse({ data: data });
+    }
+
+    // ─── CRM: WEBHOOK DELIVERIES ───────────────────────────────────────
+
+    if (action === "fetch_webhook_deliveries") {
+      const { status: filterStatus, limit: rawLimit } = payload;
+      const limit = Math.min(500, Math.max(1, Number.isInteger(rawLimit) ? rawLimit : 200));
+      let query = supabaseAdmin
+        .from("webhook_deliveries")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (filterStatus) query = query.eq("status", filterStatus);
+      const { data, error } = await query;
+      if (error) throw error;
+      return successResponse({ data: data });
     }
 
     return errorResponse(400, "unhandled_action", `Action ${action} not implemented`);

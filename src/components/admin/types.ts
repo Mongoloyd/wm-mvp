@@ -1,0 +1,110 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Lead Sniper CRM — Shared Types
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+// ─── CRM Lead ───────────────────────────────────────────────────────────
+// Mapped from the `leads` table — only the columns the CRM actually needs.
+
+export interface CRMLead {
+  id: string;
+  session_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  phone_e164: string | null;
+  county: string | null;
+  state: string | null;
+  zip: string | null;
+  grade: string | null;
+  grade_score: number | null;
+  window_count: number | null;
+  quote_amount: number | null;
+  phone_verified: boolean;
+  phone_verified_at: string | null;
+  latest_analysis_id: string | null;
+  latest_scan_session_id: string | null;
+  latest_opportunity_id: string | null;
+  status: string | null;
+  funnel_stage: string | null;
+  flag_count: number;
+  red_flag_count: number;
+  amber_flag_count: number;
+  critical_flag_count: number;
+  confidence_score: number | null;
+  lead_score: number | null;
+  scan_count: number;
+  created_at: string;
+  updated_at: string;
+
+  /** Future-proofing: defaults to 'Primary Client' in the UI layer */
+  assigned_partner: string;
+}
+
+/** Derive pipeline status from raw lead data */
+export type PipelineStatus =
+  | "scanning"
+  | "pending_otp"
+  | "verified"
+  | "webhook_sent"
+  | "closed_won"
+  | "ghost";
+
+export function derivePipelineStatus(lead: CRMLead): PipelineStatus {
+  if (lead.status === "closed_won") return "closed_won";
+  if (lead.phone_verified && lead.latest_analysis_id) return "verified";
+  if (lead.latest_analysis_id && !lead.phone_verified) return "ghost";
+  if (lead.scan_count > 0 && !lead.latest_analysis_id) return "scanning";
+  return "pending_otp";
+}
+
+// ─── Lead Event ─────────────────────────────────────────────────────────
+// Mapped from the `lead_events` table.
+
+export interface LeadEvent {
+  id: string;
+  lead_id: string;
+  event_name: string;
+  event_source: string | null;
+  event_id: string | null;
+  status: string | null;
+  scan_session_id: string | null;
+  analysis_id: string | null;
+  opportunity_id: string | null;
+  voice_followup_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+// ─── Webhook Delivery ───────────────────────────────────────────────────
+// Mapped from the `webhook_deliveries` table.
+
+export interface WebhookDelivery {
+  id: string;
+  lead_id: string;
+  event_type: string;
+  status: string;
+  attempt_count: number;
+  max_attempts: number;
+  last_http_status: number | null;
+  last_error: string | null;
+  last_attempt_at: string | null;
+  next_retry_at: string | null;
+  webhook_url: string | null;
+  payload_json: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── KPI Summaries ──────────────────────────────────────────────────────
+
+export interface CommandCenterKPIs {
+  totalScans: number;
+  verifiedLeads: number;
+  ghostLeads: number;
+  webhooksPending: number;
+  webhooksDelivered: number;
+  webhooksFailed: number;
+  webhooksDeadLetter: number;
+}

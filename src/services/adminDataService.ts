@@ -45,7 +45,9 @@ export type AdminAction =
   | "trigger_voice_followup"
   | "manage_user_roles"
   | "list_user_roles"
-  | "get_role_audit_log";
+  | "get_role_audit_log"
+  | "fetch_lead_events"
+  | "fetch_webhook_deliveries";
 
 /**
  * Payload shapes for each admin action.
@@ -73,6 +75,8 @@ export interface AdminActionPayloads {
   manage_user_roles: { target_user_id: string; new_role: AppRole };
   list_user_roles: Record<string, never>;
   get_role_audit_log: { limit?: number };
+  fetch_lead_events: { lead_id: string; limit?: number };
+  fetch_webhook_deliveries: { status?: string; limit?: number };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -228,6 +232,20 @@ export async function getRoleAuditLog(limit: number = 100): Promise<RoleAuditLog
  */
 export async function updateLeadStatus(leadId: string, status: string): Promise<{ success: boolean }> {
   return invokeAdminData("update_lead_status", { lead_id: leadId, status });
+}
+
+/**
+ * Fetch lead events for a specific lead (timeline view).
+ */
+export async function fetchLeadEvents(leadId: string, limit = 50): Promise<any[]> {
+  return invokeAdminData("fetch_lead_events", { lead_id: leadId, limit });
+}
+
+/**
+ * Fetch webhook deliveries, optionally filtered by status.
+ */
+export async function fetchWebhookDeliveries(status?: string, limit = 200): Promise<any[]> {
+  return invokeAdminData("fetch_webhook_deliveries", { status, limit } as any);
 }
 
 /**
