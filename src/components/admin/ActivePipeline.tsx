@@ -8,15 +8,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { LeadProfileSheet } from "./LeadProfileSheet";
-import type { CRMLead, LeadEvent, PipelineStatus } from "./types";
+import { LeadDossierSheet } from "./LeadDossierSheet";
+import type { CRMLead, PipelineStatus } from "./types";
 import { derivePipelineStatus } from "./types";
 
 interface ActivePipelineProps {
   leads: CRMLead[];
   isLoading?: boolean;
-  onFetchLeadEvents: (leadId: string) => Promise<LeadEvent[]>;
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
@@ -68,23 +66,8 @@ function timeAgo(dateStr: string): string {
 
 /* ── Component ───────────────────────────────────────────────────────── */
 
-export function ActivePipeline({ leads, isLoading, onFetchLeadEvents }: ActivePipelineProps) {
+export function ActivePipeline({ leads, isLoading }: ActivePipelineProps) {
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
-  const [leadEvents, setLeadEvents] = useState<LeadEvent[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(false);
-
-  const handleRowClick = async (lead: CRMLead) => {
-    setSelectedLead(lead);
-    setEventsLoading(true);
-    try {
-      const events = await onFetchLeadEvents(lead.id);
-      setLeadEvents(events ?? []);
-    } catch {
-      setLeadEvents([]);
-    } finally {
-      setEventsLoading(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -126,7 +109,7 @@ export function ActivePipeline({ leads, isLoading, onFetchLeadEvents }: ActivePi
                 <TableRow
                   key={lead.id}
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => handleRowClick(lead)}
+                  onClick={() => setSelectedLead(lead)}
                 >
                   <TableCell>
                     <div className="font-medium text-sm truncate max-w-[220px]">
@@ -171,21 +154,12 @@ export function ActivePipeline({ leads, isLoading, onFetchLeadEvents }: ActivePi
         </Table>
       </div>
 
-      {/* Lead Profile Slide-Out */}
-      <Sheet open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Lead Profile</SheetTitle>
-          </SheetHeader>
-          {selectedLead && (
-            <LeadProfileSheet
-              lead={selectedLead}
-              events={leadEvents}
-              isLoadingEvents={eventsLoading}
-            />
-          )}
-        </SheetContent>
-      </Sheet>
+      {/* Lead Dossier Slide-Out */}
+      <LeadDossierSheet
+        lead={selectedLead}
+        open={!!selectedLead}
+        onOpenChange={(open) => !open && setSelectedLead(null)}
+      />
     </>
   );
 }

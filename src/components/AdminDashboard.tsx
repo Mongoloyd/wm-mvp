@@ -26,7 +26,6 @@ import { InternalCRMDesk } from "@/components/admin/InternalCRMDesk";
 
 import {
   invokeAdminData,
-  fetchLeadEvents,
   fetchWebhookDeliveries,
 } from "@/services/adminDataService";
 
