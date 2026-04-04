@@ -748,6 +748,8 @@ const PowerToolFlow = React.forwardRef(function PowerToolFlow({ onUploadQuote, t
       )}
     </div>);
 
-}
+});
+
+export default PowerToolFlow;
 
 export { LeadModal, DemoScanPage };
