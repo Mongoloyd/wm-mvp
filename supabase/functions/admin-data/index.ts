@@ -288,6 +288,20 @@ Deno.serve(async (req) => {
       return successResponse({ data: data });
     }
 
+    // ─── CRM: FETCH LEAD ANALYSIS ────────────────────────────────────────
+
+    if (action === "fetch_lead_analysis") {
+      const { analysis_id } = payload;
+      if (!analysis_id) return errorResponse(400, "missing_param", "analysis_id is required");
+      const { data, error } = await supabaseAdmin
+        .from("analyses")
+        .select("grade, dollar_delta, confidence_score, flags")
+        .eq("id", analysis_id)
+        .maybeSingle();
+      if (error) throw error;
+      return successResponse({ data: data });
+    }
+
     return errorResponse(400, "unhandled_action", `Action ${action} not implemented`);
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);

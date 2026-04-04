@@ -45,6 +45,23 @@ export interface CRMLead {
 
   /** Future-proofing: defaults to 'Primary Client' in the UI layer */
   assigned_partner: string;
+
+  // ─── Project Specs ─────────────────────────────────────────────────
+  project_type: string | null;
+  quote_range: string | null;
+
+  // ─── Attribution ───────────────────────────────────────────────────
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  gclid: string | null;
+  fbclid: string | null;
+  landing_page_url: string | null;
+  initial_referrer: string | null;
+
+  // ─── Timeline Timestamps ──────────────────────────────────────────
+  report_unlocked_at: string | null;
+  intro_requested_at: string | null;
 }
 
 /** Derive pipeline status from raw lead data */
@@ -112,4 +129,20 @@ export interface CommandCenterKPIs {
   webhooksDelivered: number;
   webhooksFailed: number;
   webhooksDeadLetter: number;
+}
+
+// ─── Analysis Data (for Dossier) ────────────────────────────────────────
+
+export interface AnalysisFlag {
+  flag: string;
+  severity: string;
+  pillar?: string;
+  detail?: string;
+}
+
+export interface LeadAnalysisData {
+  grade: string | null;
+  dollar_delta: number | null;
+  confidence_score: number | null;
+  flags: AnalysisFlag[];
 }

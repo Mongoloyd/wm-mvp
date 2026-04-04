@@ -212,6 +212,23 @@ async function validateAndExtractUser(
     };
   }
 
+  // ── DEV BYPASS: Check X-Dev-Secret header ──────────────────────────
+  const devSecret = req.headers.get("x-dev-secret");
+  const expectedDevSecret = Deno.env.get("DEV_BYPASS_SECRET");
+  if (devSecret && expectedDevSecret && devSecret === expectedDevSecret) {
+    console.log("[adminAuth] DEV BYPASS: Granting super_admin via X-Dev-Secret");
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+    return {
+      ok: true,
+      email: "dev-sandbox@windowman.pro",
+      userId: "dev-sandbox-bypass",
+      role: "super_admin",
+      supabaseAdmin,
+      supabaseAuth,
+    };
+  }
+
   // Extract bearer token
   const authHeader = req.headers.get("Authorization") || "";
   if (!authHeader.startsWith("Bearer ")) {

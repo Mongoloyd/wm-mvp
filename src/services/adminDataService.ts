@@ -266,6 +266,13 @@ export async function updateLeadDealStatus(leadId: string, dealStatus: string): 
 }
 
 /**
+ * Fetch analysis data (flags, grade, dollar_delta) for a specific analysis ID.
+ */
+export async function fetchLeadAnalysis(analysisId: string): Promise<any> {
+  return invokeAdminData("fetch_lead_analysis", { analysis_id: analysisId });
+}
+
+/**
  * Response type map for admin actions.
  */
 export type AdminActionResponses = {
