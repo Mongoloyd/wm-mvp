@@ -841,7 +841,7 @@ function AdminPasswordGate({ children }: { children: React.ReactNode }) {
  */
 export default function AdminDashboard() {
   const { isSuperAdmin } = useCurrentUserRole();
-  const [activeTab, setActiveTab] = useState<'calls' | 'contractor' | 'release' | 'revenue'>('calls');
+  const [activeTab, setActiveTab] = useState<'calls' | 'contractor' | 'release' | 'revenue' | 'webhooks'>('calls');
 
   // ── Call Queue State ────
   const [leads, setLeads] = useState<Lead[]>([]);
