@@ -56,6 +56,10 @@ export interface AnalysisData {
   analysisStatus: string | null;
   /** Financial metrics from calculate-estimate-metrics (full only) */
   derivedMetrics?: Record<string, unknown> | null;
+  /** Financial forensics fields (full only) */
+  priceFairness?: string | null;
+  markupEstimate?: string | null;
+  negotiationLeverage?: string | null;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
