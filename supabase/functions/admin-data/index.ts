@@ -295,7 +295,7 @@ Deno.serve(async (req) => {
       if (!analysis_id) return errorResponse(400, "missing_param", "analysis_id is required");
       const { data, error } = await supabaseAdmin
         .from("analyses")
-        .select("grade, dollar_delta, confidence_score, flags")
+        .select("grade, dollar_delta, confidence_score, flags, full_json")
         .eq("id", analysis_id)
         .maybeSingle();
       if (error) throw error;
