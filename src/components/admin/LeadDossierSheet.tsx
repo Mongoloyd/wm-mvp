@@ -151,20 +151,42 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
     return () => { cancelled = true; };
   }, [open, lead?.latest_analysis_id]);
 
+  // ── Fetch call history on lead change ──
+  const refetchCallHistory = useCallback(() => {
+    if (!lead?.id) return;
+    setCallHistoryLoading(true);
+    setCallHistoryError(null);
+    fetchLeadVoiceFollowups(lead.id)
+      .then(setCallHistory)
+      .catch((err) => setCallHistoryError(err?.message ?? "Unknown error"))
+      .finally(() => setCallHistoryLoading(false));
+  }, [lead?.id]);
+
+  useEffect(() => {
+    if (!open || !lead?.id) {
+      setCallHistory([]);
+      setCallHistoryError(null);
+      return;
+    }
+    setExpandedTranscripts(new Set());
+    refetchCallHistory();
+  }, [open, lead?.id, refetchCallHistory]);
+
+  // ── Retry call handler ──
+  const handleRetryCall = useCallback(async (entry: VoiceFollowup) => {
+    if (!lead) return;
+    try {
+      await invokeAdminData("trigger_voice_followup", {
+        scan_session_id: lead.latest_scan_session_id ?? entry.scan_session_id ?? "",
+        phone_e164: lead.phone_e164 ?? entry.phone_e164,
+      });
+      refetchCallHistory();
+    } catch (err) {
+      console.error("[Dossier] Retry call failed:", err);
+    }
+  }, [lead, refetchCallHistory]);
+
   if (!lead) return null;
-
-  const name = [lead.first_name, lead.last_name].filter(Boolean).join(" ") || "Unknown";
-
-  // ── Pillar data from full_json ──
-  const fullJson = analysis?.full_json;
-  const pillarScores = (fullJson as any)?.pillar_scores as Record<string, number> | null ?? null;
-  const extraction = (fullJson as any)?.extraction as Record<string, any> | null ?? null;
-
-  // ── Sorted flags ──
-  const sortedFlags = [...(analysis?.flags ?? [])].sort(
-    (a, b) => (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9)
-  );
-  const visibleFlags = showAllFlags ? sortedFlags : sortedFlags.slice(0, 5);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
