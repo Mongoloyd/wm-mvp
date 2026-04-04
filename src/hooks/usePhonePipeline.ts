@@ -178,7 +178,10 @@ export function usePhonePipeline(
     console.log("[usePhonePipeline] submitPhone → calling send-otp", { phone: normalizedE164 });
     try {
       const { data, error } = await supabase.functions.invoke("send-otp", {
-        body: { phone_e164: normalizedE164 },
+        body: {
+          phone_e164: normalizedE164,
+          scan_session_id: options?.scanSessionId || undefined,
+        },
       });
 
       // supabase.functions.invoke puts the body in `error` for non-2xx responses
