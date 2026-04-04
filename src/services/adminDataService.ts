@@ -75,6 +75,8 @@ export interface AdminActionPayloads {
   manage_user_roles: { target_user_id: string; new_role: AppRole };
   list_user_roles: Record<string, never>;
   get_role_audit_log: { limit?: number };
+  fetch_lead_events: { lead_id: string; limit?: number };
+  fetch_webhook_deliveries: { status?: string; limit?: number };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
