@@ -35,6 +35,7 @@ export interface AdminDataError {
 export type AdminAction =
   | "fetch_leads"
   | "update_lead_status"
+  | "update_lead_deal_status"
   | "fetch_opportunities"
   | "fetch_contractors"
   | "fetch_routes"
