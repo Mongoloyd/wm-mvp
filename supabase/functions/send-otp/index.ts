@@ -129,6 +129,26 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Secondary: IP-based rate limit (catches phone-cycling bots) ─────
+    if (clientIp !== "unknown") {
+      const { data: ipRows } = await supabase
+        .from("phone_verifications")
+        .select("id")
+        .eq("ip_address", clientIp)
+        .gte("created_at", windowStart);
+
+      if (ipRows && ipRows.length >= MAX_IP_SENDS_PER_WINDOW) {
+        console.warn("[send-otp] IP rate limit hit:", { ip: clientIp, count: ipRows.length });
+        return new Response(
+          JSON.stringify({
+            error: "Too many requests from this network. Please wait a few minutes.",
+            success: false,
+            retry_after: WINDOW_MINUTES * 60,
+          }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
     // ── Twilio Verify: send code ────────────────────────────────────────
     const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID")!;
     const authToken = Deno.env.get("TWILIO_AUTH_TOKEN")!;
