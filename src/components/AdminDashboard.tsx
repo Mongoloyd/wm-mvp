@@ -1129,6 +1129,7 @@ export default function AdminDashboard() {
           ['contractor', 'CONTRACTOR QUEUE', pendingOppCount] as const,
           ['release', 'RELEASE REVIEW', pendingReleaseCount] as const,
           ['revenue', 'REVENUE', activeBillingCount] as const,
+          ['webhooks', 'WEBHOOKS', webhookDeliveries.filter(d => d.status === 'failed' || d.status === 'dead_letter').length] as const,
         ]).map(([key, label, badge]) => (
           <button key={key} onClick={() => setActiveTab(key)}
             style={{
