@@ -88,7 +88,7 @@ export interface AdminActionPayloads {
   fetch_lead_voice_followups: { lead_id: string };
   fetch_needs_review: Record<string, never>;
   rescan_lead: { lead_id: string };
-  update_lead_manual_entry: { lead_id: string; manual_entry_data: Record<string, unknown> };
+  update_lead_manual_entry: { lead_id: string; manual_entry_data?: Record<string, unknown>; manually_reviewed?: boolean };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
