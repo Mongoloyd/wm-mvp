@@ -5,6 +5,12 @@
 import { useState, useEffect } from 'react';
 import { useFunnelStore } from '../store/useFunnelStore';
 import { FLORIDA_COUNTIES, IMPACT_WINDOW_BRANDS, type CountyMarketData, type BrandData } from '../store/countyData';
+import { usePhoneInput } from '@/hooks/usePhoneInput';
+import { isValidEmail, isValidName } from '@/utils/formatPhone';
+import { supabase } from '@/integrations/supabase/client';
+import { getLeadId } from '@/lib/useLeadId';
+import { getUtmPayload } from '@/lib/useUtmCapture';
+import { Lock } from 'lucide-react';
 
 // ── TYPES ─────────────────────────────────────────────────────────────────────
 
@@ -83,7 +89,11 @@ function SavedBaselineAlert({ savedAt }: { savedAt: string }) {
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 
-export default function MarketBaselineTool() {
+interface MarketBaselineToolProps {
+  onLeadCaptured?: () => void;
+}
+
+export default function MarketBaselineTool({ onLeadCaptured }: MarketBaselineToolProps) {
   const { county: storeCounty, windowCount: storeWindowCount } = useFunnelStore();
 
   const savedBaseline = (() => {
@@ -101,6 +111,53 @@ export default function MarketBaselineTool() {
   const [result, setResult]         = useState<BaselineResult>(() => calculateBaseline(config));
   const [justSaved, setJustSaved]   = useState(false);
   const [activeTab, setActiveTab]   = useState<'build' | 'compare' | 'checklist'>('build');
+
+  // ── LEAD CAPTURE GATE STATE ───────────────────────────────────────────────
+  const [unlocked, setUnlocked] = useState(() => localStorage.getItem('wm_baseline_unlocked') === 'true');
+  const [gateForm, setGateForm] = useState({ firstName: '', email: '' });
+  const phone = usePhoneInput();
+  const [tcpaConsent, setTcpaConsent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [gateError, setGateError] = useState<string | null>(null);
+
+  // Fire onLeadCaptured for returning users who already unlocked
+  useEffect(() => {
+    if (unlocked) onLeadCaptured?.();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleGateSubmit = async () => {
+    setGateError(null);
+    if (!isValidName(gateForm.firstName)) { setGateError('Please enter your first name.'); return; }
+    if (!isValidEmail(gateForm.email)) { setGateError('Please enter a valid email.'); return; }
+    if (!phone.isValid) { setGateError('Please enter a valid 10-digit phone number.'); return; }
+    if (!tcpaConsent) { setGateError('Please agree to the terms to continue.'); return; }
+
+    setSubmitting(true);
+    try {
+      const utmPayload = getUtmPayload();
+      const { error } = await supabase.from('leads').insert({
+        session_id: getLeadId(),
+        first_name: gateForm.firstName.trim(),
+        email: gateForm.email.trim().toLowerCase(),
+        phone_e164: phone.e164!,
+        county: config.county,
+        window_count: config.windowCount,
+        source: 'flow-b-baseline',
+        status: 'new',
+        ...utmPayload,
+      });
+      if (error) throw error;
+
+      localStorage.setItem('wm_baseline_unlocked', 'true');
+      setUnlocked(true);
+      onLeadCaptured?.();
+    } catch (err: any) {
+      console.error('[GateSubmit] Error:', err);
+      setGateError('Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const monoFont = "'JetBrains Mono',monospace";
   const bodyFont = "'DM Sans',sans-serif";
