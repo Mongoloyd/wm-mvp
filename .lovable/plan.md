@@ -1,36 +1,85 @@
 
 
-# Plan: Surface P7a Backend Fields in Existing NeedsReviewTab
+# Plan: Lead Capture Gate on MarketBaselineTool (Flow B)
 
-## Context
-The P7 prompt is redundant — `NeedsReviewTab.tsx` and its dashboard wiring already exist. The real gap is that the P7a backend deltas added `email`, `phone_e164`, and `manually_reviewed` to the `fetch_needs_review` response, but the frontend type and UI don't use them yet.
+## Problem
+When a user clicks "Getting Quotes Soon?" → Flow B → "Build My Baseline", they land on `MarketBaselineTool` which shows all pricing data immediately with zero lead capture. The `flowBLeadCaptured` state (Index.tsx line 55) is never set to `true`, so `ForensicChecklist` and `QuoteWatcher` never render.
 
-## Changes
+## Solution
+Add a blur-gated lead capture form over the right-side pricing result panel in `MarketBaselineTool.tsx`. The left panel (county, brand, windows, install method) stays fully interactive. The right panel showing prices is blurred at exactly **7px** until the user submits name + email + phone + TCPA consent.
 
-### 1. Update `NeedsReviewLead` type in `src/components/admin/NeedsReviewTab.tsx`
-Add three fields to the interface (lines 22-38):
+## Files Changed
+
+### 1. `src/components/MarketBaselineTool.tsx` (~90 lines added)
+
+**New prop:**
+```typescript
+interface MarketBaselineToolProps {
+  onLeadCaptured?: () => void;
+}
 ```
-email: string | null;
-phone_e164: string | null;
-manually_reviewed: boolean;
+
+**New imports:**
+- `usePhoneInput` from `@/hooks/usePhoneInput`
+- `isValidEmail`, `isValidName` from `@/utils/formatPhone`
+- `supabase` from `@/integrations/supabase/client`
+- `getLeadId` from `@/lib/useLeadId`
+- `getUtmPayload` from `@/lib/useUtmCapture`
+- `Lock` from `lucide-react`
+
+**New state (~10 lines):**
+- `unlocked` — boolean, initialized from `localStorage.getItem('wm_baseline_unlocked') === 'true'`
+- `gateForm` — `{ firstName: string, email: string }`
+- `phone` — via `usePhoneInput()` hook
+- `tcpaConsent` — boolean
+- `submitting` — boolean
+
+**New `handleGateSubmit` function (~25 lines):**
+- Validates all fields (isValidName, isValidEmail, phone.isValid, tcpaConsent)
+- Upserts to Supabase `leads` table with: `session_id` (getLeadId()), `first_name`, `email`, `phone_e164`, `county`, `window_count`, **`source: 'flow-b-baseline'`**, plus full UTM payload
+- On success: sets `localStorage('wm_baseline_unlocked', 'true')`, sets `unlocked = true`, calls `onLeadCaptured?.()`
+
+**New `useEffect` for returning users (~5 lines):**
+- If `unlocked` is `true` on mount, immediately call `onLeadCaptured?.()` so `flowBLeadCaptured` gets set and downstream components render
+
+**Gate overlay on the right-side result panel (lines ~306-352, ~40 lines):**
+- When `unlocked === false`: the existing pricing card renders with `style={{ filter: 'blur(7px)', pointerEvents: 'none' }}`. An absolute-positioned overlay renders on top containing:
+  - Lock icon + "Your Baseline is Ready" heading
+  - Form fields: First Name, Email, Phone (formatted via usePhoneInput)
+  - TCPA consent checkbox
+  - Submit button (`btn-depth-primary`)
+  - All inputs use existing `input-well` class, labels use `wm-eyebrow` styling
+- When `unlocked === true`: existing result panel renders unchanged
+
+### 2. `src/pages/Index.tsx` (1 line changed)
+
+**Line 225** — pass the callback:
+```tsx
+<MarketBaselineTool onLeadCaptured={() => setFlowBLeadCaptured(true)} />
 ```
 
-### 2. Show contact info in the Lead column
-In the table row (around line 198-206), add email and phone below the name/date:
-- Display `phone_e164` formatted via existing `formatPhone` util
-- Display `email` as a secondary line
-- Keep it compact (text-xs, muted color, truncated)
+## What Does NOT Change
+- `FlowBEntry.tsx` — untouched
+- `ForensicChecklist.tsx` — untouched
+- `QuoteWatcher.tsx` — untouched
+- No new files created
+- No backend/edge function changes
+- No database schema changes (uses existing `leads` table)
+- Left-side configuration panel remains fully interactive (no gate on inputs)
 
-### 3. Add "Mark Reviewed" toggle
-Currently the only way to mark reviewed is through the Manual Entry sheet (which also saves form data). Add a lightweight standalone "Mark Reviewed" button that calls `updateLeadManualEntry({ lead_id, manually_reviewed: true })` directly — for cases where the operator just wants to dismiss a lead without entering data.
+## Data Flow
+```text
+User configures project (left panel, ungated)
+  → Right panel shows blurred prices (7px blur)
+  → User fills name/email/phone + TCPA checkbox
+  → "Unlock My Baseline" button submits
+    → Client validation
+    → Supabase INSERT into leads (source: 'flow-b-baseline', UTM attached)
+    → localStorage persists unlock
+    → onLeadCaptured() fires → Index sets flowBLeadCaptured = true
+    → ForensicChecklist + QuoteWatcher render below
+```
 
-Place it in the Actions column alongside Re-Scan and Manual Entry.
-
-### 4. No other files changed
-- No backend changes
-- No dashboard wiring changes (tab already exists)
-- No schema changes
-
-## Files Modified
-- `src/components/admin/NeedsReviewTab.tsx` — type update + 2 UI additions (~20 lines net)
+## Returning Users
+If `localStorage` has `wm_baseline_unlocked === 'true'`, the gate is skipped on load and `onLeadCaptured()` fires immediately on mount.
 
