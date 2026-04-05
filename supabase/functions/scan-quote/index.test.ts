@@ -1,6 +1,12 @@
 import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { assert, assertEquals, assertExists } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import {
+  computeGrade,
+  letterGrade,
+  GRADE_THRESHOLDS,
+  type ExtractionResult,
+} from "./scoring.ts";
 
 const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
@@ -33,10 +39,6 @@ function serviceRoleClient() {
   });
 }
 
-/**
- * Build a minimal valid PDF containing the given text.
- * Gemini can parse PDFs natively — raw text bytes pretending to be PNG won't work.
- */
 function buildTextPdf(text: string): Uint8Array {
   const streamContent = `BT /F1 12 Tf 72 720 Td (${text.replace(/[()\\]/g, "\\$&").replace(/\n/g, ") Tj T* (")}) Tj ET`;
   const stream = new TextEncoder().encode(streamContent);
@@ -99,8 +101,8 @@ async function invokeScan(scanSessionId: string) {
     },
     body: JSON.stringify({ scan_session_id: scanSessionId }),
   });
-  const body = await resp.json();
-  return { status: resp.status, body };
+  const respBody = await resp.json();
+  return { status: resp.status, body: respBody };
 }
 
 async function fetchPersistedState(scanSessionId: string) {
@@ -141,9 +143,10 @@ function assertStoredFailureState(
   assertEquals(session.status, expectedStatus);
 }
 
-// ─────────────────────────────────────────────────────────────────────
-// TEST 1: Valid window quote (PDF)
-// ─────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// INTEGRATION TESTS (existing — require live Supabase)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 Deno.test("valid quote → complete with grade", async () => {
   const quoteText = [
     "ACME Windows and Doors - Impact Window Quote",
@@ -187,9 +190,6 @@ Deno.test("valid quote → complete with grade", async () => {
   assertEquals(body.grade, analysis.grade);
 });
 
-// ─────────────────────────────────────────────────────────────────────
-// TEST 2: Invalid document (grocery receipt PDF)
-// ─────────────────────────────────────────────────────────────────────
 Deno.test("invalid document → persisted invalid or low-confidence status", async () => {
   const receiptText = [
     "PUBLIX SUPERMARKET 1234 - Miami FL",
@@ -212,9 +212,6 @@ Deno.test("invalid document → persisted invalid or low-confidence status", asy
   assertStoredFailureState(analysis, session, expectedStatus);
 });
 
-// ─────────────────────────────────────────────────────────────────────
-// TEST 3: Garbled content → controlled failure
-// ─────────────────────────────────────────────────────────────────────
 Deno.test("garbled content → persisted controlled failure state", async () => {
   const garbage = new Uint8Array(512);
   crypto.getRandomValues(garbage);
@@ -230,9 +227,6 @@ Deno.test("garbled content → persisted controlled failure state", async () => 
   assertStoredFailureState(analysis, session, expectedStatus);
 });
 
-// ─────────────────────────────────────────────────────────────────────
-// TEST 4: Missing scan_session_id → 400
-// ─────────────────────────────────────────────────────────────────────
 Deno.test("missing scan_session_id → 400", async () => {
   const resp = await fetch(FUNCTION_URL, {
     method: "POST",
@@ -242,14 +236,11 @@ Deno.test("missing scan_session_id → 400", async () => {
     },
     body: JSON.stringify({}),
   });
-  const body = await resp.text();
+  const respBody = await resp.text();
   assertEquals(resp.status, 400);
-  console.log("Test 4:", body);
+  console.log("Test 4:", respBody);
 });
 
-// ─────────────────────────────────────────────────────────────────────
-// TEST 5: Non-existent session → 404
-// ─────────────────────────────────────────────────────────────────────
 Deno.test("non-existent session → 404", async () => {
   const resp = await fetch(FUNCTION_URL, {
     method: "POST",
@@ -259,7 +250,152 @@ Deno.test("non-existent session → 404", async () => {
     },
     body: JSON.stringify({ scan_session_id: "00000000-0000-0000-0000-000000000000" }),
   });
-  const body = await resp.text();
+  const respBody = await resp.text();
   assertEquals(resp.status, 404);
-  console.log("Test 5:", body);
+  console.log("Test 5:", respBody);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// THE BRAIN AUDIT — Pure Rubric Scoring Unit Tests (no network, no Supabase)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** A fully-specified, best-case quote fixture. */
+function perfectQuote(): ExtractionResult {
+  return {
+    document_type: "window_quote",
+    is_window_door_related: true,
+    confidence: 0.95,
+    page_count: 3,
+    total_quoted_price: 18500,
+    opening_count: 8,
+    contractor_name: "ABC Impact Windows LLC",
+    hvhz_zone: true,
+    line_items: [
+      {
+        description: "Impact hurricane-rated sliding glass door",
+        quantity: 1, unit_price: 2800, total_price: 2800,
+        brand: "PGT", series: "WinGuard", dp_rating: "DP50", noa_number: "NOA-21-1234",
+      },
+      {
+        description: "Impact hurricane single-hung window",
+        quantity: 7, unit_price: 1500, total_price: 10500,
+        brand: "PGT", series: "WinGuard", dp_rating: "DP40", noa_number: "NOA-21-5678",
+      },
+    ],
+    warranty: {
+      labor_years: 5, manufacturer_years: 10, transferable: true,
+      details: "Full manufacturer and labor warranty included",
+    },
+    permits: { included: true, responsible_party: "contractor", details: "All permits included" },
+    installation: {
+      scope_detail: "Full removal and replacement with stucco patch",
+      disposal_included: true, accessories_mentioned: true,
+    },
+    cancellation_policy: "Full refund within 3 business days",
+  };
+}
+
+// ── Brain Test 1: Perfect A grade ────────────────────────────────────────────
+
+Deno.test("BRAIN: assigns grade A for a flawless impact window quote", () => {
+  const result = computeGrade(perfectQuote());
+  assertEquals(result.letterGrade, "A");
+  assertEquals(result.hardCapApplied, null);
+  assertEquals(result.pillarScores.safety >= GRADE_THRESHOLDS.A, true);
+  assertEquals(result.weightedAverage >= GRADE_THRESHOLDS.A, true);
+});
+
+// ── Brain Test 2: Grade F for empty quote ────────────────────────────────────
+
+Deno.test("BRAIN: assigns grade F with zero_line_items hard cap for empty quote", () => {
+  const result = computeGrade({
+    document_type: "unknown",
+    is_window_door_related: false,
+    confidence: 0.3,
+    line_items: [],
+  });
+  assertEquals(result.letterGrade, "F");
+  assertEquals(result.hardCapApplied, "zero_line_items");
+});
+
+// ── Brain Test 3: No warranty → max C ────────────────────────────────────────
+
+Deno.test("BRAIN: caps grade at C when warranty section is missing", () => {
+  const quote = perfectQuote();
+  delete quote.warranty;
+  const result = computeGrade(quote);
+
+  assertEquals(["A", "B"].includes(result.letterGrade), false,
+    `Expected C or below, got ${result.letterGrade}`);
+  assertEquals(result.hardCapApplied?.includes("no_warranty_section"), true);
+});
+
+// ── Brain Test 4: No impact products → max D ────────────────────────────────
+
+Deno.test("BRAIN: caps grade at D when no line item mentions impact/hurricane/storm", () => {
+  const quote = perfectQuote();
+  quote.line_items = quote.line_items.map(item => ({
+    ...item,
+    description: "Standard vinyl single-hung window",
+  }));
+  const result = computeGrade(quote);
+
+  assertEquals(["A", "B", "C"].includes(result.letterGrade), false,
+    `Expected D or F, got ${result.letterGrade}`);
+  assertEquals(result.hardCapApplied?.includes("no_impact_products"), true);
+});
+
+// ── Brain Test 5: Dirty OCR data resilience ──────────────────────────────────
+
+Deno.test("BRAIN: handles corrupted/null OCR fields without crashing", () => {
+  const corruptedData = {
+    document_type: "unknown",
+    is_window_door_related: true,
+    confidence: "not a number" as unknown as number,
+    line_items: null as unknown as ExtractionResult["line_items"],
+    warranty: undefined,
+    permits: undefined,
+    installation: undefined,
+    hvhz_zone: undefined,
+    total_quoted_price: undefined,
+    cancellation_policy: undefined,
+  } as ExtractionResult;
+
+  let result: ReturnType<typeof computeGrade> | undefined;
+  try {
+    result = computeGrade(corruptedData);
+  } catch (e) {
+    throw new Error(`computeGrade crashed on dirty data: ${e}`);
+  }
+
+  assertExists(result);
+  assertExists(result.letterGrade);
+  assertEquals(result.letterGrade, "F");
+  assertEquals(result.hardCapApplied, "zero_line_items");
+});
+
+// ── Brain Test 6: Idempotency ────────────────────────────────────────────────
+
+Deno.test("BRAIN: produces identical output across 100 runs", () => {
+  const baseline = computeGrade(perfectQuote());
+  for (let i = 0; i < 100; i++) {
+    const run = computeGrade(perfectQuote());
+    assertEquals(run.letterGrade, baseline.letterGrade, `Run ${i}: grade drift`);
+    assertEquals(run.weightedAverage, baseline.weightedAverage, `Run ${i}: score drift`);
+    assertEquals(run.hardCapApplied, baseline.hardCapApplied, `Run ${i}: hardCap drift`);
+  }
+});
+
+// ── Brain Test 7: Threshold boundaries ───────────────────────────────────────
+
+Deno.test("BRAIN: letterGrade boundary precision at every threshold", () => {
+  assertEquals(letterGrade(88), "A");
+  assertEquals(letterGrade(87.99), "B");
+  assertEquals(letterGrade(70), "B");
+  assertEquals(letterGrade(69.99), "C");
+  assertEquals(letterGrade(52), "C");
+  assertEquals(letterGrade(51.99), "D");
+  assertEquals(letterGrade(37), "D");
+  assertEquals(letterGrade(36.99), "F");
+  assertEquals(letterGrade(0), "F");
 });
