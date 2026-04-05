@@ -5,6 +5,12 @@
 import { useState, useEffect } from 'react';
 import { useFunnelStore } from '../store/useFunnelStore';
 import { FLORIDA_COUNTIES, IMPACT_WINDOW_BRANDS, type CountyMarketData, type BrandData } from '../store/countyData';
+import { usePhoneInput } from '@/hooks/usePhoneInput';
+import { isValidEmail, isValidName } from '@/utils/formatPhone';
+import { supabase } from '@/integrations/supabase/client';
+import { getLeadId } from '@/lib/useLeadId';
+import { getUtmPayload } from '@/lib/useUtmCapture';
+import { Lock } from 'lucide-react';
 
 // ── TYPES ─────────────────────────────────────────────────────────────────────
 
@@ -83,7 +89,11 @@ function SavedBaselineAlert({ savedAt }: { savedAt: string }) {
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 
-export default function MarketBaselineTool() {
+interface MarketBaselineToolProps {
+  onLeadCaptured?: () => void;
+}
+
+export default function MarketBaselineTool({ onLeadCaptured }: MarketBaselineToolProps) {
   const { county: storeCounty, windowCount: storeWindowCount } = useFunnelStore();
 
   const savedBaseline = (() => {
@@ -101,6 +111,53 @@ export default function MarketBaselineTool() {
   const [result, setResult]         = useState<BaselineResult>(() => calculateBaseline(config));
   const [justSaved, setJustSaved]   = useState(false);
   const [activeTab, setActiveTab]   = useState<'build' | 'compare' | 'checklist'>('build');
+
+  // ── LEAD CAPTURE GATE STATE ───────────────────────────────────────────────
+  const [unlocked, setUnlocked] = useState(() => localStorage.getItem('wm_baseline_unlocked') === 'true');
+  const [gateForm, setGateForm] = useState({ firstName: '', email: '' });
+  const phone = usePhoneInput();
+  const [tcpaConsent, setTcpaConsent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [gateError, setGateError] = useState<string | null>(null);
+
+  // Fire onLeadCaptured for returning users who already unlocked
+  useEffect(() => {
+    if (unlocked) onLeadCaptured?.();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleGateSubmit = async () => {
+    setGateError(null);
+    if (!isValidName(gateForm.firstName)) { setGateError('Please enter your first name.'); return; }
+    if (!isValidEmail(gateForm.email)) { setGateError('Please enter a valid email.'); return; }
+    if (!phone.isValid) { setGateError('Please enter a valid 10-digit phone number.'); return; }
+    if (!tcpaConsent) { setGateError('Please agree to the terms to continue.'); return; }
+
+    setSubmitting(true);
+    try {
+      const utmPayload = getUtmPayload();
+      const { error } = await supabase.from('leads').insert({
+        session_id: getLeadId(),
+        first_name: gateForm.firstName.trim(),
+        email: gateForm.email.trim().toLowerCase(),
+        phone_e164: phone.e164!,
+        county: config.county,
+        window_count: config.windowCount,
+        source: 'flow-b-baseline',
+        status: 'new',
+        ...utmPayload,
+      });
+      if (error) throw error;
+
+      localStorage.setItem('wm_baseline_unlocked', 'true');
+      setUnlocked(true);
+      onLeadCaptured?.();
+    } catch (err: any) {
+      console.error('[GateSubmit] Error:', err);
+      setGateError('Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const monoFont = "'JetBrains Mono',monospace";
   const bodyFont = "'DM Sans',sans-serif";
@@ -302,83 +359,178 @@ export default function MarketBaselineTool() {
               </div>
             </div>
 
-            {/* RIGHT: Live result */}
-            <div>
-              <div className="glass-card-strong" style={{
-                borderTop: '2px solid hsl(var(--primary))', padding: 20, marginBottom: 12,
-              }}>
-                <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', marginBottom: 16 }}>
-                  YOUR FAIR-MARKET RANGE
-                </div>
-                <div style={{ marginBottom: 16 }}>
-                  <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 10, marginBottom: 4 }}>FAIR FLOOR (25th pct)</div>
-                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: 'hsl(var(--color-emerald))' }}>
-                    ${result.fairFloor.toLocaleString()}
+            {/* RIGHT: Live result (blur-gated) */}
+            <div style={{ position: 'relative' }}>
+              {/* Pricing card — blurred when locked */}
+              <div style={!unlocked ? { filter: 'blur(7px)', pointerEvents: 'none', userSelect: 'none' } : undefined}>
+                <div className="glass-card-strong" style={{
+                  borderTop: '2px solid hsl(var(--primary))', padding: 20, marginBottom: 12,
+                }}>
+                  <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', marginBottom: 16 }}>
+                    YOUR FAIR-MARKET RANGE
                   </div>
-                </div>
-                <div className="border-b border-border my-3" />
-                <div style={{ marginBottom: 12 }}>
-                  <div className="text-primary" style={{ fontFamily: monoFont, fontSize: 10, marginBottom: 4 }}>YOUR FAIR MIDPOINT</div>
-                  <div className="text-foreground" style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 40 }}>
-                    ${result.fairMid.toLocaleString()}
+                  <div style={{ marginBottom: 16 }}>
+                    <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 10, marginBottom: 4 }}>FAIR FLOOR (25th pct)</div>
+                    <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: 'hsl(var(--color-emerald))' }}>
+                      ${result.fairFloor.toLocaleString()}
+                    </div>
                   </div>
-                  <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, marginTop: 2 }}>
-                    ${result.perWindow.toLocaleString()}/window · {config.windowCount} windows
+                  <div className="border-b border-border my-3" />
+                  <div style={{ marginBottom: 12 }}>
+                    <div className="text-primary" style={{ fontFamily: monoFont, fontSize: 10, marginBottom: 4 }}>YOUR FAIR MIDPOINT</div>
+                    <div className="text-foreground" style={{ fontFamily: dispFont, fontWeight: 900, fontSize: 40 }}>
+                      ${result.fairMid.toLocaleString()}
+                    </div>
+                    <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, marginTop: 2 }}>
+                      ${result.perWindow.toLocaleString()}/window · {config.windowCount} windows
+                    </div>
                   </div>
-                </div>
-                <div className="border-b border-border my-3" />
-                <div style={{ marginBottom: 16 }}>
-                  <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 10, marginBottom: 4 }}>FAIR CEILING (75th pct)</div>
-                  <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: 'hsl(var(--color-gold-accent))' }}>
-                    ${result.fairCeiling.toLocaleString()}
+                  <div className="border-b border-border my-3" />
+                  <div style={{ marginBottom: 16 }}>
+                    <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 10, marginBottom: 4 }}>FAIR CEILING (75th pct)</div>
+                    <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 28, color: 'hsl(var(--color-gold-accent))' }}>
+                      ${result.fairCeiling.toLocaleString()}
+                    </div>
                   </div>
+
+                  {result.installAdder > 0 && (
+                    <div className="text-muted-foreground" style={{ fontSize: 12, marginBottom: 6 }}>
+                      Full-frame install adds ~<span style={{ color: 'hsl(var(--color-gold-accent))' }}>${result.installAdder.toLocaleString()}</span>
+                    </div>
+                  )}
+
+                  {result.warningFlag && (
+                    <div style={{
+                      background: 'hsl(var(--color-vivid-orange) / 0.06)', border: '1px solid hsl(var(--color-vivid-orange) / 0.2)',
+                      borderLeft: '2px solid hsl(var(--color-vivid-orange))', padding: '10px 12px', marginTop: 12,
+                    }}>
+                      <div style={{ fontFamily: monoFont, fontSize: 9, color: 'hsl(var(--color-vivid-orange))', letterSpacing: '0.1em', marginBottom: 4 }}>▲ FLAG</div>
+                      <div className="text-muted-foreground" style={{ fontSize: 12 }}>{result.warningFlag}</div>
+                    </div>
+                  )}
                 </div>
 
-                {result.installAdder > 0 && (
-                  <div className="text-muted-foreground" style={{ fontSize: 12, marginBottom: 6 }}>
-                    Full-frame install adds ~<span style={{ color: 'hsl(var(--color-gold-accent))' }}>${result.installAdder.toLocaleString()}</span>
-                  </div>
-                )}
-
-                {result.warningFlag && (
-                  <div style={{
-                    background: 'hsl(var(--color-vivid-orange) / 0.06)', border: '1px solid hsl(var(--color-vivid-orange) / 0.2)',
-                    borderLeft: '2px solid hsl(var(--color-vivid-orange))', padding: '10px 12px', marginTop: 12,
-                  }}>
-                    <div style={{ fontFamily: monoFont, fontSize: 9, color: 'hsl(var(--color-vivid-orange))', letterSpacing: '0.1em', marginBottom: 4 }}>▲ FLAG</div>
-                    <div className="text-muted-foreground" style={{ fontSize: 12 }}>{result.warningFlag}</div>
-                  </div>
-                )}
+                {/* Action buttons */}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={saveBaseline}
+                    className="btn-depth-primary flex-1"
+                    style={{
+                      fontFamily: bodyFont, fontWeight: 700, fontSize: 13,
+                      padding: '11px', borderRadius: 2,
+                      background: justSaved ? 'hsl(var(--color-emerald))' : undefined,
+                    }}
+                  >
+                    {justSaved ? '✓ SAVED' : 'SAVE BASELINE'}
+                  </button>
+                  <button
+                    onClick={printBaseline}
+                    className="text-muted-foreground bg-transparent border border-border hover:bg-muted transition-colors"
+                    style={{
+                      fontFamily: bodyFont, fontWeight: 600, fontSize: 12,
+                      padding: '11px 14px', borderRadius: 2, cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    ⬇ DOWNLOAD
+                  </button>
+                </div>
+                <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, marginTop: 8, textAlign: 'center', letterSpacing: '0.06em' }}>
+                  Share this baseline with your contractor before they quote
+                </div>
               </div>
 
-              {/* Action buttons */}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  onClick={saveBaseline}
-                  className="btn-depth-primary flex-1"
-                  style={{
-                    fontFamily: bodyFont, fontWeight: 700, fontSize: 13,
-                    padding: '11px', borderRadius: 2,
-                    background: justSaved ? 'hsl(var(--color-emerald))' : undefined,
-                  }}
-                >
-                  {justSaved ? '✓ SAVED' : 'SAVE BASELINE'}
-                </button>
-                <button
-                  onClick={printBaseline}
-                  className="text-muted-foreground bg-transparent border border-border hover:bg-muted transition-colors"
-                  style={{
-                    fontFamily: bodyFont, fontWeight: 600, fontSize: 12,
-                    padding: '11px 14px', borderRadius: 2, cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  ⬇ DOWNLOAD
-                </button>
-              </div>
-              <div className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, marginTop: 8, textAlign: 'center', letterSpacing: '0.06em' }}>
-                Share this baseline with your contractor before they quote
-              </div>
+              {/* ── LEAD CAPTURE GATE OVERLAY ─────────────────────────────── */}
+              {!unlocked && (
+                <div style={{
+                  position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', zIndex: 10,
+                  background: 'hsl(var(--background) / 0.6)', borderRadius: 'var(--radius-card)',
+                }}>
+                  <div className="card-raised-hero" style={{ padding: 24, maxWidth: 340, width: '100%' }}>
+                    <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                      <Lock size={28} style={{ color: 'hsl(var(--primary))', margin: '0 auto 8px' }} />
+                      <div style={{ fontFamily: dispFont, fontWeight: 800, fontSize: 20, textTransform: 'uppercase', lineHeight: 1.15, marginBottom: 6 }}>
+                        Your Baseline is Ready
+                      </div>
+                      <div className="text-muted-foreground" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                        Enter your details to unlock your personalized fair-market range.
+                      </div>
+                    </div>
+
+                    {/* Form fields */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div>
+                        <label className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>FIRST NAME</label>
+                        <input
+                          type="text"
+                          value={gateForm.firstName}
+                          onChange={e => setGateForm(p => ({ ...p, firstName: e.target.value }))}
+                          placeholder="Jane"
+                          className="wm-input-well w-full text-foreground"
+                          style={{ fontFamily: bodyFont, fontSize: 14, padding: '10px 12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>EMAIL</label>
+                        <input
+                          type="email"
+                          value={gateForm.email}
+                          onChange={e => setGateForm(p => ({ ...p, email: e.target.value }))}
+                          placeholder="jane@example.com"
+                          className="wm-input-well w-full text-foreground"
+                          style={{ fontFamily: bodyFont, fontSize: 14, padding: '10px 12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-muted-foreground" style={{ fontFamily: monoFont, fontSize: 9, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>MOBILE NUMBER</label>
+                        <input
+                          type="tel"
+                          value={phone.displayValue}
+                          onChange={phone.handleChange}
+                          placeholder="(555) 123-4567"
+                          className="wm-input-well w-full text-foreground"
+                          style={{ fontFamily: bodyFont, fontSize: 14, padding: '10px 12px' }}
+                        />
+                      </div>
+                      <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', cursor: 'pointer', marginTop: 4 }}>
+                        <input
+                          type="checkbox"
+                          checked={tcpaConsent}
+                          onChange={e => setTcpaConsent(e.target.checked)}
+                          style={{ marginTop: 3, accentColor: 'hsl(var(--primary))' }}
+                        />
+                        <span className="text-muted-foreground" style={{ fontSize: 11, lineHeight: 1.4 }}>
+                          I agree to receive calls/texts about my project. Msg & data rates may apply. Reply STOP to opt out.
+                        </span>
+                      </label>
+
+                      {gateError && (
+                        <div style={{ color: 'hsl(var(--color-danger))', fontSize: 12, fontFamily: monoFont, textAlign: 'center' }}>
+                          {gateError}
+                        </div>
+                      )}
+
+                      <button
+                        onClick={handleGateSubmit}
+                        disabled={submitting}
+                        className="btn-depth-primary w-full"
+                        style={{
+                          fontFamily: bodyFont, fontWeight: 700, fontSize: 14,
+                          padding: '13px', borderRadius: 'var(--radius-btn)',
+                          opacity: submitting ? 0.6 : 1,
+                        }}
+                      >
+                        {submitting ? 'Unlocking…' : 'Unlock My Baseline →'}
+                      </button>
+
+                      <div className="text-muted-foreground" style={{ fontSize: 10, textAlign: 'center', fontFamily: monoFont, letterSpacing: '0.04em' }}>
+                        You'll receive your baseline instantly. No spam.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
