@@ -1,4 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Ensure dev bypass is disabled so tests hit the supabase.functions.invoke path
+const originalEnv = import.meta.env;
+vi.stubGlobal('import', { meta: { env: { ...originalEnv, DEV: false, VITE_DEV_BYPASS_SECRET: undefined } } });
+
 import { fetchNeedsReview, updateLeadManualEntry } from '../adminDataService';
 
 // Mock the real Supabase client path
