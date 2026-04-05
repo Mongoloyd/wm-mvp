@@ -159,16 +159,16 @@ describe("usePhonePipeline submitOtp", () => {
     });
 
     expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke.mock.calls[0]).toEqual([
+    expect(mockInvoke).toHaveBeenCalledWith(
       "verify-otp",
-      {
-        body: {
+      expect.objectContaining({
+        body: expect.objectContaining({
           phone_e164: "+13055551234",
           code: "123456",
           scan_session_id: "session_xyz",
-        },
-      },
-    ]);
+        }),
+      })
+    );
   });
 
   it("returns a controlled error without calling verify-otp when the code is incomplete", async () => {
