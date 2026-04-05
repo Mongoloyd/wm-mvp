@@ -418,6 +418,28 @@ export async function sendContractorHandoff(leadId: string): Promise<{ success: 
 }
 
 /**
+ * Fetch leads that need manual review (triage queue).
+ */
+export async function fetchNeedsReview(): Promise<any[]> {
+  return invokeAdminData("fetch_needs_review");
+}
+
+/**
+ * Update manual-entry data and/or review status for a lead.
+ * Throws if lead_id is missing.
+ */
+export async function updateLeadManualEntry(params: {
+  lead_id: string;
+  manually_reviewed?: boolean;
+  manual_entry_data?: Record<string, unknown>;
+}): Promise<{ success: boolean }> {
+  if (!params.lead_id) {
+    throw { code: "validation_error", message: "lead_id is required", status: 400 } as AdminDataError;
+  }
+  return invokeAdminData("update_lead_manual_entry", params);
+}
+
+/**
  * Response type map for admin actions.
  */
 export type AdminActionResponses = {
