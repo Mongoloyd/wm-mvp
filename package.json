@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:all": "vitest run && npx supabase functions test"
   },
   "dependencies": {
     "@fontsource/barlow-condensed": "^5.2.8",
