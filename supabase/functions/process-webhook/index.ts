@@ -35,8 +35,9 @@ async function signPayload(payload: string, secret: string): Promise<string> {
 }
 
 /* ── Build payload for a delivery ─────────────────────────────────────── */
+// deno-lint-ignore no-explicit-any
 async function buildPayload(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   delivery: { id: string; lead_id: string; event_type: string }
 ): Promise<Record<string, unknown>> {
   // Fetch lead data for the payload
@@ -63,8 +64,9 @@ async function buildPayload(
 }
 
 /* ── Log audit event to lead_events ───────────────────────────────────── */
+// deno-lint-ignore no-explicit-any
 async function logLeadEvent(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   leadId: string,
   eventName: string,
   metadata: Record<string, unknown>

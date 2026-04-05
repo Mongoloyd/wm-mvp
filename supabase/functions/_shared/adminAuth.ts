@@ -219,7 +219,7 @@ async function validateAndExtractUser(
   const devSecretRaw = req.headers.get("x-dev-secret");
   const expectedDevSecretRaw = Deno.env.get("DEV_BYPASS_SECRET");
   const devSecret = normalizeSecretValue(devSecretRaw);
-  const expectedDevSecret = normalizeSecretValue(expectedDevSecretRaw);
+  const expectedDevSecret = normalizeSecretValue(expectedDevSecretRaw ?? null);
 
   // Diagnostic logging (never logs actual secret values)
   console.log("[adminAuth] Dev bypass check:", {

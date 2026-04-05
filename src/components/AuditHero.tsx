@@ -106,6 +106,8 @@ const AuditHero = ({
               <img
                 src={MASCOT_URL}
                 alt="WindowMan holding a Truth Report"
+                width={384}
+                height={512}
                 fetchPriority="high"
                 decoding="async"
                 className="w-full max-w-sm md:w-64 lg:w-96 h-auto object-contain"

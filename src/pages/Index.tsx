@@ -204,6 +204,7 @@ const Index = () => {
       {/* ─── Normal acquisition flow (hidden when dev preview active) ─── */}
       {!shouldShowReport && !isDevPreview && (
         <>
+          <div className="min-h-[80vh]">
           <AnimatePresence mode="wait">
             {flowMode === 'A' ? (
               <motion.div key="flow-a-hero" exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
@@ -231,6 +232,7 @@ const Index = () => {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
 
           {flowMode === 'A' && (
             <>
