@@ -1,12 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Ensure dev bypass is disabled so tests hit the supabase.functions.invoke path
-const originalEnv = import.meta.env;
-vi.stubGlobal('import', { meta: { env: { ...originalEnv, DEV: false, VITE_DEV_BYPASS_SECRET: undefined } } });
-
-import { fetchNeedsReview, updateLeadManualEntry } from '../adminDataService';
-
-// Mock the real Supabase client path
+// Mock the real Supabase client path — must be before service import
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
@@ -23,13 +17,15 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// Import the mocked client so we can assert against it
+import { fetchNeedsReview, updateLeadManualEntry } from '../adminDataService';
 import { supabase } from '@/integrations/supabase/client';
 
 describe('Needs Review Triage Service Contract', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset default happy-path mock
+    // Ensure dev bypass is OFF so the supabase.functions.invoke path is used
+    vi.stubEnv('VITE_DEV_BYPASS_SECRET', '');
+    // Reset session mock
     (supabase.auth.getSession as any).mockResolvedValue({
       data: { session: { access_token: 'test-jwt-token' } },
       error: null,
@@ -102,7 +98,6 @@ describe('Needs Review Triage Service Contract', () => {
         message: 'lead_id is required',
       });
 
-      // Should never reach the network
       expect(supabase.functions.invoke).not.toHaveBeenCalled();
     });
   });
