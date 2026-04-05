@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CheckCircle, ImageOff, Loader2, PenLine, RotateCcw, Save } from "lucide-react";
+import { CheckCircle, ImageOff, Loader2, PenLine, RotateCcw, Save, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { formatPhoneDisplay, stripNonDigits } from "@/utils/formatPhone";
+import { updateLeadManualEntry } from "@/services/adminDataService";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +37,9 @@ export interface NeedsReviewLead {
   analysis_error: string | null;
   full_json: Record<string, unknown> | null;
   quote_image_url: string | null;
+  email: string | null;
+  phone_e164: string | null;
+  manually_reviewed: boolean;
 }
 
 interface ManualEntryForm {
@@ -203,6 +208,20 @@ export function NeedsReviewTab({ needsReview, isLoading }: NeedsReviewTabProps) 
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {format(new Date(lead.created_at), "MMM d, yyyy 'at' h:mm a")}
                     </p>
+                    {(lead.phone_e164 || lead.email) && (
+                      <div className="flex flex-col gap-0.5 mt-1">
+                        {lead.phone_e164 && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatPhoneDisplay(stripNonDigits(lead.phone_e164).replace(/^1/, ""))}
+                          </span>
+                        )}
+                        {lead.email && (
+                          <span className="text-xs text-muted-foreground truncate max-w-[160px]" title={lead.email}>
+                            {lead.email}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </td>
 
                   {/* Reason Badge */}
@@ -272,6 +291,31 @@ export function NeedsReviewTab({ needsReview, isLoading }: NeedsReviewTabProps) 
                       >
                         <PenLine className="w-3 h-3" />
                         Manual Entry
+                      </button>
+
+                      <button
+                        disabled={isActioning}
+                        onClick={async () => {
+                          setActionInFlight(lead.id);
+                          try {
+                            await updateLeadManualEntry({ lead_id: lead.id, manually_reviewed: true });
+                            toast.success("Marked as reviewed");
+                            setLocalRemoved((prev) => new Set([...prev, lead.id]));
+                          } catch (err: unknown) {
+                            const msg = err instanceof Error ? err.message : "Failed to mark reviewed";
+                            toast.error(msg);
+                          } finally {
+                            setActionInFlight(null);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isActioning ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <ShieldCheck className="w-3 h-3" />
+                        )}
+                        Reviewed
                       </button>
                     </div>
                   </td>
