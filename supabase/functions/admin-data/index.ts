@@ -132,9 +132,9 @@ Deno.serve(async (req) => {
       const { data: noAnalysis } = await supabaseAdmin
         .from("leads")
         .select(`
-          id, first_name, last_name, city, created_at,
+          id, first_name, last_name, email, phone_e164, city, created_at,
           latest_analysis_id, latest_scan_session_id,
-          grade, flag_count
+          grade, flag_count, manually_reviewed, manual_entry_data
         `)
         .is("latest_analysis_id", null)
         .or("manually_reviewed.is.null,manually_reviewed.eq.false")
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
       const { data: failedAnalyses } = await supabaseAdmin
         .from("analyses")
         .select("id, analysis_status, confidence_score, full_json, lead_id, scan_session_id")
-        .or("analysis_status.eq.invalid_document,analysis_status.eq.needs_better_upload,confidence_score.lt.0.6")
+        .or("analysis_status.eq.invalid_document,analysis_status.eq.needs_better_upload,confidence_score.lt.0.70")
         .not("lead_id", "is", null)
         .order("created_at", { ascending: false });
 
@@ -165,9 +165,9 @@ Deno.serve(async (req) => {
         const { data: leads } = await supabaseAdmin
           .from("leads")
           .select(`
-            id, first_name, last_name, city, created_at,
+            id, first_name, last_name, email, phone_e164, city, created_at,
             latest_analysis_id, latest_scan_session_id,
-            grade, flag_count, manually_reviewed
+            grade, flag_count, manually_reviewed, manual_entry_data
           `)
           .in("id", failedLeadIds)
           .or("manually_reviewed.is.null,manually_reviewed.eq.false");
@@ -313,18 +313,25 @@ Deno.serve(async (req) => {
     // ─── UPDATE LEAD MANUAL ENTRY ──────────────────────────────────
 
     if (action === "update_lead_manual_entry") {
-      const { lead_id, manual_entry_data } = payload;
-      if (!lead_id || !manual_entry_data) {
-        return errorResponse(400, "missing_param", "lead_id and manual_entry_data required");
+      const { lead_id, manual_entry_data, manually_reviewed } = payload;
+      if (!lead_id) {
+        return errorResponse(400, "missing_param", "lead_id required");
+      }
+
+      const updateFields: Record<string, unknown> = { updated_at: now };
+      if (typeof manually_reviewed === "boolean") {
+        updateFields.manually_reviewed = manually_reviewed;
+      } else if (manual_entry_data) {
+        // Default to true when saving manual data without explicit flag
+        updateFields.manually_reviewed = true;
+      }
+      if (manual_entry_data !== undefined) {
+        updateFields.manual_entry_data = manual_entry_data;
       }
 
       const { error } = await supabaseAdmin
         .from("leads")
-        .update({
-          manually_reviewed: true,
-          manual_entry_data: manual_entry_data,
-          updated_at: now,
-        })
+        .update(updateFields)
         .eq("id", lead_id);
 
       if (error) throw error;
