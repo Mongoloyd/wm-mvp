@@ -154,6 +154,8 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
       setTimeout(() => {
         setOtpValue("");
       }, 600);
+    } finally {
+      verifyLockRef.current = false;
     }
   }, [otpValue, e164, step, scanSessionId, onVerified]);
 
