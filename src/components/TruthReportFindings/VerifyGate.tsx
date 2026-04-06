@@ -118,8 +118,11 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
     }
   };
 
+  const verifyLockRef = useRef(false);
+
   const handleVerify = useCallback(async () => {
-    if (otpValue.length < 6 || !e164 || step === "verifying") return;
+    if (otpValue.length < 6 || !e164 || step === "verifying" || verifyLockRef.current) return;
+    verifyLockRef.current = true;
     setStep("verifying");
     setErrorMsg("");
     try {

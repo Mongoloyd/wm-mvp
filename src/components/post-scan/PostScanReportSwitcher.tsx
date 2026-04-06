@@ -202,8 +202,11 @@ useEffect(() => {
 
   const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164, localGateOverride);
 
+  const verifyLockRef = useRef(false);
+
   const handleOtpSubmit = useCallback(async () => {
-    if (otpValue.length < 6) return;
+    if (otpValue.length < 6 || verifyLockRef.current) return;
+    verifyLockRef.current = true;
     setIsVerifyingOtp(true);
     try {
       const result = await pipeline.submitOtp(otpValue);
@@ -212,6 +215,7 @@ useEffect(() => {
       }
     } finally {
       setIsVerifyingOtp(false);
+      verifyLockRef.current = false;
     }
   }, [otpValue, pipeline]);
 
