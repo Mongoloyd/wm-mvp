@@ -236,11 +236,18 @@ export function usePhonePipeline(
 
   /* ── submitOtp ───────────────────────────────────────── */
 
+  const isVerifyingRef = useRef(false);
+
   const submitOtp = useCallback(
     async (code: string): Promise<PipelineVerifyResult> => {
       if (code.length < 6 || !activePhone) {
         return { status: "error", error: "Enter the full 6-digit code." };
       }
+      if (isVerifyingRef.current) {
+        console.warn("[usePhonePipeline] submitOtp suppressed — already in flight");
+        return { status: "error", error: "Already verifying." };
+      }
+      isVerifyingRef.current = true;
 
       setPhoneStatus("verifying");
       setErrorMsg(""); setErrorType(null);
@@ -305,6 +312,8 @@ export function usePhonePipeline(
         setErrorMsg(msg);
         setErrorType("network");
         return { status: "error", error: msg };
+      } finally {
+        isVerifyingRef.current = false;
       }
     },
     [activePhone, options]
