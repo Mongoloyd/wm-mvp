@@ -1,85 +1,107 @@
 
 
-# Plan: Lead Capture Gate on MarketBaselineTool (Flow B)
+# OTP Double-Fire Race Condition — Audit & Fix Plan
 
-## Problem
-When a user clicks "Getting Quotes Soon?" → Flow B → "Build My Baseline", they land on `MarketBaselineTool` which shows all pricing data immediately with zero lead capture. The `flowBLeadCaptured` state (Index.tsx line 55) is never set to `true`, so `ForensicChecklist` and `QuoteWatcher` never render.
+## Phase 1: Root Cause Analysis
 
-## Solution
-Add a blur-gated lead capture form over the right-side pricing result panel in `MarketBaselineTool.tsx`. The left panel (county, brand, windows, install method) stays fully interactive. The right panel showing prices is blurred at exactly **7px** until the user submits name + email + phone + TCPA consent.
+### The Pattern
+Both OTP submission paths use the same anti-pattern: a `useEffect` that auto-submits when the 6th digit is entered, where the "am I already submitting?" guard relies on **React state** (`setState`) rather than a **synchronous ref**.
 
-## Files Changed
+### Path A: LockedOverlay (Main Scan Flow)
 
-### 1. `src/components/MarketBaselineTool.tsx` (~90 lines added)
-
-**New prop:**
-```typescript
-interface MarketBaselineToolProps {
-  onLeadCaptured?: () => void;
-}
+**LockedOverlay.tsx, lines 111-116:**
+```ts
+useEffect(() => {
+  if (otpValue.length === 6 && gateMode === "enter_code" && !isLoading) {
+    onOtpSubmit();
+  }
+}, [otpValue, gateMode, isLoading, onOtpSubmit]);
 ```
 
-**New imports:**
-- `usePhoneInput` from `@/hooks/usePhoneInput`
-- `isValidEmail`, `isValidName` from `@/utils/formatPhone`
-- `supabase` from `@/integrations/supabase/client`
-- `getLeadId` from `@/lib/useLeadId`
-- `getUtmPayload` from `@/lib/useUtmCapture`
-- `Lock` from `lucide-react`
-
-**New state (~10 lines):**
-- `unlocked` — boolean, initialized from `localStorage.getItem('wm_baseline_unlocked') === 'true'`
-- `gateForm` — `{ firstName: string, email: string }`
-- `phone` — via `usePhoneInput()` hook
-- `tcpaConsent` — boolean
-- `submitting` — boolean
-
-**New `handleGateSubmit` function (~25 lines):**
-- Validates all fields (isValidName, isValidEmail, phone.isValid, tcpaConsent)
-- Upserts to Supabase `leads` table with: `session_id` (getLeadId()), `first_name`, `email`, `phone_e164`, `county`, `window_count`, **`source: 'flow-b-baseline'`**, plus full UTM payload
-- On success: sets `localStorage('wm_baseline_unlocked', 'true')`, sets `unlocked = true`, calls `onLeadCaptured?.()`
-
-**New `useEffect` for returning users (~5 lines):**
-- If `unlocked` is `true` on mount, immediately call `onLeadCaptured?.()` so `flowBLeadCaptured` gets set and downstream components render
-
-**Gate overlay on the right-side result panel (lines ~306-352, ~40 lines):**
-- When `unlocked === false`: the existing pricing card renders with `style={{ filter: 'blur(7px)', pointerEvents: 'none' }}`. An absolute-positioned overlay renders on top containing:
-  - Lock icon + "Your Baseline is Ready" heading
-  - Form fields: First Name, Email, Phone (formatted via usePhoneInput)
-  - TCPA consent checkbox
-  - Submit button (`btn-depth-primary`)
-  - All inputs use existing `input-well` class, labels use `wm-eyebrow` styling
-- When `unlocked === true`: existing result panel renders unchanged
-
-### 2. `src/pages/Index.tsx` (1 line changed)
-
-**Line 225** — pass the callback:
-```tsx
-<MarketBaselineTool onLeadCaptured={() => setFlowBLeadCaptured(true)} />
+**PostScanReportSwitcher.tsx, lines 205-216:**
+```ts
+const handleOtpSubmit = useCallback(async () => {
+  if (otpValue.length < 6) return;
+  setIsVerifyingOtp(true);  // ← async state update, NOT synchronous
+  ...
+}, [otpValue, pipeline]);
 ```
 
-## What Does NOT Change
-- `FlowBEntry.tsx` — untouched
-- `ForensicChecklist.tsx` — untouched
-- `QuoteWatcher.tsx` — untouched
-- No new files created
-- No backend/edge function changes
-- No database schema changes (uses existing `leads` table)
-- Left-side configuration panel remains fully interactive (no gate on inputs)
+**The bug:** When the user types the 6th digit, React re-renders. `handleOtpSubmit` is recreated (because `otpValue` is in its dependency array), which causes the `useEffect` in LockedOverlay to re-fire. At this point, `isVerifyingOtp` is still `false` because `setIsVerifyingOtp(true)` hasn't propagated yet. Result: **two calls to `pipeline.submitOtp()`**.
 
-## Data Flow
-```text
-User configures project (left panel, ungated)
-  → Right panel shows blurred prices (7px blur)
-  → User fills name/email/phone + TCPA checkbox
-  → "Unlock My Baseline" button submits
-    → Client validation
-    → Supabase INSERT into leads (source: 'flow-b-baseline', UTM attached)
-    → localStorage persists unlock
-    → onLeadCaptured() fires → Index sets flowBLeadCaptured = true
-    → ForensicChecklist + QuoteWatcher render below
+### Path B: VerifyGate (Legacy Flow)
+
+**VerifyGate.tsx, lines 157-162:**
+```ts
+useEffect(() => {
+  if (otpValue.length === 6 && step === "otp") {
+    handleVerify();
+  }
+}, [otpValue, step, handleVerify]);
 ```
 
-## Returning Users
-If `localStorage` has `wm_baseline_unlocked === 'true'`, the gate is skipped on load and `onLeadCaptured()` fires immediately on mount.
+**VerifyGate.tsx, line 122:**
+```ts
+const handleVerify = useCallback(async () => {
+  if (otpValue.length < 6 || !e164 || step === "verifying") return;
+  setStep("verifying");  // ← async state, same problem
+  ...
+}, [otpValue, e164, step, scanSessionId, onVerified]);
+```
+
+Same issue: `handleVerify` is recreated when `otpValue` changes, the effect re-runs, and `step` is still `"otp"` because `setStep("verifying")` hasn't rendered yet. Two calls to `verify-otp`.
+
+### Path C: usePhonePipeline.submitOtp
+
+**usePhonePipeline.ts, lines 239-311:**
+`submitOtp` uses `setPhoneStatus("verifying")` as its guard — again, async state. No ref-based lock exists here (unlike `submitPhone` which has `isSendingRef`).
+
+### Summary
+Three layers, zero synchronous guards on the verify path. The `submitPhone` path correctly uses `isSendingRef`, but `submitOtp` was missed.
+
+---
+
+## Phase 2: Fix Plan
+
+The cleanest fix is a **defense-in-depth** approach: add a ref lock at the shared pipeline level AND at each consumer level.
+
+### File 1: `src/hooks/usePhonePipeline.ts`
+Add `isVerifyingRef = useRef(false)` (mirrors the existing `isSendingRef` pattern for `submitPhone`).
+
+**In `submitOtp` (~line 240):**
+- Add guard: `if (isVerifyingRef.current) return { status: "error", error: "Already verifying." };`
+- Set `isVerifyingRef.current = true` before the async call
+- Reset in `finally` block: `isVerifyingRef.current = false`
+
+This is ~5 lines added. Protects both consumers (LockedOverlay and VerifyGate paths).
+
+### File 2: `src/components/post-scan/PostScanReportSwitcher.tsx`
+Add a local `verifyLockRef = useRef(false)` in `handleOtpSubmit` as a belt-and-suspenders guard.
+
+**In `handleOtpSubmit` (~line 205):**
+- Add guard: `if (verifyLockRef.current) return;`
+- Set `verifyLockRef.current = true` before calling `pipeline.submitOtp`
+- Reset in `finally` block
+
+This is ~4 lines added.
+
+### File 3: `src/components/TruthReportFindings/VerifyGate.tsx`
+Add a local `verifyLockRef = useRef(false)` in `handleVerify`.
+
+**In `handleVerify` (~line 121):**
+- Add guard: `if (verifyLockRef.current) return;`
+- Set `verifyLockRef.current = true` before the Supabase call
+- Reset in `finally` block (both success and error paths)
+
+This is ~4 lines added.
+
+### What This Does NOT Change
+- No UI changes
+- No edge function changes
+- No database changes
+- OTP auto-submit behavior is preserved (still fires on 6th digit)
+- Shake animation, auto-clear, cooldown, resend — all untouched
+
+### Total Impact
+~15 lines added across 3 files. Zero risk to existing functionality. The second call is suppressed synchronously before it ever reaches Twilio.
 
