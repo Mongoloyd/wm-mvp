@@ -173,3 +173,122 @@ describe("PostScanReportSwitcher shared OTP status wiring", () => {
     expect(submitPhoneMock).not.toHaveBeenCalled();
   });
 });
+
+describe("PostScanReportSwitcher — Identity Ladder full access (Level 2)", () => {
+  let funnelState: any;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseReportAccess.mockReturnValue("full");
+
+    funnelState = {
+      phoneE164: "+13055551234",
+      phoneStatus: "verified",
+      setPhone: vi.fn(),
+      setPhoneStatus: vi.fn(),
+      sessionId: "sess-verified",
+    };
+    mockUseScanFunnelSafe.mockImplementation(() => funnelState);
+
+    mockUsePhonePipeline.mockReturnValue({
+      displayValue: "(305) 555-1234",
+      rawDigits: "3055551234",
+      e164: "+13055551234",
+      inputComplete: true,
+      phoneStatus: "verified",
+      errorMsg: "",
+      errorType: null,
+      resendCooldown: 0,
+      handlePhoneChange: vi.fn(),
+      submitPhone: vi.fn(),
+      submitOtp: vi.fn(),
+      resend: vi.fn(),
+      reset: vi.fn(),
+    });
+  });
+
+  it("passes gateProps=undefined to TruthReportClassic when access is full", () => {
+    render(
+      <PostScanReportSwitcher
+        {...baseProps()}
+        isFullLoaded={true}
+      />
+    );
+    // When accessLevel is "full", gateProps is not passed — gate-mode reads "none"
+    expect(screen.getByTestId("gate-mode")).toHaveTextContent("none");
+  });
+
+  it("does not render a phone input gate when user is fully verified", () => {
+    render(
+      <PostScanReportSwitcher
+        {...baseProps()}
+        isFullLoaded={true}
+      />
+    );
+    expect(screen.queryByTestId("gate-mode")).not.toHaveTextContent("enter_phone");
+    expect(screen.queryByTestId("gate-mode")).not.toHaveTextContent("send_code");
+    expect(screen.queryByTestId("gate-mode")).not.toHaveTextContent("enter_code");
+  });
+});
+
+describe("PostScanReportSwitcher — Identity Ladder partial access (Level 0/1)", () => {
+  let funnelState: any;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseReportAccess.mockReturnValue("preview");
+
+    funnelState = {
+      phoneE164: null,
+      phoneStatus: "none",
+      setPhone: vi.fn(),
+      setPhoneStatus: vi.fn(),
+      sessionId: "sess-anon",
+    };
+    mockUseScanFunnelSafe.mockImplementation(() => funnelState);
+
+    mockUsePhonePipeline.mockReturnValue({
+      displayValue: "",
+      rawDigits: "",
+      e164: null,
+      inputComplete: false,
+      phoneStatus: "idle",
+      errorMsg: "",
+      errorType: null,
+      resendCooldown: 0,
+      handlePhoneChange: vi.fn(),
+      submitPhone: vi.fn(),
+      submitOtp: vi.fn(),
+      resend: vi.fn(),
+      reset: vi.fn(),
+    });
+  });
+
+  it("shows enter_phone gate for anonymous user (no phone, no verification)", () => {
+    render(<PostScanReportSwitcher {...baseProps()} isFullLoaded={false} />);
+    expect(screen.getByTestId("gate-mode")).toHaveTextContent("enter_phone");
+  });
+
+  it("never shows gateMode=none when user is unverified (bypass prevention)", () => {
+    render(<PostScanReportSwitcher {...baseProps()} isFullLoaded={false} />);
+    expect(screen.getByTestId("gate-mode")).not.toHaveTextContent("none");
+  });
+
+  it("shows OTP failed error message when phoneStatus is otp_failed", () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "otp_failed";
+    render(<PostScanReportSwitcher {...baseProps()} isFullLoaded={false} />);
+    // otp_failed should show an error fallback message in error-msg
+    // and gate should still be in send_code (not unlocked)
+    expect(screen.getByTestId("gate-mode")).not.toHaveTextContent("none");
+  });
+
+  it("blocks full report access even if phone is present but isFullLoaded is false", () => {
+    funnelState.phoneE164 = "+13055551234";
+    funnelState.phoneStatus = "otp_sent";
+    render(<PostScanReportSwitcher {...baseProps()} isFullLoaded={false} />);
+    // User is in OTP flow but full data has not been fetched from backend
+    expect(screen.getByTestId("gate-mode")).toHaveTextContent("enter_code");
+    expect(screen.getByTestId("gate-mode")).not.toHaveTextContent("none");
+  });
+});

@@ -191,3 +191,369 @@ describe("usePhonePipeline submitOtp", () => {
     expect(mockInvoke).not.toHaveBeenCalled();
   });
 });
+
+describe("usePhonePipeline submitPhone — validate_only mode", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsePhoneInput.mockReturnValue({
+      displayValue: "(305) 234-1234",
+      rawDigits: "3052341234",
+      e164: "+13052341234",
+      isValid: true,
+      handleChange: vi.fn(),
+      setValue: vi.fn(),
+    });
+  });
+
+  it("returns valid status without calling send-otp in validate_only mode", async () => {
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_only", {})
+    );
+
+    let startResult: Awaited<ReturnType<typeof result.current.submitPhone>> | null = null;
+    await act(async () => {
+      startResult = await result.current.submitPhone();
+    });
+
+    expect(startResult?.status).toBe("valid");
+    expect(startResult?.e164).toBe("+13052341234");
+    expect(mockInvoke).not.toHaveBeenCalled();
+  });
+
+  it("sets phoneStatus to 'valid' in validate_only mode", async () => {
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_only", {})
+    );
+
+    await act(async () => {
+      await result.current.submitPhone();
+    });
+
+    expect(result.current.phoneStatus).toBe("valid");
+  });
+});
+
+describe("usePhonePipeline submitPhone — invalid local phone screening", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Simulate user typed too few digits (incomplete)
+    mockUsePhoneInput.mockReturnValue({
+      displayValue: "(305) 234-12",
+      rawDigits: "305234",
+      e164: null,
+      isValid: false,
+      handleChange: vi.fn(),
+      setValue: vi.fn(),
+    });
+  });
+
+  it("returns blocked when local phone is incomplete (no external phone)", async () => {
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {})
+    );
+
+    let startResult: Awaited<ReturnType<typeof result.current.submitPhone>> | null = null;
+    await act(async () => {
+      startResult = await result.current.submitPhone();
+    });
+
+    expect(startResult?.status).toBe("blocked");
+    expect(mockInvoke).not.toHaveBeenCalled();
+    expect(result.current.phoneStatus).toBe("invalid");
+  });
+});
+
+describe("usePhonePipeline submitPhone — send-otp error handling", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsePhoneInput.mockReturnValue({
+      displayValue: "(305) 234-1234",
+      rawDigits: "3052341234",
+      e164: "+13052341234",
+      isValid: true,
+      handleChange: vi.fn(),
+      setValue: vi.fn(),
+    });
+  });
+
+  it("classifies a 429 rate-limit response as 'rate_limit' error type", async () => {
+    const errorContextJson = vi.fn().mockResolvedValue({
+      error: "Too many code requests. Please wait 25 seconds before trying again.",
+      retry_after: 25,
+    });
+
+    mockInvoke.mockResolvedValue({
+      data: null,
+      error: {
+        context: {
+          status: 429,
+          json: errorContextJson,
+        },
+      },
+    });
+
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {
+        externalPhoneE164: "+13052341234",
+      })
+    );
+
+    let startResult: Awaited<ReturnType<typeof result.current.submitPhone>> | null = null;
+    await act(async () => {
+      startResult = await result.current.submitPhone();
+    });
+
+    expect(startResult?.status).toBe("error");
+    expect(result.current.errorType).toBe("rate_limit");
+    expect(result.current.phoneStatus).toBe("otp_failed");
+  });
+
+  it("classifies a generic send failure as 'generic' error type", async () => {
+    const errorContextJson = vi.fn().mockResolvedValue({
+      error: "Failed to send verification code.",
+    });
+
+    mockInvoke.mockResolvedValue({
+      data: null,
+      error: {
+        context: {
+          status: 400,
+          json: errorContextJson,
+        },
+      },
+    });
+
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {
+        externalPhoneE164: "+13052341234",
+      })
+    );
+
+    await act(async () => {
+      await result.current.submitPhone();
+    });
+
+    expect(result.current.errorType).toBe("generic");
+    expect(result.current.errorMsg).toBe("Failed to send verification code.");
+  });
+
+  it("sets otp_failed when send-otp returns success=false in the response body", async () => {
+    mockInvoke.mockResolvedValue({
+      data: { success: false, error: "Phone number not reachable." },
+      error: null,
+    });
+
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {
+        externalPhoneE164: "+13052341234",
+      })
+    );
+
+    let startResult: Awaited<ReturnType<typeof result.current.submitPhone>> | null = null;
+    await act(async () => {
+      startResult = await result.current.submitPhone();
+    });
+
+    expect(startResult?.status).toBe("error");
+    expect(result.current.phoneStatus).toBe("otp_failed");
+    expect(result.current.errorMsg).toBe("Phone number not reachable.");
+  });
+
+  it("handles a network exception (invoke throws) with 'network' error type", async () => {
+    mockInvoke.mockRejectedValue(new Error("fetch failed"));
+
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {
+        externalPhoneE164: "+13052341234",
+      })
+    );
+
+    let startResult: Awaited<ReturnType<typeof result.current.submitPhone>> | null = null;
+    await act(async () => {
+      startResult = await result.current.submitPhone();
+    });
+
+    expect(startResult?.status).toBe("error");
+    expect(result.current.errorType).toBe("network");
+    expect(result.current.phoneStatus).toBe("otp_failed");
+  });
+});
+
+describe("usePhonePipeline submitOtp — edge cases and security guards", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsePhoneInput.mockReturnValue({
+      displayValue: "(305) 234-1234",
+      rawDigits: "3052341234",
+      e164: "+13052341234",
+      isValid: true,
+      handleChange: vi.fn(),
+      setValue: vi.fn(),
+    });
+  });
+
+  it("classifies an expired-session message as 'expired_session' error type", async () => {
+    const errorContextJson = vi.fn().mockResolvedValue({
+      error: "Verification session expired or not found. Please request a new code.",
+    });
+
+    mockInvoke.mockResolvedValue({
+      data: null,
+      error: {
+        context: {
+          status: 400,
+          json: errorContextJson,
+        },
+      },
+    });
+
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {
+        externalPhoneE164: "+13052341234",
+        scanSessionId: "session_abc",
+      })
+    );
+
+    let verifyResult: Awaited<ReturnType<typeof result.current.submitOtp>> | null = null;
+    await act(async () => {
+      verifyResult = await result.current.submitOtp("123456");
+    });
+
+    expect(verifyResult?.status).toBe("invalid_code");
+    expect(result.current.errorType).toBe("expired_session");
+    expect(result.current.phoneStatus).toBe("otp_sent"); // allows retry
+  });
+
+  it("handles a network exception during verify-otp gracefully", async () => {
+    mockInvoke.mockRejectedValue(new Error("network failure"));
+
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {
+        externalPhoneE164: "+13052341234",
+        scanSessionId: "session_abc",
+      })
+    );
+
+    let verifyResult: Awaited<ReturnType<typeof result.current.submitOtp>> | null = null;
+    await act(async () => {
+      verifyResult = await result.current.submitOtp("123456");
+    });
+
+    expect(verifyResult?.status).toBe("error");
+    expect(result.current.errorType).toBe("network");
+    expect(result.current.phoneStatus).toBe("otp_sent"); // allows retry
+  });
+
+  it("returns invalid_code when verify-otp responds with verified=false in body", async () => {
+    mockInvoke.mockResolvedValue({
+      data: { verified: false, error: "Code does not match." },
+      error: null,
+    });
+
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {
+        externalPhoneE164: "+13052341234",
+        scanSessionId: "session_abc",
+      })
+    );
+
+    let verifyResult: Awaited<ReturnType<typeof result.current.submitOtp>> | null = null;
+    await act(async () => {
+      verifyResult = await result.current.submitOtp("000000");
+    });
+
+    expect(verifyResult?.status).toBe("invalid_code");
+    expect(verifyResult?.error).toBe("Code does not match.");
+    expect(result.current.phoneStatus).toBe("otp_sent");
+  });
+
+  it("does not call verify-otp when no active phone is available", async () => {
+    // No external phone + local e164 is null
+    mockUsePhoneInput.mockReturnValue({
+      displayValue: "",
+      rawDigits: "",
+      e164: null,
+      isValid: false,
+      handleChange: vi.fn(),
+      setValue: vi.fn(),
+    });
+
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {})
+    );
+
+    let verifyResult: Awaited<ReturnType<typeof result.current.submitOtp>> | null = null;
+    await act(async () => {
+      verifyResult = await result.current.submitOtp("123456");
+    });
+
+    expect(verifyResult?.status).toBe("error");
+    expect(verifyResult?.error).toBe("Enter the full 6-digit code.");
+    expect(mockInvoke).not.toHaveBeenCalled();
+  });
+});
+
+describe("usePhonePipeline resend — no phone guard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsePhoneInput.mockReturnValue({
+      displayValue: "",
+      rawDigits: "",
+      e164: null,
+      isValid: false,
+      handleChange: vi.fn(),
+      setValue: vi.fn(),
+    });
+  });
+
+  it("returns blocked when no phone is available for resend", async () => {
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {})
+    );
+
+    let resendResult: Awaited<ReturnType<typeof result.current.resend>> | null = null;
+    await act(async () => {
+      resendResult = await result.current.resend();
+    });
+
+    expect(resendResult?.status).toBe("blocked");
+    expect(mockInvoke).not.toHaveBeenCalled();
+  });
+});
+
+describe("usePhonePipeline reset", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsePhoneInput.mockReturnValue({
+      displayValue: "(305) 234-1234",
+      rawDigits: "3052341234",
+      e164: "+13052341234",
+      isValid: true,
+      handleChange: vi.fn(),
+      setValue: vi.fn(),
+    });
+    mockInvoke.mockResolvedValue({ data: { success: true }, error: null });
+  });
+
+  it("resets phoneStatus to idle and clears error", async () => {
+    const { result } = renderHook(() =>
+      usePhonePipeline("validate_and_send_otp", {
+        externalPhoneE164: "+13052341234",
+      })
+    );
+
+    // Put pipeline into otp_sent state
+    await act(async () => {
+      await result.current.submitPhone();
+    });
+    expect(result.current.phoneStatus).toBe("otp_sent");
+
+    await act(async () => {
+      result.current.reset();
+    });
+
+    expect(result.current.phoneStatus).toBe("idle");
+    expect(result.current.errorMsg).toBe("");
+    expect(result.current.errorType).toBeNull();
+  });
+});
