@@ -32,7 +32,7 @@ export type PhoneStatus =
   | "verified"
   | "error";
 
-export type ErrorType = "rate_limit" | "expired_session" | "invalid_code" | "network" | "generic";
+export type ErrorType = "rate_limit" | "blocked_prefix" | "expired_session" | "invalid_code" | "network" | "generic";
 
 export interface PipelineStartResult {
   status: "valid" | "otp_sent" | "already_verified" | "blocked" | "error";

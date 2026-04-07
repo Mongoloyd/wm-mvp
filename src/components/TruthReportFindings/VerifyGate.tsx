@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Loader2 } from "lucide-react";
+import { Lock, Loader2, ShieldOff, Clock, WifiOff, AlertCircle } from "lucide-react";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ interface VerifyGateProps {
 }
 
 type Step = "phone" | "sending" | "otp" | "verifying";
+type ErrorCategory = "blocked_prefix" | "rate_limit" | "network" | "generic";
 
 const RESEND_COOLDOWN = 30;
 
@@ -35,6 +36,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
   const [otpValue, setOtpValue] = useState("");
   const [step, setStep] = useState<Step>("phone");
   const [errorMsg, setErrorMsg] = useState("");
+  const [errorCategory, setErrorCategory] = useState<ErrorCategory>("generic");
   const [cooldown, setCooldown] = useState(0);
   const [shakeKey, setShakeKey] = useState(0);
   const otpContainerRef = useRef<HTMLDivElement>(null);
@@ -206,16 +208,58 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
         Verify your number to see the full details.
       </p>
 
-      {/* Error */}
+      {/* Error with contextual icon */}
       {errorMsg && (
-        <motion.p
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-xs text-vivid-orange mb-3 font-medium"
+          className="mb-3 px-3 py-2.5 rounded-md flex items-start gap-2"
           role="alert"
+          style={{
+            background: errorCategory === "blocked_prefix" || errorCategory === "rate_limit"
+              ? "hsl(var(--color-caution) / 0.1)"
+              : errorCategory === "network"
+                ? "hsl(var(--muted-foreground) / 0.08)"
+                : "hsl(var(--color-danger) / 0.08)",
+            border: `1px solid ${
+              errorCategory === "blocked_prefix" || errorCategory === "rate_limit"
+                ? "hsl(var(--color-caution) / 0.25)"
+                : errorCategory === "network"
+                  ? "hsl(var(--muted-foreground) / 0.2)"
+                  : "hsl(var(--color-danger) / 0.25)"
+            }`,
+          }}
         >
-          {errorMsg}
-        </motion.p>
+          {errorCategory === "blocked_prefix" ? (
+            <ShieldOff size={14} className="mt-0.5 shrink-0" style={{ color: "hsl(var(--color-caution))" }} />
+          ) : errorCategory === "rate_limit" ? (
+            <Clock size={14} className="mt-0.5 shrink-0" style={{ color: "hsl(var(--color-caution))" }} />
+          ) : errorCategory === "network" ? (
+            <WifiOff size={14} className="mt-0.5 shrink-0" style={{ color: "hsl(var(--muted-foreground))" }} />
+          ) : (
+            <AlertCircle size={14} className="mt-0.5 shrink-0" style={{ color: "hsl(var(--color-danger))" }} />
+          )}
+          <div>
+            <p
+              className="text-xs font-semibold"
+              style={{
+                color: errorCategory === "blocked_prefix" || errorCategory === "rate_limit"
+                  ? "hsl(var(--color-caution))"
+                  : errorCategory === "network"
+                    ? "hsl(var(--muted-foreground))"
+                    : "hsl(var(--color-danger))",
+              }}
+            >
+              {errorMsg}
+            </p>
+            {errorCategory === "blocked_prefix" && (
+              <p className="text-[11px] text-muted-foreground mt-0.5">Try a different phone number to continue.</p>
+            )}
+            {errorCategory === "rate_limit" && (
+              <p className="text-[11px] text-muted-foreground mt-0.5">This protects your phone from abuse. The limit resets shortly.</p>
+            )}
+          </div>
+        </motion.div>
       )}
 
       <AnimatePresence mode="wait">
