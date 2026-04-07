@@ -44,6 +44,8 @@ type Props = {
   onVerified?: (phoneE164: string) => void;
   /** True when gated full data has been loaded */
   isFullLoaded?: boolean;
+  /** Error message from fetchFull — surfaces immediately instead of waiting for stall timer */
+  fullFetchError?: string | null;
 };
 
 function deriveGateMode(
