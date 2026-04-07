@@ -96,8 +96,6 @@ export function LockedOverlay({
   const redCount = flagRedCount ?? flagCount;
   const [shakeKey, setShakeKey] = useState(0);
   const prevErrorType = useRef<string | undefined>(undefined);
-  // Track the last OTP value auto-submitted by the effect to prevent re-fire
-  const lastAutoSubmittedOtpRef = useRef<string>("");
 
   // Shake + auto-clear on invalid_code error
   useEffect(() => {
@@ -109,26 +107,6 @@ export function LockedOverlay({
     }
     prevErrorType.current = errorType;
   }, [errorType, onOtpChange]);
-
-  // Auto-submit when 6th digit entered — one-shot per OTP value
-  useEffect(() => {
-    if (
-      otpValue.length === 6 &&
-      gateMode === "enter_code" &&
-      !isLoading &&
-      otpValue !== lastAutoSubmittedOtpRef.current
-    ) {
-      lastAutoSubmittedOtpRef.current = otpValue;
-      onOtpSubmit();
-    }
-  }, [otpValue, gateMode, isLoading, onOtpSubmit]);
-
-  // Reset auto-submit guard when user edits, clears, or leaves OTP mode
-  useEffect(() => {
-    if (otpValue.length < 6 || gateMode !== "enter_code") {
-      lastAutoSubmittedOtpRef.current = "";
-    }
-  }, [otpValue, gateMode]);
 
   // Header text per mode
   const header = gateMode === "enter_phone" ? "Unlock Your Full Report" : "Enter Your Secure Code";
@@ -486,13 +464,21 @@ export function LockedOverlay({
                   </InputOTP>
                 </div>
 
-                {/* Verifying spinner (auto-submit removes the button) */}
-                {isLoading && (
-                  <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
-                    <Loader2 size={18} className="animate-spin" />
-                    Verifying…
-                  </div>
-                )}
+                {/* Manual verify button */}
+                <button
+                  onClick={onOtpSubmit}
+                  disabled={otpValue.length < 6 || isLoading}
+                  className="w-full py-3 rounded-lg font-bold text-sm transition-colors bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Verifying…
+                    </>
+                  ) : (
+                    "Verify →"
+                  )}
+                </button>
 
                 {/* Resend + Wrong number */}
                 <div className="flex flex-col items-center gap-2">
