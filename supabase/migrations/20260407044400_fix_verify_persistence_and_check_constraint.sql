@@ -20,9 +20,53 @@ ALTER TABLE public.phone_verifications
 ALTER TABLE public.leads
   ADD COLUMN IF NOT EXISTS phone_verified_at timestamptz;
 
--- ── 3. Harden fire_crm_handoff trigger ───────────────────────────────────────
--- Wrap lead_events INSERT in exception handler so the trigger doesn't crash
--- the leads UPDATE if lead_events table is missing in the target environment.
+-- ── 3. Align lead_events constraints with trigger values ────────────────────
+-- fire_crm_handoff emits event_name='crm_handoff_queued' and
+-- event_source='db_trigger'. Add these to lead_events constraints if the
+-- table exists. If lead_events does not exist, the ALTER will fail silently.
+DO $$
+BEGIN
+  -- Add 'crm_handoff_queued' to event_name CHECK constraint
+  ALTER TABLE public.lead_events
+    DROP CONSTRAINT IF EXISTS lead_events_event_name_check;
+
+  ALTER TABLE public.lead_events
+    ADD CONSTRAINT lead_events_event_name_check
+    CHECK (event_name IN (
+      'lead_created',
+      'quote_uploaded',
+      'analysis_complete',
+      'phone_verified',
+      'report_revealed',
+      'crm_handoff_queued'
+    ));
+
+  -- Add 'db_trigger' to event_source CHECK constraint
+  ALTER TABLE public.lead_events
+    DROP CONSTRAINT IF EXISTS lead_events_event_source_check;
+
+  ALTER TABLE public.lead_events
+    ADD CONSTRAINT lead_events_event_source_check
+    CHECK (event_source IN (
+      'frontend',
+      'edge_function',
+      'admin_dashboard',
+      'db_trigger'
+    ));
+EXCEPTION
+  WHEN undefined_table THEN
+    RAISE LOG '[MIGRATION:WARN] lead_events table not found — skipping constraint alignment';
+  WHEN OTHERS THEN
+    RAISE LOG '[MIGRATION:WARN] Could not update lead_events constraints: %', SQLERRM;
+END;
+$$;
+
+-- ── 4. Harden fire_crm_handoff trigger ───────────────────────────────────────
+-- Wrap lead_events INSERT in broad exception handler so the trigger doesn't
+-- crash the leads UPDATE if:
+--   - lead_events table is missing
+--   - CHECK constraints reject the values (despite alignment above)
+--   - any other unexpected database error occurs
 CREATE OR REPLACE FUNCTION public.fire_crm_handoff()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -38,7 +82,7 @@ BEGIN
     INSERT INTO public.webhook_deliveries (lead_id, event_type, status)
     VALUES (NEW.id, 'qualified_lead', 'pending');
 
-    -- Audit trail in lead_events (hardened: safe if table is absent)
+    -- Audit trail in lead_events (hardened: safe if table is absent or constraints reject)
     BEGIN
       INSERT INTO public.lead_events (lead_id, event_name, event_source, metadata)
       VALUES (
@@ -51,8 +95,9 @@ BEGIN
           'triggered_at', now()
         )
       );
-    EXCEPTION WHEN undefined_table THEN
-      RAISE LOG '[CRM:HANDOFF:WARN] lead_events table not found — skipping audit for lead_id=%', NEW.id;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE LOG '[CRM:HANDOFF:WARN] Failed to insert lead_event for lead_id=% — %: %',
+        NEW.id, SQLSTATE, SQLERRM;
     END;
 
     RAISE LOG '[CRM:HANDOFF:QUEUED] {"lead_id": "%", "analysis_id": "%", "timestamp": "%"}',
