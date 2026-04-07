@@ -193,8 +193,10 @@ export function usePhonePipeline(
             const body = await error.context.json();
             console.error("[usePhonePipeline] send-otp non-2xx response body:", body);
             parsedMsg = body?.error || parsedMsg;
-            // Detect rate limiting from 429 status or message content
-            if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
+            // Detect specific Twilio error types
+            if (body?.twilio_code === 60410 || parsedMsg.toLowerCase().includes("blocked by our carrier")) {
+              classifiedType = "blocked_prefix";
+            } else if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
               classifiedType = "rate_limit";
             }
           } else {
