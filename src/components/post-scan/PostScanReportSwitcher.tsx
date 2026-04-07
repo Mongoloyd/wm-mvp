@@ -177,13 +177,18 @@ useEffect(() => {
 
   // ── Stall detection ──
   useEffect(() => {
+    // If fetchFull already failed, surface error immediately — no need to wait 5s
+    if (props.fullFetchError && !props.isFullLoaded) {
+      setFetchStalled(true);
+      return;
+    }
     if (funnel?.phoneStatus === "verified" && !props.isFullLoaded) {
       stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);
       return () => { if (stallTimerRef.current) clearTimeout(stallTimerRef.current); };
     }
     if (props.isFullLoaded && fetchStalled) setFetchStalled(false);
     if (stallTimerRef.current) { clearTimeout(stallTimerRef.current); stallTimerRef.current = null; }
-  }, [funnel?.phoneStatus, props.isFullLoaded, fetchStalled]);
+  }, [funnel?.phoneStatus, props.isFullLoaded, props.fullFetchError, fetchStalled]);
 
   const handleRetryFetchFull = useCallback(() => {
     const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
