@@ -79,7 +79,7 @@ function mapSeverity(raw: string | undefined | null): "red" | "amber" | "green" 
   if (s === "critical" || s === "high") return "red";
   if (s === "medium") return "amber";
   // Explicit green only for known-positive severities
-  if (s === "low" || s === "info" || s === "pass" || s === "confirmed") return "amber";
+  if (s === "low" || s === "info" || s === "pass" || s === "confirmed") return "green";
   if (s === "green" || s === "ok" || s === "good") return "green";
   // Unknown/unrecognized severities must never silently become "confirmed"
   return "amber";
@@ -207,6 +207,7 @@ export function useAnalysisData(
   const [isResuming, setIsResuming] = useState(false);
   const previewFetchedRef = useRef<string | null>(null);
   const resumeAttemptedRef = useRef<string | null>(null);
+  const isFullLoadedRef = useRef(false);
 
   // ── Reset all state when scanSessionId changes (e.g. "Start New Scan") ──
   useEffect(() => {

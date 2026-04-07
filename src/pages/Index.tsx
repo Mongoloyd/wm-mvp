@@ -86,13 +86,13 @@ const Index = () => {
 
   // After scanSessionId is set from resume, try auto-fetching full data
   useEffect(() => {
-    if (!scanSessionId || isFullLoaded || isResuming) return;
+    if (!scanSessionId || isFullLoaded || isResuming || analysisLoading) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('resume') !== '1') return;
     const record = getVerifiedAccess(scanSessionId);
     if (!record) return;
     tryResume();
-  }, [scanSessionId, isFullLoaded, isResuming, tryResume]);
+  }, [scanSessionId, isFullLoaded, isResuming, analysisLoading, tryResume]);
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);

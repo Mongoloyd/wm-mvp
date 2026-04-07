@@ -11,7 +11,7 @@
  * CTAs:        generate-contractor-brief + voice-followup edge functions
  */
 
-import { useState, useCallback, useEffect, type ReactNode } from "react";
+import { useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
@@ -113,22 +113,24 @@ export default function ReportClassic() {
   const accessLevel = useReportAccess({ isFullLoaded });
 
   // ── Phone pipeline — the ONLY Twilio touchpoint ────────────────────────
+  const fullFetchTriggeredRef = useRef(false);
+
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: sessionId ?? null,
     externalPhoneE164: funnel?.phoneE164 ?? null,
     onVerified: () => {
       funnel?.setPhoneStatus("verified");
-      const phone = funnel?.phoneE164 || pipeline.e164;
-      if (phone) fetchFull(phone);
+      // fetchFull is called in handleOtpSubmit with server-canonical phone
     },
   });
 
   // If user already verified (returning visit), auto-fetch full data
   useEffect(() => {
-    if (funnel?.phoneStatus === "verified" && !isFullLoaded && !isLoadingFull && funnel?.phoneE164) {
+    if (fullFetchTriggeredRef.current) return;
+    if (funnel?.phoneStatus === "verified" && !isFullLoaded && !isLoadingFull && !isLoading && funnel?.phoneE164) {
       fetchFull(funnel.phoneE164);
     }
-  }, [funnel?.phoneStatus, funnel?.phoneE164, isFullLoaded, isLoadingFull, fetchFull]);
+  }, [funnel?.phoneStatus, funnel?.phoneE164, isFullLoaded, isLoadingFull, isLoading, fetchFull]);
 
   // ── OTP value state ────────────────────────────────────────────────────
   const [otpValue, setOtpValue] = useState("");
@@ -175,9 +177,14 @@ export default function ReportClassic() {
       if (result.e164 && funnel) {
         funnel.setPhone(result.e164, "verified");
       }
+      // Trigger fetchFull directly with server-canonical phone
+      if (result.e164) {
+        fullFetchTriggeredRef.current = true;
+        fetchFull(result.e164);
+      }
       setOtpValue("");
     }
-  }, [otpValue, pipeline, funnel]);
+  }, [otpValue, pipeline, funnel, fetchFull]);
 
   const handleSendCode = useCallback(async () => {
     if (!funnel?.phoneE164) return;
