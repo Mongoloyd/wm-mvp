@@ -1,65 +1,42 @@
 
 
-# Root Cause: "Report loading failed" on name+email-only submission
+# Fix FOUT and CSS Performance Issues
 
-## What's happening
+## Problem Summary
+Lighthouse mobile performance is 74, with render-blocking font requests and unsized images causing FCP (3.8s), LCP (4.1s), and CLS issues.
 
-1. User previously completed a scan with phone ending in 7938. The funnel persists `phoneE164` and `phoneStatus` to localStorage (24hr TTL).
-2. User starts a **new** scan, enters only name + email (no phone). TruthGateFlow inserts a lead with `phone_e164: null`.
-3. PostScanReportSwitcher mounts. The funnel context reads back the **stale** phone from localStorage. `gateMode` resolves to `"send_code"`.
-4. The auto-send effect fires, sending OTP to the old phone number.
-5. User enters the OTP code. `verify-otp` succeeds (Twilio verifies the phone), but the `phone_verifications` record is linked to the **old** lead, not the new scan session's lead.
-6. `fetchFull` calls `get_analysis_full(new_scan_session, old_phone)`. The RPC joins `phone_verifications → leads → scan_sessions` and finds no match → returns `__UNAUTHORIZED__`.
-7. `fullFetchError` is set to "Verification failed" but PostScanReportSwitcher **never reads it**. Instead, the blunt 5-second stall timer fires → "Report loading failed."
+## Root Causes
+1. **Render-blocking Google Fonts request (751ms)**: A `fonts.googleapis.com` stylesheet for Barlow Condensed is being loaded despite all fonts already being bundled locally via `@fontsource`. The preconnect hints in `index.html` suggest an external dependency that no longer exists.
+2. **Unused preconnects**: `fonts.gstatic.com`, `connect.facebook.net`, and `www.facebook.com` preconnects waste connection setup time on origins that aren't used on page load.
+3. **Unsized images**: The hero mascot in `AuditHero.tsx` and the WindowMan image in `MarketMakerManifesto.tsx` lack explicit dimensions that browsers can use to reserve layout space, causing CLS.
+4. **LCP resource load delay (2.97s)**: The LCP image (mascot from CloudFront CDN) has a 3-second resource load delay because the browser doesn't discover it until after JS executes. A `<link rel="preload">` in `index.html` would let the browser start fetching immediately.
 
-## Two bugs to fix
+## Plan
 
-### Bug A: Stale funnel phone leaks across sessions
+### 1. Remove stale Google Fonts artifacts from `index.html`
+- Remove the `<link rel="preconnect" href="https://fonts.googleapis.com" />` line
+- Remove the `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />` line
+- Remove the `<link rel="preconnect" href="https://connect.facebook.net" />` line
+- Remove the `<link rel="preconnect" href="https://www.facebook.com" />` line
+- These origins are unused on initial page load; fonts are bundled via @fontsource and Facebook pixel isn't loaded synchronously
 
-**File:** `src/components/TruthGateFlow.tsx` (around line 409-415)
+### 2. Preload the LCP hero image in `index.html`
+- Add `<link rel="preload" as="image" href="https://d2xsxph8kpxj0f.cloudfront.net/87108037/YjBTWCdi7jZwa5GFcxbLnp/windowmanwithtruthreportonthephone_be309c26.avif" type="image/avif" />` to `<head>`
+- Add `<link rel="preconnect" href="https://d2xsxph8kpxj0f.cloudfront.net" />` to establish connection early
+- This eliminates the 2.97s resource load delay identified by Lighthouse
 
-When a new lead is created without a phone, the old funnel phone must be cleared. Currently the code only sets the phone if `phoneE164` is truthy. Add an else branch:
+### 3. Add explicit dimensions to unsized images
+- **`src/components/MarketMakerManifesto.tsx`** (line 69): Add `width={260} height={260}` to the WindowMan superhero `<img>` tag
+- **`src/components/AuditHero.tsx`** (line 106-113): Already has `width={384} height={512}` — add inline `style={{ aspectRatio: '3/4' }}` to ensure the browser reserves space even when CSS classes resize the element
 
-```ts
-if (phoneE164) {
-  funnel.setPhone(phoneE164, "screened_valid");
-} else {
-  // Clear stale phone from previous session so LockedOverlay
-  // shows enter_phone instead of auto-sending to old number
-  funnel.setPhone("", "none");
-}
-```
+### Files Changed
+- `index.html` — remove 4 unused preconnects, add 1 preconnect + 1 preload for LCP image
+- `src/components/AuditHero.tsx` — add aspect-ratio style for layout stability
+- `src/components/MarketMakerManifesto.tsx` — add width/height to unsized image
 
-This ensures a no-phone submission clears any leftover phone from localStorage, so the gate correctly shows "enter_phone" mode.
-
-### Bug B: Surface `fullFetchError` in PostScanReportSwitcher
-
-**File:** `src/components/post-scan/PostScanReportSwitcher.tsx`
-
-The component receives `isFullLoaded` from props but has no visibility into `fullFetchError`. The stall timer is a workaround that can't distinguish "still loading" from "failed."
-
-1. Add `fullFetchError?: string | null` to the `Props` type.
-2. Pass it from `Index.tsx` where `fullFetchError` is already destructured from `useAnalysisData`.
-3. In the stall detection `useEffect`, also trigger `setFetchStalled(true)` immediately when `fullFetchError` is set (no 5-second wait needed — the fetch already failed).
-4. Display `fullFetchError` as the error message in the stalled UI instead of the generic "Report loading failed" text.
-
-**File:** `src/pages/Index.tsx`
-
-Pass `fullFetchError` to `PostScanReportSwitcher`:
-```ts
-<PostScanReportSwitcher
-  ...
-  fullFetchError={fullFetchError}
-/>
-```
-
-## Impact
-
-- Bug A is the **primary fix**: prevents the wrong phone from ever being used, eliminating the `__UNAUTHORIZED__` failure entirely for no-phone submissions.
-- Bug B is a **resilience improvement**: ensures that when `fetchFull` fails for any reason, the user sees the actual error message immediately instead of waiting 5 seconds for a generic message.
-
-## Files changed
-- `src/components/TruthGateFlow.tsx` — clear stale phone on no-phone submit
-- `src/components/post-scan/PostScanReportSwitcher.tsx` — add `fullFetchError` prop, use it in stall detection
-- `src/pages/Index.tsx` — pass `fullFetchError` prop
+### Expected Impact
+- FCP improvement: ~750ms (eliminating render-blocking Google Fonts request)
+- LCP improvement: ~2.5s (preloading hero image)
+- CLS improvement: eliminates layout shift from unsized images
+- Estimated mobile performance score: 85-90+ (up from 74)
 
