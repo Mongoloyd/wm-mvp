@@ -170,8 +170,16 @@ Deno.serve(async (req) => {
 
     if (!twilioRes.ok) {
       console.error("[send-otp] Twilio error:", twilioData);
+
+      let userMessage = "Failed to send verification code.";
+      if (twilioData.code === 60410) {
+        userMessage = "This phone number prefix has been temporarily blocked by our carrier. Please try a different number.";
+      } else if (twilioData.code === 60203) {
+        userMessage = "Too many verification attempts. Please wait before trying again.";
+      }
+
       return new Response(
-        JSON.stringify({ error: "Failed to send verification code.", success: false }),
+        JSON.stringify({ error: userMessage, success: false, twilio_code: twilioData.code }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
