@@ -146,7 +146,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
         body: { phone_e164: e164, code: otpValue, scan_session_id: scanSessionId || undefined },
       });
       if (error || !data?.verified) {
-        setErrorMsg(data?.error || "Invalid or expired code.");
+        setError(data?.error || "Invalid or expired code.");
         setStep("otp");
         // Shake + auto-clear
         setShakeKey((k) => k + 1);
@@ -164,7 +164,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
       });
       onVerified();
     } catch {
-      setErrorMsg("Network error. Try again.");
+      setError("Network error. Try again.");
       setStep("otp");
       setShakeKey((k) => k + 1);
       setTimeout(() => {
