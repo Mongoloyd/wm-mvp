@@ -253,6 +253,7 @@ useEffect(() => {
     }
   }, [gateMode, funnel?.phoneE164, isSendInFlight, handleSendCode]);
 
+  const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
     funnel?.setPhoneStatus("sending_otp");
     setIsSendInFlight(true);
