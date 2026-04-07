@@ -71,7 +71,7 @@ export interface UsePhonePipelineReturn {
   /** Submit a 6-digit OTP code */
   submitOtp: (code: string) => Promise<PipelineVerifyResult>;
   /** Resend OTP (respects cooldown) */
-  resend: () => Promise<PipelineStartResult>;
+  resend: (resendOptions?: { scanSessionId?: string | null }) => Promise<PipelineStartResult>;
   /** Reset pipeline to idle */
   reset: () => void;
 }
