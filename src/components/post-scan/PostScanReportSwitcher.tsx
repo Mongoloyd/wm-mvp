@@ -109,13 +109,14 @@ export function PostScanReportSwitcher(props: Props) {
     return () => { cancelled = true; };
   }, [props.scanSessionId, props.isFullLoaded]);
 
-  // ── Hydrate phone from leads table on mount (handles page refresh) ──
-  // If the user provided their phone in TruthGateFlow, it's in leads.phone_e164.
-  // On fresh page load the funnel context is empty, so we read it back from DB
-  // and inject it into the funnel. This makes the OTP gate skip to "send_code"
-  // with the phone pre-filled instead of asking the user to type it again.
+  // ── Hydrate/validate phone from leads table on mount ──
+  // Two cases handled:
+  // 1. Funnel phone is empty → hydrate from DB (page refresh scenario)
+  // 2. Funnel phone is set but DOESN'T MATCH the current lead → clear it
+  //    (stale phone from previous session leaked via localStorage)
+  const phoneValidatedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!props.scanSessionId || funnel?.phoneE164) return;
+    if (!props.scanSessionId || phoneValidatedRef.current === props.scanSessionId) return;
     let cancelled = false;
 
     (async () => {
@@ -134,16 +135,27 @@ export function PostScanReportSwitcher(props: Props) {
           .eq("id", session.lead_id)
           .maybeSingle();
 
-        if (cancelled || !lead?.phone_e164 || !funnel) return;
+        if (cancelled || !funnel) return;
 
-        funnel.setPhone(lead.phone_e164, "none");
+        phoneValidatedRef.current = props.scanSessionId;
+
+        if (lead?.phone_e164) {
+          // Lead has a phone — inject into funnel if not already set
+          if (!funnel.phoneE164) {
+            funnel.setPhone(lead.phone_e164, "none");
+          }
+        } else if (funnel.phoneE164) {
+          // Lead has NO phone but funnel has a stale one — clear it
+          console.log("[PostScanReportSwitcher] Clearing stale funnel phone (lead has no phone)");
+          funnel.setPhone("", "none");
+        }
       } catch (err) {
         console.warn("[PostScanReportSwitcher] phone hydration failed:", err);
       }
     })();
 
     return () => { cancelled = true; };
-  }, [props.scanSessionId, funnel?.phoneE164]);
+  }, [props.scanSessionId, funnel]);
 
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: props.scanSessionId,
