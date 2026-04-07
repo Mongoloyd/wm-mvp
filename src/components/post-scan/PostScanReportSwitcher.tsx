@@ -148,8 +148,9 @@ export function PostScanReportSwitcher(props: Props) {
     externalPhoneE164: funnel?.phoneE164 ?? null,
     onVerified: () => {
       funnel?.setPhoneStatus("verified");
-      const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
-      if (phone) props.onVerified?.(phone);
+      // DO NOT call props.onVerified here — phone is not yet available.
+      // The canonical phone handoff happens in handleOtpSubmit after
+      // submitOtp returns result.e164.
     },
   });
 // ── Send report email on first preview load (fire-and-forget) ──
@@ -212,12 +213,14 @@ useEffect(() => {
       const result = await pipeline.submitOtp(otpValue);
       if (result.status === "verified" && result.e164) {
         setCapturedPhone(result.e164);
+        // Canonical phone handoff: use server-returned phone to trigger fetchFull
+        props.onVerified?.(result.e164);
       }
     } finally {
       setIsVerifyingOtp(false);
       verifyLockRef.current = false;
     }
-  }, [otpValue, pipeline]);
+  }, [otpValue, pipeline, props]);
 
   const handleSendCode = useCallback(async () => {
     if (!funnel?.phoneE164 || isSendInFlight) return;
