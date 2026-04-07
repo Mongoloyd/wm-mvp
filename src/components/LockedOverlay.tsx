@@ -96,6 +96,8 @@ export function LockedOverlay({
   const redCount = flagRedCount ?? flagCount;
   const [shakeKey, setShakeKey] = useState(0);
   const prevErrorType = useRef<string | undefined>(undefined);
+  // Track the last OTP value auto-submitted by the effect to prevent re-fire
+  const lastAutoSubmittedOtpRef = useRef<string>("");
 
   // Shake + auto-clear on invalid_code error
   useEffect(() => {
@@ -108,12 +110,25 @@ export function LockedOverlay({
     prevErrorType.current = errorType;
   }, [errorType, onOtpChange]);
 
-  // Auto-submit when 6th digit entered
+  // Auto-submit when 6th digit entered — one-shot per OTP value
   useEffect(() => {
-    if (otpValue.length === 6 && gateMode === "enter_code" && !isLoading) {
+    if (
+      otpValue.length === 6 &&
+      gateMode === "enter_code" &&
+      !isLoading &&
+      otpValue !== lastAutoSubmittedOtpRef.current
+    ) {
+      lastAutoSubmittedOtpRef.current = otpValue;
       onOtpSubmit();
     }
   }, [otpValue, gateMode, isLoading, onOtpSubmit]);
+
+  // Reset auto-submit guard when user edits, clears, or leaves OTP mode
+  useEffect(() => {
+    if (otpValue.length < 6 || gateMode !== "enter_code") {
+      lastAutoSubmittedOtpRef.current = "";
+    }
+  }, [otpValue, gateMode]);
 
   // Header text per mode
   const header = gateMode === "enter_phone" ? "Unlock Your Full Report" : "Enter Your Secure Code";
