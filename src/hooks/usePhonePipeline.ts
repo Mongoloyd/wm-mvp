@@ -32,7 +32,7 @@ export type PhoneStatus =
   | "verified"
   | "error";
 
-export type ErrorType = "rate_limit" | "expired_session" | "invalid_code" | "network" | "generic";
+export type ErrorType = "rate_limit" | "blocked_prefix" | "expired_session" | "invalid_code" | "network" | "generic";
 
 export interface PipelineStartResult {
   status: "valid" | "otp_sent" | "already_verified" | "blocked" | "error";
@@ -193,8 +193,10 @@ export function usePhonePipeline(
             const body = await error.context.json();
             console.error("[usePhonePipeline] send-otp non-2xx response body:", body);
             parsedMsg = body?.error || parsedMsg;
-            // Detect rate limiting from 429 status or message content
-            if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
+            // Detect specific Twilio error types
+            if (body?.twilio_code === 60410 || parsedMsg.toLowerCase().includes("blocked by our carrier")) {
+              classifiedType = "blocked_prefix";
+            } else if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
               classifiedType = "rate_limit";
             }
           } else {
