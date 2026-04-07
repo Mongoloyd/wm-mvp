@@ -243,7 +243,16 @@ useEffect(() => {
     }
   }, [funnel, pipeline, isSendInFlight]);
 
-  const handlePhoneSubmit = useCallback(async () => {
+  // Auto-send OTP when phone is pre-filled (e.g. hydrated from leads table)
+  const autoSendFiredRef = useRef(false);
+  useEffect(() => {
+    if (autoSendFiredRef.current) return;
+    if (gateMode === "send_code" && funnel?.phoneE164 && !isSendInFlight) {
+      autoSendFiredRef.current = true;
+      handleSendCode();
+    }
+  }, [gateMode, funnel?.phoneE164, isSendInFlight, handleSendCode]);
+
     if (isSendInFlight) return;
     funnel?.setPhoneStatus("sending_otp");
     setIsSendInFlight(true);
