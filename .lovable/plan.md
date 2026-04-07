@@ -1,131 +1,93 @@
 
 
-## Partial Reveal Failure — Current State Audit & Fix Plan
+# Fix Plan: DB Constraint + 5 Frontend Patches
 
-### What's Already Fixed (from previous implementation)
-
-**Fix 1 (Bug 3) — DONE.** `PostScanReportSwitcher.handleOtpSubmit` now calls `props.onVerified(result.e164)` only after `submitOtp` returns. The `pipeline.onVerified` callback no longer triggers `fetchFull`. This is correct.
-
-**Fix 3 (Preview Preservation) — PARTIALLY DONE.** `useAnalysisData` now has `fullFetchError` separate from `error`. `fetchFull` sets `fullFetchError` on auth/empty failures without overwriting preview data. Index.tsx condition at line 297 is `!analysisData` (not `analysisError || !analysisData`). This is correct.
-
-**Fix 2 (Integrity Guard) — DONE.** `verify-otp` returns 500 if `resolvedLeadId` is null when `scan_session_id` is provided.
-
-### What's Still Broken — Confirmed Bugs
-
-**The PRIMARY blocker is the database constraint.** The edge function logs confirm that every `verify-otp` call fails at step 6 (leads update) because the `trg_fire_crm_handoff` trigger inserts `crm_handoff_queued` into `lead_events`, which violates `lead_events_event_name_check`. The entire transaction rolls back, leaving `phone_verified = false`, causing `get_analysis_full` to return `__UNAUTHORIZED__`.
-
-Beyond that constraint fix, here are the remaining code-level bugs ordered by severity:
+## Overview
+One database migration and five frontend file changes to unblock the OTP partial/full reveal flow.
 
 ---
 
-### BUG 1 — Race: tryResume vs doFetch (Index.tsx)
+## Step 1: Database Migration — Fix `lead_events` constraints
 
-**Status: UNFIXED.**
+**New file:** `supabase/migrations/20250407_fix_lead_events_constraints.sql`
 
-When a returning user loads with `?resume=1`, both the preview fetch (`doFetch`) and `tryResume` run concurrently. If `tryResume` completes first (setting full data + `isFullLoaded = true`), then `doFetch` completes second and overwrites `data` with preview data (empty flags array). The report renders in "full" mode with zero findings.
+Drop and recreate the two check constraints, preserving all existing allowed values and adding the missing ones:
+- `lead_events_event_name_check`: add `crm_handoff_queued`
+- `lead_events_event_source_check`: add `db_trigger`
 
-**Index.tsx line 89** is missing `analysisLoading` guard:
+The exact current allowed values will be pulled from the live constraint definitions (already queried). The migration will `ALTER TABLE ... DROP CONSTRAINT` then `ALTER TABLE ... ADD CONSTRAINT` with the full expanded list.
+
+**Why:** The `trg_fire_crm_handoff` trigger inserts these values on `leads` UPDATE. Without them, the entire verify-otp transaction rolls back, leaving `phone_verified = false`.
+
+---
+
+## Step 2: Fix race condition — `useAnalysisData.ts`
+
+**File:** `src/hooks/useAnalysisData.ts`
+
+Two changes:
+
+a) Add an `isFullLoadedRef` (a ref mirroring `isFullLoaded` state). Inside `doFetch` (the preview fetcher), before calling `setData(...)`, check `if (isFullLoadedRef.current) { setIsLoading(false); return; }`. This prevents a slow preview fetch from overwriting full data that `tryResume` already loaded.
+
+b) Fix `mapSeverity` (line 82): move `"pass"` and `"confirmed"` from the amber return to green:
 ```
-if (!scanSessionId || isFullLoaded || isResuming) return;  // missing: || analysisLoading
+if (s === "low" || s === "info" || s === "pass" || s === "confirmed") return "green";
 ```
 
-**useAnalysisData `doFetch`** has no guard against overwriting full data:
+---
+
+## Step 3: Fix race condition — `Index.tsx`
+
+**File:** `src/pages/Index.tsx`
+
+Line 89: Add `analysisLoading` guard to the resume effect, matching `ReportClassic`'s correct pattern:
+```ts
+if (!scanSessionId || isFullLoaded || isResuming || analysisLoading) return;
 ```
-// doFetch can overwrite setData after tryResume already set full data
-// because isFullLoaded is not checked inside doFetch
+
+---
+
+## Step 4: Auto-submit on 6th digit — `LockedOverlay.tsx`
+
+**File:** `src/components/LockedOverlay.tsx`
+
+Add a `useEffect` + ref guard that fires `onOtpSubmit()` when `otpValue.length === 6` in `enter_code` mode, transitioning from < 6 digits. Uses a `prevOtpLengthRef` to prevent re-firing on re-renders, and checks `!isLoading` to avoid double-submit.
+
+---
+
+## Step 5: Fix ReportClassic double-fetch + stale phone
+
+**File:** `src/pages/ReportClassic.tsx`
+
+Three changes:
+
+a) Remove `fetchFull` from the `onVerified` callback in `usePhonePipeline` options (lines 119-124). Replace with just `funnel?.setPhoneStatus("verified")`.
+
+b) In `handleOtpSubmit` (line 169), after `funnel.setPhone(result.e164, "verified")`, add `fetchFull(result.e164)` — using the server-canonical phone directly.
+
+c) Guard the `useEffect` at line 127-131 with `!isLoading` and add a ref to prevent it from firing after `handleOtpSubmit` already triggered `fetchFull`:
+```ts
+const fullFetchTriggeredRef = useRef(false);
+// In handleOtpSubmit: fullFetchTriggeredRef.current = true;
+// In useEffect: if (fullFetchTriggeredRef.current) return;
 ```
 
-**Fix:** Two changes:
-1. Index.tsx resume effect: add `analysisLoading` to the guard
-2. useAnalysisData `doFetch`: add an `isFullLoadedRef` check before `setData` to prevent stale preview from overwriting full data
+---
+
+## Step 6: Auto-send OTP when phone pre-filled
+
+**File:** `src/components/post-scan/PostScanReportSwitcher.tsx`
+
+Add a `useEffect` with a ref guard that auto-fires `handleSendCode()` when `gateMode === "send_code"` and the funnel has a phone. This handles the case where the user's phone was hydrated from the leads table on mount.
 
 ---
 
-### BUG 2 — No Auto-Submit on 6th Digit (LockedOverlay.tsx)
+## Verification After Deploy
 
-**Status: UNFIXED.**
-
-`LockedOverlay` has no `useEffect` that triggers `onOtpSubmit` when the 6th digit is entered. The user must manually find and click "Verify →". On mobile, this is a significant friction point causing abandonment.
-
-**Fix:** Add a `useEffect` that calls `onOtpSubmit()` when `otpValue.length === 6` and `gateMode === "enter_code"` and `!isLoading`, with a ref guard to prevent re-firing.
-
----
-
-### BUG 3 — ReportClassic: Double fetchFull on OTP Verify
-
-**Status: UNFIXED.**
-
-`ReportClassic.tsx` still has TWO paths that call `fetchFull` after OTP success:
-- Line 122: `pipeline.onVerified` callback calls `fetchFull(phone)` directly
-- Line 128-131: `useEffect` watching `funnel?.phoneStatus === "verified"` also calls `fetchFull`
-
-Unlike `PostScanReportSwitcher` (which was fixed), `ReportClassic` was NOT updated. The `onVerified` callback still uses `funnel?.phoneE164 || pipeline.e164` (stale local state, not server-canonical).
-
-**Fix:** Apply the same pattern as PostScanReportSwitcher:
-1. Remove `fetchFull` from `pipeline.onVerified` callback
-2. Move canonical handoff to `handleOtpSubmit` using `result.e164`
-3. Remove or guard the duplicate `useEffect`
-
----
-
-### BUG 4 — OTP Never Auto-Sends When Phone Pre-Filled
-
-**Status: UNFIXED.**
-
-When a user provides their phone in TruthGateFlow, `deriveGateMode` correctly returns `"send_code"`. But nothing auto-triggers the OTP send. The user must click "Get Your Code →" manually — unnecessary friction since the phone is already validated.
-
-**Fix:** Add a `useEffect` in `PostScanReportSwitcher` that auto-fires `handleSendCode()` when `gateMode === "send_code"` and the phone is available, with a ref guard to prevent re-firing.
-
----
-
-### BUG 5 — mapSeverity("pass") Returns "amber" (useAnalysisData.ts)
-
-**Status: UNFIXED.**
-
-Line 82: `"pass"` and `"confirmed"` are mapped to `"amber"` instead of `"green"`. This inflates the issue count and shows confirmed-good items as warnings.
-
-**Fix:** Move `"pass"` and `"confirmed"` to the green branch.
-
----
-
-### BUG 6 — Database Constraint (lead_events_event_name_check)
-
-**Status: UNFIXED — This is the primary blocker.**
-
-The `lead_events` CHECK constraint does not include `crm_handoff_queued` or `db_trigger` as allowed values. Every OTP verification that succeeds at the Twilio level fails at the database level, rolling back `phone_verified = true`.
-
-**Fix:** Migration to ALTER the constraint, adding:
-- `'crm_handoff_queued'` to `lead_events_event_name_check`
-- `'db_trigger'` to `lead_events_event_source_check`
-
----
-
-## Recommended Implementation Order
-
-1. **Database constraint fix** (Bug 6) — unblocks everything
-2. **LockedOverlay auto-submit** (Bug 2) — highest UX impact
-3. **ReportClassic double-fetch fix** (Bug 3) — prevents data corruption
-4. **Index.tsx race condition** (Bug 1) — prevents returning-user regression
-5. **Auto-send OTP** (Bug 4) — reduces friction
-6. **mapSeverity fix** (Bug 5) — cosmetic but affects trust
-
-## Files to Change
-
-| File | Bug(s) |
-|------|--------|
-| Migration (new) | 6 |
-| `src/components/LockedOverlay.tsx` | 2 |
-| `src/pages/ReportClassic.tsx` | 3 |
-| `src/pages/Index.tsx` | 1 |
-| `src/hooks/useAnalysisData.ts` | 1, 5 |
-| `src/components/post-scan/PostScanReportSwitcher.tsx` | 4 |
-
-## What This Does NOT Change
-
-- `verify-otp/index.ts` — integrity guard already deployed, no further changes
-- `send-otp/index.ts` — working correctly
-- `get_analysis_full` RPC — no changes
-- Trigger functions — no changes
-- RLS policies — no changes
-- Front-gate flow — no changes
+1. Upload a quote, complete scan, enter phone, receive OTP, enter code
+2. Check Supabase Edge Function logs for `verify-otp` — no more `23514` constraint error
+3. Confirm `lead_events` has a `crm_handoff_queued` row
+4. Confirm `leads` table shows `phone_verified = true`
+5. Confirm full report renders with flags populated
+6. Test returning user resume (`?resume=1`) — full data should load without preview overwrite
 
