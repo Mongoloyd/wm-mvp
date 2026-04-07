@@ -294,7 +294,7 @@ const Index = () => {
               <Skeleton className="h-32 w-full rounded-xl" />
               <Skeleton className="h-24 w-full rounded-xl" />
             </div>
-          ) : !showReportFromDev && (analysisError || !analysisData) ? (
+          ) : !showReportFromDev && !analysisData ? (
             <div className="max-w-2xl mx-auto py-20 px-4 text-center">
               <div className="rounded-xl border border-border bg-card p-8">
                 <p className="text-lg font-semibold text-foreground mb-2">Analysis Not Found</p>
