@@ -118,19 +118,7 @@ export default function ReportClassic() {
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: sessionId ?? null,
     externalPhoneE164: funnel?.phoneE164 ?? null,
-    onVerified: () => {
-      funnel?.setPhoneStatus("verified");
-      // fetchFull is called in handleOtpSubmit with server-canonical phone
-    },
   });
-
-  // If user already verified (returning visit), auto-fetch full data
-  useEffect(() => {
-    if (fullFetchTriggeredRef.current) return;
-    if (funnel?.phoneStatus === "verified" && !isFullLoaded && !isLoadingFull && !isLoading && funnel?.phoneE164) {
-      fetchFull(funnel.phoneE164);
-    }
-  }, [funnel?.phoneStatus, funnel?.phoneE164, isFullLoaded, isLoadingFull, isLoading, fetchFull]);
 
   // ── OTP value state ────────────────────────────────────────────────────
   const [otpValue, setOtpValue] = useState("");
