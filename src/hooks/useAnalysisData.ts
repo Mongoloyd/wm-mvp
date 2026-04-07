@@ -201,6 +201,7 @@ export function useAnalysisData(
   const [data, setData] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fullFetchError, setFullFetchError] = useState<string | null>(null);
   const [isLoadingFull, setIsLoadingFull] = useState(false);
   const [isFullLoaded, setIsFullLoaded] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
