@@ -213,6 +213,7 @@ export function useAnalysisData(
   useEffect(() => {
     setData(null);
     setIsFullLoaded(false);
+    isFullLoadedRef.current = false;
     setIsLoadingFull(false);
     setIsLoading(false);
     setError(null);
@@ -273,6 +274,9 @@ export function useAnalysisData(
 
         previewFetchedRef.current = scanSessionId;
         trackEvent({ event_name: "preview_rendered", session_id: scanSessionId, metadata: { grade: row.grade, flag_count: row.flag_count } });
+
+        // Guard: don't overwrite full data with stale preview data
+        if (isFullLoadedRef.current) { setIsLoading(false); return; }
 
         const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
         const previewJson = row.preview_json as Record<string, unknown> | null;
@@ -409,7 +413,7 @@ export function useAnalysisData(
         negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
       });
       setIsFullLoaded(true);
-      // Save resume record for returning users
+      isFullLoadedRef.current = true;
       saveVerifiedAccess(scanSessionId, phoneE164);
       trackEvent({ event_name: "report_unlocked", session_id: scanSessionId, metadata: { grade: row.grade, flag_count: flags.length } });
       
@@ -498,6 +502,7 @@ export function useAnalysisData(
       });
       previewFetchedRef.current = scanSessionId;
       setIsFullLoaded(true);
+      isFullLoadedRef.current = true;
       trackEvent({ event_name: "resume_flow_triggered", session_id: scanSessionId, metadata: { grade: row.grade } });
       
       return true;
