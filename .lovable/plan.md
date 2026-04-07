@@ -1,107 +1,49 @@
 
 
-# OTP Double-Fire Race Condition — Audit & Fix Plan
+# Safety Rollback: Restore Manual OTP Submit
 
-## Phase 1: Root Cause Analysis
+## Problem
+The auto-submit effect (fires `onOtpSubmit` when 6th digit is entered) combined with the one-shot guard (`lastAutoSubmittedOtpRef`) has created a deadlock: if `onOtpSubmit` fails silently, the guard blocks all future attempts. The user is stuck with 6 digits entered, no spinner, no error, no network request.
 
-### The Pattern
-Both OTP submission paths use the same anti-pattern: a `useEffect` that auto-submits when the 6th digit is entered, where the "am I already submitting?" guard relies on **React state** (`setState`) rather than a **synchronous ref**.
+## What The Previous Patch Introduced (to be removed)
+All in `src/components/LockedOverlay.tsx`, lines 99-131:
+1. `lastAutoSubmittedOtpRef` ref (line 100)
+2. Auto-submit `useEffect` that calls `onOtpSubmit()` when `otpValue.length === 6` (lines 113-124)
+3. Reset `useEffect` that clears the ref (lines 126-131)
 
-### Path A: LockedOverlay (Main Scan Flow)
+## Files to Revert
 
-**LockedOverlay.tsx, lines 111-116:**
-```ts
-useEffect(() => {
-  if (otpValue.length === 6 && gateMode === "enter_code" && !isLoading) {
-    onOtpSubmit();
-  }
-}, [otpValue, gateMode, isLoading, onOtpSubmit]);
-```
+**`src/components/LockedOverlay.tsx`** — sole file.
 
-**PostScanReportSwitcher.tsx, lines 205-216:**
-```ts
-const handleOtpSubmit = useCallback(async () => {
-  if (otpValue.length < 6) return;
-  setIsVerifyingOtp(true);  // ← async state update, NOT synchronous
-  ...
-}, [otpValue, pipeline]);
-```
+### Changes to Remove
+- Delete `lastAutoSubmittedOtpRef` declaration (line 99-100)
+- Delete auto-submit `useEffect` (lines 113-124)
+- Delete reset `useEffect` (lines 126-131)
 
-**The bug:** When the user types the 6th digit, React re-renders. `handleOtpSubmit` is recreated (because `otpValue` is in its dependency array), which causes the `useEffect` in LockedOverlay to re-fire. At this point, `isVerifyingOtp` is still `false` because `setIsVerifyingOtp(true)` hasn't propagated yet. Result: **two calls to `pipeline.submitOtp()`**.
+### Change to Add
+- Restore a manual "Verify" button in the `enter_code` section (after the OTP input, around line 487), enabled when `otpValue.length === 6 && !isLoading`
+- Remove the comment on line 489 that says "auto-submit removes the button"
 
-### Path B: VerifyGate (Legacy Flow)
+## Restored Behavior
+- User types 6 digits → nothing fires automatically
+- User taps "Verify →" button → calls `onOtpSubmit()`
+- Button shows spinner + "Verifying..." when `isLoading` is true
+- Button disabled when code is incomplete or loading
+- Shake animation on invalid code still works (the existing `useEffect` on `errorType` is untouched)
+- Auto-clear on error still works (same effect, untouched)
 
-**VerifyGate.tsx, lines 157-162:**
-```ts
-useEffect(() => {
-  if (otpValue.length === 6 && step === "otp") {
-    handleVerify();
-  }
-}, [otpValue, step, handleVerify]);
-```
+## What Is NOT Touched
+- `PostScanReportSwitcher.tsx` — no changes
+- `usePhonePipeline.ts` — no changes
+- `VerifyGate.tsx` — not in the active path, no changes
+- Edge Functions — no changes
+- Shake/auto-clear effect — preserved (lines 102-111)
 
-**VerifyGate.tsx, line 122:**
-```ts
-const handleVerify = useCallback(async () => {
-  if (otpValue.length < 6 || !e164 || step === "verifying") return;
-  setStep("verifying");  // ← async state, same problem
-  ...
-}, [otpValue, e164, step, scanSessionId, onVerified]);
-```
-
-Same issue: `handleVerify` is recreated when `otpValue` changes, the effect re-runs, and `step` is still `"otp"` because `setStep("verifying")` hasn't rendered yet. Two calls to `verify-otp`.
-
-### Path C: usePhonePipeline.submitOtp
-
-**usePhonePipeline.ts, lines 239-311:**
-`submitOtp` uses `setPhoneStatus("verifying")` as its guard — again, async state. No ref-based lock exists here (unlike `submitPhone` which has `isSendingRef`).
-
-### Summary
-Three layers, zero synchronous guards on the verify path. The `submitPhone` path correctly uses `isSendingRef`, but `submitOtp` was missed.
-
----
-
-## Phase 2: Fix Plan
-
-The cleanest fix is a **defense-in-depth** approach: add a ref lock at the shared pipeline level AND at each consumer level.
-
-### File 1: `src/hooks/usePhonePipeline.ts`
-Add `isVerifyingRef = useRef(false)` (mirrors the existing `isSendingRef` pattern for `submitPhone`).
-
-**In `submitOtp` (~line 240):**
-- Add guard: `if (isVerifyingRef.current) return { status: "error", error: "Already verifying." };`
-- Set `isVerifyingRef.current = true` before the async call
-- Reset in `finally` block: `isVerifyingRef.current = false`
-
-This is ~5 lines added. Protects both consumers (LockedOverlay and VerifyGate paths).
-
-### File 2: `src/components/post-scan/PostScanReportSwitcher.tsx`
-Add a local `verifyLockRef = useRef(false)` in `handleOtpSubmit` as a belt-and-suspenders guard.
-
-**In `handleOtpSubmit` (~line 205):**
-- Add guard: `if (verifyLockRef.current) return;`
-- Set `verifyLockRef.current = true` before calling `pipeline.submitOtp`
-- Reset in `finally` block
-
-This is ~4 lines added.
-
-### File 3: `src/components/TruthReportFindings/VerifyGate.tsx`
-Add a local `verifyLockRef = useRef(false)` in `handleVerify`.
-
-**In `handleVerify` (~line 121):**
-- Add guard: `if (verifyLockRef.current) return;`
-- Set `verifyLockRef.current = true` before the Supabase call
-- Reset in `finally` block (both success and error paths)
-
-This is ~4 lines added.
-
-### What This Does NOT Change
-- No UI changes
-- No edge function changes
-- No database changes
-- OTP auto-submit behavior is preserved (still fires on 6th digit)
-- Shake animation, auto-clear, cooldown, resend — all untouched
-
-### Total Impact
-~15 lines added across 3 files. Zero risk to existing functionality. The second call is suppressed synchronously before it ever reaches Twilio.
+## Manual Validation Plan
+1. Upload a quote, enter phone, receive SMS
+2. Type 6 digits — confirm NO network request fires automatically
+3. Tap "Verify →" — confirm exactly ONE `verify-otp` request in Network tab
+4. Wrong code: confirm shake, auto-clear, re-enter new code, tap Verify again — works
+5. Resend: tap resend, enter new code, tap Verify — works
+6. Confirm the button is disabled during loading
 
