@@ -88,6 +88,11 @@ export default function ReportClassic() {
   // ── Funnel context (safe — null when outside provider) ─────────────────
   const funnel = useScanFunnelSafe();
 
+  // ── Render-time session gating (primary defense against stale funnel) ──
+  const isSessionMatch = !!funnel?.scanSessionId && funnel.scanSessionId === sessionId;
+  const gatedPhoneE164 = isSessionMatch ? funnel?.phoneE164 ?? null : null;
+  const gatedPhoneStatus = isSessionMatch ? funnel?.phoneStatus : undefined;
+
   // ── Data loading ───────────────────────────────────────────────────────
   const {
     data: analysisData,
@@ -117,7 +122,7 @@ export default function ReportClassic() {
 
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: sessionId ?? null,
-    externalPhoneE164: funnel?.phoneE164 ?? null,
+    externalPhoneE164: gatedPhoneE164,
   });
 
   // ── OTP value state ────────────────────────────────────────────────────
@@ -152,7 +157,24 @@ export default function ReportClassic() {
   }, [sessionId, isFullLoaded]);
 
   // ── Gate mode derived from funnel state ────────────────────────────────
-  const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164);
+  const gateMode = deriveGateMode(gatedPhoneStatus, gatedPhoneE164);
+
+  // ── Dev-only invariant assertion ───────────────────────────────────────
+  if (import.meta.env.DEV) {
+    if (gateMode === "enter_code" && !gatedPhoneE164) {
+      throw new Error(
+        "Invariant violation: OTP UI rendered without phone input for current session."
+      );
+    }
+  }
+
+  // ── Defensive cleanup effect (secondary — clears persisted stale state) ─
+  useEffect(() => {
+    if (funnel?.scanSessionId && funnel.scanSessionId !== sessionId) {
+      console.warn("[Session Guard] Mismatch detected. Resetting stale funnel state.");
+      funnel.resetFunnel();
+    }
+  }, [funnel?.scanSessionId, sessionId]);
 
   // ── Gate callbacks ─────────────────────────────────────────────────────
 
@@ -175,12 +197,12 @@ export default function ReportClassic() {
   }, [otpValue, pipeline, funnel, fetchFull]);
 
   const handleSendCode = useCallback(async () => {
-    if (!funnel?.phoneE164) return;
+    if (!gatedPhoneE164) return;
     const result = await pipeline.submitPhone();
     if (result.status === "otp_sent") {
-      funnel.setPhoneStatus("otp_sent");
+      funnel?.setPhoneStatus("otp_sent");
     }
-  }, [funnel, pipeline]);
+  }, [gatedPhoneE164, funnel, pipeline]);
 
   const handlePhoneSubmit = useCallback(async () => {
     const result = await pipeline.submitPhone();
@@ -190,11 +212,11 @@ export default function ReportClassic() {
   }, [pipeline, funnel]);
 
   const handleResend = useCallback(async () => {
-    await pipeline.resend();
-  }, [pipeline]);
+    await pipeline.resend({ scanSessionId: sessionId });
+  }, [pipeline, sessionId]);
 
   // ── CTA A: Get Counter-Quote (generate-contractor-brief + voice-followup) ─
-  const phoneE164 = funnel?.phoneE164 || pipeline.e164 || null;
+  const phoneE164 = gatedPhoneE164 || pipeline.e164 || null;
 
   const handleContractorMatchClick = useCallback(async () => {
     if (!sessionId || !phoneE164) {

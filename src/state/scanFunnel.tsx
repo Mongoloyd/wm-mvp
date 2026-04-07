@@ -53,6 +53,7 @@ const LS_KEYS = {
   phoneE164: `${LS_PREFIX}phoneE164`,
   phoneStatus: `${LS_PREFIX}phoneStatus`,
   sessionId: `${LS_PREFIX}sessionId`,
+  scanSessionId: `${LS_PREFIX}scanSessionId`,
   timestamp: `${LS_PREFIX}ts`,
 } as const;
 
@@ -68,14 +69,15 @@ function readPersistedState(): Partial<ScanFunnelState> {
     const phoneE164 = localStorage.getItem(LS_KEYS.phoneE164) || null;
     const phoneStatus = (localStorage.getItem(LS_KEYS.phoneStatus) as PhoneFunnelStatus) || "none";
     const sessionId = localStorage.getItem(LS_KEYS.sessionId) || null;
-    if (!phoneE164 && phoneStatus === "none" && !sessionId) return {};
-    return { phoneE164, phoneStatus, sessionId };
+    const scanSessionId = localStorage.getItem(LS_KEYS.scanSessionId) ?? null;
+    if (!phoneE164 && phoneStatus === "none" && !sessionId && !scanSessionId) return {};
+    return { phoneE164, phoneStatus, sessionId, scanSessionId };
   } catch {
     return {};
   }
 }
 
-function persistFields(fields: { phoneE164?: string | null; phoneStatus?: PhoneFunnelStatus; sessionId?: string | null }) {
+function persistFields(fields: { phoneE164?: string | null; phoneStatus?: PhoneFunnelStatus; sessionId?: string | null; scanSessionId?: string | null }) {
   try {
     if (fields.phoneE164 !== undefined) {
       if (fields.phoneE164) localStorage.setItem(LS_KEYS.phoneE164, fields.phoneE164);
@@ -87,6 +89,13 @@ function persistFields(fields: { phoneE164?: string | null; phoneStatus?: PhoneF
     if (fields.sessionId !== undefined) {
       if (fields.sessionId) localStorage.setItem(LS_KEYS.sessionId, fields.sessionId);
       else localStorage.removeItem(LS_KEYS.sessionId);
+    }
+    if (fields.scanSessionId !== undefined) {
+      if (typeof fields.scanSessionId === "string" && fields.scanSessionId.length > 0) {
+        localStorage.setItem(LS_KEYS.scanSessionId, fields.scanSessionId);
+      } else if (fields.scanSessionId === null) {
+        localStorage.removeItem(LS_KEYS.scanSessionId);
+      }
     }
     localStorage.setItem(LS_KEYS.timestamp, String(Date.now()));
   } catch { /* localStorage unavailable */ }
@@ -142,6 +151,7 @@ export function ScanFunnelProvider({ children }: { children: React.ReactNode }) 
 
   const setScanSessionId = useCallback((id: string) => {
     setState((s) => ({ ...s, scanSessionId: id }));
+    persistFields({ scanSessionId: id });
   }, []);
 
   const setQuoteFileId = useCallback((id: string) => {
