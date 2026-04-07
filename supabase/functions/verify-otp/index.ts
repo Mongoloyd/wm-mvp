@@ -103,6 +103,26 @@ Deno.serve(async (req) => {
         .eq("id", scan_session_id)
         .maybeSingle();
       resolvedLeadId = session?.lead_id || null;
+
+      // ── Defensive integrity guard ──
+      // If scan_session_id was provided but has no lead_id, we cannot bind
+      // the verification to a lead. Log and fail rather than silently
+      // succeeding with an unbindable verification.
+      if (!resolvedLeadId) {
+        console.error("[VERIFY_OTP_INTEGRITY_GUARD]", JSON.stringify({
+          scan_session_id,
+          phone_masked: "xxx-xxx-" + phone_e164.slice(-4),
+          reason: "scan_session has no lead_id — cannot bind verification",
+          timestamp: new Date().toISOString(),
+        }));
+        return new Response(
+          JSON.stringify({
+            error: "Verification could not be linked to your session. Please try again.",
+            verified: false,
+          }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // ── 5. Update the pending row — mark verified + bind lead_id ────────

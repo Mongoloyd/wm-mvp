@@ -67,7 +67,7 @@ const Index = () => {
   const isDevPreview = IS_DEV_MODE && devState !== "none";
   const devConfig = isDevPreview ? DEV_PREVIEW_CONFIGS[devState] : null;
   const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
-  const { data: analysisData, isLoading: analysisLoading, error: analysisError, fetchFull, isFullLoaded, tryResume, isResuming } = useAnalysisData(scanSessionId, fileUploaded || !!scanSessionId);
+  const { data: analysisData, isLoading: analysisLoading, error: analysisError, fullFetchError, fetchFull, isFullLoaded, tryResume, isResuming } = useAnalysisData(scanSessionId, fileUploaded || !!scanSessionId);
 
   // ── Returning user resume: check localStorage on mount ────────────────
   const resumeCheckedRef = useRef(false);
