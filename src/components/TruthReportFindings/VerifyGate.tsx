@@ -369,7 +369,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
                 <span className="text-muted-foreground/30">·</span>
                 <button
                   type="button"
-                  onClick={() => { setStep("phone"); setOtpValue(""); setErrorMsg(""); setCooldown(0); }}
+                  onClick={() => { setStep("phone"); setOtpValue(""); setErrorMsg(""); setErrorCategory("generic"); setCooldown(0); }}
                   className="text-xs text-muted-foreground underline underline-offset-2"
                 >
                   Use a different number
