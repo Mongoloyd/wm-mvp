@@ -203,13 +203,16 @@ useEffect(() => {
 
   const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164, localGateOverride);
 
+  const verifyLockRef = useRef(false);
+
   // Auto-send OTP when phone is pre-filled (e.g. hydrated from leads table)
   const autoSendFiredRef = useRef(false);
   useEffect(() => {
     if (autoSendFiredRef.current) return;
     if (gateMode === "send_code" && funnel?.phoneE164 && !isSendInFlight) {
       autoSendFiredRef.current = true;
-      handleSendCode();
+      // Defer to avoid calling handleSendCode before it's defined in the same render
+      setTimeout(() => handleSendCode(), 0);
     }
   }, [gateMode, funnel?.phoneE164, isSendInFlight, handleSendCode]);
 
