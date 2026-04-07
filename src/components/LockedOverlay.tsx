@@ -96,6 +96,7 @@ export function LockedOverlay({
   const redCount = flagRedCount ?? flagCount;
   const [shakeKey, setShakeKey] = useState(0);
   const prevErrorType = useRef<string | undefined>(undefined);
+  const prevOtpLengthRef = useRef(0);
 
   // Shake + auto-clear on invalid_code error
   useEffect(() => {
@@ -107,6 +108,14 @@ export function LockedOverlay({
     }
     prevErrorType.current = errorType;
   }, [errorType, onOtpChange]);
+
+  // Auto-submit when 6th digit is entered
+  useEffect(() => {
+    if (gateMode === "enter_code" && otpValue.length === 6 && prevOtpLengthRef.current < 6 && !isLoading) {
+      onOtpSubmit();
+    }
+    prevOtpLengthRef.current = otpValue.length;
+  }, [otpValue, gateMode, isLoading, onOtpSubmit]);
 
   // Header text per mode
   const header = gateMode === "enter_phone" ? "Unlock Your Full Report" : "Enter Your Secure Code";

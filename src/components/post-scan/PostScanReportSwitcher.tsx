@@ -205,6 +205,7 @@ useEffect(() => {
 
   const verifyLockRef = useRef(false);
 
+
   const handleOtpSubmit = useCallback(async () => {
     if (otpValue.length < 6 || verifyLockRef.current) return;
     verifyLockRef.current = true;
@@ -241,6 +242,16 @@ useEffect(() => {
       setIsSendInFlight(false);
     }
   }, [funnel, pipeline, isSendInFlight]);
+
+  // Auto-send OTP when phone is pre-filled (e.g. hydrated from leads table)
+  const autoSendFiredRef = useRef(false);
+  useEffect(() => {
+    if (autoSendFiredRef.current) return;
+    if (gateMode === "send_code" && funnel?.phoneE164 && !isSendInFlight) {
+      autoSendFiredRef.current = true;
+      handleSendCode();
+    }
+  }, [gateMode, funnel?.phoneE164, isSendInFlight, handleSendCode]);
 
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
