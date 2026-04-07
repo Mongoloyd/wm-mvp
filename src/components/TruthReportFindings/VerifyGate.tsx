@@ -63,10 +63,23 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  // Clear error when phone input changes
+  // Classify error message into a category for icon/styling
+  const classifyError = (msg: string): ErrorCategory => {
+    const lower = msg.toLowerCase();
+    if (lower.includes("blocked by our carrier") || lower.includes("blocked")) return "blocked_prefix";
+    if (lower.includes("too many") || lower.includes("wait before")) return "rate_limit";
+    if (lower.includes("network")) return "network";
+    return "generic";
+  };
+
+  const setError = (msg: string) => {
+    setErrorMsg(msg);
+    setErrorCategory(classifyError(msg));
+  };
+
   const handlePhoneChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (errorMsg) setErrorMsg("");
+      if (errorMsg) { setErrorMsg(""); setErrorCategory("generic"); }
       handleChange(e);
     },
     [handleChange, errorMsg]
@@ -75,7 +88,7 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
   // Clear error when OTP input changes
   const handleOtpChange = useCallback(
     (val: string) => {
-      if (errorMsg) setErrorMsg("");
+      if (errorMsg) { setErrorMsg(""); setErrorCategory("generic"); }
       setOtpValue(val);
     },
     [errorMsg]
@@ -90,14 +103,14 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
         body: { phone_e164: e164 },
       });
       if (error || !data?.success) {
-        setErrorMsg(data?.error || "Failed to send code.");
+        setError(data?.error || "Failed to send code.");
         setStep("phone");
         return;
       }
       setStep("otp");
       setCooldown(RESEND_COOLDOWN);
     } catch {
-      setErrorMsg("Network error. Try again.");
+      setError("Network error. Try again.");
       setStep("phone");
     }
   };
@@ -105,17 +118,18 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
   const handleResend = async () => {
     if (cooldown > 0 || !e164) return;
     setErrorMsg("");
+    setErrorCategory("generic");
     setCooldown(RESEND_COOLDOWN);
     try {
       const { data, error } = await supabase.functions.invoke("send-otp", {
         body: { phone_e164: e164 },
       });
       if (error || !data?.success) {
-        setErrorMsg(data?.error || "Failed to resend code.");
+        setError(data?.error || "Failed to resend code.");
         setCooldown(0);
       }
     } catch {
-      setErrorMsg("Network error. Try again.");
+      setError("Network error. Try again.");
       setCooldown(0);
     }
   };
@@ -125,8 +139,8 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
   const handleVerify = useCallback(async () => {
     if (otpValue.length < 6 || !e164 || step === "verifying" || verifyLockRef.current) return;
     verifyLockRef.current = true;
-    setStep("verifying");
     setErrorMsg("");
+    setErrorCategory("generic");
     try {
       const { data, error } = await supabase.functions.invoke("verify-otp", {
         body: { phone_e164: e164, code: otpValue, scan_session_id: scanSessionId || undefined },
