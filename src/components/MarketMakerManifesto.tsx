@@ -66,7 +66,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
             <ArrowDown size={24} className="text-primary md:hidden" />
           </div>
           <div className="flex flex-col items-center" style={{ minWidth: 140, maxWidth: 280 }}>
-            <img src={windowmanHero} alt="WindowMan superhero" className="w-full max-w-[260px] h-auto" />
+            <img src={windowmanHero} alt="WindowMan superhero" width={260} height={260} className="w-full max-w-[260px] h-auto" />
             <span className="font-body text-[15px] font-bold text-foreground mt-2">WindowMan</span>
           </div>
           <div className="flex flex-col items-center py-3 md:py-0 md:flex-1 md:px-3">
