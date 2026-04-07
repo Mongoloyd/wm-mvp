@@ -11,8 +11,10 @@
     <meta name="author" content="WindowMan.pro" />
     <link rel="canonical" href="https://windowman.pro/" />
 
-    <!-- ═══ PERFORMANCE: Preconnect to critical origins ═══ -->
+    <!-- ═══ PERFORMANCE: Preconnect & font preloads ═══ -->
     <link rel="preconnect" href="https://d2xsxph8kpxj0f.cloudfront.net" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/src/assets/fonts/barlow-condensed-latin-700-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/src/assets/fonts/dm-sans-latin-400-normal.woff2" />
     <link rel="dns-prefetch" href="https://wkrcyxcnzhwjtdpmfpaf.supabase.co" />
     <link rel="dns-prefetch" href="https://graph.facebook.com" />
 
@@ -93,12 +95,8 @@
 
     <!-- ═══ CRITICAL CSS: Inline above-the-fold styles for FCP ═══ -->
     <style>
-      /* Prevent FOUC — dark background immediately */
       html, body { background: #EEF2F8; margin: 0; }
       #root { min-height: 100vh; }
-      /* Font loading skeleton */
-      .font-loading { opacity: 0; transition: opacity 0.2s; }
-      .fonts-loaded .font-loading { opacity: 1; }
     </style>
 
     <!-- ═══ META PIXEL BASE CODE ═══ -->
