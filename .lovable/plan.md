@@ -1,70 +1,62 @@
 
 
-# Rubric Intelligence Dashboard — Audit & Improvement Plan
+# Fix Font Swap Flash (FOUT)
 
-## Audit Findings
+## What's Happening
 
-The dashboard lives in `src/components/dev/RubricComparison.tsx`, powered by `useRubricStats` (calls the `get_rubric_stats` RPC). It's dev-only (guarded by `import.meta.env.DEV`), rendered inside the floating `DevPreviewPanel`.
+All fonts (Barlow Condensed, DM Sans, DM Mono) are loaded via `@fontsource` packages imported in `main.tsx`. These imports generate `@font-face` rules with **`font-display: swap`**, which is the default for @fontsource.
 
-**What it does well:**
-- Grade distribution per rubric version with stacked color bars
-- Quality score (distance from 2.0 target), confidence range, invalid count
-- Version-to-version delta showing grade % shifts
-- Winner highlight (trophy icon) for the version closest to balanced scoring
-- Time window filtering (7d / 30d / All) and manual refresh
+`swap` tells the browser: "Render text immediately with a fallback system font, then swap to the custom font once it loads." This causes the visible flash you're seeing — text appears in a system sans-serif, then jumps to Barlow Condensed / DM Sans once the woff2 files finish downloading.
 
-**Current limitations found:**
+The font files are bundled by Vite into the CSS output, but they're still separate HTTP requests that load after the initial HTML/CSS parse. On slower connections or cold cache, this swap is very noticeable.
 
-1. **Inline styles everywhere** — no Tailwind, no design system consistency with the rest of the admin UI (which uses shadcn Card/Table components).
-2. **No pillar-level breakdown** — only shows aggregate grade distribution; you can't see which pillar (Safety, Install, Price, Fine Print, Warranty) shifted between versions.
-3. **No hard-cap visibility** — the scoring engine applies hard caps (`no_warranty_section`, `critical_safety`, `no_impact_products`, `zero_line_items`) but the dashboard doesn't show how many scans were capped or by which rule.
-4. **Static "winner" logic** — uses distance-from-2.0 as the sole criterion; doesn't account for confidence spread or invalid rate.
-5. **No export or snapshot** — can't capture a point-in-time comparison for team review.
-6. **No click-through to individual scans** — you see aggregate numbers but can't drill into specific analyses that got a particular grade.
+There's also dead code in `index.html` — `.font-loading` / `.fonts-loaded` CSS classes that are never actually toggled by any JavaScript.
 
----
+## Plan
 
-## 5 Proposed Improvements
+### 1. Switch critical fonts to `font-display: optional`
 
-### 1. Pillar Score Heatmap Row
-Add a sub-row per rubric version showing avg scores for each of the 5 pillars as color-coded cells (green ≥70, yellow ≥37, red below). This requires extending the `get_rubric_stats` RPC to return `avg_safety`, `avg_install`, `avg_price`, `avg_fine_print`, `avg_warranty` from `full_json->pillar_scores`. On the frontend, render a 5-cell heatmap row beneath each version row.
+Instead of importing the default `@fontsource` CSS (which hardcodes `swap`), write custom `@font-face` declarations in `index.css` that use `font-display: optional`. This tells the browser: "If the font isn't ready within ~100ms, skip it for this page load and use it on the next navigation." This completely eliminates the visible swap at the cost of occasionally showing the fallback on very first visits.
 
-- **Backend**: New migration adding pillar avg columns to the RPC return type.
-- **Frontend**: New `PillarHeatmap` component inside `RubricComparison.tsx`.
+The font file URLs will reference the same `@fontsource` woff2 files bundled by Vite.
 
-### 2. Hard-Cap Breakdown Column
-Show how many scans per version triggered each hard cap rule. The `full_json` already stores `hard_cap_applied`. Extend the RPC to count occurrences of each cap type. Display as small badge counts (e.g., "no_warranty: 4, critical_safety: 2").
+**Files:** `src/index.css` — add custom `@font-face` blocks for the 3 critical weights (Barlow Condensed 700/800/900, DM Sans 400/500/600/700, DM Mono 500).
 
-- **Backend**: Add `hard_cap_no_warranty`, `hard_cap_critical_safety`, `hard_cap_no_impact`, `hard_cap_zero_items` counts to the RPC.
-- **Frontend**: New column with compact badges.
+### 2. Remove `@fontsource` imports from `main.tsx`
 
-### 3. Migrate to shadcn/Tailwind
-Replace all inline styles with Tailwind classes and shadcn `Card`, `Table`, `Badge`, and `Button` components to match the admin dashboard aesthetic. This makes the dashboard consistent with `CommandCenter.tsx` and `EngineRoom.tsx`.
+Since we'll define our own `@font-face` rules, remove all the `import "@fontsource/..."` lines from `main.tsx` to prevent duplicate declarations.
 
-- **Files**: `RubricComparison.tsx` only — pure UI refactor, no logic changes.
+**Files:** `src/main.tsx` — remove 9 font import lines.
 
-### 4. Drill-Down: Click Grade Cell to See Scans
-Make each grade count cell clickable. Clicking opens a popover or sheet listing the individual `analyses` rows for that version+grade combination, showing `scan_session_id`, `confidence_score`, `hard_cap_applied`, and `created_at`. This requires a new lightweight RPC (`get_rubric_drill`) or a filtered Supabase query.
+### 3. Preload the two most critical font files
 
-- **Backend**: New RPC or direct query with filters on `rubric_version` and `grade`.
-- **Frontend**: Sheet/popover component with a mini table.
+Add `<link rel="preload">` tags in `index.html` for:
+- `barlow-condensed-latin-700-normal.woff2` (headings)
+- `dm-sans-latin-400-normal.woff2` (body text)
 
-### 5. Copy/Export Snapshot
-Add a "Copy as Markdown" button that serializes the current table state (versions, grade counts, percentages, quality scores, deltas) into a formatted Markdown table copied to clipboard. Useful for pasting into Slack, Notion, or PR descriptions when comparing rubric versions.
+These are the fonts that render above the fold. Preloading ensures the browser starts fetching them as soon as it parses `<head>`, before it even encounters the `@font-face` rule. Combined with `optional`, this makes the font available within the 100ms window on most connections.
 
-- **Frontend only**: Serialize `rows` state into Markdown string, use `navigator.clipboard.writeText()`.
+**Files:** `index.html` — add 2 `<link rel="preload" as="font">` tags.
 
----
+### 4. Add a tuned fallback font stack with `size-adjust`
 
-## Implementation Order
+In `index.css`, define local fallback `@font-face` entries using `size-adjust`, `ascent-override`, and `descent-override` to match the metrics of Barlow Condensed and DM Sans. This minimizes layout shift even if the fallback renders briefly.
 
-| Step | Scope | Files |
-|------|-------|-------|
-| 1 | Migrate to shadcn/Tailwind | `RubricComparison.tsx` |
-| 2 | Add pillar heatmap | New migration + `RubricComparison.tsx` + `useRubricStats.ts` |
-| 3 | Add hard-cap breakdown | Same migration + `RubricComparison.tsx` + `useRubricStats.ts` |
-| 4 | Copy as Markdown | `RubricComparison.tsx` |
-| 5 | Drill-down sheet | New RPC migration + new `RubricDrillSheet.tsx` + `RubricComparison.tsx` |
+**Files:** `src/index.css` — add 2 adjusted fallback `@font-face` blocks.
 
-Steps 1 and 4 are frontend-only. Steps 2, 3, and 5 require new Supabase migrations to extend or create RPCs.
+### 5. Clean up dead font-loading CSS
+
+Remove the unused `.font-loading` / `.fonts-loaded` styles from `index.html` since no JS ever toggles them.
+
+**Files:** `index.html` — remove 3 CSS lines.
+
+## Files Changed
+- `index.html` — add 2 font preloads, remove dead CSS
+- `src/main.tsx` — remove 9 `@fontsource` imports  
+- `src/index.css` — add custom `@font-face` with `optional` + metric-adjusted fallbacks
+
+## Expected Impact
+- Zero visible font swap on warm cache (most visits)
+- Near-zero swap on cold cache (preload completes within 100ms window)
+- Eliminates the "text jumps" CLS contribution from font loading
 
