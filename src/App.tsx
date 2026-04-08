@@ -126,8 +126,8 @@ const App = () => (
                 <Route path="/partner/login" element={<ContractorLogin />} />
                 <Route path="/partner/reset-password" element={<PartnerResetPassword />} />
                 <Route path="/partner/accept-invite" element={<AcceptInvite />} />
-                <Route path="/partner/opportunities" element={<PartnerGuard><ContractorOpportunitiesPage /></PartnerGuard>} />
-                <Route path="/partner/dossier/:id?" element={<PartnerGuard><PartnerDossier /></PartnerGuard>} />
+                <Route path="/partner/opportunities" element={<ContractorOpportunitiesPage />} />
+                <Route path="/partner/dossier/:id?" element={<PartnerDossier />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
