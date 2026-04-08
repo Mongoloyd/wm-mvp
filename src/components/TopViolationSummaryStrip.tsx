@@ -123,13 +123,12 @@ export default function TopViolationSummaryStrip({
                 }}
               >
                 <span
-                  className="font-mono inline-block"
+                  className="font-mono inline-block bg-[#ff9a8f]"
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: "0.08em",
                     color: accentColor,
-                    background: accentBg,
                     padding: "4px 12px",
                     borderRadius: "var(--radius-btn)",
                     whiteSpace: "nowrap",
