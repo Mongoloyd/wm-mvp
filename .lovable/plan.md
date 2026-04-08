@@ -1,27 +1,26 @@
 
 
-# Plan: Bigger Mascot + Floating Bob Animation
+# Plan: Add Phone Scanner Image Below TruthGateFlow Questions
 
-## Changes to `src/components/AuditHero.tsx`
+## What Changes
 
-### 1. Bigger mascot
-- Mobile: `max-w-sm` → `max-w-md` (448px max)
-- Desktop: `md:w-64 lg:w-96` → `md:w-80 lg:w-[480px]`
+Copy the uploaded phone image into the project assets, then display it centered below the question card inside `TruthGateFlow.tsx` — after the progress card but still within the section wrapper.
 
-### 2. Floating bob animation
-Wrap the mascot `img` in a `motion.div` with a gentle vertical bob:
-```
-animate={{ y: [-8, 0, -8] }}
-transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-```
+## Layout
 
-Keep the surrounding `div` as-is (plain `div`, `z-20`, `pointer-events-none`). Only the inner image gets the motion wrapper.
+The image will sit below the card container (after line 776), centered, with constrained max-width (~280px on mobile, ~320px on desktop) and some top margin for breathing room. It will have a subtle fade-in animation using framer-motion.
 
-### 3. No other changes
-Background, GradeCard z-index, layout order, and all other reference styling stays exactly as-is.
+## Files Modified
 
-## File modified
 | File | Change |
 |------|--------|
-| `src/components/AuditHero.tsx` | Increase mascot size classes, wrap img in motion.div with bob animation |
+| `src/assets/cellphone.png` | Copy uploaded image into project |
+| `src/components/TruthGateFlow.tsx` | Import the image asset, add an `<img>` below the card div (after line 776, before the closing `</div>`) with centered layout and fade-in animation |
+
+## Technical Details
+
+- Import: `import cellphoneImg from "@/assets/cellphone.png"`
+- Placement: After the `card-dominant` div, inside the `max-w-2xl` container
+- Styling: `mx-auto max-w-[280px] md:max-w-[320px] mt-8` with `motion.img` fade-in (`initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}`)
+- Alt text: "AI Document Scanner analyzing a contract"
 
