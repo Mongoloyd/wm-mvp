@@ -25,6 +25,7 @@ Deno.test("Control: baseline quote returns Grade A with no hard cap", () => {
 // ── 2. Glass Ambiguity Cap → max C, unverified_glass_package ────────────────
 
 Deno.test("Glass ambiguity caps at C with unverified_glass_package", () => {
+  // Keep DP/NOA intact so safety pillar stays healthy — only strip glass detail
   const quote = makeQuote({
     opening_level_glass_specs_present: false,
     blanket_glass_language_present: true,
@@ -35,6 +36,7 @@ Deno.test("Glass ambiguity caps at C with unverified_glass_package", () => {
       glass_spec_complete: false,
       glass_low_e_present: null,
       glass_argon_present: null,
+      glass_package_text: null,
     })),
   });
   const result = computeGrade(quote);
