@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import cellphoneImg from "@/assets/cellphone.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
 import { Check } from "lucide-react";
@@ -155,7 +154,17 @@ const splitLabel = (label: string): { number: string; unit: string } | null => {
   return { number: match[1], unit: match[2] };
 };
 
-const OptionButton = ({ label, selected, onClick, tile }: { label: string; selected: boolean; onClick: () => void; tile?: boolean }) => {
+const OptionButton = ({
+  label,
+  selected,
+  onClick,
+  tile,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+  tile?: boolean;
+}) => {
   const parts = tile ? splitLabel(label) : null;
 
   return (
@@ -517,10 +526,10 @@ const TruthGateFlow = ({
               Quotes in {selectedCounty} in the {selectedRange} range...
             </p>
             <p className="font-body text-wm-body-soft text-muted-foreground">
-              ...score between C and D on average. 67% contain at least one red flag.
+              ...Score Between C and D on Average. 67% Contain at Least One Red Flag.
             </p>
             <p className="font-body text-wm-body-soft text-muted-foreground italic mt-3">
-              Your actual grade requires your quote. But you're in a high-risk range.
+              Your Actual Grade Requires Your Quote. But You're in a High-Risk Range.
             </p>
           </div>
         </motion.div>
@@ -767,7 +776,7 @@ const TruthGateFlow = ({
         </div>
 
         <div
-          className="card-dominant p-7 md:p-8 shadow-2xl border border-emerald-300 rounded-sm"
+          className="card-dominant p-7 md:p-8 shadow-2xl"
           style={{
             minHeight: 280,
             overflow: "hidden",
@@ -775,15 +784,6 @@ const TruthGateFlow = ({
         >
           <AnimatePresence mode="wait">{renderStepContent()}</AnimatePresence>
         </div>
-
-        <motion.img
-          src={cellphoneImg}
-          alt="AI Document Scanner analyzing a contract"
-          className="mx-auto max-w-[280px] md:max-w-[320px] mt-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        />
       </div>
     </section>
   );
