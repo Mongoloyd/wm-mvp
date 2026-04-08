@@ -1,49 +1,47 @@
 
 
-# Plan: ScanTheatrics Visual Contrast & Font Size Pass
+# Diagnosis: ScanTheatrics Data Flow
 
-Style-only edits to `src/components/ScanTheatrics.tsx`. No structural, data, or component changes.
+## Finding: There Is No Mock Data
 
-## 1. Color Replacements (global find/replace within file)
+The ScanTheatrics component does **not** use fake or mocked data. Here is what is actually happening:
 
-| Old | New | Context |
-|---|---|---|
-| `#2563EB` | `#60A5FA` | Blues — markers, pillar accents, scan line, progress bar, OcrQualityBadge |
-| `#F97316` | `#FB923C` | Oranges — markers, pillar accents, cliffhanger text, terminal active line, progress bar |
-| `#DC2626` | `#F87171` | Reds — grade palette D, pillar fail, pulsar rings/dots, FindingsCounter |
+### 1. The "fake" terminal log lines are cosmetic animation text
 
-Affected areas:
-- `GRADE_COLORS` (lines 15-16): C and D entries
-- `FORENSIC_MARKERS` (lines 55-61): 7 marker color values
-- `CANONICAL_PILLAR_DEFS` (lines 80-111): 5 accentColor values
-- `pillarStatusColor` (lines 123-126): warn and fail returns
-- Cliffhanger text (line 521): orange color
-- Terminal active step (lines 946-955): orange color references
-- Progress bar gradient (line 973)
-- Scan line gradient (line 757)
-- `FlagPulsar` (lines 1006, 1048, 1059): red border/bg/text
-- `FindingsCounter` (line 1256): red text
-- `OcrQualityBadge` (line 1284): blue reference
+The `TERMINAL_STEPS` array (line 43) contains strings like `"> EXTRACT line_items from page_1"`. These are **decorative animation steps** that play during the scanning phase — they are not data. They always show the same text regardless of what was uploaded because they are a visual theatrical effect, not a data display.
 
-## 2. Font Size Bumps
+Similarly, `FORENSIC_MARKERS` (line 54) are static bounding-box overlays on a document silhouette illustration. They are part of the scan animation, not real OCR coordinates.
 
-| Old | New | Locations |
-|---|---|---|
-| `fontSize: 10` | `fontSize: 12` | ~12 instances: eyebrow labels, proof-of-read chips, FindingsCounter, OcrQualityBadge |
-| `fontSize: 11` | `fontSize: 13` | ~5 instances: cliffhanger message, terminal log lines, "ANALYSIS COMPLETE" text |
+### 2. The real data IS being fetched and displayed correctly
 
-## 3. Terminal Text Color Lightening
+Looking at the network logs from your actual scan:
 
-| Old | New | Location |
-|---|---|---|
-| `color: "#2D3748"` | `color: "#D1D5DB"` | Completed terminal log lines (line 931) |
-| `color: "#374151"` | `color: "#D1D5DB"` | Terminal titlebar text (line 912), pillar header text (lines 548, 1138) — where on dark bg |
+- `get_analysis_preview` returned real data: grade `"C"`, `flag_count: 6`, `contractor_name: "BrightView Windows & Doors"`, `opening_count: 7`, `line_item_count: 5`, `document_type: "impact_window_quote"`, `confidence_score: 0.95`
+- This data flows through `useAnalysisData` → `Index.tsx` → `ScanTheatrics` via the `analysisData` prop
+- The proof-of-read section (line 474-515) renders this real data: document type, contractor name, line item count, opening count
 
-Note: `#374151` used in `pillarStatusColor` default case and DocumentSilhouette "DOCUMENT X-RAY" label — these also get lightened to `#D1D5DB` since they sit on dark backgrounds.
+### 3. Why it might "feel" wrong
 
-## No Other Changes
-- No mock data added
-- No new components
-- No structural/logic changes
-- Only inline style values modified
+The terminal animation text says things like "EXTRACT line_items from page_1" even if your document is a single image — because these are hardcoded animation labels. They don't adapt to the actual document. The real extracted data appears in the **proof-of-read chip strip** that renders after the animation completes.
+
+## What To Fix (Optional Enhancement)
+
+If you want the terminal animation to reflect real OCR results instead of static text, that would be a new feature — dynamically replacing `TERMINAL_STEPS` text with values from `analysisData` once the preview data arrives. For example:
+
+- Replace `"> EXTRACT line_items from page_1"` with `"> EXTRACT 5 line_items from 1-page document"` using `analysisData.lineItemCount` and `analysisData.pageCount`
+- Replace `"> ID brand_specs in document"` with `"> ID brand: BrightView Windows & Doors"` using `analysisData.contractorName`
+- Replace `"> LOAD market_data/{county}"` with `"> LOAD market_data/Broward"` using the actual county
+
+### Files involved
+- `src/components/ScanTheatrics.tsx` — make `TERMINAL_STEPS` a function that accepts `analysisData` and `selectedCounty` to produce dynamic step text
+
+### No changes needed in
+- `useAnalysisData.ts` — already fetching real data from `get_analysis_preview` RPC
+- `useScanPolling.ts` — already polling real scan status
+- `scan-quote` edge function — already running real Gemini OCR
+- `Index.tsx` — already passing real `analysisData` prop to ScanTheatrics
+
+## Summary
+
+Nothing is mocked. The terminal animation is a static theatrical effect. The real data is wired correctly and displays in the proof-of-read section. The fix is to make the animation text dynamic.
 
