@@ -142,7 +142,7 @@ test.describe("OTP Resend — Session-Scoped & Network-Verified", () => {
     // ─────────────────────────────────────────────────────────
     const phoneInput = page.locator('input[type="tel"]');
     await phoneInput.waitFor({ state: "visible", timeout: 15000 });
-    await phoneInput.fill("3055551234");
+    await phoneInput.fill("3054561234");
 
     // ─────────────────────────────────────────────────────────
     // FIX #5 — Checkbox Proxy Trap:
@@ -208,7 +208,7 @@ test.describe("OTP Resend — Session-Scoped & Network-Verified", () => {
     expect(payload).toBeDefined();
     expect(payload.phone_e164).toBeDefined();
     expect(String(payload.phone_e164)).toMatch(/^\+1\d{10}$/);
-    expect(payload.phone_e164).toBe("+13055551234");
+    expect(payload.phone_e164).toBe("+13054561234");
 
     // scan_session_id must be a valid UUID
     expect(payload.scan_session_id).toBeDefined();
