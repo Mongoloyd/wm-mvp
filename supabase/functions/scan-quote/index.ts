@@ -1026,17 +1026,8 @@ Deno.serve(async (req: Request) => {
       const compiledReport = compileReportOutput(
         extraction,
         gradeResult,
-        flags.map(f => ({
-          severity: f.severity === "Critical" || f.severity === "High" ? "red" as const : f.severity === "Medium" ? "amber" as const : "green" as const,
-          label: f.detail,
-          id: f.flag,
-          pillar: f.pillar,
-        })),
-        {
-          price_per_opening: (derivedMetrics as Record<string, any>)?.per_opening?.installed_price_per_opening ?? null,
-          county_median_per_opening: (derivedMetrics as Record<string, any>)?.county_benchmark?.benchmark_price_per_opening_avg ?? null,
-          dollar_delta: (derivedMetrics as Record<string, any>)?.county_benchmark?.delta_amount ?? null,
-        },
+        flags,
+        derivedMetrics,
       );
 
       // 12. Build payloads
