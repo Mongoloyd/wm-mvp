@@ -168,6 +168,86 @@ function detectFlags(data: ExtractionResult): Flag[] {
     flags.push({ flag: "state_jurisdiction_mismatch", severity: "High", pillar: "safety", detail: "Contractor address/jurisdiction appears inconsistent with the Florida project context" });
   }
 
+  // ── Area 1: Glass-package ambiguity flags ────────────────────────────────
+  if (data.opening_level_glass_specs_present === false && data.blanket_glass_language_present === true) {
+    flags.push({ flag: "blanket_glass_no_per_opening_detail", severity: "High", pillar: "safety", detail: "Quote uses blanket glass language without per-opening glass specifications" });
+  }
+  if (data.generic_product_description_present === true && data.opening_level_glass_specs_present !== true) {
+    flags.push({ flag: "glass_package_unverifiable", severity: "High", pillar: "safety", detail: "Generic product description with no opening-level glass details makes glass package unverifiable" });
+  }
+  const itemsWithIncompleteGlass = items.filter(i => i.glass_spec_complete === false);
+  if (itemsWithIncompleteGlass.length > 0) {
+    flags.push({ flag: "incomplete_glass_specs", severity: "Medium", pillar: "safety", detail: `${itemsWithIncompleteGlass.length} opening(s) have incomplete glass specifications` });
+  }
+  if (data.mixed_glass_package_visibility === true) {
+    flags.push({ flag: "mixed_glass_visibility", severity: "Medium", pillar: "safety", detail: "Some openings have glass specs while others do not — inconsistent visibility" });
+  }
+
+  // ── Area 2: Opening-schedule ambiguity flags ─────────────────────────────
+  if (data.opening_schedule_present === false) {
+    flags.push({ flag: "opening_schedule_missing", severity: "High", pillar: "install", detail: "No opening-by-opening schedule found in the quote" });
+  }
+  if (data.opening_schedule_present === true && data.opening_schedule_product_assignments_present === false) {
+    flags.push({ flag: "opening_product_assignments_missing", severity: "Medium", pillar: "install", detail: "Opening schedule exists but does not assign specific products to each opening" });
+  }
+  if (data.bulk_scope_blob_present === true && data.opening_schedule_present !== true) {
+    flags.push({ flag: "bulk_scope_no_schedule", severity: "High", pillar: "install", detail: "Scope is described in bulk without an opening-by-opening breakdown" });
+  }
+  if (data.opening_schedule_present === true && data.opening_schedule_dimensions_complete === false) {
+    flags.push({ flag: "opening_dimensions_incomplete", severity: "Medium", pillar: "install", detail: "Opening schedule exists but dimensions are incomplete for some openings" });
+  }
+
+  // ── Area 3: Fine-print / change-order flags ──────────────────────────────
+  if (data.unilateral_price_adjustment_allowed === true) {
+    flags.push({ flag: "unilateral_price_adjustment", severity: "Critical", pillar: "finePrint", detail: "Contract allows the contractor to adjust price unilaterally without homeowner approval" });
+  }
+  if (data.substrate_condition_clause_present === true && data.written_change_order_required !== true) {
+    flags.push({ flag: "substrate_clause_no_change_order", severity: "High", pillar: "finePrint", detail: "Substrate condition clause exists but no written change-order process is required" });
+  }
+  if (data.homeowner_approval_required_for_change_orders === false) {
+    flags.push({ flag: "no_homeowner_approval_for_changes", severity: "High", pillar: "finePrint", detail: "Change orders do not require explicit homeowner approval" });
+  }
+  if (data.substrate_condition_clause_present === true && data.rot_unit_pricing_present !== true && data.buck_replacement_unit_pricing_present !== true) {
+    flags.push({ flag: "substrate_open_checkbook", severity: "High", pillar: "price", detail: "Substrate condition clause without unit pricing creates open-ended cost exposure" });
+  }
+  if (data.remeasure_price_adjustment_cap_present === false && data.subject_to_remeasure_present === true) {
+    flags.push({ flag: "remeasure_no_price_cap", severity: "High", pillar: "finePrint", detail: "Remeasure clause has no stated cap on price adjustments" });
+  }
+
+  // ── Area 4: Install method flags ─────────────────────────────────────────
+  if (!data.anchoring_method_text) {
+    flags.push({ flag: "anchoring_method_missing", severity: "High", pillar: "install", detail: "No anchoring method specified for window/door installation" });
+  }
+  if (!data.waterproofing_method_text) {
+    flags.push({ flag: "waterproofing_method_missing", severity: "High", pillar: "install", detail: "No waterproofing or sealant method specified" });
+  }
+  if (data.anchor_spacing_specified !== true) {
+    flags.push({ flag: "anchor_spacing_unspecified", severity: "Medium", pillar: "install", detail: "Anchor/fastener spacing is not specified" });
+  }
+  if (data.manufacturer_install_compliance_stated !== true && data.code_compliance_install_statement_present !== true) {
+    flags.push({ flag: "install_compliance_unverified", severity: "Medium", pillar: "install", detail: "No statement of manufacturer install compliance or local code compliance" });
+  }
+
+  // ── Area 5: Warranty execution flags ─────────────────────────────────────
+  if (data.warranty && data.warranty_execution_details_present !== true) {
+    flags.push({ flag: "warranty_execution_missing", severity: "Medium", pillar: "warranty", detail: "Warranty exists but execution details (who services, how to file) are missing" });
+  }
+  if (data.warranty && (!data.warranty_service_provider_type || data.warranty_service_provider_type === "unknown")) {
+    flags.push({ flag: "warranty_service_provider_unspecified", severity: "Medium", pillar: "warranty", detail: "Warranty service provider type is not specified" });
+  }
+  if (data.warranty && data.leak_callback_sla_days == null) {
+    flags.push({ flag: "leak_callback_sla_missing", severity: "High", pillar: "warranty", detail: "No leak callback SLA timeline specified in warranty" });
+  }
+  if (data.warranty && !data.callback_process_text) {
+    flags.push({ flag: "callback_process_missing", severity: "Medium", pillar: "warranty", detail: "Warranty callback process is not described" });
+  }
+  if (data.post_install_stucco_excluded === true || data.post_install_paint_excluded === true) {
+    flags.push({ flag: "finish_exclusions_present", severity: "Low", pillar: "warranty", detail: "Warranty excludes post-install stucco and/or paint touch-up damage" });
+  }
+  if (data.water_intrusion_damage_excluded === true) {
+    flags.push({ flag: "water_intrusion_excluded", severity: "High", pillar: "warranty", detail: "Warranty excludes water intrusion damage — a critical coverage gap" });
+  }
+
   return flags;
 }
 
@@ -490,12 +570,21 @@ Rules:
 - Detect generic product descriptions that do not clearly identify the manufacturer/series.
 - Extract the contractor address if shown.
 - Do not infer compliance from branding alone. Only mark fields true when supported by visible document language.
+- Extract opening-by-opening schedule details when visible, including room/location, dimensions, and product assignment.
+- Extract glass package details for each opening when visible, including whether glass appears to be Low-E, Argon-filled, monolithic laminated, or insulated laminated.
+- Detect blanket glass language such as "impact glass throughout" when opening-level glass detail is missing.
+- Detect change-order rules, especially whether written homeowner approval is required before extra charges for hidden rot, bad bucks, or substrate conditions.
+- Detect whether the quote gives the contractor unilateral price-adjustment power.
+- Extract any unit pricing or allowances for hidden rot, substrate damage, or buck replacement.
+- Extract installation method specifics including anchoring method, fastener/anchor spacing, waterproofing/sealant method, buck treatment, and any statement that installation follows manufacturer instructions or local code.
+- Extract warranty execution details, including who performs service, leak callback timelines, callback process, and exclusions for stucco, paint, or water intrusion.
+- If the quote does not say something explicitly, leave the field null. Do not infer premium glass features or approval mechanics from branding alone.
 
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
 {
-  "document_type": "string (e.g. 'impact_window_quote', 'impact_door_quote', 'mixed_fenestration_proposal', 'general_contractor_estimate', 'unrelated_document')",
+  "document_type": "string",
   "is_window_door_related": boolean,
-  "confidence": number (0-1),
+  "confidence": number,
   "page_count": number | null,
   "contractor_name": "string | null",
   "opening_count": number | null,
@@ -523,6 +612,40 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "lead_paint_disclosure_present": "boolean | null",
   "generic_product_description_present": "boolean | null",
   "contractor_address_text": "string | null",
+  "opening_level_glass_specs_present": boolean | null,
+  "blanket_glass_language_present": boolean | null,
+  "mixed_glass_package_visibility": boolean | null,
+  "opening_schedule_present": boolean | null,
+  "opening_schedule_room_labels_present": boolean | null,
+  "opening_schedule_dimensions_complete": boolean | null,
+  "opening_schedule_product_assignments_present": boolean | null,
+  "bulk_scope_blob_present": boolean | null,
+  "change_order_policy_text": "string | null",
+  "written_change_order_required": boolean | null,
+  "homeowner_approval_required_for_change_orders": boolean | null,
+  "unilateral_price_adjustment_allowed": boolean | null,
+  "substrate_condition_clause_present": boolean | null,
+  "rot_unit_pricing_present": boolean | null,
+  "buck_replacement_unit_pricing_present": boolean | null,
+  "substrate_allowance_text": "string | null",
+  "remeasure_price_adjustment_cap_present": boolean | null,
+  "anchoring_method_text": "string | null",
+  "anchor_spacing_specified": boolean | null,
+  "fastener_type_specified": boolean | null,
+  "waterproofing_method_text": "string | null",
+  "sealant_specified": boolean | null,
+  "buck_treatment_method_text": "string | null",
+  "manufacturer_install_compliance_stated": boolean | null,
+  "code_compliance_install_statement_present": boolean | null,
+  "warranty_execution_details_present": boolean | null,
+  "warranty_service_provider_type": "string | null",
+  "warranty_service_provider_name": "string | null",
+  "leak_callback_sla_days": number | null,
+  "labor_service_sla_days": number | null,
+  "callback_process_text": "string | null",
+  "post_install_stucco_excluded": boolean | null,
+  "post_install_paint_excluded": boolean | null,
+  "water_intrusion_damage_excluded": boolean | null,
   "line_items": [
     {
       "description": "string",
@@ -533,7 +656,16 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
       "series": "string | null",
       "dp_rating": "string | null",
       "noa_number": "string | null",
-      "dimensions": "string | null"
+      "dimensions": "string | null",
+      "opening_location": "string | null",
+      "opening_tag": "string | null",
+      "product_assignment_text": "string | null",
+      "glass_package_text": "string | null",
+      "glass_makeup_type": "string | null",
+      "glass_low_e_present": boolean | null,
+      "glass_argon_present": boolean | null,
+      "glass_tint_text": "string | null",
+      "glass_spec_complete": boolean | null
     }
   ],
   "warranty": {
@@ -552,9 +684,9 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
     "disposal_included": boolean | null,
     "accessories_mentioned": boolean | null
   } | null,
-  "price_fairness": "string | null — 2-3 sentences assessing total price objectivity. Compare against standard Florida wholesale costs ($500-$800/window + $250-$400 labor per opening). Identify inflated retail tactics like fake 'Buy 1 Get 1' deals.",
-  "markup_estimate": "string | null — Estimated dealer markup as percentage range or dollar amount (e.g., '45%-55%' or '~$8,500 over wholesale'). Calculate based on line item count and total quoted price vs wholesale baseline.",
-  "negotiation_leverage": "string | null — 1-2 punchy, actionable talking points the homeowner can use to negotiate a lower price. Reference specific weaknesses found in the quote."
+  "price_fairness": "string | null",
+  "markup_estimate": "string | null",
+  "negotiation_leverage": "string | null"
 }
 
 Financial Forensics Protocol:
