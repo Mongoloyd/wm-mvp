@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PreviewModeBadge } from "@/components/PreviewModeBadge";
 
 /* ── tiny helpers ─────────────────────────────────────────────── */
 const fmt = (v: number | null | undefined) =>
@@ -131,7 +132,7 @@ export default function PartnerDossier() {
   const [loading, setLoading] = useState(true);
   const [unlocking, setUnlocking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [authError, setAuthError] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   /* ── Fetch dossier via edge function ──────────────────────────── */
@@ -140,6 +141,7 @@ export default function PartnerDossier() {
       // No route id — show demo mock
       setDossier(MOCK_DOSSIER.dossier as any);
       setMeta(MOCK_DOSSIER.meta as any);
+      setIsPreview(true);
       setLoading(false);
       return;
     }
@@ -152,21 +154,19 @@ export default function PartnerDossier() {
 
       if (fnErr) {
         console.warn("[PartnerDossier] Edge function error:", fnErr);
-        // Check for auth errors
-        if (fnErr.message?.includes("401") || fnErr.message?.includes("unauthenticated")) {
-          setAuthError(true);
-          setLoading(false);
-          return;
-        }
-        // Fallback to mock for demo
+        // Fall back to preview mock instead of blocking
         setDossier(MOCK_DOSSIER.dossier as any);
         setMeta(MOCK_DOSSIER.meta as any);
+        setIsPreview(true);
         setLoading(false);
         return;
       }
 
       if (data?.error === "unauthenticated") {
-        setAuthError(true);
+        // Fall back to preview mock
+        setDossier(MOCK_DOSSIER.dossier as any);
+        setMeta(MOCK_DOSSIER.meta as any);
+        setIsPreview(true);
         setLoading(false);
         return;
       }
@@ -190,6 +190,7 @@ export default function PartnerDossier() {
       console.warn("[PartnerDossier] Fetch failed, using mock:", err);
       setDossier(MOCK_DOSSIER.dossier as any);
       setMeta(MOCK_DOSSIER.meta as any);
+      setIsPreview(true);
     } finally {
       setLoading(false);
     }
