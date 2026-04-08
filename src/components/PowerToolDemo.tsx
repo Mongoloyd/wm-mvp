@@ -111,36 +111,36 @@ const FINDINGS = [
   {
     severity: "flag",
     pillar: "PRICE",
-    title: "Deposit Risk: Upfront payment terms are unsafe",
-    why: "Large deposits eliminate your leverage.",
+    title: "Deposit Risk: Upfront Payment Terms Are Unsafe",
+    why: "Large Deposits Eliminate Your Leverage.",
     what: "Rewrite into milestones: small deposit → permit issued → product delivery → install complete → inspection pass.",
   },
   {
     severity: "flag",
     pillar: "SAFETY",
-    title: "HVHZ Risk: Product approvals not documented",
-    why: "In hurricane zones, NOA numbers and Design Pressure ratings are inspection-critical.",
+    title: "HVHZ Risk: Product Approvals Not Documented",
+    why: "In Hurricane Zones, NOA Numbers and Design Pressure Ratings are Inspection-Critical.",
     what: "Require exact NOA numbers for every product series.",
   },
   {
     severity: "flag",
     pillar: "SAFETY",
     title: "Design Pressure Not Listed",
-    why: "DP determines if the window configuration is structurally appropriate for your home.",
+    why: "DP Determines If The Window Configuration Is Structurally Appropriate For Your Home.",
     what: "Require DP ratings per product type.",
   },
   {
     severity: "flag",
     pillar: "FINE PRINT",
-    title: "Contract Trap: Cancellation rights not stated",
-    why: "Florida consumers typically have a 3-day right to cancel.",
+    title: "Contract Trap: Cancellation Rights Not Stated",
+    why: "Florida Consumers Typically Have a 3-Day Right To Cancel.",
     what: "Require: written cancellation window (3 business days minimum).",
   },
   {
     severity: "flag",
     pillar: "FINE PRINT",
     title: "Price Escalation Clause Detected",
-    why: "This clause lets the contractor raise the price after you've signed.",
+    why: "This Clause Lets The Contractor Raise The Price After You've Signed.",
     what: "Demand a maximum escalation cap (e.g. 5%).",
   },
 ];
@@ -151,11 +151,11 @@ const COMPLIANCE = [
   { label: "FL Product Approval", status: "warn", detail: "Partial — FL12345 referenced" },
 ];
 const NEXT_STEPS = [
-  "Lock permits + inspections into scope.",
-  "Attach NOA/FL approval sheets as exhibits before signing.",
-  "Rewrite payment into 5 milestones.",
-  "Add a written change-order clause.",
-  "Request warranty PDF — confirm 5-year labor coverage.",
+  "Lock Permits + Inspections Into Scope.",
+  "Attach NOA /FL  Approval Sheets as Exhibits Before Signing.",
+  "Rewrite Payment Into 5 Milestones.",
+  "Add a Written Change-Order Clause.",
+  "Request Warranty PDF — Confirm 5-Year Labor Coverage.",
 ];
 const fmt$ = (n) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
