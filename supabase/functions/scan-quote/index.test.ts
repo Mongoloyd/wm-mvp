@@ -308,6 +308,15 @@ function perfectQuote(): ExtractionResult {
     unilateral_price_adjustment_allowed: false,
     substrate_condition_clause_present: false,
     remeasure_price_adjustment_cap_present: false,
+    // ── Installation method / anchoring fields (Area 4) ──────────────────
+    anchoring_method_text: "Tapcon concrete anchors",
+    anchor_spacing_specified: true,
+    fastener_type_specified: true,
+    waterproofing_method_text: "DAP Silicone Plus flashing and weep system",
+    sealant_specified: true,
+    buck_treatment_method_text: "Pressure-treated 2x4 buck with Boral wrap",
+    manufacturer_install_compliance_stated: true,
+    code_compliance_install_statement_present: true,
     line_items: [
       {
         description: "Impact hurricane-rated sliding glass door",
