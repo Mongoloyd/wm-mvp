@@ -131,7 +131,7 @@ export default function CriticalFlagCard({
                 style={{ padding: 1, background: `hsl(var(${cssVar}) / 0.15)` }}
               >
                 <span
-                  className="font-mono inline-block"
+                  className="font-mono inline-block text-[#ffd6d6]"
                   style={{
                     fontSize: 13,
                     fontWeight: 700,
