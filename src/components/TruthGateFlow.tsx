@@ -767,7 +767,7 @@ const TruthGateFlow = ({
         </div>
 
         <div
-          className="card-dominant p-7 md:p-8 shadow-2xl"
+          className="card-dominant p-7 md:p-8 shadow-2xl border border-emerald-300 rounded-sm"
           style={{
             minHeight: 280,
             overflow: "hidden",
