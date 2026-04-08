@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Shield,
   CreditCard,
@@ -14,9 +14,12 @@ import {
   TrendingUp,
   Filter,
   LayoutGrid,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PreviewModeBadge } from "@/components/PreviewModeBadge";
+import { toast } from "sonner";
 
 /* ── Types ──────────────────────────────────────────────────────── */
 interface Opportunity {
@@ -105,12 +108,15 @@ const MOCK_META: Meta = { credit_balance: 5, contractor_status: "preview", total
 
 export default function ContractorOpportunitiesPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [opportunities, setOpportunities] = useState<Opportunity[]>(FORCE_PREVIEW_MODE ? MOCK_OPPORTUNITIES : []);
   const [meta, setMeta] = useState<Meta | null>(FORCE_PREVIEW_MODE ? MOCK_META : null);
   const [isPreview, setIsPreview] = useState(FORCE_PREVIEW_MODE);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const [countyFilter, setCountyFilter] = useState("");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const paymentHandled = useRef(false);
 
   const fallbackToMock = useCallback(() => {
     setOpportunities(MOCK_OPPORTUNITIES);
@@ -136,6 +142,70 @@ export default function ContractorOpportunitiesPage() {
   }, [fallbackToMock]);
 
   useEffect(() => { fetchOpportunities(); }, [fetchOpportunities]);
+
+  /* ── Payment return handling ── */
+  useEffect(() => {
+    if (paymentHandled.current) return;
+    const payment = searchParams.get("payment");
+    if (!payment) return;
+
+    paymentHandled.current = true;
+
+    if (payment === "success") {
+      toast.success("Payment received. Refreshing credits…");
+      // Give webhook a moment to fulfill, then refresh
+      const timer = setTimeout(() => {
+        fetchOpportunities();
+      }, 2500);
+      // Clean URL
+      setSearchParams((prev) => {
+        prev.delete("payment");
+        prev.delete("session_id");
+        return prev;
+      }, { replace: true });
+      return () => clearTimeout(timer);
+    }
+
+    if (payment === "cancel") {
+      toast("Checkout cancelled — no charges were made.", { duration: 4000 });
+      setSearchParams((prev) => {
+        prev.delete("payment");
+        return prev;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams, fetchOpportunities]);
+
+  /* ── Add Credits handler ── */
+  const handleAddCredits = async () => {
+    setCheckoutLoading(true);
+    try {
+      const origin = window.location.origin;
+      const res = await supabase.functions.invoke("create-checkout-session", {
+        body: { pack_code: "pack_10_credits", origin },
+      });
+
+      if (res.error) {
+        console.error("[AddCredits] invoke error:", res.error);
+        toast.error("Failed to start checkout. Please try again.");
+        setCheckoutLoading(false);
+        return;
+      }
+
+      const data = res.data as { url?: string; error?: string; message?: string };
+      if (!data?.url) {
+        toast.error(data?.message ?? "Failed to create checkout session.");
+        setCheckoutLoading(false);
+        return;
+      }
+
+      // Redirect to Stripe
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("[AddCredits] unhandled error:", err);
+      toast.error("Something went wrong. Please try again.");
+      setCheckoutLoading(false);
+    }
+  };
 
   /* ── Canonical derived filtered list ── */
   const filteredOpportunities = useMemo(() => {
@@ -205,13 +275,24 @@ export default function ContractorOpportunitiesPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-muted border">
               <CreditCard className="h-3.5 w-3.5 text-sky-600" />
               <span className="text-xs font-mono text-foreground">
                 {meta?.credit_balance ?? 0} credit{(meta?.credit_balance ?? 0) !== 1 ? "s" : ""}
               </span>
             </div>
+            <button
+              onClick={handleAddCredits}
+              disabled={checkoutLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {checkoutLoading ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Connecting…</>
+              ) : (
+                <><Plus className="h-3.5 w-3.5" /> Add Credits</>
+              )}
+            </button>
           </div>
         </div>
       </header>
