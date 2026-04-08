@@ -72,7 +72,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
         </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.2 }} className="mt-14">
-          <h3 className="font-display text-[22px] font-bold text-foreground uppercase tracking-[0.02em] mb-6">
+          <h3 className="font-display text-[22px] font-bold text-foreground uppercase tracking-[0.02em] mb-6 text-center">
             YOU'LL WALK AWAY KNOWING:
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
