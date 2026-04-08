@@ -348,6 +348,8 @@ const Index = () => {
           <div className="wm-bridge-strip py-3" />
           <NarrativeProof onScanClick={() => triggerTruthGate('narrative_proof')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <ClosingManifesto onScanClick={() => triggerTruthGate('closing_manifesto')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+          <div className="wm-bridge-strip py-3" />
+          <Testimonials onScanClick={() => triggerTruthGate('testimonials')} />
         </>
       )}
 
