@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import ForensicPillarSection from "@/components/report/ForensicPillarSection";
 import RiskSummaryHeader from "@/components/report/RiskSummaryHeader";
+import ExecutiveSummaryStrip from "@/components/report/ExecutiveSummaryStrip";
+import RedFlagsList from "@/components/report/RedFlagsList";
+import MissingItemsList from "@/components/report/MissingItemsList";
 import FixItCTA from "@/components/report/FixItCTA";
 import GapFixModule from "@/components/report/GapFixModule";
 import GreenChecklistModule from "@/components/report/GreenChecklistModule";
@@ -399,6 +402,33 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         </div>
       </motion.section>
 
+      {/* ─── EXECUTIVE SUMMARY (full mode) ─── */}
+      {isFull && (
+        <ExecutiveSummaryStrip
+          summary={summary}
+          pricePerOpening={pricePerOpening}
+          pricePerOpeningBand={pricePerOpeningBand}
+        />
+      )}
+
+      {/* ─── LOCKED PREVIEW TEASER (preview mode) ─── */}
+      {!isFull && (topWarning || topMissingItem || summaryTeaser) && (
+        <div className="card-raised py-4 px-4 md:px-8 border-b border-border">
+          <div className="max-w-4xl mx-auto">
+            <span className="wm-eyebrow" style={{ color: "hsl(var(--color-caution))" }}>
+              LOCKED PREVIEW
+            </span>
+            <p className="font-body text-foreground" style={{ fontSize: 15, lineHeight: 1.7, marginTop: 6 }}>
+              {summaryTeaser || topWarning || "We found several quote issues worth reviewing."}
+            </p>
+            <p className="font-mono text-muted-foreground" style={{ fontSize: 12, marginTop: 6, letterSpacing: "0.04em" }}>
+              {missingItemsCount ?? 0} missing contract item{(missingItemsCount ?? 0) !== 1 ? "s" : ""} detected
+              {topMissingItem ? ` · Example: ${topMissingItem}` : ""}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ─── RISK SUMMARY HEADER ─── */}
       <RiskSummaryHeader
         flags={flags}
@@ -565,6 +595,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           </div>
         </section>
       )}
+
+      {/* ─── RED FLAGS + MISSING ITEMS (full mode) ─── */}
+      {isFull && <RedFlagsList warnings={warnings ?? []} />}
+      {isFull && <MissingItemsList missingItems={missingItems ?? []} />}
 
       <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
