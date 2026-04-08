@@ -382,7 +382,7 @@ Deno.test("BRAIN: caps grade at D when no line item mentions impact/hurricane/st
 
   assertEquals(["A", "B", "C"].includes(result.letterGrade), false,
     `Expected D or F, got ${result.letterGrade}`);
-  assertEquals(result.hardCapApplied?.includes("no_impact_products"), true);
+  assertEquals(result.hardCapApplied?.includes("unverified_impact_specs"), true);
 });
 
 // ── Brain Test 5: Dirty OCR data resilience ──────────────────────────────────
