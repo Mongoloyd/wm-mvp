@@ -34,6 +34,7 @@ const PartnerDossier = lazy(() => import("./pages/PartnerDossier.tsx"));
 const ContractorLogin = lazy(() => import("./pages/ContractorLogin.tsx"));
 const ContractorOpportunitiesPage = lazy(() => import("./pages/ContractorOpportunitiesPage.tsx"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite.tsx"));
+const PartnerResetPassword = lazy(() => import("./pages/PartnerResetPassword.tsx"));
 const PartnerGuard = lazy(() => import("./components/auth/PartnerGuard.tsx"));
 
 // Redirect helper: /report/:sessionId → /report/classic/:sessionId
@@ -123,6 +124,7 @@ const App = () => (
                   <Route path="/contractors" element={<Contractors />} />
                 </Route>
                 <Route path="/partner/login" element={<ContractorLogin />} />
+                <Route path="/partner/reset-password" element={<PartnerResetPassword />} />
                 <Route path="/partner/accept-invite" element={<AcceptInvite />} />
                 <Route path="/partner/opportunities" element={<PartnerGuard><ContractorOpportunitiesPage /></PartnerGuard>} />
                 <Route path="/partner/dossier/:id?" element={<PartnerGuard><PartnerDossier /></PartnerGuard>} />
