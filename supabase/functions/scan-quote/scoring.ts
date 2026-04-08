@@ -272,6 +272,10 @@ export function scoreFinePrint(data: ExtractionResult): number {
   // ── Lead paint disclosure ──────────────────────────────────────────────
   if (data.lead_paint_disclosure_present === false) score -= 5;
 
+  // ── Glass language transparency ────────────────────────────────────────
+  if (data.blanket_glass_language_present === true) score -= 5;
+  if (data.mixed_glass_package_visibility === true) score -= 5;
+
   return clamp(score);
 }
 
@@ -401,6 +405,29 @@ export function computeGrade(data: ExtractionResult): GradeResult {
       hardCapApplied = hardCapApplied
         ? hardCapApplied + "+unverified_impact_specs"
         : "unverified_impact_specs";
+    }
+  }
+
+  // Hard cap: unverified glass package → max C
+  const noOpeningGlassSpecs =
+    items.length > 0 && data.opening_level_glass_specs_present !== true;
+  const allGlassPackagesUnspecified =
+    items.length > 0 &&
+    items.every(i =>
+      !i.glass_makeup_type ||
+      i.glass_makeup_type === "unknown" ||
+      i.glass_spec_complete !== true
+    );
+  if (
+    noOpeningGlassSpecs &&
+    allGlassPackagesUnspecified &&
+    data.generic_product_description_present === true
+  ) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = hardCapApplied
+        ? hardCapApplied + "+unverified_glass_package"
+        : "unverified_glass_package";
     }
   }
 
