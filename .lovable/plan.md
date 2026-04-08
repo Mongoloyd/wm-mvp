@@ -1,47 +1,45 @@
 
 
-# Diagnosis: ScanTheatrics Data Flow
+# Phase 2: Frontend Data Mapping
 
-## Finding: There Is No Mock Data
+## What We're Doing
+Two precise changes: create a type definition file, then extend the existing hook to map the new hybrid fields from the backend's `preview_json` and `full_json`.
 
-The ScanTheatrics component does **not** use fake or mocked data. Here is what is actually happening:
+## Step 1: Create `src/types/reportHybrid.ts`
+New file with two exported interfaces (`HybridPreviewPayload`, `HybridFullPayload`) exactly as specified. Straightforward, no dependencies.
 
-### 1. The "fake" terminal log lines are cosmetic animation text
+## Step 2: Update `src/hooks/useAnalysisData.ts`
 
-The `TERMINAL_STEPS` array (line 43) contains strings like `"> EXTRACT line_items from page_1"`. These are **decorative animation steps** that play during the scanning phase — they are not data. They always show the same text regardless of what was uploaded because they are a visual theatrical effect, not a data display.
+### 2a. Imports
+Add import of `HybridPreviewPayload` and `HybridFullPayload` from the new type file.
 
-Similarly, `FORENSIC_MARKERS` (line 54) are static bounding-box overlays on a document silhouette illustration. They are part of the scan animation, not real OCR coordinates.
+### 2b. Extend `AnalysisData` interface (line 39-63)
+Add 10 new optional fields after the existing `negotiationLeverage`:
+- `warnings`, `missingItems`, `summary`, `topWarning`, `topMissingItem`, `pricePerOpening`, `pricePerOpeningBand`, `paymentRiskDetected`, `scopeGapDetected`, `summaryTeaser`, `missingItemsCount`
 
-### 2. The real data IS being fetched and displayed correctly
+### 2c. Preview mapping (line 286-303)
+Cast `previewJson` as `HybridPreviewPayload`, then add the new fields to the `setData` call:
+- `topWarning`, `topMissingItem`, `missingItemsCount` (default 0), `paymentRiskDetected` (Boolean), `scopeGapDetected` (Boolean), `pricePerOpeningBand`, `summaryTeaser` from preview
+- `warnings: []`, `missingItems: []`, `summary: null`, `pricePerOpening: null` (not available in preview)
 
-Looking at the network logs from your actual scan:
+### 2d. Full mapping in `fetchFull()` (line 393-414)
+Cast `fullJsonRaw` as `HybridFullPayload`, then add:
+- `warnings` via `Array.isArray()` guard
+- `missingItems` via `Array.isArray()` guard
+- `summary`, `topWarning`, `topMissingItem`, `pricePerOpening` (number or null)
+- `pricePerOpeningBand`, `paymentRiskDetected` (Boolean), `scopeGapDetected` (Boolean)
+- `summaryTeaser: null`, `missingItemsCount` = missingItems.length
 
-- `get_analysis_preview` returned real data: grade `"C"`, `flag_count: 6`, `contractor_name: "BrightView Windows & Doors"`, `opening_count: 7`, `line_item_count: 5`, `document_type: "impact_window_quote"`, `confidence_score: 0.95`
-- This data flows through `useAnalysisData` → `Index.tsx` → `ScanTheatrics` via the `analysisData` prop
-- The proof-of-read section (line 474-515) renders this real data: document type, contractor name, line item count, opening count
+### 2e. `tryResume()` mapping (line 481-502)
+Identical full mapping logic as fetchFull — same cast, same field mappings.
 
-### 3. Why it might "feel" wrong
+### 2f. Terminal status setData (line 247-254)
+Add default null/empty/false values for all new fields so the type is satisfied.
 
-The terminal animation text says things like "EXTRACT line_items from page_1" even if your document is a single image — because these are hardcoded animation labels. They don't adapt to the actual document. The real extracted data appears in the **proof-of-read chip strip** that renders after the animation completes.
+### What is NOT touched
+- RPC names, gating logic, OTP flow, tracking events, dev bypass, retry logic, pillar extraction helpers, flag mapping — all unchanged.
 
-## What To Fix (Optional Enhancement)
-
-If you want the terminal animation to reflect real OCR results instead of static text, that would be a new feature — dynamically replacing `TERMINAL_STEPS` text with values from `analysisData` once the preview data arrives. For example:
-
-- Replace `"> EXTRACT line_items from page_1"` with `"> EXTRACT 5 line_items from 1-page document"` using `analysisData.lineItemCount` and `analysisData.pageCount`
-- Replace `"> ID brand_specs in document"` with `"> ID brand: BrightView Windows & Doors"` using `analysisData.contractorName`
-- Replace `"> LOAD market_data/{county}"` with `"> LOAD market_data/Broward"` using the actual county
-
-### Files involved
-- `src/components/ScanTheatrics.tsx` — make `TERMINAL_STEPS` a function that accepts `analysisData` and `selectedCounty` to produce dynamic step text
-
-### No changes needed in
-- `useAnalysisData.ts` — already fetching real data from `get_analysis_preview` RPC
-- `useScanPolling.ts` — already polling real scan status
-- `scan-quote` edge function — already running real Gemini OCR
-- `Index.tsx` — already passing real `analysisData` prop to ScanTheatrics
-
-## Summary
-
-Nothing is mocked. The terminal animation is a static theatrical effect. The real data is wired correctly and displays in the proof-of-read section. The fix is to make the animation text dynamic.
+## Files Changed
+1. `src/types/reportHybrid.ts` — **created**
+2. `src/hooks/useAnalysisData.ts` — **modified** (interface + 3 setData blocks)
 
