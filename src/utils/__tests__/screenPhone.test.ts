@@ -6,11 +6,10 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { screenPhone } from "../screenPhone";
+import { screenPhone, type ScreenResult } from "../screenPhone";
 
 describe("screenPhone — valid US numbers", () => {
   it("accepts a standard 10-digit US number", () => {
-    // 555 is a blocked exchange — use a non-blocked exchange
     expect(screenPhone("3052341234")).toEqual({ ok: true, e164: "+13052341234" });
   });
 
@@ -33,7 +32,7 @@ describe("screenPhone — length errors", () => {
   it("rejects a 9-digit number (too short)", () => {
     const result = screenPhone("305234123");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toContain("10-digit");
     }
   });
@@ -58,7 +57,7 @@ describe("screenPhone — area code rules", () => {
   it("rejects area code starting with 0", () => {
     const result = screenPhone("0302341234");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toMatch(/area code/i);
     }
   });
@@ -66,7 +65,7 @@ describe("screenPhone — area code rules", () => {
   it("rejects area code starting with 1", () => {
     const result = screenPhone("1002341234");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toMatch(/area code/i);
     }
   });
@@ -76,7 +75,7 @@ describe("screenPhone — exchange rules", () => {
   it("rejects exchange (digits 4-6) starting with 0", () => {
     const result = screenPhone("3050341234");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toMatch(/isn't valid/i);
     }
   });
@@ -84,7 +83,7 @@ describe("screenPhone — exchange rules", () => {
   it("rejects exchange starting with 1", () => {
     const result = screenPhone("3051341234");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toMatch(/isn't valid/i);
     }
   });
@@ -94,7 +93,7 @@ describe("screenPhone — 555 test numbers", () => {
   it("rejects a 555 exchange number", () => {
     const result = screenPhone("3055551234");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toMatch(/test number/i);
     }
   });
@@ -109,7 +108,7 @@ describe("screenPhone — toll-free numbers", () => {
   it("rejects 800 prefix", () => {
     const result = screenPhone("8002341234");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toMatch(/toll-free/i);
     }
   });
@@ -141,16 +140,14 @@ describe("screenPhone — toll-free numbers", () => {
 
 describe("screenPhone — sequential digits", () => {
   it("rejects descending sequential number 9876543210", () => {
-    // 9876543210 passes area code and exchange checks but fails the sequential guard
     const result = screenPhone("9876543210");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toMatch(/real phone/i);
     }
   });
 
   it("rejects ascending sequential-like number 0123456789 (also fails area code check)", () => {
-    // Area code starts with 0 → fails area code rule
     const result = screenPhone("0123456789");
     expect(result.ok).toBe(false);
   });
@@ -160,7 +157,7 @@ describe("screenPhone — repeated digit numbers", () => {
   it("rejects all-same-digit number 2222222222", () => {
     const result = screenPhone("2222222222");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toMatch(/real phone/i);
     }
   });
@@ -176,16 +173,14 @@ describe("screenPhone — repeated digit numbers", () => {
 
 describe("screenPhone — blocked number list", () => {
   it("rejects +15551234567 — exchange starts with 1 (structural invalid)", () => {
-    // +15551234567 → digits10 = "5551234567", exchange digit[3] = "1" → invalid exchange
     const result = screenPhone("+15551234567");
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.reason).toMatch(/isn't valid/i);
     }
   });
 
   it("rejects 0000000000 equivalent (+10000000000) from blocked list", () => {
-    // area code 000 would fail area code check first (starts with 0)
     const result = screenPhone("0000000000");
     expect(result.ok).toBe(false);
   });
