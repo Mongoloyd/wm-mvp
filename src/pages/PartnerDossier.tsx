@@ -246,26 +246,7 @@ export default function PartnerDossier() {
     setTimeout(() => setCopied(null), 1500);
   };
 
-  /* ── Auth error state ──────────────────────────────────────── */
-  if (authError) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-6">
-        <div className="text-center space-y-4">
-          <LogIn className="h-12 w-12 text-sky-400 mx-auto" />
-          <h2 className="text-xl font-bold text-white">Partner Authentication Required</h2>
-          <p className="text-sm text-slate-400 max-w-md">
-            Sign in to your WindowMan Partner Portal to access intelligence dossiers.
-          </p>
-          <a
-            href="/partner/login"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-sky-500 text-white text-sm font-semibold hover:bg-sky-400 transition-colors"
-          >
-            <LogIn className="h-4 w-4" /> Sign In
-          </a>
-        </div>
-      </div>
-    );
-  }
+  /* ── Removed auth-blocker — preview mode handles it gracefully ── */
 
   /* ── Loading state ─────────────────────────────────────────── */
   if (loading) {
