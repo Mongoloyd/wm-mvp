@@ -372,8 +372,8 @@ export function useAnalysisData(
   // ── Phase 2: Full gated fetch ──────────────────────────────────────────
   const fetchFull = useCallback(async (phoneE164: string) => {
     
-    if (!scanSessionId || isFullLoaded) {
-      console.warn("[fetchFull] skipped — missing scanSessionId or already loaded", { scanSessionId, isFullLoaded });
+    if (!scanSessionId || isFullLoaded || !UUID_RE.test(scanSessionId)) {
+      console.warn("[fetchFull] skipped — missing/invalid scanSessionId or already loaded", { scanSessionId, isFullLoaded });
       return;
     }
     setIsLoadingFull(true);
