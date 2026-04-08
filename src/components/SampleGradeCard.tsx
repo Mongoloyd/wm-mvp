@@ -195,7 +195,7 @@ const SampleGradeCard = () => {
       ref={cardRef}
       animate={{ y: [-6, 0, -6] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      className="relative overflow-hidden card-raised-hero"
+      className="relative overflow-hidden card-raised-hero border-double rounded-none border-8"
       style={{
         padding: 28,
         maxWidth: 420,
