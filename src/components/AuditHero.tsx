@@ -185,10 +185,10 @@ const AuditHero = ({
                     NEW
                   </span>
 
-                  <span>Getting Quotes Soon?</span>
+                  <span>Getting Quotes Soon- Start Here</span>
                 </span>
 
-                <span className="ml-[4.5ch] md:ml-0">We Can Arm You 1st →</span>
+                <span className="ml-[4.5ch] md:ml-0"> →</span>
               </button>
             </div>
 
