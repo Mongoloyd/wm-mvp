@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Shield,
   CreditCard,
@@ -14,8 +14,12 @@ import {
   TrendingUp,
   Filter,
   LayoutGrid,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PreviewModeBadge } from "@/components/PreviewModeBadge";
+import { toast } from "sonner";
 import { PreviewModeBadge } from "@/components/PreviewModeBadge";
 
 /* ── Types ──────────────────────────────────────────────────────── */
