@@ -110,6 +110,17 @@ export interface ExtractionResult {
   opening_schedule_product_assignments_present?: boolean | null;
   bulk_scope_blob_present?: boolean | null;
 
+  // ── Change-order / substrate fields ──────────────────────────────────────
+  change_order_policy_text?: string | null;
+  written_change_order_required?: boolean | null;
+  homeowner_approval_required_for_change_orders?: boolean | null;
+  unilateral_price_adjustment_allowed?: boolean | null;
+  substrate_condition_clause_present?: boolean | null;
+  rot_unit_pricing_present?: boolean | null;
+  buck_replacement_unit_pricing_present?: boolean | null;
+  substrate_allowance_text?: string | null;
+  remeasure_price_adjustment_cap_present?: boolean | null;
+
   // ── Jurisdiction fields ──────────────────────────────────────────────────
   contractor_address_text?: string;
   state_jurisdiction_mismatch?: boolean;
@@ -117,7 +128,7 @@ export interface ExtractionResult {
 
 // ── Rubric constants ─────────────────────────────────────────────────────────
 
-export const RUBRIC_VERSION = "1.3.0";
+export const RUBRIC_VERSION = "1.4.0";
 
 export const PILLAR_WEIGHTS = {
   safety: 0.25,
@@ -274,6 +285,10 @@ export function scorePrice(data: ExtractionResult): number {
   const multiOpeningJob = coreOpeningCount > 1;
   if (multiOpeningJob && data.opening_schedule_present !== true) score -= 5;
 
+  // ── Substrate unit pricing gaps ────────────────────────────────────────
+  if (data.substrate_condition_clause_present === true && data.rot_unit_pricing_present !== true) score -= 10;
+  if (data.substrate_condition_clause_present === true && data.buck_replacement_unit_pricing_present !== true) score -= 10;
+
   return clamp(score);
 }
 
@@ -312,6 +327,12 @@ export function scoreFinePrint(data: ExtractionResult): number {
   // ── Glass language transparency ────────────────────────────────────────
   if (data.blanket_glass_language_present === true) score -= 5;
   if (data.mixed_glass_package_visibility === true) score -= 5;
+
+  // ── Change-order / substrate fine-print ─────────────────────────────────
+  if (data.unilateral_price_adjustment_allowed === true) score -= 35;
+  if (data.substrate_condition_clause_present === true && data.written_change_order_required !== true) score -= 15;
+  if (data.substrate_condition_clause_present === true && data.homeowner_approval_required_for_change_orders !== true) score -= 20;
+  if (data.subject_to_remeasure_present === true && data.remeasure_price_adjustment_cap_present !== true) score -= 10;
 
   return clamp(score);
 }
