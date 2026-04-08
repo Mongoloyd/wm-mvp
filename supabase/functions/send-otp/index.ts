@@ -10,7 +10,7 @@ const corsHeaders = {
 /* ── Rate-limit constants ────────────────────────────────────────────── */
 const COOLDOWN_SECONDS = 30;        // min gap between sends for same phone
 const WINDOW_MINUTES = 15;          // rolling window
-const MAX_SENDS_PER_WINDOW = 3;     // max sends in that window
+const MAX_SENDS_PER_WINDOW = 5;     // max sends in that window
 const MAX_IP_SENDS_PER_WINDOW = 10; // max sends per IP in the window
 
 async function runPhoneLookup(phoneE164: string): Promise<{ ok: true } | { ok: false; reason: string }> {
