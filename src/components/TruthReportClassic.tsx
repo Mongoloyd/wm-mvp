@@ -446,17 +446,17 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           <div className="max-w-4xl mx-auto flex flex-wrap items-center gap-x-4 gap-y-1">
             <span className="wm-eyebrow text-primary">DOCUMENT VERIFIED</span>
             {pageCount != null && pageCount > 1 && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
+              <span className="font-mono text-muted-foreground" style={{ fontSize: 15 }}>
                 Multi-page document analyzed
               </span>
             )}
             {lineItemCount != null && lineItemCount > 0 && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
+              <span className="font-mono text-muted-foreground" style={{ fontSize: 15 }}>
                 · Detailed line items detected
               </span>
             )}
             {contractorName && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
+              <span className="font-mono text-muted-foreground" style={{ fontSize: 15 }}>
                 · Contractor identified
               </span>
             )}
@@ -464,7 +464,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <span
                 className="font-mono"
                 style={{
-                  fontSize: 12,
+                  fontSize: 16,
                   fontWeight: 700,
                   marginLeft: "auto",
                   color: "hsl(var(--color-emerald))",
@@ -486,7 +486,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           const topViolation = selectTopViolation(flags, grade);
           if (!topViolation) return null;
           return (
-            <section className="py-4 px-4 md:px-8 bg-background">
+            <section className="py-4 px-4 md:px-12 bg-background">
               <div className="max-w-4xl mx-auto">
                 <TopViolationSummaryStrip
                   title={topViolation.title}
