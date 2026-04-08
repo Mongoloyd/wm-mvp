@@ -34,6 +34,7 @@ const PartnerDossier = lazy(() => import("./pages/PartnerDossier.tsx"));
 const ContractorLogin = lazy(() => import("./pages/ContractorLogin.tsx"));
 const ContractorOpportunitiesPage = lazy(() => import("./pages/ContractorOpportunitiesPage.tsx"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite.tsx"));
+const PartnerResetPassword = lazy(() => import("./pages/PartnerResetPassword.tsx"));
 const PartnerGuard = lazy(() => import("./components/auth/PartnerGuard.tsx"));
 
 // Redirect helper: /report/:sessionId → /report/classic/:sessionId
