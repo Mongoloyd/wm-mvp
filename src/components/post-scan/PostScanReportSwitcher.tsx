@@ -44,6 +44,8 @@ type Props = {
   onVerified?: (phoneE164: string) => void;
   /** True when gated full data has been loaded */
   isFullLoaded?: boolean;
+  /** Error message from fetchFull — surfaces immediately instead of waiting for stall timer */
+  fullFetchError?: string | null;
 };
 
 function deriveGateMode(
@@ -107,13 +109,14 @@ export function PostScanReportSwitcher(props: Props) {
     return () => { cancelled = true; };
   }, [props.scanSessionId, props.isFullLoaded]);
 
-  // ── Hydrate phone from leads table on mount (handles page refresh) ──
-  // If the user provided their phone in TruthGateFlow, it's in leads.phone_e164.
-  // On fresh page load the funnel context is empty, so we read it back from DB
-  // and inject it into the funnel. This makes the OTP gate skip to "send_code"
-  // with the phone pre-filled instead of asking the user to type it again.
+  // ── Hydrate/validate phone from leads table on mount ──
+  // Two cases handled:
+  // 1. Funnel phone is empty → hydrate from DB (page refresh scenario)
+  // 2. Funnel phone is set but DOESN'T MATCH the current lead → clear it
+  //    (stale phone from previous session leaked via localStorage)
+  const phoneValidatedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!props.scanSessionId || funnel?.phoneE164) return;
+    if (!props.scanSessionId || phoneValidatedRef.current === props.scanSessionId) return;
     let cancelled = false;
 
     (async () => {
@@ -132,24 +135,36 @@ export function PostScanReportSwitcher(props: Props) {
           .eq("id", session.lead_id)
           .maybeSingle();
 
-        if (cancelled || !lead?.phone_e164 || !funnel) return;
+        if (cancelled || !funnel) return;
 
-        funnel.setPhone(lead.phone_e164, "none");
+        phoneValidatedRef.current = props.scanSessionId;
+
+        if (lead?.phone_e164) {
+          // Lead has a phone — inject into funnel if not already set
+          if (!funnel.phoneE164) {
+            funnel.setPhone(lead.phone_e164, "none");
+          }
+        } else if (funnel.phoneE164) {
+          // Lead has NO phone but funnel has a stale one — clear it
+          console.log("[PostScanReportSwitcher] Clearing stale funnel phone (lead has no phone)");
+          funnel.setPhone("", "none");
+        }
       } catch (err) {
         console.warn("[PostScanReportSwitcher] phone hydration failed:", err);
       }
     })();
 
     return () => { cancelled = true; };
-  }, [props.scanSessionId, funnel?.phoneE164]);
+  }, [props.scanSessionId, funnel]);
 
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: props.scanSessionId,
     externalPhoneE164: funnel?.phoneE164 ?? null,
     onVerified: () => {
       funnel?.setPhoneStatus("verified");
-      const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
-      if (phone) props.onVerified?.(phone);
+      // DO NOT call props.onVerified here — phone is not yet available.
+      // The canonical phone handoff happens in handleOtpSubmit after
+      // submitOtp returns result.e164.
     },
   });
 // ── Send report email on first preview load (fire-and-forget) ──
@@ -174,13 +189,18 @@ useEffect(() => {
 
   // ── Stall detection ──
   useEffect(() => {
+    // If fetchFull already failed, surface error immediately — no need to wait 5s
+    if (props.fullFetchError && !props.isFullLoaded) {
+      setFetchStalled(true);
+      return;
+    }
     if (funnel?.phoneStatus === "verified" && !props.isFullLoaded) {
       stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);
       return () => { if (stallTimerRef.current) clearTimeout(stallTimerRef.current); };
     }
     if (props.isFullLoaded && fetchStalled) setFetchStalled(false);
     if (stallTimerRef.current) { clearTimeout(stallTimerRef.current); stallTimerRef.current = null; }
-  }, [funnel?.phoneStatus, props.isFullLoaded, fetchStalled]);
+  }, [funnel?.phoneStatus, props.isFullLoaded, props.fullFetchError, fetchStalled]);
 
   const handleRetryFetchFull = useCallback(() => {
     const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
@@ -204,6 +224,7 @@ useEffect(() => {
 
   const verifyLockRef = useRef(false);
 
+
   const handleOtpSubmit = useCallback(async () => {
     if (otpValue.length < 6 || verifyLockRef.current) return;
     verifyLockRef.current = true;
@@ -212,12 +233,14 @@ useEffect(() => {
       const result = await pipeline.submitOtp(otpValue);
       if (result.status === "verified" && result.e164) {
         setCapturedPhone(result.e164);
+        // Canonical phone handoff: use server-returned phone to trigger fetchFull
+        props.onVerified?.(result.e164);
       }
     } finally {
       setIsVerifyingOtp(false);
       verifyLockRef.current = false;
     }
-  }, [otpValue, pipeline]);
+  }, [otpValue, pipeline, props]);
 
   const handleSendCode = useCallback(async () => {
     if (!funnel?.phoneE164 || isSendInFlight) return;
@@ -238,6 +261,16 @@ useEffect(() => {
       setIsSendInFlight(false);
     }
   }, [funnel, pipeline, isSendInFlight]);
+
+  // Auto-send OTP when phone is pre-filled (e.g. hydrated from leads table)
+  const autoSendFiredRef = useRef(false);
+  useEffect(() => {
+    if (autoSendFiredRef.current) return;
+    if (gateMode === "send_code" && funnel?.phoneE164 && !isSendInFlight) {
+      autoSendFiredRef.current = true;
+      handleSendCode();
+    }
+  }, [gateMode, funnel?.phoneE164, isSendInFlight, handleSendCode]);
 
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;

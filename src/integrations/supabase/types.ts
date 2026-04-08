@@ -1715,12 +1715,21 @@ export type Database = {
         Args: { p_days?: number }
         Returns: {
           avg_confidence: number
+          avg_fine_print: number
           avg_grade_score: number
+          avg_install: number
+          avg_price: number
+          avg_safety: number
+          avg_warranty: number
           grade_a: number
           grade_b: number
           grade_c: number
           grade_d: number
           grade_f: number
+          hard_cap_critical_safety: number
+          hard_cap_no_impact: number
+          hard_cap_no_warranty: number
+          hard_cap_zero_items: number
           invalid_count: number
           max_confidence: number
           min_confidence: number

@@ -32,7 +32,7 @@ export type PhoneStatus =
   | "verified"
   | "error";
 
-export type ErrorType = "rate_limit" | "expired_session" | "invalid_code" | "network" | "generic";
+export type ErrorType = "rate_limit" | "blocked_prefix" | "expired_session" | "invalid_code" | "network" | "generic";
 
 export interface PipelineStartResult {
   status: "valid" | "otp_sent" | "already_verified" | "blocked" | "error";
@@ -71,7 +71,7 @@ export interface UsePhonePipelineReturn {
   /** Submit a 6-digit OTP code */
   submitOtp: (code: string) => Promise<PipelineVerifyResult>;
   /** Resend OTP (respects cooldown) */
-  resend: () => Promise<PipelineStartResult>;
+  resend: (resendOptions?: { scanSessionId?: string | null }) => Promise<PipelineStartResult>;
   /** Reset pipeline to idle */
   reset: () => void;
 }
@@ -193,8 +193,10 @@ export function usePhonePipeline(
             const body = await error.context.json();
             console.error("[usePhonePipeline] send-otp non-2xx response body:", body);
             parsedMsg = body?.error || parsedMsg;
-            // Detect rate limiting from 429 status or message content
-            if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
+            // Detect specific Twilio error types
+            if (body?.twilio_code === 60410 || parsedMsg.toLowerCase().includes("blocked by our carrier")) {
+              classifiedType = "blocked_prefix";
+            } else if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
               classifiedType = "rate_limit";
             }
           } else {
@@ -321,7 +323,7 @@ export function usePhonePipeline(
 
   /* ── resend ──────────────────────────────────────────── */
 
-  const resend = useCallback(async (): Promise<PipelineStartResult> => {
+  const resend = useCallback(async (resendOptions?: { scanSessionId?: string | null }): Promise<PipelineStartResult> => {
     if (cooldown > 0 || !activePhone) {
       const msg = "Please wait before requesting another code.";
       setErrorMsg(msg);
@@ -334,24 +336,56 @@ export function usePhonePipeline(
     try {
       setPhoneStatus("sending_otp");
       const { data, error } = await supabase.functions.invoke("send-otp", {
-        body: { phone_e164: activePhone },
+        body: {
+          phone_e164: activePhone,
+          scan_session_id: resendOptions?.scanSessionId || options?.scanSessionId || undefined,
+        },
       });
-      if (error || !data?.success) {
+
+      if (error) {
+        let parsedMsg = "Failed to resend code.";
+        let classifiedType: ErrorType = "generic";
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            console.error("[usePhonePipeline] resend non-2xx response body:", body);
+            parsedMsg = body?.error || parsedMsg;
+            if (body?.twilio_code === 60410 || parsedMsg.toLowerCase().includes("blocked by our carrier")) {
+              classifiedType = "blocked_prefix";
+            } else if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
+              classifiedType = "rate_limit";
+            }
+          } else {
+            console.error("[usePhonePipeline] resend error (no context):", error);
+          }
+        } catch { console.error("[usePhonePipeline] resend error (unparseable):", error); }
+        setErrorMsg(parsedMsg);
+        setErrorType(classifiedType);
+        setPhoneStatus("otp_failed");
+        setCooldown(0);
+        return { status: "error", error: parsedMsg };
+      }
+
+      if (!data?.success) {
         const msg = data?.error || "Failed to resend code.";
         setErrorMsg(msg);
+        setErrorType("generic");
         setPhoneStatus("otp_failed");
         setCooldown(0);
         return { status: "error", error: msg };
       }
+
       setPhoneStatus("otp_sent");
       return { status: "otp_sent", e164: activePhone };
     } catch {
-      setErrorMsg("Network error. Please try again.");
+      const msg = "Network error. Please try again.";
+      setErrorMsg(msg);
+      setErrorType("network");
       setPhoneStatus("otp_failed");
       setCooldown(0);
-      return { status: "error", error: "Network error. Please try again." };
+      return { status: "error", error: msg };
     }
-  }, [cooldown, activePhone]);
+  }, [cooldown, activePhone, options?.scanSessionId]);
 
   /* ── reset ───────────────────────────────────────────── */
 

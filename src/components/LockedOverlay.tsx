@@ -13,7 +13,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, AlertCircle, Clock, RefreshCw } from "lucide-react";
+import { Loader2, AlertCircle, Clock, RefreshCw, ShieldOff, WifiOff } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 export type GateMode = "enter_code" | "send_code" | "enter_phone";
@@ -57,7 +57,7 @@ export interface LockedOverlayProps {
   isLoading: boolean;
   errorMsg: string;
   /** Classifies the error for richer UX */
-  errorType?: "rate_limit" | "expired_session" | "invalid_code" | "network" | "generic";
+  errorType?: "rate_limit" | "blocked_prefix" | "expired_session" | "invalid_code" | "network" | "generic";
   resendCooldown: number;
   onResend: () => void;
   /** True when fetchFull has stalled after OTP success */
@@ -96,6 +96,7 @@ export function LockedOverlay({
   const redCount = flagRedCount ?? flagCount;
   const [shakeKey, setShakeKey] = useState(0);
   const prevErrorType = useRef<string | undefined>(undefined);
+  const prevOtpLengthRef = useRef(0);
 
   // Shake + auto-clear on invalid_code error
   useEffect(() => {
@@ -107,6 +108,14 @@ export function LockedOverlay({
     }
     prevErrorType.current = errorType;
   }, [errorType, onOtpChange]);
+
+  // Auto-submit when 6th digit is entered
+  useEffect(() => {
+    if (gateMode === "enter_code" && otpValue.length === 6 && prevOtpLengthRef.current < 6 && !isLoading) {
+      onOtpSubmit();
+    }
+    prevOtpLengthRef.current = otpValue.length;
+  }, [otpValue, gateMode, isLoading, onOtpSubmit]);
 
   // Header text per mode
   const header = gateMode === "enter_phone" ? "Unlock Your Full Report" : "Enter Your Secure Code";
@@ -303,8 +312,12 @@ export function LockedOverlay({
               }}
             >
               <div className="flex items-center justify-center gap-2" style={{ marginBottom: 4 }}>
-                {errorType === "rate_limit" ? (
+                {errorType === "blocked_prefix" ? (
+                  <ShieldOff size={14} style={{ color: "hsl(var(--color-caution))", flexShrink: 0 }} />
+                ) : errorType === "rate_limit" ? (
                   <Clock size={14} style={{ color: "hsl(var(--color-caution))", flexShrink: 0 }} />
+                ) : errorType === "network" ? (
+                  <WifiOff size={14} style={{ color: "hsl(var(--muted-foreground))", flexShrink: 0 }} />
                 ) : (
                   <AlertCircle size={14} style={{ color: "hsl(var(--color-danger))", flexShrink: 0 }} />
                 )}
@@ -313,7 +326,11 @@ export function LockedOverlay({
                   style={{
                     fontSize: 13,
                     fontWeight: 600,
-                    color: errorType === "rate_limit" ? "hsl(var(--color-caution))" : "hsl(var(--color-danger))",
+                    color: errorType === "blocked_prefix" || errorType === "rate_limit"
+                      ? "hsl(var(--color-caution))"
+                      : errorType === "network"
+                        ? "hsl(var(--muted-foreground))"
+                        : "hsl(var(--color-danger))",
                     margin: 0,
                   }}
                 >
@@ -367,6 +384,19 @@ export function LockedOverlay({
                   }}
                 >
                   This protects your phone from abuse. The limit resets shortly.
+                </p>
+              )}
+
+              {errorType === "blocked_prefix" && (
+                <p
+                  className="font-body text-muted-foreground"
+                  style={{
+                    fontSize: 11,
+                    marginTop: 6,
+                    margin: 0,
+                  }}
+                >
+                  Try a different phone number to continue.
                 </p>
               )}
             </div>

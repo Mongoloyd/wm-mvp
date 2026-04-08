@@ -103,9 +103,32 @@ Deno.serve(async (req) => {
         .eq("id", scan_session_id)
         .maybeSingle();
       resolvedLeadId = session?.lead_id || null;
+
+      // ── Defensive integrity guard ──
+      // If scan_session_id was provided but has no lead_id, we cannot bind
+      // the verification to a lead. Log and fail rather than silently
+      // succeeding with an unbindable verification.
+      if (!resolvedLeadId) {
+        console.error("[VERIFY_OTP_INTEGRITY_GUARD]", JSON.stringify({
+          scan_session_id,
+          phone_masked: "xxx-xxx-" + phone_e164.slice(-4),
+          reason: "scan_session has no lead_id — cannot bind verification",
+          timestamp: new Date().toISOString(),
+        }));
+        return new Response(
+          JSON.stringify({
+            error: "Verification could not be linked to your session. Please try again.",
+            verified: false,
+          }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // ── 5. Update the pending row — mark verified + bind lead_id ────────
+    // CRITICAL: If this write fails, the frontend must know so it can
+    // prompt the user to resend/retry instead of silently succeeding
+    // while get_analysis_full remains unauthorized.
     if (pendingRow) {
       const updatePayload: Record<string, unknown> = {
         status: "verified",
@@ -121,19 +144,40 @@ Deno.serve(async (req) => {
         .eq("id", pendingRow.id);
 
       if (updateErr) {
-        console.error("[verify-otp] failed to update phone_verifications row:", updateErr);
+        console.error("[verify-otp] CRITICAL: failed to persist verification status:", updateErr);
+        return new Response(
+          JSON.stringify({
+            error: "Verification confirmed but could not be saved. Please request a new code and try again.",
+            verified: false,
+          }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
     }
 
-    // ── 6. If lead found, mark lead.phone_verified + update phone ───────
+    // ── 6. If lead found, mark lead.phone_verified + phone + timestamp ──
+    // Both phone_verified AND phone_verified_at are required:
+    //   - get_analysis_full checks leads.phone_verified = true
+    //   - fire_crm_handoff trigger reads leads.phone_verified_at
     if (resolvedLeadId) {
       const { error: leadErr } = await supabase
         .from("leads")
-        .update({ phone_verified: true, phone_e164: twilioPhone })
+        .update({
+          phone_verified: true,
+          phone_e164: twilioPhone,
+          phone_verified_at: now,
+        })
         .eq("id", resolvedLeadId);
 
       if (leadErr) {
-        console.error("[verify-otp] failed to update lead:", leadErr);
+        console.error("[verify-otp] CRITICAL: failed to update lead verification:", leadErr);
+        return new Response(
+          JSON.stringify({
+            error: "Verification confirmed but could not be saved. Please request a new code and try again.",
+            verified: false,
+          }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
     }
 

@@ -411,6 +411,10 @@ const TruthGateFlow = ({
         if (phoneE164) {
           // Mark as screened_valid so OTP can auto-send later only after quote validity is confirmed.
           funnel.setPhone(phoneE164, "screened_valid");
+        } else {
+          // Clear stale phone from previous session so LockedOverlay
+          // shows enter_phone instead of auto-sending to old number
+          funnel.setPhone("", "none");
         }
       }
 

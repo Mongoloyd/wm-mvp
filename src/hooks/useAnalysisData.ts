@@ -79,7 +79,7 @@ function mapSeverity(raw: string | undefined | null): "red" | "amber" | "green" 
   if (s === "critical" || s === "high") return "red";
   if (s === "medium") return "amber";
   // Explicit green only for known-positive severities
-  if (s === "low" || s === "info" || s === "pass" || s === "confirmed") return "amber";
+  if (s === "low" || s === "info" || s === "pass" || s === "confirmed") return "green";
   if (s === "green" || s === "ok" || s === "good") return "green";
   // Unknown/unrecognized severities must never silently become "confirmed"
   return "amber";
@@ -179,6 +179,9 @@ export interface UseAnalysisDataResult {
   data: AnalysisData | null;
   isLoading: boolean;
   error: string | null;
+  /** Error specific to full-fetch / reveal failures (auth, empty, RPC).
+   *  Separate from `error` so preview-phase "analysis missing" still renders correctly. */
+  fullFetchError: string | null;
   /** Call after OTP success. Pass the verified E.164 phone. */
   fetchFull: (phoneE164: string) => Promise<void>;
   isLoadingFull: boolean;
@@ -198,19 +201,23 @@ export function useAnalysisData(
   const [data, setData] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fullFetchError, setFullFetchError] = useState<string | null>(null);
   const [isLoadingFull, setIsLoadingFull] = useState(false);
   const [isFullLoaded, setIsFullLoaded] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
   const previewFetchedRef = useRef<string | null>(null);
   const resumeAttemptedRef = useRef<string | null>(null);
+  const isFullLoadedRef = useRef(false);
 
   // ── Reset all state when scanSessionId changes (e.g. "Start New Scan") ──
   useEffect(() => {
     setData(null);
     setIsFullLoaded(false);
+    isFullLoadedRef.current = false;
     setIsLoadingFull(false);
     setIsLoading(false);
     setError(null);
+    setFullFetchError(null);
     setIsResuming(false);
     previewFetchedRef.current = null;
     resumeAttemptedRef.current = null;
@@ -267,6 +274,9 @@ export function useAnalysisData(
 
         previewFetchedRef.current = scanSessionId;
         trackEvent({ event_name: "preview_rendered", session_id: scanSessionId, metadata: { grade: row.grade, flag_count: row.flag_count } });
+
+        // Guard: don't overwrite full data with stale preview data
+        if (isFullLoadedRef.current) { setIsLoading(false); return; }
 
         const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
         const previewJson = row.preview_json as Record<string, unknown> | null;
@@ -330,6 +340,15 @@ export function useAnalysisData(
       return;
     }
     setIsLoadingFull(true);
+    setFullFetchError(null);
+
+    // ── Forensic logging ──
+    console.log("[FETCH_FULL_FORENSIC] start", JSON.stringify({
+      scanSessionId,
+      phone_last4: phoneE164?.slice(-4) ?? "null",
+      timestamp: new Date().toISOString(),
+    }));
+
     try {
       let row: any;
 
@@ -341,15 +360,25 @@ export function useAnalysisData(
           "get_analysis_full",
           { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
         );
-        if (rpcErr) { console.error("[fetchFull] get_analysis_full error:", rpcErr); setError("Failed to unlock report."); return; }
+        if (rpcErr) {
+          console.error("[FETCH_FULL_FORENSIC] rpc_error", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4), error: rpcErr.message }));
+          setFullFetchError("Failed to unlock report.");
+          return;
+        }
         row = Array.isArray(rows) ? rows[0] : rows;
       }
-      if (!row || !row.grade) { console.error("[fetchFull] returned empty", { row }); setError("Report data not found."); return; }
-      if (row.grade === "__UNAUTHORIZED__") {
-        console.error("[fetchFull] unauthorized — phone not verified for this session");
-        setError("Verification failed. Please re-verify your phone number.");
+      if (!row || !row.grade) {
+        console.error("[FETCH_FULL_FORENSIC] empty_result", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4), row: row ?? null }));
+        setFullFetchError("Report data not found.");
         return;
       }
+      if (row.grade === "__UNAUTHORIZED__") {
+        console.error("[FETCH_FULL_FORENSIC] unauthorized", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4) }));
+        setFullFetchError("Verification failed. Please re-verify your phone number.");
+        return;
+      }
+
+      console.log("[FETCH_FULL_FORENSIC] success", JSON.stringify({ scanSessionId, grade: row.grade }));
 
       const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
       const previewJson = row.preview_json as Record<string, unknown> | null;
@@ -384,12 +413,13 @@ export function useAnalysisData(
         negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
       });
       setIsFullLoaded(true);
-      // Save resume record for returning users
+      isFullLoadedRef.current = true;
       saveVerifiedAccess(scanSessionId, phoneE164);
       trackEvent({ event_name: "report_unlocked", session_id: scanSessionId, metadata: { grade: row.grade, flag_count: flags.length } });
       
     } catch (err) {
-      console.error("[fetchFull] exception:", err);
+      console.error("[FETCH_FULL_FORENSIC] exception", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4), error: String(err) }));
+      setFullFetchError("Unexpected error unlocking report.");
     } finally {
       setIsLoadingFull(false);
     }
@@ -472,6 +502,7 @@ export function useAnalysisData(
       });
       previewFetchedRef.current = scanSessionId;
       setIsFullLoaded(true);
+      isFullLoadedRef.current = true;
       trackEvent({ event_name: "resume_flow_triggered", session_id: scanSessionId, metadata: { grade: row.grade } });
       
       return true;
@@ -484,5 +515,5 @@ export function useAnalysisData(
     }
   }, [scanSessionId, isFullLoaded, devBypassEnabled, fetchFullViaDevBypass]);
 
-  return { data, isLoading, error, fetchFull, isLoadingFull, isFullLoaded, tryResume, isResuming };
+  return { data, isLoading, error, fullFetchError, fetchFull, isLoadingFull, isFullLoaded, tryResume, isResuming };
 }

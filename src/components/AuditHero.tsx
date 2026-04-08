@@ -111,6 +111,7 @@ const AuditHero = ({
                 fetchPriority="high"
                 decoding="async"
                 className="w-full max-w-sm md:w-64 lg:w-96 h-auto object-contain"
+                style={{ aspectRatio: '3/4' }}
               />
             </div>
 

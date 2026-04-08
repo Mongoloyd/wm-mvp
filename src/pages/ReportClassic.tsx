@@ -11,7 +11,7 @@
  * CTAs:        generate-contractor-brief + voice-followup edge functions
  */
 
-import { useState, useCallback, useEffect, type ReactNode } from "react";
+import { useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
@@ -88,6 +88,11 @@ export default function ReportClassic() {
   // ── Funnel context (safe — null when outside provider) ─────────────────
   const funnel = useScanFunnelSafe();
 
+  // ── Render-time session gating (primary defense against stale funnel) ──
+  const isSessionMatch = !!funnel?.scanSessionId && funnel.scanSessionId === sessionId;
+  const gatedPhoneE164 = isSessionMatch ? funnel?.phoneE164 ?? null : null;
+  const gatedPhoneStatus = isSessionMatch ? funnel?.phoneStatus : undefined;
+
   // ── Data loading ───────────────────────────────────────────────────────
   const {
     data: analysisData,
@@ -113,22 +118,12 @@ export default function ReportClassic() {
   const accessLevel = useReportAccess({ isFullLoaded });
 
   // ── Phone pipeline — the ONLY Twilio touchpoint ────────────────────────
+  const fullFetchTriggeredRef = useRef(false);
+
   const pipeline = usePhonePipeline("validate_and_send_otp", {
     scanSessionId: sessionId ?? null,
-    externalPhoneE164: funnel?.phoneE164 ?? null,
-    onVerified: () => {
-      funnel?.setPhoneStatus("verified");
-      const phone = funnel?.phoneE164 || pipeline.e164;
-      if (phone) fetchFull(phone);
-    },
+    externalPhoneE164: gatedPhoneE164,
   });
-
-  // If user already verified (returning visit), auto-fetch full data
-  useEffect(() => {
-    if (funnel?.phoneStatus === "verified" && !isFullLoaded && !isLoadingFull && funnel?.phoneE164) {
-      fetchFull(funnel.phoneE164);
-    }
-  }, [funnel?.phoneStatus, funnel?.phoneE164, isFullLoaded, isLoadingFull, fetchFull]);
 
   // ── OTP value state ────────────────────────────────────────────────────
   const [otpValue, setOtpValue] = useState("");
@@ -162,7 +157,24 @@ export default function ReportClassic() {
   }, [sessionId, isFullLoaded]);
 
   // ── Gate mode derived from funnel state ────────────────────────────────
-  const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164);
+  const gateMode = deriveGateMode(gatedPhoneStatus, gatedPhoneE164);
+
+  // ── Dev-only invariant assertion ───────────────────────────────────────
+  if (import.meta.env.DEV) {
+    if (gateMode === "enter_code" && !gatedPhoneE164) {
+      throw new Error(
+        "Invariant violation: OTP UI rendered without phone input for current session."
+      );
+    }
+  }
+
+  // ── Defensive cleanup effect (secondary — clears persisted stale state) ─
+  useEffect(() => {
+    if (funnel?.scanSessionId && funnel.scanSessionId !== sessionId) {
+      console.warn("[Session Guard] Mismatch detected. Resetting stale funnel state.");
+      funnel.resetFunnel();
+    }
+  }, [funnel?.scanSessionId, sessionId]);
 
   // ── Gate callbacks ─────────────────────────────────────────────────────
 
@@ -175,17 +187,22 @@ export default function ReportClassic() {
       if (result.e164 && funnel) {
         funnel.setPhone(result.e164, "verified");
       }
+      // Trigger fetchFull directly with server-canonical phone
+      if (result.e164) {
+        fullFetchTriggeredRef.current = true;
+        fetchFull(result.e164);
+      }
       setOtpValue("");
     }
-  }, [otpValue, pipeline, funnel]);
+  }, [otpValue, pipeline, funnel, fetchFull]);
 
   const handleSendCode = useCallback(async () => {
-    if (!funnel?.phoneE164) return;
+    if (!gatedPhoneE164) return;
     const result = await pipeline.submitPhone();
     if (result.status === "otp_sent") {
-      funnel.setPhoneStatus("otp_sent");
+      funnel?.setPhoneStatus("otp_sent");
     }
-  }, [funnel, pipeline]);
+  }, [gatedPhoneE164, funnel, pipeline]);
 
   const handlePhoneSubmit = useCallback(async () => {
     const result = await pipeline.submitPhone();
@@ -195,11 +212,11 @@ export default function ReportClassic() {
   }, [pipeline, funnel]);
 
   const handleResend = useCallback(async () => {
-    await pipeline.resend();
-  }, [pipeline]);
+    await pipeline.resend({ scanSessionId: sessionId });
+  }, [pipeline, sessionId]);
 
   // ── CTA A: Get Counter-Quote (generate-contractor-brief + voice-followup) ─
-  const phoneE164 = funnel?.phoneE164 || pipeline.e164 || null;
+  const phoneE164 = gatedPhoneE164 || pipeline.e164 || null;
 
   const handleContractorMatchClick = useCallback(async () => {
     if (!sessionId || !phoneE164) {

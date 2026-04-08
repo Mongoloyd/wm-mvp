@@ -67,7 +67,7 @@ const Index = () => {
   const isDevPreview = IS_DEV_MODE && devState !== "none";
   const devConfig = isDevPreview ? DEV_PREVIEW_CONFIGS[devState] : null;
   const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
-  const { data: analysisData, isLoading: analysisLoading, error: analysisError, fetchFull, isFullLoaded, tryResume, isResuming } = useAnalysisData(scanSessionId, fileUploaded || !!scanSessionId);
+  const { data: analysisData, isLoading: analysisLoading, error: analysisError, fullFetchError, fetchFull, isFullLoaded, tryResume, isResuming } = useAnalysisData(scanSessionId, fileUploaded || !!scanSessionId);
 
   // ── Returning user resume: check localStorage on mount ────────────────
   const resumeCheckedRef = useRef(false);
@@ -86,13 +86,13 @@ const Index = () => {
 
   // After scanSessionId is set from resume, try auto-fetching full data
   useEffect(() => {
-    if (!scanSessionId || isFullLoaded || isResuming) return;
+    if (!scanSessionId || isFullLoaded || isResuming || analysisLoading) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('resume') !== '1') return;
     const record = getVerifiedAccess(scanSessionId);
     if (!record) return;
     tryResume();
-  }, [scanSessionId, isFullLoaded, isResuming, tryResume]);
+  }, [scanSessionId, isFullLoaded, isResuming, analysisLoading, tryResume]);
 
   useEffect(() => { const timer = setTimeout(() => setTimeOnPage(true), 30000); return () => clearTimeout(timer); }, []);
   useEffect(() => { const handleScroll = () => { const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight; if (scrollPercent >= 0.7) setScrolledPast70(true); }; window.addEventListener("scroll", handleScroll, { passive: true }); return () => window.removeEventListener("scroll", handleScroll); }, []);
@@ -294,7 +294,7 @@ const Index = () => {
               <Skeleton className="h-32 w-full rounded-xl" />
               <Skeleton className="h-24 w-full rounded-xl" />
             </div>
-          ) : !showReportFromDev && (analysisError || !analysisData) ? (
+          ) : !showReportFromDev && !analysisData ? (
             <div className="max-w-2xl mx-auto py-20 px-4 text-center">
               <div className="rounded-xl border border-border bg-card p-8">
                 <p className="text-lg font-semibold text-foreground mb-2">Analysis Not Found</p>
@@ -328,6 +328,7 @@ const Index = () => {
                 flagRedCount={activeData?.flagRedCount}
                 flagAmberCount={activeData?.flagAmberCount}
                 isFullLoaded={isFullLoaded}
+                fullFetchError={fullFetchError}
                 priceFairness={activeData?.priceFairness}
                 markupEstimate={activeData?.markupEstimate}
                 negotiationLeverage={activeData?.negotiationLeverage}
