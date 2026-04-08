@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { FacebookConversionProvider } from "@/components/FacebookConversionProvider";
 import AdminSettings from "./pages/AdminSettings";
 import PublicLayout from "@/components/PublicLayout";
+import { ScanFunnelProvider } from "@/state/scanFunnel";
 
 // ── Static import for critical home route ────────────────────────────────────
 import Index from "./pages/Index";
@@ -96,7 +97,7 @@ const App = () => (
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/report/classic/:sessionId" element={<ReportClassic />} />
+                <Route path="/report/classic/:sessionId" element={<ScanFunnelProvider><ReportClassic /></ScanFunnelProvider>} />
                 {/* Legacy V2 route → permanent redirect to Classic */}
                 <Route path="/report/:sessionId" element={<ReportRedirect />} />
                 {/* Internal/dev only — zero production CTAs point here */}
