@@ -813,7 +813,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 {greenCount > 0 ? ` · ${greenCount} Confirmed` : ""}
               </p>
               <p className="font-mono text-muted-foreground" style={{ fontSize: 14, marginTop: 2 }}>
-                Analyzed against 37 industry-standard safety signals.
+                Analyzed gainst 37 industry-standard safety signals.
               </p>
             </div>
           </div>
