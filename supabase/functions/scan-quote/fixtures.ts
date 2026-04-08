@@ -61,16 +61,19 @@ export const BASE_GOOD_QUOTE: ExtractionResult = {
   installation: { scope_detail: "remove/replace/flash/seal", disposal_included: true, accessories_mentioned: true },
   warranty: { labor_years: 5, manufacturer_years: 20, transferable: true, details: "written warranty included" },
 
+  // ── Area 1: Glass ──────────────────────────────────────────────────────────
   opening_level_glass_specs_present: true,
   blanket_glass_language_present: false,
   mixed_glass_package_visibility: false,
 
+  // ── Area 2: Scope ──────────────────────────────────────────────────────────
   opening_schedule_present: true,
   opening_schedule_room_labels_present: true,
   opening_schedule_dimensions_complete: true,
   opening_schedule_product_assignments_present: true,
   bulk_scope_blob_present: false,
 
+  // ── Area 3: Legal / Fine Print ─────────────────────────────────────────────
   written_change_order_required: true,
   homeowner_approval_required_for_change_orders: true,
   unilateral_price_adjustment_allowed: false,
@@ -79,6 +82,7 @@ export const BASE_GOOD_QUOTE: ExtractionResult = {
   buck_replacement_unit_pricing_present: true,
   remeasure_price_adjustment_cap_present: true,
 
+  // ── Area 4: Install Method ─────────────────────────────────────────────────
   anchoring_method_text: "Tapcon anchors per manufacturer spec",
   anchor_spacing_specified: true,
   fastener_type_specified: true,
@@ -88,6 +92,18 @@ export const BASE_GOOD_QUOTE: ExtractionResult = {
   manufacturer_install_compliance_stated: true,
   code_compliance_install_statement_present: true,
 
+  // ── Area 5: Warranty Execution ─────────────────────────────────────────────
+  warranty_execution_details_present: true,
+  warranty_service_provider_type: "contractor",
+  warranty_service_provider_name: "Example Impact Windows",
+  leak_callback_sla_days: 7,
+  labor_service_sla_days: 5,
+  callback_process_text: "Call main office, technician dispatched within 72 hours",
+  post_install_stucco_excluded: false,
+  post_install_paint_excluded: false,
+  water_intrusion_damage_excluded: false,
+
+  // ── Scope gap / trust fields ───────────────────────────────────────────────
   wall_repair_scope: "Stucco patch and interior touch-up included",
   stucco_repair_included: true,
   drywall_repair_included: true,
