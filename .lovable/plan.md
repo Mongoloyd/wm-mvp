@@ -1,36 +1,38 @@
 
 
-# Plan: WindowMan Mascot Prominence + Mobile Layout Reorder
+# Plan: Revert AuditHero to Match Remix Reference Styling
 
-## What Changes
+## Key Differences Found
 
-### Desktop
-- **Bigger mascot**: Increase from `md:w-64 lg:w-96` to `md:w-80 lg:w-[480px]` — roughly 25-50% larger
-- **Floating animation**: Add a gentle vertical bob to the mascot (6s ease-in-out infinite, ~8px travel) that syncs with the GradeCard's existing bob (4s cycle)
-- **Z-index overlap**: Mascot sits at `z-20`, GradeCard at `z-30` — when they overlap vertically, the mascot slides behind the GradeCard naturally (mascot image bottom overlaps card top)
-- **Tighter vertical gap**: Reduce/remove the gap between mascot and GradeCard so they visually overlap by ~40px using negative margin on the GradeCard
+Comparing current `AuditHero.tsx` against the Remix reference, the current version has several deviations:
 
-### Mobile (complete reorder)
-Current mobile order: Pill → Mascot → H1 → CTAs
-New mobile order:
-1. **Trust Pill** — "FREE AI QUOTE AUDIT" (already order-1)
-2. **Mascot image** — large and prominent, nearly full-width (order-2, keep but make bigger)
-3. **H1 headline** — below the mascot (order-3, stays)
-4. **Subheadline + CTAs** — below that
+| Area | Current (wrong) | Remix reference (correct) |
+|------|-----------------|---------------------------|
+| Background | Parallax image + frosted glass overlay + film grain | Simple CSS gradient: `linear-gradient(168deg, ...)` |
+| Section | `overflow-hidden` | No overflow-hidden |
+| Mascot | `motion.div` with bob animation, `width={480}`, `height={640}`, `aspectRatio: '3/4'`, `max-w-md md:w-80 lg:w-[480px]` | Plain `div`, no animation, `max-w-sm md:w-64 lg:w-96` |
+| GradeCard | `z-30`, negative margin overlap (`mt-[-40px] md:mt-[-60px]`) | `z-10` (behind mascot), no negative margin |
+| Subheadline `<p>` | Has `text-xl` class | No `text-xl` class |
+| Flow B button | Missing "We Can Arm You 1st →" line | Has the second line |
+| TrustBullets | Inside the `mt-2` wrapper div | Outside, as sibling |
+| Imports | `useEffect`, `useRef`, `heroBg` asset | No useEffect/useRef, no heroBg |
 
-Mobile mascot sizing: increase from `max-w-sm` to `max-w-md` (28rem → 448px) for more screen presence.
+## Changes to `src/components/AuditHero.tsx`
+
+1. **Remove** parallax imports (`useEffect`, `useRef`, `heroBg`)
+2. **Remove** parallax ref, scroll listener effect, background image div, frosted glass overlay, and film grain overlay
+3. **Replace** section className with `relative bg-background` + inline gradient style
+4. **Revert mascot** to plain `div` (no `motion.div`, no bob animation), sizing `max-w-sm md:w-64 lg:w-96`, remove explicit width/height/aspectRatio attributes
+5. **Revert GradeCard** z-index to `z-10`, remove negative margin
+6. **Remove** `text-xl` from subheadline `<p>`
+7. **Restore** "We Can Arm You 1st →" span on Flow B button
+8. **Move** `<TrustBullets />` outside the `mt-2` div wrapper
+
+Essentially: replace the entire component with the Remix version verbatim, since the structure, props, and interface are identical.
 
 ## Files Modified
 
 | File | Change |
 |------|--------|
-| `src/components/AuditHero.tsx` | Resize mascot, add float animation, adjust z-index layering, negative margin overlap on GradeCard |
-
-## Technical Details
-
-**Mascot float animation** — use framer-motion `animate={{ y: [-8, 0, -8] }}` with `duration: 6` on the mascot wrapper. The GradeCard already has `animate={{ y: [-6, 0, -6] }}` at 4s. Different periods create a natural parallax feel.
-
-**Overlap technique** — GradeCard container gets `mt-[-40px] md:mt-[-60px]` to pull it up behind the mascot. Mascot `z-20` stays below GradeCard `z-30`, so the mascot's feet/lower body tuck behind the card.
-
-**Mobile pill text** — The badge text comes from the variant system (`variantBadgeText`). The `pre_sign` variant already sets it to "FREE AI QUOTE AUDIT". No change needed to the pill content itself — it renders whatever the active variant provides.
+| `src/components/AuditHero.tsx` | Replace with Remix reference version |
 
