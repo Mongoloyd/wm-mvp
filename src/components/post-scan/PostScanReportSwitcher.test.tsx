@@ -274,12 +274,11 @@ describe("PostScanReportSwitcher — Identity Ladder partial access (Level 0/1)"
     expect(screen.getByTestId("gate-mode")).not.toHaveTextContent("none");
   });
 
-  it("shows OTP failed error message when phoneStatus is otp_failed", () => {
+  it("keeps the gate locked when phoneStatus is otp_failed", () => {
     funnelState.phoneE164 = "+13055551234";
     funnelState.phoneStatus = "otp_failed";
     render(<PostScanReportSwitcher {...baseProps()} isFullLoaded={false} />);
-    // otp_failed should show an error fallback message in error-msg
-    // and gate should still be in send_code (not unlocked)
+    // otp_failed should not unlock access; the user must remain gated.
     expect(screen.getByTestId("gate-mode")).not.toHaveTextContent("none");
   });
 

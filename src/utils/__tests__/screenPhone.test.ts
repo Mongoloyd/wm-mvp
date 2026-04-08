@@ -157,9 +157,7 @@ describe("screenPhone — sequential digits", () => {
 });
 
 describe("screenPhone — repeated digit numbers", () => {
-  it("rejects all-same-digit number 5555555555", () => {
-    // This would be rejected as 555 exchange before repeating check,
-    // but other repeated digits also fail.
+  it("rejects all-same-digit number 2222222222", () => {
     const result = screenPhone("2222222222");
     expect(result.ok).toBe(false);
     if (!result.ok) {
