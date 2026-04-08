@@ -490,12 +490,21 @@ Rules:
 - Detect generic product descriptions that do not clearly identify the manufacturer/series.
 - Extract the contractor address if shown.
 - Do not infer compliance from branding alone. Only mark fields true when supported by visible document language.
+- Extract opening-by-opening schedule details when visible, including room/location, dimensions, and product assignment.
+- Extract glass package details for each opening when visible, including whether glass appears to be Low-E, Argon-filled, monolithic laminated, or insulated laminated.
+- Detect blanket glass language such as "impact glass throughout" when opening-level glass detail is missing.
+- Detect change-order rules, especially whether written homeowner approval is required before extra charges for hidden rot, bad bucks, or substrate conditions.
+- Detect whether the quote gives the contractor unilateral price-adjustment power.
+- Extract any unit pricing or allowances for hidden rot, substrate damage, or buck replacement.
+- Extract installation method specifics including anchoring method, fastener/anchor spacing, waterproofing/sealant method, buck treatment, and any statement that installation follows manufacturer instructions or local code.
+- Extract warranty execution details, including who performs service, leak callback timelines, callback process, and exclusions for stucco, paint, or water intrusion.
+- If the quote does not say something explicitly, leave the field null. Do not infer premium glass features or approval mechanics from branding alone.
 
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
 {
-  "document_type": "string (e.g. 'impact_window_quote', 'impact_door_quote', 'mixed_fenestration_proposal', 'general_contractor_estimate', 'unrelated_document')",
+  "document_type": "string",
   "is_window_door_related": boolean,
-  "confidence": number (0-1),
+  "confidence": number,
   "page_count": number | null,
   "contractor_name": "string | null",
   "opening_count": number | null,
@@ -523,6 +532,40 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "lead_paint_disclosure_present": "boolean | null",
   "generic_product_description_present": "boolean | null",
   "contractor_address_text": "string | null",
+  "opening_level_glass_specs_present": boolean | null,
+  "blanket_glass_language_present": boolean | null,
+  "mixed_glass_package_visibility": boolean | null,
+  "opening_schedule_present": boolean | null,
+  "opening_schedule_room_labels_present": boolean | null,
+  "opening_schedule_dimensions_complete": boolean | null,
+  "opening_schedule_product_assignments_present": boolean | null,
+  "bulk_scope_blob_present": boolean | null,
+  "change_order_policy_text": "string | null",
+  "written_change_order_required": boolean | null,
+  "homeowner_approval_required_for_change_orders": boolean | null,
+  "unilateral_price_adjustment_allowed": boolean | null,
+  "substrate_condition_clause_present": boolean | null,
+  "rot_unit_pricing_present": boolean | null,
+  "buck_replacement_unit_pricing_present": boolean | null,
+  "substrate_allowance_text": "string | null",
+  "remeasure_price_adjustment_cap_present": boolean | null,
+  "anchoring_method_text": "string | null",
+  "anchor_spacing_specified": boolean | null,
+  "fastener_type_specified": boolean | null,
+  "waterproofing_method_text": "string | null",
+  "sealant_specified": boolean | null,
+  "buck_treatment_method_text": "string | null",
+  "manufacturer_install_compliance_stated": boolean | null,
+  "code_compliance_install_statement_present": boolean | null,
+  "warranty_execution_details_present": boolean | null,
+  "warranty_service_provider_type": "string | null",
+  "warranty_service_provider_name": "string | null",
+  "leak_callback_sla_days": number | null,
+  "labor_service_sla_days": number | null,
+  "callback_process_text": "string | null",
+  "post_install_stucco_excluded": boolean | null,
+  "post_install_paint_excluded": boolean | null,
+  "water_intrusion_damage_excluded": boolean | null,
   "line_items": [
     {
       "description": "string",
@@ -533,7 +576,16 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
       "series": "string | null",
       "dp_rating": "string | null",
       "noa_number": "string | null",
-      "dimensions": "string | null"
+      "dimensions": "string | null",
+      "opening_location": "string | null",
+      "opening_tag": "string | null",
+      "product_assignment_text": "string | null",
+      "glass_package_text": "string | null",
+      "glass_makeup_type": "string | null",
+      "glass_low_e_present": boolean | null,
+      "glass_argon_present": boolean | null,
+      "glass_tint_text": "string | null",
+      "glass_spec_complete": boolean | null
     }
   ],
   "warranty": {
@@ -552,9 +604,9 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
     "disposal_included": boolean | null,
     "accessories_mentioned": boolean | null
   } | null,
-  "price_fairness": "string | null — 2-3 sentences assessing total price objectivity. Compare against standard Florida wholesale costs ($500-$800/window + $250-$400 labor per opening). Identify inflated retail tactics like fake 'Buy 1 Get 1' deals.",
-  "markup_estimate": "string | null — Estimated dealer markup as percentage range or dollar amount (e.g., '45%-55%' or '~$8,500 over wholesale'). Calculate based on line item count and total quoted price vs wholesale baseline.",
-  "negotiation_leverage": "string | null — 1-2 punchy, actionable talking points the homeowner can use to negotiate a lower price. Reference specific weaknesses found in the quote."
+  "price_fairness": "string | null",
+  "markup_estimate": "string | null",
+  "negotiation_leverage": "string | null"
 }
 
 Financial Forensics Protocol:
