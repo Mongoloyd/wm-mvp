@@ -812,8 +812,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 Grade {grade} · {issueCount} Issue{issueCount !== 1 ? "s" : ""}
                 {greenCount > 0 ? ` · ${greenCount} Confirmed` : ""}
               </p>
-              <p className="font-mono text-muted-foreground" style={{ fontSize: 14, marginTop: 2 }}>
-                Analyzed gainst 37 industry-standard safety signals.
+              <p className="text-muted-foreground font-sans font-semibold" style={{ fontSize: 14, marginTop: 2 }}>
+                Analyzed Against 37 Industry-Standard Safety Signals.
               </p>
             </div>
           </div>
