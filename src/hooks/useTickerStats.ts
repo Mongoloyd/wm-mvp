@@ -5,8 +5,8 @@ function seededRandom(seed: number): number {
   return x - Math.floor(x);
 }
 
-const EPOCH = new Date("2025-06-01").getTime();
-const SEED_TOTAL = 3212;
+const EPOCH = new Date("2026-04-07").getTime();
+const SEED_TOTAL = 671;
 const DAY_MS = 86400000;
 
 export function useTickerStats(): { total: number; today: number } {
