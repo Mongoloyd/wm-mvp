@@ -689,6 +689,68 @@ Deno.serve(async (req) => {
       return successResponse({ data: enriched });
     }
 
+    // ─── INVITATION MANAGEMENT ──────────────────────────────────────────
+
+    if (action === "list_invitations") {
+      const { data, error } = await supabaseAdmin
+        .from("contractor_invitations")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return successResponse({ data: data ?? [] });
+    }
+
+    if (action === "create_invitation") {
+      const { invited_email, contractor_id, initial_credits, expires_in_days } = payload;
+      if (!invited_email || !contractor_id) {
+        return errorResponse(400, "missing_param", "invited_email and contractor_id are required");
+      }
+
+      // Verify contractor exists
+      const { data: contractor } = await supabaseAdmin
+        .from("contractors")
+        .select("id, company_name")
+        .eq("id", contractor_id)
+        .maybeSingle();
+
+      if (!contractor) {
+        return errorResponse(404, "contractor_not_found", "Contractor business record not found");
+      }
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + (expires_in_days ?? 7));
+
+      const { data: invite, error: invErr } = await supabaseAdmin
+        .from("contractor_invitations")
+        .insert({
+          invited_email: invited_email.toLowerCase().trim(),
+          contractor_id,
+          initial_credits: initial_credits ?? 0,
+          expires_at: expiresAt.toISOString(),
+          created_by: userId === "dev-sandbox-bypass" ? null : userId,
+        })
+        .select("id, invite_token, invited_email, expires_at, initial_credits")
+        .single();
+
+      if (invErr) throw invErr;
+      return successResponse({ data: invite });
+    }
+
+    if (action === "revoke_invitation") {
+      const { invitation_id } = payload;
+      if (!invitation_id) return errorResponse(400, "missing_param", "invitation_id is required");
+
+      const { error } = await supabaseAdmin
+        .from("contractor_invitations")
+        .update({ status: "revoked" })
+        .eq("id", invitation_id)
+        .eq("status", "pending");
+
+      if (error) throw error;
+      return successResponse({ data: { success: true } });
+    }
+
     return errorResponse(400, "unhandled_action", `Action ${action} not implemented`);
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
