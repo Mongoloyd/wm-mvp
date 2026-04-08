@@ -1,12 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 
 import { motion } from "framer-motion";
 
 import { TrustBullets } from "./TrustBullets";
 
 import SampleGradeCard from "./SampleGradeCard";
-
-import heroBg from "@/assets/hero-background.avif";
 
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
 
@@ -38,18 +36,6 @@ const AuditHero = ({
   variantSubheadline,
   variantBadgeText,
 }: AuditHeroProps) => {
-  const parallaxRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (!parallaxRef.current) return;
-      const offset = window.scrollY * 0.5;
-      parallaxRef.current.style.transform = `translateY(${offset}px)`;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
@@ -63,30 +49,12 @@ const AuditHero = ({
   );
 
   return (
-    <section className="relative overflow-hidden bg-background">
-      {/* Parallax wrapper for background image */}
-      <div ref={parallaxRef} className="absolute inset-0 will-change-transform" style={{ top: "-20%", bottom: "-20%" }}>
-        <img
-          src={heroBg}
-          alt=""
-          aria-hidden="true"
-          className="w-full h-full object-cover animate-hero-drift pointer-events-none"
-        />
-      </div>
-
-      {/* Frosted glass gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/35 to-white/65 backdrop-blur-lg pointer-events-none" />
-
-      {/* Film grain texture overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none mix-blend-overlay"
-        style={{
-          opacity: 0.03,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "repeat",
-        }}
-      />
-
+    <section
+      className="relative bg-background"
+      style={{
+        background: "linear-gradient(168deg, hsl(214 35% 95%) 0%, hsl(216 38% 93%) 40%, hsl(218 32% 94%) 100%)",
+      }}
+    >
       {/* ── HERO LAYOUT: flex-col on mobile, flex-row on md+ ── */}
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pb-16 md:pb-24">
@@ -100,26 +68,21 @@ const AuditHero = ({
           {/* ── ORDER 2 (mobile) / right column (md+): Mascot + GradeCard ── */}
 
           <div className="order-2 md:order-last md:flex-1 flex flex-col items-center pt-0 md:pt-16">
-            {/* Mascot — floating bob animation, behind GradeCard on overlap */}
-            <motion.div
-              animate={{ y: [-8, 0, -8] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="relative z-20 flex justify-center pointer-events-none w-full"
-            >
+            {/* Mascot */}
+
+            <div className="relative z-20 flex justify-center pointer-events-none w-full">
               <img
                 src={MASCOT_URL}
                 alt="WindowMan holding a Truth Report"
-                width={480}
-                height={640}
                 fetchPriority="high"
                 decoding="async"
-                className="w-full max-w-md md:w-80 lg:w-[480px] h-auto object-contain"
-                style={{ aspectRatio: '3/4' }}
+                className="w-full max-w-sm md:w-64 lg:w-96 h-auto object-contain"
               />
-            </motion.div>
+            </div>
 
-            {/* GradeCard — desktop only, overlaps mascot via negative margin */}
-            <div className="hidden md:block relative z-30 mt-[-40px] md:mt-[-60px]">
+            {/* GradeCard — desktop only */}
+
+            <div className="hidden md:block relative z-10">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -139,9 +102,11 @@ const AuditHero = ({
             className="order-3 md:order-first md:flex-1 mt-8 md:mt-0 md:pt-20 flex flex-col items-center md:items-start"
           >
             {/* Pill — desktop only (mobile pill is rendered above as order-1) */}
+
             <div className="hidden md:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
               {trustPillContent}
             </div>
+
             <h1
               className="font-display uppercase leading-[1.08] mb-5"
               style={{
@@ -167,21 +132,23 @@ const AuditHero = ({
                 </>
               )}
             </h1>
+
             <p
-              className="font-body mb-8 text-xl"
+              className="font-body mb-8"
               style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}
             >
               {variantSubheadline ? (
                 variantSubheadline
               ) : (
                 <>
-                  The Impact Window Industry Has No Pricing Transparency Standard.
+                  The impact window industry has no pricing transparency standard.
                   <br />
-                  WindowMan Built One — and It Reads Your Quote in{" "}
-                  <strong style={{ color: "hsl(210 50% 8%)" }}>Under 60 Seconds</strong>.
+                  WindowMan built one — and it reads your quote in{" "}
+                  <strong style={{ color: "hsl(210 50% 8%)" }}>under 60 seconds</strong>.
                 </>
               )}
             </p>
+
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">
               {/* Hero CTA — largest on page */}
 
@@ -201,6 +168,7 @@ const AuditHero = ({
                 />
               </React.Suspense>
             </div>
+
             <div className="mt-2 w-full md:w-auto">
               <button
                 onClick={() => onFlowBClick?.()}
@@ -211,12 +179,15 @@ const AuditHero = ({
                   <span className="inline-flex items-center justify-center bg-primary text-primary-foreground font-mono text-[9px] font-bold tracking-[0.05em] px-1.5 py-0.5">
                     NEW
                   </span>
+
                   <span>Getting Quotes Soon?</span>
                 </span>
+
+                <span className="ml-[4.5ch] md:ml-0">We Can Arm You 1st →</span>
               </button>
-              <TrustBullets />
-            </div>{" "}
-            {/* This closes <div className="mt-2..."> */}
+            </div>
+
+            <TrustBullets />
           </motion.div>
         </div>
       </div>
