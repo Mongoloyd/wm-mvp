@@ -479,7 +479,7 @@ export function useAnalysisData(
 
   // ── Phase 3: Auto-resume for returning verified users ─────────────────
   const tryResume = useCallback(async (): Promise<boolean> => {
-    if (!scanSessionId || isFullLoaded) return false;
+    if (!scanSessionId || isFullLoaded || !UUID_RE.test(scanSessionId)) return false;
     if (resumeAttemptedRef.current === scanSessionId) return false;
     resumeAttemptedRef.current = scanSessionId;
 
