@@ -256,7 +256,7 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent side="right" className="w-full sm:max-w-[48vw] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             {name}
@@ -280,7 +280,7 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs border-amber-500/40 text-amber-400 hover:bg-amber-400/10"
+                className="gap-1.5 text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
                 onClick={() => setHandoffModalOpen(true)}
               >
                 <Send className="w-3.5 h-3.5" />
@@ -288,7 +288,7 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
               </Button>
             )}
             {alreadySent && (
-              <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[10px]">
+              <Badge className="bg-violet-100 text-violet-700 border border-violet-200 text-[10px]">
                 Sent {localSentToContractor ? "just now" : ""}
               </Badge>
             )}
@@ -533,12 +533,12 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
         <div>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <PhoneCall className="w-4 h-4 text-amber-400" />
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-amber-400">
+              <PhoneCall className="w-4 h-4 text-amber-600" />
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-amber-600">
                 Call History
               </h3>
             </div>
-            <span className="bg-white/10 rounded-full px-2 py-0.5 text-xs">
+            <span className="bg-muted rounded-full px-2 py-0.5 text-xs">
               {callHistory.length}
             </span>
           </div>
@@ -546,7 +546,7 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
           {callHistoryLoading ? (
             <div className="space-y-2">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="animate-pulse bg-white/5 rounded-lg h-14 w-full" />
+                <div key={i} className="animate-pulse bg-muted rounded-lg h-14 w-full" />
               ))}
             </div>
           ) : callHistoryError ? (
@@ -575,26 +575,26 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
                       <div className="flex items-center gap-2">
                         {/* Type badge */}
                         {entry.call_intent === "operator_outbound" || entry.call_intent === "manual_dial" ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-blue-500/20 text-blue-400 border-blue-500/30">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-blue-100 text-blue-700 border-blue-200">
                             Manual
                           </span>
                         ) : (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-purple-500/20 text-purple-400 border-purple-500/30">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-violet-100 text-violet-700 border-violet-200">
                             AI Call
                           </span>
                         )}
 
                         {/* Outcome badge */}
                         {entry.call_outcome === "answered" ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-green-500/20 text-green-400 border-green-500/30">Answered</span>
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-emerald-100 text-emerald-700 border-emerald-200">Answered</span>
                         ) : entry.call_outcome === "voicemail" ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-amber-500/20 text-amber-400 border-amber-500/30">Voicemail</span>
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-amber-100 text-amber-700 border-amber-200">Voicemail</span>
                         ) : entry.call_outcome === "no_answer" ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-orange-500/20 text-orange-400 border-orange-500/30">No Answer</span>
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-orange-100 text-orange-700 border-orange-200">No Answer</span>
                         ) : entry.status === "failed" ? (
                           <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-destructive/20 text-destructive border-destructive/30">Failed</span>
                         ) : entry.status === "in_progress" ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-blue-500/20 text-blue-400 border-blue-500/30 animate-pulse">In Progress</span>
+                          <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-blue-100 text-blue-700 border-blue-200 animate-pulse">In Progress</span>
                         ) : entry.status === "queued" ? (
                           <span className="text-xs font-bold px-2 py-0.5 rounded uppercase border bg-muted text-muted-foreground border-border">Queued</span>
                         ) : null}
@@ -609,7 +609,7 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
 
                       <div className="flex items-center gap-2">
                         {entry.booking_intent_detected && (
-                          <span title="Booking intent detected"><Calendar className="w-3 h-3 text-green-400" /></span>
+                          <span title="Booking intent detected"><Calendar className="w-3 h-3 text-emerald-600" /></span>
                         )}
                         {entry.appointment_booked && (
                           <span title="Appointment booked"><CalendarCheck className="w-3 h-3 text-green-500" /></span>
@@ -633,13 +633,13 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
                                 return next;
                               });
                             }}
-                            className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80"
                           >
                             {isExpanded ? "Hide Transcript" : "View Transcript"}
                             {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                           </button>
                           {isExpanded && (
-                            <div className="mt-2 p-2 rounded bg-black/20 text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed max-h-[200px] overflow-y-auto">
+                            <div className="mt-2 p-2 rounded bg-muted text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed max-h-[200px] overflow-y-auto">
                               {entry.transcript_text}
                             </div>
                           )}
@@ -649,7 +649,7 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
                           href={entry.transcript_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-blue-400 hover:underline mt-1"
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
                         >
                           <ExternalLink className="w-3 h-3" />
                           View Transcript
@@ -669,7 +669,7 @@ export function LeadDossierSheet({ lead, open, onOpenChange }: LeadDossierSheetP
                       {showRetry && (
                         <button
                           onClick={() => handleRetryCall(entry)}
-                          className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 mt-2"
+                          className="inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-600 mt-2"
                         >
                           <RotateCcw className="w-3 h-3" />
                           Retry Call
