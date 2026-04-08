@@ -21,6 +21,7 @@ import { GhostRecovery } from "@/components/admin/GhostRecovery";
 import { InternalCRMDesk } from "@/components/admin/InternalCRMDesk";
 import { NeedsReviewTab, type NeedsReviewLead } from "@/components/admin/NeedsReviewTab";
 import { AttributionTab } from "@/components/admin/AttributionTab";
+import { ContractorAccountsTab } from "@/components/admin/ContractorAccountsTab";
 
 import {
   invokeAdminData,
@@ -209,7 +210,7 @@ function DashboardContent() {
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <Tabs defaultValue="command" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="command">Command Center</TabsTrigger>
             <TabsTrigger value="pipeline">Active Pipeline</TabsTrigger>
             <TabsTrigger value="ghosts" className="relative">
@@ -229,6 +230,7 @@ function DashboardContent() {
               )}
             </TabsTrigger>
             <TabsTrigger value="engine">Dialer Desk</TabsTrigger>
+            <TabsTrigger value="contractors">Contractors</TabsTrigger>
             <TabsTrigger value="attribution">Attribution</TabsTrigger>
           </TabsList>
 
@@ -255,6 +257,10 @@ function DashboardContent() {
               onStatusChange={() => fetchAll(true)}
               latestFollowups={latestFollowups}
             />
+          </TabsContent>
+
+          <TabsContent value="contractors">
+            <ContractorAccountsTab />
           </TabsContent>
 
           <TabsContent value="attribution">
