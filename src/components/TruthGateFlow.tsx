@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import cellphoneImg from "@/assets/cellphone.png";
+import cellphoneImg from "@/assets/hidden_fees_below_truth_gate.avif";
 import { motion, AnimatePresence } from "framer-motion";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
 import { Check } from "lucide-react";
