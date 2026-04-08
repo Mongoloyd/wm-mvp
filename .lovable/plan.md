@@ -1,35 +1,74 @@
 
 
-# Plan: Exit Intent Phone — Image-Only Popup
+# Plan: Add Testimonials Carousel Section
 
-## What It Does
+## What Gets Built
 
-A new exit intent component (`ExitIntentPhoneModal`) that:
-- Triggers on the same events (mouse leave top of viewport, tab switch)
-- Shows a dark backdrop with the uploaded phone image centered
-- Clicking the image fires the same `onCTAClick` (scroll to top + open lead modal)
-- Clicking the backdrop dismisses it
-- Same session guard (`wm_exit_shown`) so it only fires once
-- Same `leadCaptured` check to suppress if lead already captured
+A new `src/components/Testimonials.tsx` component adapted from Window Shield's `LiveSavings.tsx`, restyled to the WindowMan.PRO skeuomorphic design system. Placed on the homepage between `ClosingManifesto` and `Footer`.
 
-## Files
+## Content Adaptation
 
-| File | Change |
-|------|--------|
-| `src/assets/exit-intent-phone.avif` | Copy uploaded image |
-| `src/components/ExitIntentPhoneModal.tsx` | New component — same trigger logic as `ExitIntentModal`, but renders only the image as a clickable element with backdrop |
-| `src/pages/Index.tsx` | Swap `ExitIntentModal` import → `ExitIntentPhoneModal` (keep old import commented or removed) |
+- Rewrite all 6 testimonials to reference "WindowMan" / "the scan" / "the Truth Report" instead of "Window Guy" as a person
+- Keep the Florida locations, savings amounts, and narrative structure
+- Replace platform icons with simple text labels (no emojis in cards)
+- Savings badge uses emerald (`--color-emerald`) with the `💰` emoji per style guide
 
-## ExitIntentPhoneModal Details
+## Visual Adaptation (Skeuomorphic System)
 
-- Same props interface as `ExitIntentModal` (so it's a drop-in swap)
-- Same `useCallback` show logic with `sessionStorage` guard
-- Same `mouseleave` + `visibilitychange` listeners
-- Render: `AnimatePresence` → backdrop `motion.div` → `motion.img` (fade-in + slight scale-up) with `cursor-pointer` and `onClick={handleCTA}`
-- Small X close button in top-right corner of the image
-- Image sizing: `max-w-[90vw] max-h-[80vh] object-contain` so it looks great on all screens
+| Original (Window Shield) | Adapted (WindowMan.PRO) |
+|---|---|
+| `Card` with `border-success/20` | `card-raised` class with system shadow |
+| `bg-gradient-to-br from-success/5` | `bg-background` (system page bg) |
+| `ScrollAnimationWrapper` | `motion.div` with `useInView` (matches existing sections) |
+| `text-success` green stars | Cobalt `text-primary` stars |
+| Generic `Button` CTA | `btn-depth-primary` system button |
+| Stats cards with gradient fills | `card-raised` with system tokens |
 
-## Original ExitIntentModal
+### Typography
+- Section eyebrow: `.wm-eyebrow` (mono, uppercase)
+- Section title: `.wm-title-section` (Barlow Condensed)
+- Card body: `.wm-body` or `font-body text-sm`
+- Headline quotes: `font-body font-bold`
 
-Kept as-is in `src/components/ExitIntentModal.tsx` — available to swap back anytime.
+### Cards
+- Use `card-raised p-6` — opaque white surface with `--shadow-resting`
+- Emerald left border accent (`border-l-4 border-[hsl(var(--color-emerald))]`)
+- No hover glow — use system `hover:translateY(-1px)` lift
+
+### Stats Strip
+- 3-column grid using `card-raised` with system borders
+- Numbers in `font-display font-extrabold` with semantic colors
+
+### Bottom CTA
+- Accepts `onScanClick` prop, renders `btn-depth-primary` "Show Me My Grade →"
+- Wraps in `card-dominant` to match NarrativeProof's bottom CTA pattern
+
+## Carousel
+- Reuse existing `embla-carousel-react` + `embla-carousel-autoplay` (already in deps)
+- Autoplay 4s, stops on interaction
+- Dot indicators styled with system `--primary` / `--border` colors
+- Desktop: 3 cards visible. Mobile: 1 card, swipeable
+- Respects `prefers-reduced-motion`
+
+## File Changes
+
+### 1. Create `src/components/Testimonials.tsx`
+- Embla carousel with 6 testimonial cards
+- Stats strip (3 cards)
+- Bottom CTA card
+- Props: `onScanClick?: () => void`
+- Entry animation: `motion.div` + `useInView` matching existing sections
+
+### 2. Edit `src/pages/Index.tsx`
+- Import `Testimonials`
+- Insert after `ClosingManifesto` and a `wm-bridge-strip` divider, before the Footer block:
+
+```text
+  <ClosingManifesto ... />
++ <div className="wm-bridge-strip py-3" />
++ <Testimonials onScanClick={() => triggerTruthGate('testimonials')} />
+  <ExitIntentPhoneModal ... />
+```
+
+No other files touched.
 
