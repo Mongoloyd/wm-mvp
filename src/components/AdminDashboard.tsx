@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
 
 import { PreviewModeBadge } from "@/components/PreviewModeBadge";
 import { CommandCenter } from "@/components/admin/CommandCenter";
@@ -26,7 +27,7 @@ import {
 
 import type { CRMLead, WebhookDelivery, CommandCenterKPIs, VoiceFollowupSummary } from "@/components/admin/types";
 
-const REFRESH_INTERVAL_MS = 30_000;
+const REFRESH_INTERVAL_MS = 120_000;
 
 /* ── Map raw DB row → CRMLead ────────────────────────────────────────── */
 
@@ -123,21 +124,25 @@ function DashboardContent() {
   const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([]);
   const [latestFollowups, setLatestFollowups] = useState<Record<string, VoiceFollowupSummary>>({});
   const [needsReview, setNeedsReview] = useState<NeedsReviewLead[]>([]);
-  /* Start with isLoading=false so page renders immediately */
   const [isLoading, setIsLoading] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const [, setTick] = useState(0); // force re-render for relative time
+  const initialLoadDone = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchAll = useCallback(async () => {
-    setIsSyncing(true);
+    const isInitial = !initialLoadDone.current;
     try {
-      const [rawLeads, rawDeliveries, rawFollowups, rawNeedsReview] = await Promise.all([
-        invokeAdminData("fetch_leads"),
+      // Tier 1: fetch leads first for fast initial render
+      const rawLeads = await invokeAdminData("fetch_leads");
+      setLeads((rawLeads ?? []).map(toLeadCRM));
+
+      // Tier 2: fetch remaining data in background (don't block leads render)
+      const [rawDeliveries, rawFollowups, rawNeedsReview] = await Promise.all([
         fetchWebhookDeliveries(),
         invokeAdminData("fetch_voice_followups"),
         invokeAdminData("fetch_needs_review"),
       ]);
-      setLeads((rawLeads ?? []).map(toLeadCRM));
       setDeliveries((rawDeliveries ?? []).map(toWebhookDelivery));
       setNeedsReview((rawNeedsReview ?? []) as NeedsReviewLead[]);
 
@@ -157,10 +162,11 @@ function DashboardContent() {
         }
       }
       setLatestFollowups(fMap);
+      setLastSyncedAt(new Date());
     } catch (err: unknown) {
       console.warn("[CRM] fetch error (preview mode):", err);
     } finally {
-      setIsSyncing(false);
+      if (isInitial) initialLoadDone.current = true;
     }
   }, []);
 
@@ -172,8 +178,18 @@ function DashboardContent() {
     };
   }, [fetchAll]);
 
+  // Tick every 30s to keep "Updated X ago" fresh
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
   const kpis = computeKPIs(leads, deliveries);
   const ghosts = leads.filter((l) => l.latest_analysis_id && !l.phone_verified);
+
+  const lastSyncLabel = lastSyncedAt
+    ? `Updated ${formatDistanceToNow(lastSyncedAt, { addSuffix: true })}`
+    : "Loading…";
 
   return (
     <div className="min-h-screen bg-background">
@@ -184,17 +200,12 @@ function DashboardContent() {
             <div>
               <h1 className="text-xl font-bold tracking-tight">Lead Sniper CRM</h1>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {leads.length} leads · auto-refreshes every 30s
+                {leads.length} leads · {lastSyncLabel}
               </p>
             </div>
-            {leads.length === 0 && !isSyncing && <PreviewModeBadge />}
+            {leads.length === 0 && initialLoadDone.current && <PreviewModeBadge />}
           </div>
           <div className="flex items-center gap-3">
-            {isSyncing && (
-              <Badge variant="secondary" className="text-xs animate-pulse">
-                Syncing…
-              </Badge>
-            )}
             <Link
               to="/admin/settings"
               className="rounded-md p-2 hover:bg-muted transition-colors"
@@ -234,25 +245,25 @@ function DashboardContent() {
           </TabsList>
 
           <TabsContent value="command">
-            <CommandCenter kpis={kpis} isLoading={isSyncing} leads={leads} />
+            <CommandCenter kpis={kpis} isLoading={false} leads={leads} />
           </TabsContent>
 
           <TabsContent value="pipeline">
-            <ActivePipeline leads={leads} isLoading={isSyncing} />
+            <ActivePipeline leads={leads} isLoading={false} />
           </TabsContent>
 
           <TabsContent value="ghosts">
-            <GhostRecovery ghosts={ghosts} isLoading={isSyncing} />
+            <GhostRecovery ghosts={ghosts} isLoading={false} />
           </TabsContent>
 
           <TabsContent value="needs-review">
-            <NeedsReviewTab needsReview={needsReview} isLoading={isSyncing} />
+            <NeedsReviewTab needsReview={needsReview} isLoading={false} />
           </TabsContent>
 
           <TabsContent value="engine">
             <InternalCRMDesk
               leads={leads}
-              isLoading={isSyncing}
+              isLoading={false}
               onStatusChange={() => fetchAll()}
               latestFollowups={latestFollowups}
             />
@@ -263,7 +274,7 @@ function DashboardContent() {
           </TabsContent>
 
           <TabsContent value="attribution">
-            <AttributionTab leads={leads} isLoading={isSyncing} />
+            <AttributionTab leads={leads} isLoading={false} />
           </TabsContent>
         </Tabs>
       </div>
