@@ -276,7 +276,7 @@ function PowerToolButton({ onClick }) {
       }}
     >
       <span style={{ flexShrink: 0, fontSize: 18 }}>✨</span>
-      <span style={{ flex: 1, textAlign: "left" }}>No Quote Yet? View Demo</span>
+      <span style={{ flex: 1, textAlign: "left" }}>No Quote Yet? Start Here</span>
       <span
         style={{
           display: "inline-flex",
