@@ -202,6 +202,10 @@ export default function PartnerDossier() {
 
   /* ── Unlock handler ──────────────────────────────────────────── */
   const handleUnlock = async () => {
+    if (isPreview) {
+      toast.info("Sign in to unlock leads.");
+      return;
+    }
     if (!meta?.lead_id) return;
     setUnlocking(true);
 
