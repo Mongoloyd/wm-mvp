@@ -465,7 +465,7 @@ const ScanTheatrics = ({
                 />
               </div>
               <ForensicTerminal
-                steps={TERMINAL_STEPS}
+                steps={buildTerminalSteps(analysisData, county)}
                 activeIndex={activeLogIndex}
                 county={county}
                 progressWidth={progressWidth}
@@ -841,7 +841,7 @@ const ForensicTerminal = ({
   isCliffhanger,
   reducedMotion,
 }: {
-  steps: typeof TERMINAL_STEPS;
+  steps: { cmd: string; done: string }[];
   activeIndex: number;
   county: string;
   progressWidth: number;
