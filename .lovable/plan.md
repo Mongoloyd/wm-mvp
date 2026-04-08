@@ -2,99 +2,121 @@
 
 ## Analysis
 
-The spec is clean and consistent with the existing codebase patterns. Two issues worth flagging:
+### Issue 1: `warranty_service_provider_unspecified` trigger is truncated
+The spec shows the trigger as `data.warranty && (!data.warranty_service_provider_type` — cut off. Based on the flag name and the scoring penalty pattern, the complete trigger is clearly: `data.warranty && (!data.warranty_service_provider_type || data.warranty_service_provider_type === "unknown")`.
 
-### Issue 1: Overlap with existing `installation.scope_detail`
-The `ExtractionResult` already has `installation.scope_detail` (a free-text string). The new `anchoring_method_text`, `waterproofing_method_text`, and `buck_treatment_method_text` fields are more granular extractions from the same domain. This is correct -- the existing field is too coarse to score against. No conflict, just noting the relationship.
+### Issue 2: `finish_exclusions_present` trigger is truncated
+Shows `data.post_install_stucco_excluded === true` — cut off. Logical completion: `data.post_install_stucco_excluded === true || data.post_install_paint_excluded === true`. This is a Caution-level flag combining both finish exclusions.
 
-### Issue 2: `anchor_spacing_missing` flag triggers conditionally on `anchoring_method_text` presence
-The flag fires when anchoring method IS present but spacing IS NOT. This is good design -- it only penalizes incomplete anchoring specs, not quotes that omit anchoring entirely (those get the bigger `anchoring_method_missing` flag). No change needed.
+### Issue 3: Early return in `scoreWarranty` blocks new penalties
+Current `scoreWarranty` has `if (!data.warranty) return clamp(score - 40);` at line 366. The new penalties are all gated by `if (data.warranty) { ... }`, so they only fire when warranty exists. This is correct — the early return handles the "no warranty" case, and the new block handles the "warranty exists but is opaque" case. No conflict.
 
-### Issue 3: `buck_treatment_unspecified` vs Area 3's `buck_replacement_unit_pricing_present`
-Area 3 already penalizes missing buck replacement *pricing*. Area 4 now penalizes missing buck *treatment method*. These are distinct concerns (cost vs. technique). The combined penalty for a quote that mentions bucks but specifies neither pricing nor method could stack to -20 across pillars. This is appropriate -- both are legitimate gaps.
+### Issue 4: Hard-cap interaction with existing `no_warranty_section`
+The new `opaque_warranty_execution` hard-cap (max C) only fires when `!!data.warranty` — i.e., warranty section exists but execution is opaque. The existing `no_warranty_section` hard-cap (also max C) fires when `!data.warranty`. These are mutually exclusive. Clean.
 
-### Issue 4: `manufacturer_install_compliance_stated` and `code_compliance_install_statement_present` in `scoreSafety`
-These are install-related fields being penalized in the safety pillar. The spec assigns the flags to `safety` pillar, which makes sense -- manufacturer compliance and code compliance are safety concerns even though they relate to installation. The penalties are modest (-5 each). No change needed.
+### Issue 5: `leak_callback_sla_days` tiered penalty is good design
+The spec uses a 3-tier SLA penalty (null → -15, >14 days → -10, >7 days → -5, ≤7 → no penalty). This is more nuanced than typical boolean penalties. No issues.
 
-No logic errors found. Spec is ready to implement as-is.
+No logic errors found. Spec is ready to implement with the two truncated triggers completed as described.
 
 ---
 
 ## Plan
 
-**File: `supabase/functions/scan-quote/scoring.ts`**
+**Files: `scoring.ts` + `index.test.ts`**
 
-### Step 1 -- Extend `ExtractionResult` interface
-Add 8 new fields after the change-order/substrate section (~line 122):
+### Step 1 — Extend `ExtractionResult` interface
+Add 9 new fields after the installation method block (~line 132):
 
 ```
-anchoring_method_text?: string | null;
-anchor_spacing_specified?: boolean | null;
-fastener_type_specified?: boolean | null;
-waterproofing_method_text?: string | null;
-sealant_specified?: boolean | null;
-buck_treatment_method_text?: string | null;
-manufacturer_install_compliance_stated?: boolean | null;
-code_compliance_install_statement_present?: boolean | null;
+// ── Warranty execution fields ──────────────────────────────────────────────
+warranty_execution_details_present?: boolean | null;
+warranty_service_provider_type?: "contractor" | "manufacturer" | "third_party" | "unknown" | null;
+warranty_service_provider_name?: string | null;
+leak_callback_sla_days?: number | null;
+labor_service_sla_days?: number | null;
+callback_process_text?: string | null;
+post_install_stucco_excluded?: boolean | null;
+post_install_paint_excluded?: boolean | null;
+water_intrusion_damage_excluded?: boolean | null;
 ```
 
-### Step 2 -- Patch `scoreSafety()`
-After the glass package penalty block (~line 201), add:
+### Step 2 — Patch `scoreWarranty()`
+After the existing `if (!data.warranty.details) score -= 10;` block (~line 393), before the `return`, add the full warranty execution penalty block:
 
 ```typescript
-if (data.manufacturer_install_compliance_stated !== true) score -= 5;
-if (data.code_compliance_install_statement_present !== true) score -= 5;
+// ── Warranty execution details ─────────────────────────────────────────
+if (data.warranty_execution_details_present !== true) score -= 15;
+
+if (!data.warranty_service_provider_type || data.warranty_service_provider_type === "unknown") {
+  score -= 10;
+}
+
+if (data.leak_callback_sla_days == null) {
+  score -= 15;
+} else if (data.leak_callback_sla_days > 14) {
+  score -= 10;
+} else if (data.leak_callback_sla_days > 7) {
+  score -= 5;
+}
+
+if (data.labor_service_sla_days == null) score -= 5;
+if (!data.callback_process_text) score -= 10;
+
+if (data.post_install_stucco_excluded === true) score -= 5;
+if (data.post_install_paint_excluded === true) score -= 5;
+if (data.water_intrusion_damage_excluded === true) score -= 15;
+
+if (
+  data.warranty_service_provider_type === "third_party" &&
+  !data.warranty_service_provider_name
+) {
+  score -= 5;
+}
 ```
 
-### Step 3 -- Patch `scoreInstall()`
-After the opening schedule block (~line 244), add:
+Note: This block is inside the existing `if (data.warranty)` guard (the early return at line 366 handles the no-warranty case).
+
+### Step 3 — Add hard-cap in `computeGrade()`
+After the `install_method_unverified` hard-cap block (~line 582) and before `zero_line_items`, add:
 
 ```typescript
-if (!data.anchoring_method_text && items.length > 0) score -= 15;
-if (data.anchoring_method_text && data.anchor_spacing_specified !== true) score -= 5;
-if (data.anchoring_method_text && data.fastener_type_specified !== true) score -= 5;
-if (!data.waterproofing_method_text && items.length > 0) score -= 15;
-if (data.sealant_specified !== true && items.length > 0) score -= 5;
-if (!data.buck_treatment_method_text && items.length > 0) score -= 10;
-```
+// Hard cap: warranty exists but execution is opaque → max C
+const warrantyExistsButExecutionIsOpaque =
+  !!data.warranty &&
+  (!data.warranty_service_provider_type || data.warranty_service_provider_type === "unknown") &&
+  data.leak_callback_sla_days == null &&
+  !data.callback_process_text;
 
-Note: `items` is already declared in `scoreInstall` at line 235.
-
-### Step 4 -- Add hard-cap in `computeGrade()`
-After the `substrate_open_checkbook` hard-cap block (~line 544) and before `zero_line_items`, add:
-
-```typescript
-// Hard cap: install method critically underspecified → max C
-const installMethodCriticallyUnderspecified =
-  items.length > 0 &&
-  !data.anchoring_method_text &&
-  !data.waterproofing_method_text &&
-  data.manufacturer_install_compliance_stated !== true;
-
-if (installMethodCriticallyUnderspecified) {
+if (warrantyExistsButExecutionIsOpaque) {
   if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
     grade = "C";
     hardCapApplied = hardCapApplied
-      ? hardCapApplied + "+install_method_unverified"
-      : "install_method_unverified";
+      ? hardCapApplied + "+opaque_warranty_execution"
+      : "opaque_warranty_execution";
   }
 }
 ```
 
-### Step 5 -- Bump `RUBRIC_VERSION`
-Change from `"1.4.0"` to `"1.5.0"`.
+### Step 4 — Bump `RUBRIC_VERSION`
+Change from `"1.5.0"` to `"1.6.0"`.
 
-### Step 6 -- Update tests
-Add the 8 new fields to the `perfectQuote()` fixture in `index.test.ts` with passing values:
+### Step 5 — Update tests
+Add the 9 new fields to `perfectQuote()` in `index.test.ts`:
 
 ```typescript
-anchoring_method_text: "Tapcon concrete anchors",
-anchor_spacing_specified: true,
-fastener_type_specified: true,
-waterproofing_method_text: "DAP Silicone Plus flashing and weep system",
-sealant_specified: true,
-buck_treatment_method_text: "Pressure-treated 2x4 buck with Boral wrap",
-manufacturer_install_compliance_stated: true,
-code_compliance_install_statement_present: true,
+warranty_execution_details_present: true,
+warranty_service_provider_type: "contractor",
+warranty_service_provider_name: "WindowMan Pro Services",
+leak_callback_sla_days: 3,
+labor_service_sla_days: 5,
+callback_process_text: "Call main office, technician dispatched within 72 hours",
+post_install_stucco_excluded: false,
+post_install_paint_excluded: false,
+water_intrusion_damage_excluded: false,
 ```
+
+### Truncated trigger completions (for `detectFlags` in index.ts, future step)
+- `warranty_service_provider_unspecified`: `data.warranty && (!data.warranty_service_provider_type || data.warranty_service_provider_type === "unknown")`
+- `finish_exclusions_present`: `data.post_install_stucco_excluded === true || data.post_install_paint_excluded === true`
 
