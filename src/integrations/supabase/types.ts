@@ -297,6 +297,51 @@ export type Database = {
           },
         ]
       }
+      contractor_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          contractor_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          initial_credits: number
+          invite_token: string
+          invited_email: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          contractor_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          initial_credits?: number
+          invite_token?: string
+          invited_email: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          contractor_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          initial_credits?: number
+          invite_token?: string
+          invited_email?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contractor_opportunities: {
         Row: {
           amber_flag_count: number
