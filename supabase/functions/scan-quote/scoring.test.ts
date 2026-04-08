@@ -25,10 +25,10 @@ Deno.test("Control: baseline quote returns Grade A with no hard cap", () => {
 // ── 2. Glass Ambiguity Cap → max C, unverified_glass_package ────────────────
 
 Deno.test("Glass ambiguity caps at C with unverified_glass_package", () => {
-  // Keep DP/NOA intact so safety pillar stays healthy — only strip glass detail
+  // Strip glass detail but keep blanket_glass_language_present false
+  // to avoid cratering safety below 40 (which triggers the harsher critical_safety D-cap)
   const quote = makeQuote({
     opening_level_glass_specs_present: false,
-    blanket_glass_language_present: true,
     generic_product_description_present: true,
     line_items: BASE_GOOD_QUOTE.line_items.map((item) => ({
       ...item,
