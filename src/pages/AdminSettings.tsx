@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { AdminBackLink } from "@/components/admin/AdminBackLink";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 import {
   listUserRoles,
