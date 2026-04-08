@@ -2,8 +2,9 @@ import { corsHeaders, errorResponse, successResponse, validateAdminRequestWithRo
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 /**
- * admin-data v2.3
- * Added: fetch_needs_review, rescan_lead, update_lead_manual_entry
+ * admin-data v2.4
+ * Added: list_contractor_accounts, get_contractor_ledger,
+ *        adjust_contractor_credits, get_contractor_unlocks
  */
 
 type ActionName = 
@@ -14,7 +15,9 @@ type ActionName =
   | "manage_user_roles" | "list_user_roles" | "get_role_audit_log"
   | "fetch_lead_events" | "fetch_webhook_deliveries"
   | "fetch_lead_analysis"
-  | "fetch_needs_review" | "rescan_lead" | "update_lead_manual_entry";
+  | "fetch_needs_review" | "rescan_lead" | "update_lead_manual_entry"
+  | "list_contractor_accounts" | "get_contractor_ledger"
+  | "adjust_contractor_credits" | "get_contractor_unlocks";
 
 const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_leads: ["super_admin", "operator", "viewer"],
@@ -38,6 +41,11 @@ const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_needs_review: ["super_admin", "operator", "viewer"],
   rescan_lead: ["super_admin", "operator"],
   update_lead_manual_entry: ["super_admin", "operator"],
+  // Contractor account management
+  list_contractor_accounts: ["super_admin", "operator", "viewer"],
+  get_contractor_ledger: ["super_admin", "operator", "viewer"],
+  adjust_contractor_credits: ["super_admin", "operator"],
+  get_contractor_unlocks: ["super_admin", "operator", "viewer"],
 };
 
 Deno.serve(async (req) => {
@@ -198,20 +206,17 @@ Deno.serve(async (req) => {
         .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       // Generate signed URLs for quote images
-      // Need a storage client with service role
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const storageClient = createClient(supabaseUrl, serviceRoleKey, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
 
-      // Collect scan_session_ids that need image URLs
       const sessionIds = merged
         .map((l: any) => l.latest_scan_session_id)
         .filter(Boolean);
 
       if (sessionIds.length > 0) {
-        // Fetch scan_sessions to get quote_file_ids
         const { data: sessions } = await supabaseAdmin
           .from("scan_sessions")
           .select("id, quote_file_id")
@@ -233,7 +238,6 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Build session_id → storage_path map
         const sessionToPath: Record<string, string> = {};
         for (const s of sessions ?? []) {
           if (s.quote_file_id && fileMap[s.quote_file_id]) {
@@ -241,7 +245,6 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Generate signed URLs
         for (const lead of merged) {
           const path = sessionToPath[lead.latest_scan_session_id];
           if (path) {
@@ -264,7 +267,6 @@ Deno.serve(async (req) => {
       const { lead_id } = payload;
       if (!lead_id) return errorResponse(400, "missing_param", "lead_id required");
 
-      // Step 1: Get latest_scan_session_id
       const { data: lead, error: leadErr } = await supabaseAdmin
         .from("leads")
         .select("latest_scan_session_id")
@@ -277,19 +279,16 @@ Deno.serve(async (req) => {
 
       const ssId = lead.latest_scan_session_id;
 
-      // Step 2: Reset scan_sessions.status to 'idle' (clears idempotency guard)
       await supabaseAdmin
         .from("scan_sessions")
         .update({ status: "idle" })
         .eq("id", ssId);
 
-      // Step 3: Delete existing analyses for this scan session
       await supabaseAdmin
         .from("analyses")
         .delete()
         .eq("scan_session_id", ssId);
 
-      // Step 4: Re-invoke scan-quote with { scan_session_id }
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -322,7 +321,6 @@ Deno.serve(async (req) => {
       if (typeof manually_reviewed === "boolean") {
         updateFields.manually_reviewed = manually_reviewed;
       } else if (manual_entry_data) {
-        // Default to true when saving manual data without explicit flag
         updateFields.manually_reviewed = true;
       }
       if (manual_entry_data !== undefined) {
@@ -369,7 +367,6 @@ Deno.serve(async (req) => {
 
       await supabaseAdmin.from("contractor_opportunities").update({ status: "sent_to_contractor", routed_at: now }).eq("id", opportunity_id);
 
-      // Log event for analytics
       await supabaseAdmin.from("event_logs").insert({
         event_name: "contractor_intro_routed",
         session_id: scan_session_id || null,
@@ -384,7 +381,6 @@ Deno.serve(async (req) => {
       const { opportunity_id, scan_session_id } = payload;
       await supabaseAdmin.from("contractor_opportunities").update({ status: "dead" }).eq("id", opportunity_id);
 
-      // Log event for analytics
       await supabaseAdmin.from("event_logs").insert({
         event_name: "contractor_opportunity_marked_dead",
         session_id: scan_session_id || null,
@@ -418,7 +414,6 @@ Deno.serve(async (req) => {
       const { data: roles, error } = await supabaseAdmin.from("user_roles").select("*");
       if (error) throw error;
 
-      // Fetch auth user data for only the IDs present in user_roles (avoids pagination limits)
       const roleRows = roles ?? [];
       const userIds: string[] = roleRows.map((r: { id: string }) => r.id);
 
@@ -448,7 +443,6 @@ Deno.serve(async (req) => {
     }
 
     if (action === "get_role_audit_log") {
-      // Clamp limit to a safe range: min 1, max 500, default 100
       const rawLimit = payload?.limit;
       const limit = Math.min(500, Math.max(1, Number.isInteger(rawLimit) ? rawLimit : 100));
 
@@ -461,14 +455,12 @@ Deno.serve(async (req) => {
 
       const auditRows = entries ?? [];
 
-      // Collect all unique user IDs referenced in the audit log
       const involvedIds = new Set<string>();
       for (const e of auditRows) {
         involvedIds.add(e.target_user_id);
         involvedIds.add(e.changed_by_user_id);
       }
 
-      // Fetch email for each involved user ID individually (avoids listUsers pagination cap)
       const emailMap = new Map<string, string>();
       await Promise.all(
         Array.from(involvedIds).map(async (uid) => {
@@ -540,6 +532,156 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (error) throw error;
       return successResponse({ data: data });
+    }
+
+    // ─── CONTRACTOR ACCOUNT MANAGEMENT ──────────────────────────────────
+
+    if (action === "list_contractor_accounts") {
+      // Join contractor_profiles with contractor_credits and unlock counts
+      const { data: profiles, error: pErr } = await supabaseAdmin
+        .from("contractor_profiles")
+        .select("id, company_name, contact_email, status, created_at");
+      if (pErr) throw pErr;
+
+      const profileIds = (profiles ?? []).map((p: any) => p.id);
+
+      // Fetch credits
+      let creditsMap: Record<string, number> = {};
+      if (profileIds.length > 0) {
+        const { data: credits } = await supabaseAdmin
+          .from("contractor_credits")
+          .select("contractor_id, balance")
+          .in("contractor_id", profileIds);
+        for (const c of credits ?? []) {
+          creditsMap[c.contractor_id] = c.balance;
+        }
+      }
+
+      // Fetch unlock counts
+      let unlockCountMap: Record<string, number> = {};
+      if (profileIds.length > 0) {
+        const { data: unlocks } = await supabaseAdmin
+          .from("contractor_unlocked_leads")
+          .select("contractor_id");
+        // Count per contractor
+        for (const u of unlocks ?? []) {
+          unlockCountMap[u.contractor_id] = (unlockCountMap[u.contractor_id] || 0) + 1;
+        }
+      }
+
+      // Fetch auth bridge from contractors table
+      let authBridgeMap: Record<string, { contractor_record_id: string; company_name: string } | null> = {};
+      if (profileIds.length > 0) {
+        const { data: contractors } = await supabaseAdmin
+          .from("contractors")
+          .select("id, auth_user_id, company_name")
+          .in("auth_user_id", profileIds);
+        for (const c of contractors ?? []) {
+          if (c.auth_user_id) {
+            authBridgeMap[c.auth_user_id] = {
+              contractor_record_id: c.id,
+              company_name: c.company_name,
+            };
+          }
+        }
+      }
+
+      // Fetch auth user emails
+      const authEmailMap = new Map<string, { email: string; last_sign_in: string | null }>();
+      await Promise.all(
+        profileIds.map(async (uid: string) => {
+          const { data: authData, error: uidErr } = await supabaseAdmin.auth.admin.getUserById(uid);
+          if (!uidErr && authData?.user) {
+            authEmailMap.set(uid, {
+              email: authData.user.email ?? "",
+              last_sign_in: authData.user.last_sign_in_at ?? null,
+            });
+          }
+        })
+      );
+
+      const enriched = (profiles ?? []).map((p: any) => ({
+        id: p.id,
+        company_name: p.company_name,
+        contact_email: p.contact_email,
+        status: p.status,
+        created_at: p.created_at,
+        credit_balance: creditsMap[p.id] ?? 0,
+        unlock_count: unlockCountMap[p.id] ?? 0,
+        auth_email: authEmailMap.get(p.id)?.email ?? null,
+        last_sign_in: authEmailMap.get(p.id)?.last_sign_in ?? null,
+        has_contractor_record: !!authBridgeMap[p.id],
+        contractor_record_id: authBridgeMap[p.id]?.contractor_record_id ?? null,
+        marketplace_company_name: authBridgeMap[p.id]?.company_name ?? null,
+      }));
+
+      return successResponse({ data: enriched });
+    }
+
+    if (action === "get_contractor_ledger") {
+      const { contractor_id, limit: rawLimit } = payload;
+      if (!contractor_id) return errorResponse(400, "missing_param", "contractor_id is required");
+      const limit = Math.min(500, Math.max(1, Number.isInteger(rawLimit) ? rawLimit : 100));
+
+      const { data, error } = await supabaseAdmin
+        .from("contractor_credit_ledger")
+        .select("*")
+        .eq("contractor_id", contractor_id)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return successResponse({ data: data ?? [] });
+    }
+
+    if (action === "adjust_contractor_credits") {
+      const { contractor_id, delta, entry_type, notes } = payload;
+      if (!contractor_id) return errorResponse(400, "missing_param", "contractor_id is required");
+      if (!delta || typeof delta !== "number") return errorResponse(400, "missing_param", "delta (non-zero integer) is required");
+      if (!entry_type) return errorResponse(400, "missing_param", "entry_type is required");
+
+      const { data, error } = await supabaseAdmin.rpc("admin_adjust_contractor_credits", {
+        p_contractor_id: contractor_id,
+        p_delta: delta,
+        p_entry_type: entry_type,
+        p_notes: notes ?? null,
+        p_admin_user_id: userId === "dev-sandbox-bypass" ? null : userId,
+      });
+      if (error) throw error;
+      return successResponse({ data });
+    }
+
+    if (action === "get_contractor_unlocks") {
+      const { contractor_id, limit: rawLimit } = payload;
+      if (!contractor_id) return errorResponse(400, "missing_param", "contractor_id is required");
+      const limit = Math.min(500, Math.max(1, Number.isInteger(rawLimit) ? rawLimit : 100));
+
+      const { data: unlocks, error } = await supabaseAdmin
+        .from("contractor_unlocked_leads")
+        .select("id, contractor_id, lead_id, unlocked_at")
+        .eq("contractor_id", contractor_id)
+        .order("unlocked_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+
+      // Enrich with basic lead info
+      const leadIds = (unlocks ?? []).map((u: any) => u.lead_id);
+      let leadMap: Record<string, any> = {};
+      if (leadIds.length > 0) {
+        const { data: leads } = await supabaseAdmin
+          .from("leads")
+          .select("id, first_name, last_name, county, grade, window_count, quote_amount")
+          .in("id", leadIds);
+        for (const l of leads ?? []) {
+          leadMap[l.id] = l;
+        }
+      }
+
+      const enriched = (unlocks ?? []).map((u: any) => ({
+        ...u,
+        lead: leadMap[u.lead_id] ?? null,
+      }));
+
+      return successResponse({ data: enriched });
     }
 
     return errorResponse(400, "unhandled_action", `Action ${action} not implemented`);
