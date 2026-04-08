@@ -295,7 +295,7 @@ export default function PartnerDossier() {
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* ─── Sticky Header ─────────────────────────────────────── */}
       <header className="border-b bg-card sticky top-0 z-30 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link
               to="/partner/opportunities"
@@ -352,7 +352,7 @@ export default function PartnerDossier() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <main className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-8 space-y-8">
 
         {/* ═══════════════════════════════════════════════════════
             § 1 — LEAD PROVENANCE
