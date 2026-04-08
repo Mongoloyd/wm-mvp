@@ -508,7 +508,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
       {/* ─── FINANCIAL FORENSICS (full only) ─── */}
       {isFull && (priceFairness || markupEstimate || negotiationLeverage) && (
-        <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
+        <section className="py-10 md:py-14 px-4 md:px-14 bg-background border-b border-border">
           <div className="max-w-4xl mx-auto space-y-4">
             <motion.div {...stagger(2.5)}>
               <span className="wm-eyebrow" style={{ color: "hsl(var(--color-gold-accent))" }}>
