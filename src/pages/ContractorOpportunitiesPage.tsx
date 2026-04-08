@@ -17,6 +17,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PreviewModeBadge } from "@/components/PreviewModeBadge";
 
 /* ── Types ──────────────────────────────────────────────────────── */
 interface Opportunity {
@@ -87,12 +88,20 @@ const statusPill = (status: string) => {
   );
 };
 
+/* ── Mock data for preview mode ────────────────────────────────── */
+const MOCK_OPPORTUNITIES: Opportunity[] = [
+  { opportunity_id: "mock-1", route_id: "r1", analysis_id: "a1", lead_id: "l1", county: "Broward", city: "Fort Lauderdale", project_type: "Full Home Replacement", window_count: 12, quote_range: "$18,000–$24,000", grade: "D", flag_count: 4, red_flag_count: 2, amber_flag_count: 2, priority_score: 85, status: "intro_requested", release_status: "pending", already_unlocked: false, can_unlock: false, credit_balance: 5, dossier_href: "/partner/dossier", has_document: true, created_at: new Date().toISOString() },
+  { opportunity_id: "mock-2", route_id: "r2", analysis_id: "a2", lead_id: "l2", county: "Miami-Dade", city: "Miami", project_type: "Partial Replacement", window_count: 6, quote_range: "$8,500–$12,000", grade: "C", flag_count: 2, red_flag_count: 1, amber_flag_count: 1, priority_score: 72, status: "contractor_interested", release_status: "pending", already_unlocked: true, can_unlock: true, credit_balance: 5, dossier_href: "/partner/dossier", has_document: true, created_at: new Date(Date.now() - 86400000).toISOString() },
+  { opportunity_id: "mock-3", route_id: "r3", analysis_id: "a3", lead_id: "l3", county: "Palm Beach", city: "Boca Raton", project_type: "Impact Door + Windows", window_count: 18, quote_range: "$32,000–$45,000", grade: "F", flag_count: 7, red_flag_count: 4, amber_flag_count: 3, priority_score: 94, status: "intro_requested", release_status: "pending", already_unlocked: false, can_unlock: false, credit_balance: 5, dossier_href: "/partner/dossier", has_document: false, created_at: new Date(Date.now() - 172800000).toISOString() },
+];
+const MOCK_META: Meta = { credit_balance: 5, contractor_status: "preview", total: 3 };
+
 export default function ContractorOpportunitiesPage() {
   const navigate = useNavigate();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [meta, setMeta] = useState<Meta | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const [countyFilter, setCountyFilter] = useState("");
@@ -113,29 +122,28 @@ export default function ContractorOpportunitiesPage() {
         { body },
       );
 
-      if (fnErr) {
-        if (fnErr.message?.includes("401") || fnErr.message?.includes("unauthenticated")) {
-          setAuthError(true);
-          return;
-        }
-        setErrorMsg("Failed to load opportunities.");
-        return;
-      }
-
-      if (data?.error === "unauthenticated" || data?.error === "no_contractor_profile") {
-        setAuthError(true);
+      if (fnErr || data?.error === "unauthenticated" || data?.error === "no_contractor_profile") {
+        // Fall back to preview mode
+        setOpportunities(MOCK_OPPORTUNITIES);
+        setMeta(MOCK_META);
+        setIsPreview(true);
         return;
       }
 
       if (data?.error) {
-        setErrorMsg(data.message ?? "An error occurred.");
+        setOpportunities(MOCK_OPPORTUNITIES);
+        setMeta(MOCK_META);
+        setIsPreview(true);
         return;
       }
 
       setOpportunities(data.opportunities ?? []);
       setMeta(data.meta ?? null);
+      setIsPreview(false);
     } catch {
-      setErrorMsg("Network error. Please try again.");
+      setOpportunities(MOCK_OPPORTUNITIES);
+      setMeta(MOCK_META);
+      setIsPreview(true);
     } finally {
       setLoading(false);
     }
@@ -145,26 +153,7 @@ export default function ContractorOpportunitiesPage() {
     fetchOpportunities();
   }, [fetchOpportunities]);
 
-  /* ── Auth error ─────────────────────────────────────────────── */
-  if (authError) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-6">
-        <div className="text-center space-y-4">
-          <LogIn className="h-12 w-12 text-sky-400 mx-auto" />
-          <h2 className="text-xl font-bold text-white">Partner Authentication Required</h2>
-          <p className="text-sm text-slate-400 max-w-md">
-            Sign in to your WindowMan Partner Portal to access opportunities.
-          </p>
-          <a
-            href="/partner/login"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-sky-500 text-white text-sm font-semibold hover:bg-sky-400 transition-colors"
-          >
-            <LogIn className="h-4 w-4" /> Sign In
-          </a>
-        </div>
-      </div>
-    );
-  }
+  /* ── Removed auth-blocker — preview mode handles it gracefully ── */
 
   /* ── Loading ────────────────────────────────────────────────── */
   if (loading) {
