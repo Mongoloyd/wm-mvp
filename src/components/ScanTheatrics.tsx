@@ -12,8 +12,8 @@ import { useScanFunnelSafe } from "@/state/scanFunnel";
 const GRADE_COLORS: Record<string, string> = {
   A: "#059669",
   B: "#84CC16",
-  C: "#F97316",
-  D: "#DC2626",
+  C: "#FB923C",
+  D: "#F87171",
   F: "#991B1B",
 };
 
@@ -52,12 +52,12 @@ const TERMINAL_STEPS = [
 
 // Forensic bounding box markers revealed on the document silhouette as each step completes
 const FORENSIC_MARKERS: { x: number; y: number; w: number; h: number; label: string; color: string }[] = [
-  { x: 8, y: 31, w: 54, h: 11, label: "LINE_ITEMS", color: "#F97316" },
-  { x: 8, y: 13, w: 40, h: 10, label: "BRAND_SPEC", color: "#2563EB" },
-  { x: 56, y: 48, w: 36, h: 15, label: "PRICING", color: "#F97316" },
-  { x: 8, y: 61, w: 55, h: 11, label: "WARRANTY", color: "#2563EB" },
-  { x: 56, y: 13, w: 36, h: 10, label: "TOTAL_COST", color: "#F97316" },
-  { x: 8, y: 48, w: 42, h: 10, label: "RED_FLAGS", color: "#DC2626" },
+  { x: 8, y: 31, w: 54, h: 11, label: "LINE_ITEMS", color: "#FB923C" },
+  { x: 8, y: 13, w: 40, h: 10, label: "BRAND_SPEC", color: "#60A5FA" },
+  { x: 56, y: 48, w: 36, h: 15, label: "PRICING", color: "#FB923C" },
+  { x: 8, y: 61, w: 55, h: 11, label: "WARRANTY", color: "#60A5FA" },
+  { x: 56, y: 13, w: 36, h: 10, label: "TOTAL_COST", color: "#FB923C" },
+  { x: 8, y: 48, w: 42, h: 10, label: "RED_FLAGS", color: "#F87171" },
   { x: 8, y: 77, w: 50, h: 10, label: "GRADE_CALC", color: "#059669" },
 ];
 
@@ -77,35 +77,35 @@ const CANONICAL_PILLAR_DEFS = [
     key: "safety_code",
     label: "SAFETY & CODE MATCH",
     text: "Verifying NOA/DP rating compliance for {county}...",
-    accentColor: "#2563EB",
+    accentColor: "#60A5FA",
     delay: 0.3,
   },
   {
     key: "install_scope",
     label: "INSTALL & SCOPE CLARITY",
     text: "Checking installation scope and opening details...",
-    accentColor: "#F97316",
+    accentColor: "#FB923C",
     delay: 0.8,
   },
   {
     key: "price_fairness",
     label: "PRICE FAIRNESS",
     text: "Benchmarking against {county} county market data...",
-    accentColor: "#2563EB",
+    accentColor: "#60A5FA",
     delay: 1.4,
   },
   {
     key: "fine_print",
     label: "FINE PRINT & TRANSPARENCY",
     text: "Reviewing permit inclusion and payment schedule...",
-    accentColor: "#F97316",
+    accentColor: "#FB923C",
     delay: 2.0,
   },
   {
     key: "warranty",
     label: "WARRANTY VALUE",
     text: "Reviewing labor and manufacturer warranty language...",
-    accentColor: "#2563EB",
+    accentColor: "#60A5FA",
     delay: 2.6,
   },
 ];
@@ -121,9 +121,9 @@ function pillarStatusColor(status: PillarScore["status"]): string {
     case "pass":
       return "#059669";
     case "warn":
-      return "#F97316";
+      return "#FB923C";
     case "fail":
-      return "#DC2626";
+      return "#F87171";
     default:
       return "#374151";
   }
@@ -430,8 +430,8 @@ const ScanTheatrics = ({
             <p
               style={{
                 fontFamily: "'DM Mono', monospace",
-                fontSize: 10,
-                color: "#2563EB",
+                fontSize: 12,
+                color: "#60A5FA",
                 letterSpacing: "0.14em",
                 marginBottom: 14,
                 textAlign: "center",
@@ -482,28 +482,28 @@ const ScanTheatrics = ({
                   >
                     <div className="flex flex-wrap gap-3 mb-2">
                       {analysisData.documentType && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>
                           Detected:{" "}
                           {analysisData.documentType.charAt(0).toUpperCase() + analysisData.documentType.slice(1)}
                         </span>
                       )}
                       {analysisData.contractorName && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>
                           Contractor: {analysisData.contractorName}
                         </span>
                       )}
                       {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>
                           {analysisData.lineItemCount} line item{analysisData.lineItemCount === 1 ? "" : "s"}
                         </span>
                       )}
                       {analysisData.openingCount != null && analysisData.openingCount > 0 && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>
                           {analysisData.openingCount} opening{analysisData.openingCount === 1 ? "" : "s"}
                         </span>
                       )}
                       {analysisData.pageCount != null && analysisData.pageCount > 1 && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF" }}>
                           {analysisData.pageCount}-page document
                         </span>
                       )}
@@ -517,8 +517,8 @@ const ScanTheatrics = ({
                 <p
                   style={{
                     fontFamily: "'DM Mono', monospace",
-                    fontSize: 11,
-                    color: "#F97316",
+                    fontSize: 13,
+                    color: "#FB923C",
                     letterSpacing: "0.06em",
                     textAlign: "center",
                   }}
@@ -545,7 +545,7 @@ const ScanTheatrics = ({
                   <p
                     style={{
                       fontFamily: "'DM Mono', monospace",
-                      fontSize: 10,
+                      fontSize: 12,
                       color: "#4B5563",
                       letterSpacing: "0.12em",
                       marginBottom: 14,
@@ -647,8 +647,8 @@ const ScanTheatrics = ({
                     transition={{ delay: 0.4, duration: 0.2 }}
                     style={{
                       fontFamily: "'DM Mono', monospace",
-                      fontSize: 11,
-                      color: "#F97316",
+                      fontSize: 13,
+                      color: "#FB923C",
                       letterSpacing: "0.12em",
                       marginTop: 20,
                     }}
@@ -687,7 +687,7 @@ const DocumentSilhouette = ({
       style={{
         fontFamily: "'DM Mono', monospace",
         fontSize: 8,
-        color: "#374151",
+        color: "#D1D5DB",
         letterSpacing: "0.1em",
         marginBottom: 4,
         textAlign: "center",
@@ -753,7 +753,7 @@ const DocumentSilhouette = ({
             left: 0,
             right: 0,
             height: 2,
-            background: "linear-gradient(90deg, transparent, #2563EB 30%, #F97316 70%, transparent)",
+            background: "linear-gradient(90deg, transparent, #60A5FA 30%, #FB923C 70%, transparent)",
             boxShadow: "0 0 10px 3px rgba(37,99,235,0.35)",
             zIndex: 10,
           }}
@@ -767,7 +767,7 @@ const DocumentSilhouette = ({
             left: 0,
             right: 0,
             height: 1,
-            background: "linear-gradient(90deg, transparent, #2563EB 50%, transparent)",
+            background: "linear-gradient(90deg, transparent, #60A5FA 50%, transparent)",
             zIndex: 10,
           }}
         />
@@ -909,7 +909,7 @@ const ForensicTerminal = ({
           {(["#FF5F57", "#FFBD2E", "#28C840"] as const).map((c, i) => (
             <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: c }} />
           ))}
-          <span style={{ fontSize: 8, color: "#374151", marginLeft: 6, letterSpacing: "0.1em" }}>
+          <span style={{ fontSize: 8, color: "#D1D5DB", marginLeft: 6, letterSpacing: "0.1em" }}>
             WINDOWMAN-AI · FORENSIC ENGINE
           </span>
         </div>
@@ -927,8 +927,8 @@ const ForensicTerminal = ({
                 <div
                   key={i}
                   style={{
-                    fontSize: 11,
-                    color: "#2D3748",
+                    fontSize: 13,
+                    color: "#D1D5DB",
                     marginBottom: 5,
                     letterSpacing: "0.02em",
                     lineHeight: 1.5,
@@ -943,16 +943,16 @@ const ForensicTerminal = ({
               return (
                 <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 5 }}>
                   <motion.span
-                    animate={reducedMotion ? {} : { color: ["#F97316", "#FB923C", "#F97316"] }}
+                    animate={reducedMotion ? {} : { color: ["#FB923C", "#FB923C", "#FB923C"] }}
                     transition={{ duration: 1.2, repeat: Infinity }}
-                    style={{ fontSize: 11, letterSpacing: "0.02em", lineHeight: 1.5, color: "#F97316" }}
+                    style={{ fontSize: 13, letterSpacing: "0.02em", lineHeight: 1.5, color: "#FB923C" }}
                   >
                     {typedText}
                   </motion.span>
                   <motion.span
                     animate={reducedMotion ? {} : { opacity: [1, 0, 1] }}
                     transition={{ duration: 0.7, repeat: Infinity }}
-                    style={{ fontSize: 11, color: "#F97316", marginLeft: 1 }}
+                    style={{ fontSize: 13, color: "#FB923C", marginLeft: 1 }}
                   >
                     ▋
                   </motion.span>
@@ -970,7 +970,7 @@ const ForensicTerminal = ({
         <motion.div
           style={{
             height: 4,
-            background: "linear-gradient(90deg, #2563EB, #F97316)",
+            background: "linear-gradient(90deg, #60A5FA, #FB923C)",
             width: `${progressWidth}%`,
           }}
           animate={isCliffhanger && !reducedMotion ? { opacity: [0.6, 1, 0.6] } : {}}
@@ -1003,7 +1003,7 @@ const FlagPulsar = ({
     marginTop: -8,
     marginLeft: -8,
     borderRadius: "50%",
-    border: "1px solid #DC2626",
+    border: "1px solid #F87171",
   };
 
   return (
@@ -1043,7 +1043,7 @@ const FlagPulsar = ({
           marginTop: -2.5,
           marginLeft: -2.5,
           borderRadius: "50%",
-          backgroundColor: "#DC2626",
+          backgroundColor: "#F87171",
           zIndex: 1,
         }}
       />
@@ -1056,7 +1056,7 @@ const FlagPulsar = ({
           marginTop: 8,
           fontFamily: "'DM Mono', monospace",
           fontSize: 6,
-          color: "#DC2626",
+          color: "#F87171",
           letterSpacing: "0.05em",
           whiteSpace: "nowrap",
           background: "rgba(10,10,10,0.9)",
@@ -1248,12 +1248,12 @@ const FindingsCounter = ({ issues }: { issues: number }) => {
     <span
       style={{
         fontFamily: "'DM Mono', monospace",
-        fontSize: 10,
+        fontSize: 12,
         color: "#6B7280",
         letterSpacing: "0.04em",
       }}
     >
-      <span style={{ color: "#DC2626", fontWeight: 700 }}>{displayIssues}</span>
+      <span style={{ color: "#F87171", fontWeight: 700 }}>{displayIssues}</span>
       {" potential issue"}
       {displayIssues !== 1 ? "s" : ""}
       {" detected"}
@@ -1282,7 +1282,7 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
       color = "#059669";
     } else if (confidenceScore >= 55) {
       label = "Good";
-      color = "#2563EB";
+      color = "#60A5FA";
     } else {
       label = "Fair";
       color = "#D97706";
@@ -1294,7 +1294,7 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
 
   return (
     <div className="flex items-center gap-2">
-      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF", letterSpacing: "0.08em" }}>
+      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#9CA3AF", letterSpacing: "0.08em" }}>
         READ QUALITY
       </span>
       <span
