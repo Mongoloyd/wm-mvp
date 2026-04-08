@@ -1,6 +1,16 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { trackGtmEvent } from '@/lib/trackConversion';
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * VOICE FOLLOWUPS PANEL — Uses canonical invokeAdminData path
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Refactored: Removed legacy direct supabase.functions.invoke calls and
+ * adminPassword prop. Now uses the shared invokeAdminData service which
+ * handles session JWT auth (production) and X-Dev-Secret bypass (dev).
+ */
+
+import { useState, useEffect, useCallback } from "react";
+import { invokeAdminData } from "@/services/adminDataService";
+import { trackGtmEvent } from "@/lib/trackConversion";
 
 interface VoiceFollowup {
   id: string;
@@ -11,67 +21,43 @@ interface VoiceFollowup {
   opportunity_id: string | null;
 }
 
-interface Props {
-  adminPassword: string;
-}
-
-const monoFont = "'JetBrains Mono',monospace";
-const bodyFont = "'DM Sans',sans-serif";
-
-export default function VoiceFollowupsPanel({ adminPassword }: Props) {
+export default function VoiceFollowupsPanel() {
   const [followups, setFollowups] = useState<VoiceFollowup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [callingId, setCallingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!adminPassword) return;
-
-    const fetchFollowups = async () => {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: fetchError } = await supabase.functions.invoke('admin-data', {
-        body: {
-          action: 'fetch_voice_followups',
-          password: adminPassword,
-        },
-      });
-
-      if (fetchError) {
-        setError(fetchError.message);
-      } else {
-        setFollowups(data?.data || []);
-      }
-
+  const fetchFollowups = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await invokeAdminData("fetch_voice_followups");
+      setFollowups(data ?? []);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load voice followups");
+    } finally {
       setLoading(false);
-    };
+    }
+  }, []);
 
+  useEffect(() => {
     fetchFollowups();
-  }, [adminPassword]);
+  }, [fetchFollowups]);
 
   const handleManualCall = async (log: VoiceFollowup) => {
+    if (!log.scan_session_id) return;
     setCallingId(log.id);
     setError(null);
     try {
-      const { error } = await supabase.functions.invoke('admin-data', {
-        body: {
-          action: 'trigger_voice_followup',
-          password: adminPassword,
-          scan_session_id: log.scan_session_id,
-          phone_e164: log.phone_e164,
-          opportunity_id: log.opportunity_id,
-        },
+      await invokeAdminData("trigger_voice_followup", {
+        scan_session_id: log.scan_session_id,
+        phone_e164: log.phone_e164,
+        opportunity_id: log.opportunity_id ?? undefined,
       });
-      if (error) {
-        setError("Call failed: " + error.message);
-      } else {
-        alert("Voice AI Call Triggered!");
-        trackGtmEvent("voice_call_triggered", {
-          lead_id: log.lead_id,
-          trigger: "manual_admin",
-        });
-      }
+      trackGtmEvent("voice_call_triggered", {
+        lead_id: log.lead_id,
+        trigger: "manual_admin",
+      });
     } catch (err: unknown) {
       setError("Call failed: " + (err instanceof Error ? err.message : String(err)));
     } finally {
@@ -81,7 +67,7 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
 
   if (loading) {
     return (
-      <div style={{ fontFamily: monoFont, fontSize: 13, color: '#A0B8D8', padding: 20 }}>
+      <div className="text-sm text-muted-foreground p-5">
         Loading voice logs…
       </div>
     );
@@ -89,7 +75,7 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
 
   if (error) {
     return (
-      <div style={{ fontFamily: monoFont, fontSize: 13, color: '#DC2626', padding: 20 }}>
+      <div className="text-sm text-destructive p-5">
         {error}
       </div>
     );
@@ -97,68 +83,49 @@ export default function VoiceFollowupsPanel({ adminPassword }: Props) {
 
   if (followups.length === 0) {
     return (
-      <div style={{ fontFamily: monoFont, fontSize: 13, color: '#A0B8D8', padding: 40, textAlign: 'center' }}>
+      <div className="text-sm text-muted-foreground p-10 text-center">
         No recent voice follow-ups found.
       </div>
     );
   }
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: bodyFont, fontSize: 12 }}>
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-xs">
         <thead>
-          <tr style={{ background: '#111418' }}>
-            {['Date & Time', 'Phone Number', 'Lead ID', 'Opportunity ID', 'Actions'].map(col => (
-              <th key={col} style={{
-                fontFamily: monoFont,
-                fontSize: 11,
-                color: '#A0B8D8',
-                letterSpacing: '0.12em',
-                textAlign: 'left',
-                padding: '8px 12px',
-                borderBottom: '1px solid #2E3A50',
-                fontWeight: 500,
-                textTransform: 'uppercase',
-              }}>
+          <tr className="bg-muted/50">
+            {["Date & Time", "Phone Number", "Lead ID", "Opportunity ID", "Actions"].map((col) => (
+              <th
+                key={col}
+                className="text-left px-3 py-2 font-medium text-muted-foreground uppercase tracking-wider border-b"
+              >
                 {col}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {followups.map(log => (
-            <tr key={log.id} style={{ borderBottom: '1px solid #1C1C1C' }}>
-              <td style={{ padding: '10px 12px', color: '#C8DEFF', fontFamily: monoFont, fontSize: 13 }}>
+          {followups.map((log) => (
+            <tr key={log.id} className="border-b">
+              <td className="px-3 py-2.5 font-mono text-xs">
                 {new Date(log.created_at).toLocaleString()}
               </td>
-              <td style={{ padding: '10px 12px', color: '#00D9FF', fontFamily: monoFont, fontSize: 13 }}>
+              <td className="px-3 py-2.5 font-mono text-xs text-primary">
                 {log.phone_e164}
               </td>
-              <td style={{ padding: '10px 12px', color: '#C8DEFF', fontFamily: monoFont, fontSize: 13 }}>
-                {log.lead_id ? log.lead_id.slice(0, 8) + '…' : '—'}
+              <td className="px-3 py-2.5 font-mono text-xs">
+                {log.lead_id ? log.lead_id.slice(0, 8) + "…" : "—"}
               </td>
-              <td style={{ padding: '10px 12px', color: '#C8DEFF', fontFamily: monoFont, fontSize: 13 }}>
-                {log.opportunity_id ? log.opportunity_id.slice(0, 8) + '…' : '—'}
+              <td className="px-3 py-2.5 font-mono text-xs">
+                {log.opportunity_id ? log.opportunity_id.slice(0, 8) + "…" : "—"}
               </td>
-              <td style={{ padding: '10px 12px' }}>
+              <td className="px-3 py-2.5">
                 <button
                   onClick={() => handleManualCall(log)}
                   disabled={callingId === log.id || !log.scan_session_id}
-                  title={!log.scan_session_id ? 'No scan session — cannot trigger call' : callingId === log.id ? 'Call in progress…' : undefined}
-                  style={{
-                    fontFamily: monoFont,
-                    fontSize: 12,
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    padding: '5px 10px',
-                    border: 'none',
-                    borderRadius: 0,
-                    cursor: (callingId === log.id || !log.scan_session_id) ? 'not-allowed' : 'pointer',
-                    background: (callingId === log.id || !log.scan_session_id) ? '#2E3A50' : '#1D4ED8',
-                    color: !log.scan_session_id ? '#A0B8D8' : '#FFFFFF',
-                  }}
+                  className="text-xs font-mono uppercase tracking-wide px-2.5 py-1 rounded bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {callingId === log.id ? 'Dialing…' : 'Call Now'}
+                  {callingId === log.id ? "Dialing…" : "Call Now"}
                 </button>
               </td>
             </tr>
