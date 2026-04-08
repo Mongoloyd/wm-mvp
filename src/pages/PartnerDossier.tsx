@@ -15,7 +15,12 @@ import {
   Minus,
   CreditCard,
   AlertTriangle,
-  LogIn,
+  ClipboardList,
+  Building2,
+  Hash,
+  MapPin,
+  DollarSign,
+  Layers,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,13 +45,16 @@ const pillarColor = (score: number) => {
 };
 
 const gradeColor = (g: string | null | undefined) => {
-  if (!g) return "text-slate-400";
-  if (g === "A") return "text-emerald-400";
-  if (g === "B") return "text-emerald-300";
-  if (g === "C") return "text-amber-400";
-  if (g === "D") return "text-orange-400";
-  return "text-red-400";
+  if (!g) return "text-muted-foreground";
+  if (g === "A") return "text-emerald-600";
+  if (g === "B") return "text-emerald-500";
+  if (g === "C") return "text-amber-600";
+  if (g === "D") return "text-orange-600";
+  return "text-red-600";
 };
+
+/* ── Dossier display state ────────────────────────────────────── */
+type DossierDisplayState = "locked" | "unlocked" | "preview_locked" | "preview_unlocked";
 
 /* ── Rich mock data for no-id / demo fallback ─────────────────── */
 const MOCK_DOSSIER = {
@@ -65,6 +73,7 @@ const MOCK_DOSSIER = {
       window_count: 12,
       estimated_savings_low: 2400,
       estimated_savings_high: 5800,
+      intent: "comparing_quotes",
     },
     analysis: {
       id: "mock-analysis-id",
@@ -90,7 +99,7 @@ const MOCK_DOSSIER = {
       { label: "Above-Market Pricing", detail: "Price per opening is 34% above Broward County median.", severity: "Medium", pillar: "price", tip: null },
       { label: "No Written Warranty Terms", detail: "Quote mentions 'lifetime warranty' without defining coverage.", severity: "Medium", pillar: "warranty", tip: null },
     ],
-    proof_of_read: null,
+    proof_of_read: { pages_scanned: 3, document_hash: "abc123" },
   },
   meta: {
     analysis_id: "mock-analysis-id",
@@ -130,56 +139,49 @@ export default function PartnerDossier() {
 
   const [dossier, setDossier] = useState<DossierData | null>(null);
   const [meta, setMeta] = useState<DossierMeta | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   /* ── Fallback helper ───────────────────────────────────────────── */
-  const fallbackToMock = () => {
+  const fallbackToMock = useCallback(() => {
     setDossier(MOCK_DOSSIER.dossier as any);
     setMeta(MOCK_DOSSIER.meta as any);
     setIsPreview(true);
     setLoading(false);
-  };
+  }, []);
+
+  /* ── Initialize immediately with mock if no id ───────────────── */
+  useEffect(() => {
+    if (!id) fallbackToMock();
+  }, [id, fallbackToMock]);
 
   /* ── Fetch dossier via edge function ──────────────────────────── */
   const fetchDossier = useCallback(async () => {
-    if (!id) {
-      fallbackToMock();
-      return;
-    }
+    if (!id) return;
 
-    setLoading(true);
-
+    // Don't block page — render stays with existing data
     let data: any = null;
     try {
       const res = await supabase.functions.invoke("get-contractor-dossier", {
         body: { id },
       });
-      if (res.error) {
-        console.warn("[PartnerDossier] Edge function error:", res.error);
-        fallbackToMock();
-        return;
-      }
+      if (res.error) { fallbackToMock(); return; }
       data = res.data;
-    } catch (err) {
-      console.warn("[PartnerDossier] Fetch threw, falling back to mock:", err);
+    } catch {
       fallbackToMock();
       return;
     }
 
-    // Handle structured error responses
     if (!data || data.error === "unauthenticated" || data.error === "internal_error") {
-      console.warn("[PartnerDossier] Auth/server error response, using mock");
       fallbackToMock();
       return;
     }
 
     if (data.error === "not_found") {
       setError("Dossier not found for the given ID.");
-      setLoading(false);
       return;
     }
 
@@ -188,22 +190,37 @@ export default function PartnerDossier() {
       setMeta(data.meta);
       setIsPreview(false);
     } else {
-      console.warn("[PartnerDossier] Unexpected response shape, using mock");
       fallbackToMock();
-      return;
     }
-
-    setLoading(false);
-  }, [id]);
+  }, [id, fallbackToMock]);
 
   useEffect(() => {
-    fetchDossier();
-  }, [fetchDossier]);
+    if (id) {
+      // Start with mock immediately, then try to fetch real data
+      fallbackToMock();
+      fetchDossier();
+    }
+  }, [id, fallbackToMock, fetchDossier]);
 
   /* ── Unlock handler ──────────────────────────────────────────── */
   const handleUnlock = async () => {
     if (isPreview) {
-      toast.info("Sign in to unlock leads.");
+      // Demo unlock in preview mode
+      setMeta((prev) => prev ? { ...prev, masked: false, already_unlocked: true } : prev);
+      setDossier((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          lead: {
+            ...prev.lead,
+            first_name: "Sarah",
+            last_name: "Martinez",
+            email: "sarah.martinez@gmail.com",
+            phone_e164: "+19545551234",
+          },
+        };
+      });
+      toast.success("Lead unlocked! (Preview mode)");
       return;
     }
     if (!meta?.lead_id) return;
@@ -216,14 +233,12 @@ export default function PartnerDossier() {
 
       if (fnErr) {
         toast.error("Unlock failed. Please try again.");
-        console.error("[PartnerDossier] Unlock error:", fnErr);
         setUnlocking(false);
         return;
       }
 
       if (data?.success) {
         toast.success(data.already_unlocked ? "Lead already unlocked." : "Lead unlocked! 1 credit deducted.");
-        // Re-fetch to get unmasked dossier
         await fetchDossier();
       } else {
         const code = data?.error_code;
@@ -235,8 +250,7 @@ export default function PartnerDossier() {
           toast.error(data?.message ?? "Unlock failed.");
         }
       }
-    } catch (err) {
-      console.error("[PartnerDossier] Unlock exception:", err);
+    } catch {
       toast.error("Network error. Please try again.");
     } finally {
       setUnlocking(false);
@@ -250,30 +264,26 @@ export default function PartnerDossier() {
     setTimeout(() => setCopied(null), 1500);
   };
 
-  /* ── Removed auth-blocker — preview mode handles it gracefully ── */
-
-  /* ── Loading state ─────────────────────────────────────────── */
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-slate-600 border-t-sky-400 animate-spin" />
-      </div>
-    );
-  }
-
   /* ── Hard error state ──────────────────────────────────────── */
   if (error && !dossier) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-6">
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="text-center space-y-3">
-          <AlertTriangle className="h-10 w-10 text-amber-400 mx-auto" />
-          <p className="text-sm text-slate-400">{error}</p>
+          <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto" />
+          <p className="text-sm text-muted-foreground">{error}</p>
         </div>
       </div>
     );
   }
 
-  if (!dossier || !meta) return null;
+  if (!dossier || !meta) {
+    // Show skeleton-like loading
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-muted border-t-primary animate-spin" />
+      </div>
+    );
+  }
 
   /* ── Derived data ──────────────────────────────────────────── */
   const lead = dossier.lead;
@@ -289,27 +299,53 @@ export default function PartnerDossier() {
       ? Math.round(totalPrice / openingCount)
       : null;
 
+  /* ── Canonical display state ── */
+  const displayState: DossierDisplayState = isPreview
+    ? (isUnlocked ? "preview_unlocked" : "preview_locked")
+    : (isUnlocked ? "unlocked" : "locked");
+
+  const isDisplayUnlocked = displayState === "unlocked" || displayState === "preview_unlocked";
+
+  /* ── Document vault state ── */
+  const hasDocument = !!(dossier.proof_of_read || ext?.company_name);
+
+  /* ── Intake intelligence cards ── */
+  const intakeCards = [
+    { label: "Project Type", value: lead?.project_type ?? ext?.project_type, icon: Building2 },
+    { label: "Window Count", value: lead?.window_count != null ? String(lead.window_count) : (openingCount != null ? String(openingCount) : null), icon: Hash },
+    { label: "County", value: lead?.county, icon: MapPin },
+    { label: "Quote Range", value: lead?.quote_range, icon: DollarSign },
+    { label: "Quote Stage", value: lead?.intent?.replace(/_/g, " ") ?? (lead?.quote_range ? "Has Quote" : null), icon: Layers },
+  ].filter((c) => c.value != null && c.value !== "");
+
+  /* ── Section styling helpers ── */
+  const sectionBase = isDisplayUnlocked
+    ? "rounded-xl border border-emerald-200 bg-emerald-50/30 p-6"
+    : "rounded-xl border bg-card p-6";
+
   /* ── Render ────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans">
-      {isPreview && <PreviewModeBadge />}
+    <div className="min-h-screen bg-background text-foreground font-sans">
       {/* ─── Header ───────────────────────────────────────────────── */}
-      <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30">
+      <header className="border-b bg-card sticky top-0 z-30">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link
               to="/partner/opportunities"
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-sky-400 transition-colors mr-1"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors mr-1"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Opportunities</span>
             </Link>
-            <Crosshair className="h-6 w-6 text-sky-400" />
+            <Crosshair className="h-6 w-6 text-sky-600" />
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-white leading-none">
-                WindowMan Intelligence Dossier
-              </h1>
-              <p className="text-xs text-slate-500 font-mono mt-0.5">
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold tracking-tight leading-none">
+                  Intelligence Dossier
+                </h1>
+                {isPreview && <PreviewModeBadge />}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 ID&nbsp;{(meta.analysis_id ?? id ?? "demo").slice(0, 8)}…
               </p>
             </div>
@@ -317,9 +353,9 @@ export default function PartnerDossier() {
 
           <div className="flex items-center gap-3">
             {/* Credit balance badge */}
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 border border-slate-700/50">
-              <CreditCard className="h-3.5 w-3.5 text-sky-400" />
-              <span className="text-xs font-mono text-slate-300">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-muted border">
+              <CreditCard className="h-3.5 w-3.5 text-sky-600" />
+              <span className="text-xs font-mono">
                 {meta.credit_balance} credit{meta.credit_balance !== 1 ? "s" : ""}
               </span>
             </div>
@@ -327,25 +363,25 @@ export default function PartnerDossier() {
             {/* Unlock button */}
             <button
               onClick={handleUnlock}
-              disabled={isUnlocked || unlocking || !meta.can_unlock}
+              disabled={isDisplayUnlocked || unlocking || (!isPreview && !meta.can_unlock)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all
                 ${
-                  isUnlocked
-                    ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/40 cursor-default"
+                  isDisplayUnlocked
+                    ? "bg-emerald-100 text-emerald-700 border border-emerald-300 cursor-default"
                     : unlocking
-                      ? "bg-sky-500/60 text-white cursor-wait"
-                      : meta.can_unlock
-                        ? "bg-sky-500 text-white hover:bg-sky-400 hover:scale-105 active:scale-95 shadow-lg shadow-sky-500/25"
-                        : "bg-slate-700 text-slate-400 cursor-not-allowed border border-slate-600/40"
+                      ? "bg-sky-100 text-sky-700 cursor-wait"
+                      : (isPreview || meta.can_unlock)
+                        ? "bg-sky-600 text-white hover:bg-sky-500 shadow-md"
+                        : "bg-muted text-muted-foreground cursor-not-allowed border"
                 }`}
             >
-              {isUnlocked ? (
+              {isDisplayUnlocked ? (
                 <>
-                  <Unlock className="h-4 w-4" /> Lead Unlocked
+                  <Check className="h-4 w-4" /> Lead Unlocked
                 </>
               ) : unlocking ? (
                 <>
-                  <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  <div className="h-4 w-4 rounded-full border-2 border-sky-400 border-t-transparent animate-spin" />
                   Unlocking…
                 </>
               ) : (
@@ -360,12 +396,17 @@ export default function PartnerDossier() {
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* ─── Lead Provenance ────────────────────────────────────── */}
-        <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
+        <section className={sectionBase}>
           <div className="flex items-center gap-2 mb-4">
-            <Target className="h-5 w-5 text-sky-400" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-sky-400">
+            <Target className="h-5 w-5 text-sky-600" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-sky-700">
               Lead Provenance
             </h2>
+            {isDisplayUnlocked && (
+              <span className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                <Check className="h-3 w-3" /> Unlocked
+              </span>
+            )}
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -377,14 +418,14 @@ export default function PartnerDossier() {
             <InfoRow
               label="Lead Name"
               value={`${lead?.first_name ?? ""} ${lead?.last_name ?? ""}`.trim() || "N/A"}
-              blur={meta.masked}
+              blur={!isDisplayUnlocked}
             />
             <PiiRow
               label="Phone"
               value={lead?.phone_e164 ?? "N/A"}
-              blur={meta.masked}
+              blur={!isDisplayUnlocked}
               onCopy={
-                isUnlocked && lead?.phone_e164
+                isDisplayUnlocked && lead?.phone_e164
                   ? () => copyText("Phone", lead.phone_e164)
                   : undefined
               }
@@ -393,9 +434,9 @@ export default function PartnerDossier() {
             <PiiRow
               label="Email"
               value={lead?.email ?? "N/A"}
-              blur={meta.masked}
+              blur={!isDisplayUnlocked}
               onCopy={
-                isUnlocked && lead?.email
+                isDisplayUnlocked && lead?.email
                   ? () => copyText("Email", lead.email)
                   : undefined
               }
@@ -408,18 +449,51 @@ export default function PartnerDossier() {
           </div>
         </section>
 
+        {/* ─── Lead Intake Intelligence (NEW) ─────────────────────── */}
+        {intakeCards.length > 0 && (
+          <section className="rounded-xl border bg-card p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <ClipboardList className="h-5 w-5 text-violet-600" />
+              <h2 className="text-sm font-bold uppercase tracking-widest text-violet-700">
+                Lead Intake Intelligence
+              </h2>
+            </div>
+            <div className={`grid gap-3 ${intakeCards.length >= 5 ? "sm:grid-cols-5" : intakeCards.length >= 4 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+              {intakeCards.map((card) => {
+                const Icon = card.icon;
+                return (
+                  <div
+                    key={card.label}
+                    className="bg-muted/50 rounded-lg p-4 border-l-4 border-violet-300"
+                  >
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Icon className="h-3.5 w-3.5 text-violet-500" />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">
+                        {card.label}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold capitalize">
+                      {card.value}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* ─── Competitive Intelligence ───────────────────────────── */}
-        <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
+        <section className="rounded-xl border bg-card p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Target className="h-5 w-5 text-amber-400" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-amber-400">
+            <Target className="h-5 w-5 text-amber-600" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-amber-700">
               Competitive Intelligence
             </h2>
           </div>
 
           <div className="grid sm:grid-cols-3 gap-4">
-            <div className="bg-slate-800/60 rounded-lg p-4 text-center border border-slate-700/50">
-              <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+            <div className="bg-muted/50 rounded-lg p-4 text-center border">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
                 Competitor Grade
               </p>
               <p className={`text-5xl font-black ${gradeColor(analysis?.grade)}`}>
@@ -427,21 +501,21 @@ export default function PartnerDossier() {
               </p>
             </div>
 
-            <div className="bg-slate-800/60 rounded-lg p-4 text-center border border-slate-700/50">
-              <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+            <div className="bg-muted/50 rounded-lg p-4 text-center border">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
                 Total Quoted
               </p>
-              <p className="text-2xl font-bold text-white">{fmt(totalPrice)}</p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-2xl font-bold">{fmt(totalPrice)}</p>
+              <p className="text-xs text-muted-foreground mt-1">
                 {openingCount ?? "?"} openings
               </p>
             </div>
 
-            <div className="bg-slate-800/60 rounded-lg p-4 text-center border border-slate-700/50">
-              <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+            <div className="bg-muted/50 rounded-lg p-4 text-center border">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
                 Price / Opening
               </p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-2xl font-bold">
                 {pricePerOpening != null ? `$${pricePerOpening.toLocaleString()}` : "N/A"}
               </p>
               {pricePerOpening != null && <MarketIndicator price={pricePerOpening} />}
@@ -451,10 +525,10 @@ export default function PartnerDossier() {
 
         {/* ─── Pillar Scores Bar Chart ────────────────────────────── */}
         {Object.keys(pillarScores).length > 0 && (
-          <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
+          <section className="rounded-xl border bg-card p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Crosshair className="h-5 w-5 text-violet-400" />
-              <h2 className="text-sm font-bold uppercase tracking-widest text-violet-400">
+              <Crosshair className="h-5 w-5 text-violet-600" />
+              <h2 className="text-sm font-bold uppercase tracking-widest text-violet-700">
                 Forensic Breakdown
               </h2>
             </div>
@@ -463,16 +537,16 @@ export default function PartnerDossier() {
                 const score = pillarScores[key] ?? 0;
                 return (
                   <div key={key} className="flex items-center gap-3">
-                    <span className="text-xs text-slate-400 w-28 shrink-0 text-right font-mono">
+                    <span className="text-xs text-muted-foreground w-28 shrink-0 text-right font-mono">
                       {label}
                     </span>
-                    <div className="flex-1 bg-slate-800 rounded-full h-3 overflow-hidden">
+                    <div className="flex-1 bg-muted rounded-full h-3 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-700 ${pillarColor(score)}`}
                         style={{ width: `${Math.min(score, 100)}%` }}
                       />
                     </div>
-                    <span className="text-xs text-slate-400 font-mono w-8 text-right">
+                    <span className="text-xs text-muted-foreground font-mono w-8 text-right">
                       {score}
                     </span>
                   </div>
@@ -483,16 +557,16 @@ export default function PartnerDossier() {
         )}
 
         {/* ─── Attack Surface & Vulnerabilities ──────────────────── */}
-        <section className="rounded-xl border border-red-900/40 bg-slate-900/60 p-6">
+        <section className="rounded-xl border border-red-200 bg-red-50/30 p-6">
           <div className="flex items-center gap-2 mb-4">
-            <ShieldAlert className="h-5 w-5 text-red-400" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-red-400">
+            <ShieldAlert className="h-5 w-5 text-red-600" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-red-700">
               Attack Surface &amp; Vulnerabilities
             </h2>
           </div>
 
           {flags.length === 0 ? (
-            <p className="text-slate-500 text-sm italic">
+            <p className="text-muted-foreground text-sm italic">
               No critical vulnerabilities detected.
             </p>
           ) : (
@@ -500,22 +574,22 @@ export default function PartnerDossier() {
               {flags.map((flag: any, i: number) => (
                 <li
                   key={i}
-                  className="flex items-start gap-3 bg-slate-800/50 rounded-lg p-3 border border-slate-700/40"
+                  className="flex items-start gap-3 bg-card rounded-lg p-3 border"
                 >
-                  <ShieldAlert className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+                  <ShieldAlert className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-slate-200">
+                    <p className="text-sm font-medium">
                       {flag?.label ?? `Flag ${i + 1}`}
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {flag?.detail ?? "—"}
                     </p>
                     {flag?.severity && (
                       <span
                         className={`inline-block mt-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
                           flag.severity === "Critical" || flag.severity === "High"
-                            ? "bg-red-500/20 text-red-400"
-                            : "bg-amber-500/20 text-amber-400"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700"
                         }`}
                       >
                         {flag.severity}
@@ -530,13 +604,15 @@ export default function PartnerDossier() {
 
         {/* ─── Document Vault ─────────────────────────────────────── */}
         <DocumentVault
-          isUnlocked={isUnlocked}
+          hasDocument={hasDocument}
+          isUnlocked={isDisplayUnlocked}
           analysisId={meta.analysis_id}
           createdAt={analysis?.created_at}
+          isPreview={isPreview}
         />
 
         {/* ─── Provenance Footer ──────────────────────────────────── */}
-        <footer className="text-center text-[11px] text-slate-600 font-mono py-6 space-y-1">
+        <footer className="text-center text-[11px] text-muted-foreground py-6 space-y-1">
           <p>
             Scanned&nbsp;
             {new Date(analysis?.created_at).toLocaleString()} &middot;
@@ -563,7 +639,7 @@ function InfoRow({
 }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-0.5">
+      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-0.5">
         {label}
       </p>
       <p
@@ -590,7 +666,7 @@ function PiiRow({
 }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-0.5">
+      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-0.5">
         {label}
       </p>
       <div className="flex items-center gap-2">
@@ -602,10 +678,10 @@ function PiiRow({
         {onCopy && (
           <button
             onClick={onCopy}
-            className="text-slate-500 hover:text-sky-400 transition-colors"
+            className="text-muted-foreground hover:text-primary transition-colors"
           >
             {copied ? (
-              <Check className="h-3.5 w-3.5 text-emerald-400" />
+              <Check className="h-3.5 w-3.5 text-emerald-600" />
             ) : (
               <Copy className="h-3.5 w-3.5" />
             )}
@@ -623,35 +699,43 @@ function MarketIndicator({ price }: { price: number }) {
 
   if (abs < 5)
     return (
-      <span className="flex items-center justify-center gap-1 text-[10px] text-slate-400 mt-1">
+      <span className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground mt-1">
         <Minus className="h-3 w-3" /> At market
       </span>
     );
 
   return diff > 0 ? (
-    <span className="flex items-center justify-center gap-1 text-[10px] text-red-400 mt-1">
+    <span className="flex items-center justify-center gap-1 text-[10px] text-red-600 mt-1">
       <TrendingUp className="h-3 w-3" /> {abs}% above market
     </span>
   ) : (
-    <span className="flex items-center justify-center gap-1 text-[10px] text-emerald-400 mt-1">
+    <span className="flex items-center justify-center gap-1 text-[10px] text-emerald-600 mt-1">
       <TrendingDown className="h-3 w-3" /> {abs}% below market
     </span>
   );
 }
 
 function DocumentVault({
+  hasDocument,
   isUnlocked,
   analysisId,
   createdAt,
+  isPreview,
 }: {
+  hasDocument: boolean;
   isUnlocked: boolean;
   analysisId: string;
   createdAt: string | undefined;
+  isPreview: boolean;
 }) {
   const [docLoading, setDocLoading] = useState(false);
   const [docError, setDocError] = useState<string | null>(null);
 
   const handleViewDocument = async () => {
+    if (isPreview) {
+      toast.info("Document viewing not available in preview mode.");
+      return;
+    }
     setDocLoading(true);
     setDocError(null);
     try {
@@ -676,50 +760,83 @@ function DocumentVault({
     }
   };
 
-  return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <FileText className="h-5 w-5 text-sky-400" />
-        <h2 className="text-sm font-bold uppercase tracking-widest text-sky-400">
-          Document Vault
-        </h2>
-      </div>
+  /* State 1: No document exists */
+  if (!hasDocument) {
+    return (
+      <section className="rounded-xl border bg-card p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <FileText className="h-5 w-5 text-muted-foreground" />
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            Document Vault
+          </h2>
+        </div>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <FileText className="h-10 w-10 text-muted-foreground/30 mb-2" />
+          <p className="text-sm text-muted-foreground">No document on file</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            The original quote document has not been uploaded for this lead.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
-      <div className="relative bg-slate-800/50 rounded-lg p-6 border border-slate-700/40 flex items-center gap-4">
-        {!isUnlocked ? (
-          <>
-            <div className="blur-md select-none pointer-events-none flex items-center gap-4 flex-1">
-              <div className="h-12 w-12 rounded-lg bg-slate-700" />
-              <div>
-                <p className="text-sm font-medium">Original_Quote.pdf</p>
-                <p className="text-xs text-slate-500">
-                  Scanned {createdAt ? new Date(createdAt).toLocaleDateString() : "—"}
-                </p>
-              </div>
-            </div>
-            <Lock className="h-6 w-6 text-slate-600 absolute right-6" />
-          </>
-        ) : (
-          <>
-            <FileText className="h-12 w-12 text-sky-500 shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-white">Original_Quote.pdf</p>
-              <p className="text-xs text-slate-500">
+  /* State 2: Document exists but locked */
+  if (!isUnlocked) {
+    return (
+      <section className="rounded-xl border bg-card p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <FileText className="h-5 w-5 text-sky-600" />
+          <h2 className="text-sm font-bold uppercase tracking-widest text-sky-700">
+            Document Vault
+          </h2>
+        </div>
+        <div className="relative bg-muted/50 rounded-lg p-6 border flex items-center gap-4">
+          <div className="blur-md select-none pointer-events-none flex items-center gap-4 flex-1">
+            <div className="h-12 w-12 rounded-lg bg-muted" />
+            <div>
+              <p className="text-sm font-medium">Original_Quote.pdf</p>
+              <p className="text-xs text-muted-foreground">
                 Scanned {createdAt ? new Date(createdAt).toLocaleDateString() : "—"}
               </p>
-              {docError && (
-                <p className="text-xs text-red-400 mt-1">{docError}</p>
-              )}
             </div>
-            <button
-              onClick={handleViewDocument}
-              disabled={docLoading}
-              className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500 transition-colors disabled:opacity-50 disabled:cursor-wait"
-            >
-              {docLoading ? "Loading…" : "View Original Quote"}
-            </button>
-          </>
-        )}
+          </div>
+          <Lock className="h-6 w-6 text-muted-foreground absolute right-6" />
+        </div>
+      </section>
+    );
+  }
+
+  /* State 3: Document exists and unlocked */
+  return (
+    <section className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <FileText className="h-5 w-5 text-emerald-600" />
+        <h2 className="text-sm font-bold uppercase tracking-widest text-emerald-700">
+          Document Vault
+        </h2>
+        <span className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+          <Check className="h-3 w-3" /> Accessible
+        </span>
+      </div>
+      <div className="bg-card rounded-lg p-6 border flex items-center gap-4">
+        <FileText className="h-12 w-12 text-sky-600 shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-medium">Original_Quote.pdf</p>
+          <p className="text-xs text-muted-foreground">
+            Scanned {createdAt ? new Date(createdAt).toLocaleDateString() : "—"}
+          </p>
+          {docError && (
+            <p className="text-xs text-red-600 mt-1">{docError}</p>
+          )}
+        </div>
+        <button
+          onClick={handleViewDocument}
+          disabled={docLoading}
+          className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500 transition-colors disabled:opacity-50 disabled:cursor-wait"
+        >
+          {docLoading ? "Loading…" : "View Original Quote"}
+        </button>
       </div>
     </section>
   );
