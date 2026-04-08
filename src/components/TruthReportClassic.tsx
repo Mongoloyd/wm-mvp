@@ -435,6 +435,12 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         </section>
       )}
 
+      {/* ─── RED FLAGS LIST (full only) ─── */}
+      {isFull && <RedFlagsList warnings={warnings ?? []} />}
+
+      {/* ─── MISSING ITEMS LIST (full only) ─── */}
+      {isFull && <MissingItemsList missingItems={missingItems ?? []} />}
+
       <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
           <motion.div {...stagger(3)}>
