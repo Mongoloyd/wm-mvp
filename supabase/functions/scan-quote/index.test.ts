@@ -317,6 +317,16 @@ function perfectQuote(): ExtractionResult {
     buck_treatment_method_text: "Pressure-treated 2x4 buck with Boral wrap",
     manufacturer_install_compliance_stated: true,
     code_compliance_install_statement_present: true,
+    // ── Warranty execution fields (Area 5) ──────────────────────────────────
+    warranty_execution_details_present: true,
+    warranty_service_provider_type: "contractor",
+    warranty_service_provider_name: "WindowMan Pro Services",
+    leak_callback_sla_days: 3,
+    labor_service_sla_days: 5,
+    callback_process_text: "Call main office, technician dispatched within 72 hours",
+    post_install_stucco_excluded: false,
+    post_install_paint_excluded: false,
+    water_intrusion_damage_excluded: false,
     line_items: [
       {
         description: "Impact hurricane-rated sliding glass door",

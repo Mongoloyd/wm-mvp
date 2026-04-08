@@ -138,7 +138,7 @@ export interface ExtractionResult {
 
 // ── Rubric constants ─────────────────────────────────────────────────────────
 
-export const RUBRIC_VERSION = "1.5.0";
+export const RUBRIC_VERSION = "1.6.0";
 
 export const PILLAR_WEIGHTS = {
   safety: 0.25,
@@ -392,6 +392,35 @@ export function scoreWarranty(data: ExtractionResult): number {
   // ── Written details ────────────────────────────────────────────────────
   if (!data.warranty.details) score -= 10;
 
+  // ── Warranty execution details ─────────────────────────────────────────
+  if (data.warranty_execution_details_present !== true) score -= 15;
+
+  if (!data.warranty_service_provider_type || data.warranty_service_provider_type === "unknown") {
+    score -= 10;
+  }
+
+  if (data.leak_callback_sla_days == null) {
+    score -= 15;
+  } else if (data.leak_callback_sla_days > 14) {
+    score -= 10;
+  } else if (data.leak_callback_sla_days > 7) {
+    score -= 5;
+  }
+
+  if (data.labor_service_sla_days == null) score -= 5;
+  if (!data.callback_process_text) score -= 10;
+
+  if (data.post_install_stucco_excluded === true) score -= 5;
+  if (data.post_install_paint_excluded === true) score -= 5;
+  if (data.water_intrusion_damage_excluded === true) score -= 15;
+
+  if (
+    data.warranty_service_provider_type === "third_party" &&
+    !data.warranty_service_provider_name
+  ) {
+    score -= 5;
+  }
+
   return clamp(score);
 }
 
@@ -578,6 +607,22 @@ export function computeGrade(data: ExtractionResult): GradeResult {
       hardCapApplied = hardCapApplied
         ? hardCapApplied + "+install_method_unverified"
         : "install_method_unverified";
+    }
+  }
+
+  // Hard cap: warranty exists but execution is opaque → max C
+  const warrantyExistsButExecutionIsOpaque =
+    !!data.warranty &&
+    (!data.warranty_service_provider_type || data.warranty_service_provider_type === "unknown") &&
+    data.leak_callback_sla_days == null &&
+    !data.callback_process_text;
+
+  if (warrantyExistsButExecutionIsOpaque) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = hardCapApplied
+        ? hardCapApplied + "+opaque_warranty_execution"
+        : "opaque_warranty_execution";
     }
   }
 
