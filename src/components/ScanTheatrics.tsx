@@ -1,11 +1,65 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useScanPolling, ScanStatus } from "@/hooks/useScanPolling";
-import { toast } from "sonner";
-import type { AnalysisData, PillarScore } from "@/hooks/useAnalysisData";
-import { usePhonePipeline } from "@/hooks/usePhonePipeline";
-import type { PipelineStartResult } from "@/hooks/usePhonePipeline";
-import { useScanFunnelSafe } from "@/state/scanFunnel";
+
+// ── Mocked External Dependencies ──────────────────────────────────────────────
+// These stub out your local @/ imports so the component compiles and previews 
+// properly in this standalone canvas environment.
+
+export type ScanStatus = "idle" | "scanning" | "invalid_document" | "needs_better_upload" | "error" | "preview_ready" | "complete";
+
+export interface PillarScore {
+  key: string;
+  score: number | null;
+  status: "pass" | "warn" | "fail" | "pending";
+}
+
+export interface AnalysisData {
+  documentType?: string;
+  contractorName?: string;
+  lineItemCount?: number;
+  openingCount?: number;
+  pageCount?: number;
+  confidenceScore?: number;
+  flagRedCount?: number;
+  flagAmberCount?: number;
+  pillarScores?: PillarScore[];
+}
+
+export interface PipelineStartResult {
+  status: "otp_sent" | "error";
+}
+
+const useScanPolling = ({ scanSessionId }: { scanSessionId?: string | null }) => {
+  const [status, setStatus] = useState<ScanStatus>("idle");
+  useEffect(() => {
+    if (scanSessionId) {
+      setStatus("scanning");
+      const t = setTimeout(() => setStatus("preview_ready"), 8000);
+      return () => clearTimeout(t);
+    }
+  }, [scanSessionId]);
+  return { status, error: null };
+};
+
+const usePhonePipeline = (type: string, data: any) => {
+  return {
+    submitPhone: async (): Promise<PipelineStartResult> => ({ status: "otp_sent" })
+  };
+};
+
+const useScanFunnelSafe = () => {
+  return {
+    scanSessionId: "mock-session-123",
+    phoneE164: "+15555555555",
+    phoneStatus: "screened_valid",
+    setPhoneStatus: () => {}
+  };
+};
+
+const toast = {
+  error: (msg: string) => console.error("Toast Error:", msg),
+  success: (msg: string) => console.log("Toast Success:", msg)
+};
 
 // ── Grade palette ─────────────────────────────────────────────────────────────
 
@@ -51,14 +105,15 @@ const TERMINAL_STEPS = [
 ];
 
 // Forensic bounding box markers revealed on the document silhouette as each step completes
+// Colors lightened to ensure contrast > 6:1 for text rendering on dark background
 const FORENSIC_MARKERS: { x: number; y: number; w: number; h: number; label: string; color: string }[] = [
-  { x: 8, y: 31, w: 54, h: 11, label: "LINE_ITEMS", color: "#F97316" },
-  { x: 8, y: 13, w: 40, h: 10, label: "BRAND_SPEC", color: "#2563EB" },
-  { x: 56, y: 48, w: 36, h: 15, label: "PRICING", color: "#F97316" },
-  { x: 8, y: 61, w: 55, h: 11, label: "WARRANTY", color: "#2563EB" },
-  { x: 56, y: 13, w: 36, h: 10, label: "TOTAL_COST", color: "#F97316" },
-  { x: 8, y: 48, w: 42, h: 10, label: "RED_FLAGS", color: "#DC2626" },
-  { x: 8, y: 77, w: 50, h: 10, label: "GRADE_CALC", color: "#059669" },
+  { x: 8, y: 31, w: 54, h: 11, label: "LINE_ITEMS", color: "#FB923C" },
+  { x: 8, y: 13, w: 40, h: 10, label: "BRAND_SPEC", color: "#60A5FA" },
+  { x: 56, y: 48, w: 36, h: 15, label: "PRICING", color: "#FB923C" },
+  { x: 8, y: 61, w: 55, h: 11, label: "WARRANTY", color: "#60A5FA" },
+  { x: 56, y: 13, w: 36, h: 10, label: "TOTAL_COST", color: "#FB923C" },
+  { x: 8, y: 48, w: 42, h: 10, label: "RED_FLAGS", color: "#F87171" },
+  { x: 8, y: 77, w: 50, h: 10, label: "GRADE_CALC", color: "#34D399" },
 ];
 
 /** Milliseconds between each typed character in the forensic terminal. */
@@ -73,41 +128,11 @@ const PULSAR_POSITIONS = [
 
 // Canonical 5-pillar definitions — order and keys are authoritative
 const CANONICAL_PILLAR_DEFS = [
-  {
-    key: "safety_code",
-    label: "SAFETY & CODE MATCH",
-    text: "Verifying NOA/DP rating compliance for {county}...",
-    accentColor: "#2563EB",
-    delay: 0.3,
-  },
-  {
-    key: "install_scope",
-    label: "INSTALL & SCOPE CLARITY",
-    text: "Checking installation scope and opening details...",
-    accentColor: "#F97316",
-    delay: 0.8,
-  },
-  {
-    key: "price_fairness",
-    label: "PRICE FAIRNESS",
-    text: "Benchmarking against {county} county market data...",
-    accentColor: "#2563EB",
-    delay: 1.4,
-  },
-  {
-    key: "fine_print",
-    label: "FINE PRINT & TRANSPARENCY",
-    text: "Reviewing permit inclusion and payment schedule...",
-    accentColor: "#F97316",
-    delay: 2.0,
-  },
-  {
-    key: "warranty",
-    label: "WARRANTY VALUE",
-    text: "Reviewing labor and manufacturer warranty language...",
-    accentColor: "#2563EB",
-    delay: 2.6,
-  },
+  { key: "safety_code",   label: "SAFETY & CODE MATCH",     text: "Verifying NOA/DP rating compliance for {county}...",   accentColor: "#2563EB", delay: 0.3 },
+  { key: "install_scope", label: "INSTALL & SCOPE CLARITY",    text: "Checking installation scope and opening details...",    accentColor: "#F97316", delay: 0.8 },
+  { key: "price_fairness",label: "PRICE FAIRNESS",             text: "Benchmarking against {county} county market data...",  accentColor: "#2563EB", delay: 1.4 },
+  { key: "fine_print",    label: "FINE PRINT & TRANSPARENCY",  text: "Reviewing permit inclusion and payment schedule...",    accentColor: "#F97316", delay: 2.0 },
+  { key: "warranty",      label: "WARRANTY VALUE",             text: "Reviewing labor and manufacturer warranty language...",accentColor: "#2563EB", delay: 2.6 },
 ];
 
 // ── Phase type ────────────────────────────────────────────────────────────────
@@ -118,27 +143,19 @@ type Phase = "scanning" | "cliffhanger" | "pillars" | "reveal";
 
 function pillarStatusColor(status: PillarScore["status"]): string {
   switch (status) {
-    case "pass":
-      return "#059669";
-    case "warn":
-      return "#F97316";
-    case "fail":
-      return "#DC2626";
-    default:
-      return "#374151";
+    case "pass": return "#059669";
+    case "warn": return "#F97316";
+    case "fail": return "#DC2626";
+    default:     return "#D1D5DB"; // increased contrast for gray
   }
 }
 
 function pillarStatusBadge(status: PillarScore["status"]): string {
   switch (status) {
-    case "pass":
-      return "✓ PASS";
-    case "warn":
-      return "⚠ WARN";
-    case "fail":
-      return "✗ FAIL";
-    default:
-      return "··· PENDING";
+    case "pass": return "✓ PASS";
+    case "warn": return "⚠ WARN";
+    case "fail": return "✗ FAIL";
+    default:     return "··· PENDING";
   }
 }
 
@@ -161,25 +178,25 @@ const ScanTheatrics = ({
     externalPhoneE164: funnel?.phoneE164 ?? null,
   });
 
-  const autoSendGuardRef = useRef<Set<string>>(new Set());
+  const autoSendGuardRef  = useRef<Set<string>>(new Set());
   const activeGuardKeyRef = useRef<string | null>(null);
-  const submitPhoneRef = useRef<(() => Promise<PipelineStartResult>) | null>(null);
+  const submitPhoneRef    = useRef<(() => Promise<PipelineStartResult>) | null>(null);
 
-  const [phase, setPhase] = useState<Phase>("scanning");
+  const [phase, setPhase]                 = useState<Phase>("scanning");
   const [activeLogIndex, setActiveLogIndex] = useState(0);
-  const [progressWidth, setProgressWidth] = useState(0);
-  const [pillarsDone, setPillarsDone] = useState<boolean[]>([false, false, false, false, false]);
-  const [showGrade, setShowGrade] = useState(false);
+  const [progressWidth, setProgressWidth]   = useState(0);
+  const [pillarsDone, setPillarsDone]       = useState<boolean[]>([false, false, false, false, false]);
+  const [showGrade, setShowGrade]           = useState(false);
   const [scanningMinDone, setScanningMinDone] = useState(false);
 
   const timersRef = useRef<number[]>([]);
-  const rafRef = useRef<number | null>(null);
+  const rafRef    = useRef<number | null>(null);
 
   // Stable reduced-motion check — evaluated once on first render
   const prefersReducedMotion = useRef(
     typeof window !== "undefined" && typeof window.matchMedia === "function"
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false,
+      : false
   ).current;
 
   const { status: scanStatus, error: pollError } = useScanPolling({
@@ -345,16 +362,9 @@ const ScanTheatrics = ({
     setShowGrade(false);
 
     CANONICAL_PILLAR_DEFS.forEach((def, i) => {
-      addTimer(
-        () => {
-          setPillarsDone((prev) => {
-            const next = [...prev];
-            next[i] = true;
-            return next;
-          });
-        },
-        (def.delay + 1.2) * 1000,
-      );
+      addTimer(() => {
+        setPillarsDone((prev) => { const next = [...prev]; next[i] = true; return next; });
+      }, (def.delay + 1.2) * 1000);
     });
 
     // Transition to reveal phase
@@ -363,10 +373,7 @@ const ScanTheatrics = ({
       setPhase("reveal");
     }, 5000);
 
-    addTimer(() => {
-      console.log({ event: "wm_grade_revealed" });
-      onRevealComplete?.();
-    }, 7000);
+    addTimer(() => { console.log({ event: "wm_grade_revealed" }); onRevealComplete?.(); }, 7000);
   };
 
   // ── Render guards ────────────────────────────────────────────────────────
@@ -380,7 +387,10 @@ const ScanTheatrics = ({
   const pulsarCount = Math.min(3, Math.max(0, (analysisData?.flagRedCount ?? 0) + (analysisData?.flagAmberCount ?? 0)));
 
   // Issue count for cliffhanger counter (capped to prevent overflow)
-  const issueCount = Math.min((analysisData?.flagRedCount ?? 0) + (analysisData?.flagAmberCount ?? 0), 99);
+  const issueCount = Math.min(
+    (analysisData?.flagRedCount ?? 0) + (analysisData?.flagAmberCount ?? 0),
+    99
+  );
 
   // Build resolved pillar slices from live analysisData with canonical fallback
   const scoreMap = new Map<string, PillarScore>();
@@ -393,7 +403,7 @@ const ScanTheatrics = ({
     const live = scoreMap.get(def.key);
     return {
       ...def,
-      score: live?.score ?? null,
+      score:        live?.score  ?? null,
       pillarStatus: live?.status ?? ("pending" as const),
     };
   });
@@ -417,6 +427,7 @@ const ScanTheatrics = ({
       }}
     >
       <AnimatePresence mode="wait">
+
         {/* ── Scanning / Cliffhanger ─────────────────────────────────── */}
         {(phase === "scanning" || phase === "cliffhanger") && (
           <motion.div
@@ -427,16 +438,14 @@ const ScanTheatrics = ({
             transition={{ duration: 0.15 }}
             style={{ maxWidth: 720, width: "100%" }}
           >
-            <p
-              style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 10,
-                color: "#2563EB",
-                letterSpacing: "0.14em",
-                marginBottom: 14,
-                textAlign: "center",
-              }}
-            >
+            <p style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 12, // Increased from 10
+              color: "#60A5FA", // Lightened from #2563EB for > 6:1 contrast
+              letterSpacing: "0.14em",
+              marginBottom: 14,
+              textAlign: "center",
+            }}>
               WINDOWMAN AI · FORENSIC DOCUMENT ANALYSIS
             </p>
 
@@ -472,38 +481,35 @@ const ScanTheatrics = ({
               >
                 {/* Proof-of-read — truthful, evidence-based signals only */}
                 {analysisData && (
-                  <div
-                    style={{
-                      background: "#111111",
-                      border: "1px solid #1A1A1A",
-                      padding: "12px 16px",
-                      marginBottom: 10,
-                    }}
-                  >
+                  <div style={{
+                    background: "#111111",
+                    border: "1px solid #1A1A1A",
+                    padding: "12px 16px",
+                    marginBottom: 10,
+                  }}>
                     <div className="flex flex-wrap gap-3 mb-2">
                       {analysisData.documentType && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
-                          Detected:{" "}
-                          {analysisData.documentType.charAt(0).toUpperCase() + analysisData.documentType.slice(1)}
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#D1D5DB" }}>
+                          Detected: {analysisData.documentType.charAt(0).toUpperCase() + analysisData.documentType.slice(1)}
                         </span>
                       )}
                       {analysisData.contractorName && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#D1D5DB" }}>
                           Contractor: {analysisData.contractorName}
                         </span>
                       )}
                       {analysisData.lineItemCount != null && analysisData.lineItemCount > 0 && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#D1D5DB" }}>
                           {analysisData.lineItemCount} line item{analysisData.lineItemCount === 1 ? "" : "s"}
                         </span>
                       )}
                       {analysisData.openingCount != null && analysisData.openingCount > 0 && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#D1D5DB" }}>
                           {analysisData.openingCount} opening{analysisData.openingCount === 1 ? "" : "s"}
                         </span>
                       )}
                       {analysisData.pageCount != null && analysisData.pageCount > 1 && (
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#D1D5DB" }}>
                           {analysisData.pageCount}-page document
                         </span>
                       )}
@@ -514,15 +520,13 @@ const ScanTheatrics = ({
                     </div>
                   </div>
                 )}
-                <p
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 11,
-                    color: "#F97316",
-                    letterSpacing: "0.06em",
-                    textAlign: "center",
-                  }}
-                >
+                <p style={{
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 13, // Increased from 11
+                  color: "#FB923C", // Lightened from #F97316 for > 6:1 contrast
+                  letterSpacing: "0.06em",
+                  textAlign: "center",
+                }}>
                   Data extracted successfully. Analysis ready to compile.
                 </p>
               </motion.div>
@@ -541,16 +545,17 @@ const ScanTheatrics = ({
           >
             <AnimatePresence mode="wait">
               {!showGrade ? (
-                <motion.div key="pillar-slices" exit={{ opacity: 0, transition: { duration: 0.2 } }}>
-                  <p
-                    style={{
-                      fontFamily: "'DM Mono', monospace",
-                      fontSize: 10,
-                      color: "#4B5563",
-                      letterSpacing: "0.12em",
-                      marginBottom: 14,
-                    }}
-                  >
+                <motion.div
+                  key="pillar-slices"
+                  exit={{ opacity: 0, transition: { duration: 0.2 } }}
+                >
+                  <p style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 12, // Increased from 10
+                    color: "#D1D5DB", // Greatly lightened from #4B5563 for > 6:1 contrast
+                    letterSpacing: "0.12em",
+                    marginBottom: 14,
+                  }}>
                     DECONSTRUCTING DOCUMENT · 5 PILLARS
                   </p>
                   {resolvedPillarSlices.map((pillar, i) => (
@@ -603,17 +608,13 @@ const ScanTheatrics = ({
                       />
                     )}
                     <motion.div
-                      animate={
-                        prefersReducedMotion
-                          ? {}
-                          : {
-                              boxShadow: [
-                                `0 0 20px ${gradeColor}3D`,
-                                `0 0 60px ${gradeColor}70`,
-                                `0 0 30px ${gradeColor}4D`,
-                              ],
-                            }
-                      }
+                      animate={prefersReducedMotion ? {} : {
+                        boxShadow: [
+                          `0 0 20px ${gradeColor}3D`,
+                          `0 0 60px ${gradeColor}70`,
+                          `0 0 30px ${gradeColor}4D`,
+                        ],
+                      }}
                       transition={{ duration: 0.8, delay: 0.3 }}
                       style={{
                         width: 120,
@@ -628,14 +629,12 @@ const ScanTheatrics = ({
                         zIndex: 1,
                       }}
                     >
-                      <span
-                        style={{
-                          fontFamily: "'Barlow Condensed', sans-serif",
-                          fontSize: 64,
-                          fontWeight: 900,
-                          color: gradeColor,
-                        }}
-                      >
+                      <span style={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontSize: 72, // Increased from 64
+                        fontWeight: 900,
+                        color: gradeColor,
+                      }}>
                         {gradeProp}
                       </span>
                     </motion.div>
@@ -647,8 +646,8 @@ const ScanTheatrics = ({
                     transition={{ delay: 0.4, duration: 0.2 }}
                     style={{
                       fontFamily: "'DM Mono', monospace",
-                      fontSize: 11,
-                      color: "#F97316",
+                      fontSize: 13, // Increased from 11
+                      color: "#FB923C", // Lightened from #F97316 for > 6:1 contrast
                       letterSpacing: "0.12em",
                       marginTop: 20,
                     }}
@@ -660,6 +659,7 @@ const ScanTheatrics = ({
             </AnimatePresence>
           </motion.div>
         )}
+
       </AnimatePresence>
     </div>
   );
@@ -683,16 +683,14 @@ const DocumentSilhouette = ({
   reducedMotion: boolean;
 }) => (
   <div style={{ width: 210 }}>
-    <div
-      style={{
-        fontFamily: "'DM Mono', monospace",
-        fontSize: 8,
-        color: "#374151",
-        letterSpacing: "0.1em",
-        marginBottom: 4,
-        textAlign: "center",
-      }}
-    >
+    <div style={{
+      fontFamily: "'DM Mono', monospace",
+      fontSize: 10, // Increased from 8
+      color: "#D1D5DB", // Lightened from #374151 for > 6:1 contrast
+      letterSpacing: "0.1em",
+      marginBottom: 4,
+      textAlign: "center",
+    }}>
       DOCUMENT X-RAY
     </div>
     <motion.div
@@ -726,9 +724,7 @@ const DocumentSilhouette = ({
       <div style={{ marginTop: 6, border: "1px solid #1E1E1E" }}>
         {[0, 1, 2, 3].map((i) => (
           <div key={i} style={{ display: "flex", borderBottom: i < 3 ? "1px solid #1A1A1A" : "none", height: 13 }}>
-            <div
-              style={{ flex: 2, borderRight: "1px solid #1A1A1A", background: i % 2 === 0 ? "#111" : "transparent" }}
-            />
+            <div style={{ flex: 2, borderRight: "1px solid #1A1A1A", background: i % 2 === 0 ? "#111" : "transparent" }} />
             <div style={{ flex: 1, background: i % 2 === 0 ? "#111" : "transparent" }} />
           </div>
         ))}
@@ -760,17 +756,15 @@ const DocumentSilhouette = ({
         />
       )}
       {isScanning && reducedMotion && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: 0,
-            right: 0,
-            height: 1,
-            background: "linear-gradient(90deg, transparent, #2563EB 50%, transparent)",
-            zIndex: 10,
-          }}
-        />
+        <div style={{
+          position: "absolute",
+          top: "50%",
+          left: 0,
+          right: 0,
+          height: 1,
+          background: "linear-gradient(90deg, transparent, #2563EB 50%, transparent)",
+          zIndex: 10,
+        }} />
       )}
 
       {/* Forensic marker bounding boxes — synced to scan step index */}
@@ -791,30 +785,27 @@ const DocumentSilhouette = ({
             pointerEvents: "none",
           }}
         >
-          <span
-            style={{
-              position: "absolute",
-              top: -7,
-              left: 1,
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 6,
-              color: marker.color,
-              letterSpacing: "0.05em",
-              background: "#0F0F0F",
-              padding: "0 2px",
-              lineHeight: 1,
-            }}
-          >
+          <span style={{
+            position: "absolute",
+            top: -9,
+            left: 1,
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 8, // Increased from 6
+            color: marker.color, // Safe contrast due to updated markers
+            letterSpacing: "0.05em",
+            background: "#0F0F0F",
+            padding: "0 2px",
+            lineHeight: 1,
+          }}>
             {marker.label}
           </span>
         </motion.div>
       ))}
 
       {/* Flag pulsars — cliffhanger phase, count from real aggregate flags */}
-      {showPulsars &&
-        PULSAR_POSITIONS.slice(0, pulsarCount).map((pos, i) => (
-          <FlagPulsar key={i} x={pos.x} y={pos.y} label={pos.label} reducedMotion={reducedMotion} />
-        ))}
+      {showPulsars && PULSAR_POSITIONS.slice(0, pulsarCount).map((pos, i) => (
+        <FlagPulsar key={i} x={pos.x} y={pos.y} label={pos.label} reducedMotion={reducedMotion} />
+      ))}
     </motion.div>
   </div>
 );
@@ -837,11 +828,15 @@ const ForensicTerminal = ({
   reducedMotion: boolean;
 }) => {
   const [typedText, setTypedText] = useState("");
-  const intervalRef = useRef<number | null>(null);
+  const intervalRef  = useRef<number | null>(null);
   const prevStateRef = useRef<{ index: number; county: string } | null>(null);
 
   useEffect(() => {
-    if (prevStateRef.current && prevStateRef.current.index === activeIndex && prevStateRef.current.county === county) {
+    if (
+      prevStateRef.current &&
+      prevStateRef.current.index === activeIndex &&
+      prevStateRef.current.county === county
+    ) {
       return;
     }
     prevStateRef.current = { index: activeIndex, county };
@@ -883,33 +878,29 @@ const ForensicTerminal = ({
   return (
     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
       {/* Terminal panel */}
-      <div
-        style={{
-          background: "#0D0D0D",
-          border: "1px solid #1F1F1F",
-          padding: "10px 14px",
-          fontFamily: "'DM Mono', monospace",
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minHeight: 200,
-        }}
-      >
+      <div style={{
+        background: "#0D0D0D",
+        border: "1px solid #1F1F1F",
+        padding: "10px 14px",
+        fontFamily: "'DM Mono', monospace",
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 200,
+      }}>
         {/* macOS-style terminal titlebar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 5,
-            marginBottom: 10,
-            paddingBottom: 8,
-            borderBottom: "1px solid #1A1A1A",
-          }}
-        >
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 5,
+          marginBottom: 10,
+          paddingBottom: 8,
+          borderBottom: "1px solid #1A1A1A",
+        }}>
           {(["#FF5F57", "#FFBD2E", "#28C840"] as const).map((c, i) => (
             <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: c }} />
           ))}
-          <span style={{ fontSize: 8, color: "#374151", marginLeft: 6, letterSpacing: "0.1em" }}>
+          <span style={{ fontSize: 10, color: "#D1D5DB", marginLeft: 6, letterSpacing: "0.1em" }}>
             WINDOWMAN-AI · FORENSIC ENGINE
           </span>
         </div>
@@ -919,21 +910,18 @@ const ForensicTerminal = ({
           {steps.map((step, i) => {
             const effectiveIndex = isCliffhanger ? steps.length : activeIndex;
             if (i > effectiveIndex) return null;
-            const isComplete = i < effectiveIndex;
+            const isComplete   = i < effectiveIndex;
             const isActiveStep = i === effectiveIndex;
 
             if (isComplete) {
               return (
-                <div
-                  key={i}
-                  style={{
-                    fontSize: 11,
-                    color: "#2D3748",
-                    marginBottom: 5,
-                    letterSpacing: "0.02em",
-                    lineHeight: 1.5,
-                  }}
-                >
+                <div key={i} style={{
+                  fontSize: 13, // Increased from 11
+                  color: "#D1D5DB", // Lightened from #2D3748 for > 6:1 contrast
+                  marginBottom: 5,
+                  letterSpacing: "0.02em",
+                  lineHeight: 1.5,
+                }}>
                   {step.done.replace("{county}", county)}
                 </div>
               );
@@ -943,16 +931,16 @@ const ForensicTerminal = ({
               return (
                 <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 5 }}>
                   <motion.span
-                    animate={reducedMotion ? {} : { color: ["#F97316", "#FB923C", "#F97316"] }}
+                    animate={reducedMotion ? {} : { color: ["#FB923C", "#FDBA74", "#FB923C"] }}
                     transition={{ duration: 1.2, repeat: Infinity }}
-                    style={{ fontSize: 11, letterSpacing: "0.02em", lineHeight: 1.5, color: "#F97316" }}
+                    style={{ fontSize: 13, letterSpacing: "0.02em", lineHeight: 1.5, color: "#FB923C" }}
                   >
                     {typedText}
                   </motion.span>
                   <motion.span
                     animate={reducedMotion ? {} : { opacity: [1, 0, 1] }}
                     transition={{ duration: 0.7, repeat: Infinity }}
-                    style={{ fontSize: 11, color: "#F97316", marginLeft: 1 }}
+                    style={{ fontSize: 13, color: "#FB923C", marginLeft: 1 }}
                   >
                     ▋
                   </motion.span>
@@ -1007,17 +995,15 @@ const FlagPulsar = ({
   };
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        left: `${x}%`,
-        top: `${y}%`,
-        transform: "translate(-50%, -50%)",
-        zIndex: 20,
-        width: 16,
-        height: 16,
-      }}
-    >
+    <div style={{
+      position: "absolute",
+      left: `${x}%`,
+      top: `${y}%`,
+      transform: "translate(-50%, -50%)",
+      zIndex: 20,
+      width: 16,
+      height: 16,
+    }}>
       {!reducedMotion && (
         <>
           <motion.div
@@ -1033,37 +1019,33 @@ const FlagPulsar = ({
         </>
       )}
       {reducedMotion && <div style={{ ...ringBase, opacity: 0.6 }} />}
-      <div
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          width: 5,
-          height: 5,
-          marginTop: -2.5,
-          marginLeft: -2.5,
-          borderRadius: "50%",
-          backgroundColor: "#DC2626",
-          zIndex: 1,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: "100%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          marginTop: 8,
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 6,
-          color: "#DC2626",
-          letterSpacing: "0.05em",
-          whiteSpace: "nowrap",
-          background: "rgba(10,10,10,0.9)",
-          padding: "1px 3px",
-          zIndex: 2,
-        }}
-      >
+      <div style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        width: 5,
+        height: 5,
+        marginTop: -2.5,
+        marginLeft: -2.5,
+        borderRadius: "50%",
+        backgroundColor: "#DC2626",
+        zIndex: 1,
+      }} />
+      <div style={{
+        position: "absolute",
+        top: "100%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        marginTop: 8,
+        fontFamily: "'DM Mono', monospace",
+        fontSize: 8, // Increased from 6
+        color: "#F87171", // Lightened from #DC2626 for > 6:1 contrast
+        letterSpacing: "0.05em",
+        whiteSpace: "nowrap",
+        background: "rgba(10,10,10,0.9)",
+        padding: "1px 3px",
+        zIndex: 2,
+      }}>
         {label}
       </div>
     </div>
@@ -1118,26 +1100,22 @@ const PillarSlice = ({
       }}
     >
       {/* Slice highlight strip */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 1,
-          background: `linear-gradient(90deg, ${resolvedColor}40, transparent)`,
-        }}
-      />
+      <div style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 1,
+        background: `linear-gradient(90deg, ${resolvedColor}40, transparent)`,
+      }} />
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
-        <p
-          style={{
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 8,
-            color: "#4B5563",
-            letterSpacing: "0.1em",
-          }}
-        >
+        <p style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 10, // Increased from 8
+          color: "#D1D5DB", // Lightened from #4B5563 for > 6:1 contrast
+          letterSpacing: "0.1em",
+        }}>
           PILLAR {index + 1} / 5
         </p>
         {isDone && (
@@ -1147,7 +1125,7 @@ const PillarSlice = ({
             transition={{ duration: reducedMotion ? 0.05 : 0.15 }}
             style={{
               fontFamily: "'DM Mono', monospace",
-              fontSize: 8,
+              fontSize: 10, // Increased from 8
               color: resolvedColor,
               background: `${resolvedColor}1A`,
               padding: "1px 7px",
@@ -1159,26 +1137,22 @@ const PillarSlice = ({
         )}
       </div>
 
-      <p
-        style={{
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 9,
-          color: "#E5E7EB",
-          letterSpacing: "0.1em",
-          marginBottom: 5,
-        }}
-      >
+      <p style={{
+        fontFamily: "'DM Mono', monospace",
+        fontSize: 11, // Increased from 9
+        color: "#F3F4F6", // Bright text for excellent contrast
+        letterSpacing: "0.1em",
+        marginBottom: 5,
+      }}>
         {label}
       </p>
 
-      <p
-        style={{
-          fontFamily: "'DM Sans', sans-serif",
-          fontSize: 12,
-          color: isDone ? "#4B5563" : "#9CA3AF",
-          marginBottom: 7,
-        }}
-      >
+      <p style={{
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: 14, // Increased from 12
+        color: isDone ? "#D1D5DB" : "#E5E7EB", // Lightened from #4B5563 / #9CA3AF to > 6:1 contrast 
+        marginBottom: 7,
+      }}>
         {isDone ? "Analysis complete" : text.replace("{county}", county)}
       </p>
 
@@ -1203,16 +1177,14 @@ const PillarSlice = ({
 
       {/* Score label — only rendered when a real numeric score is available */}
       {isDone && score != null && (
-        <p
-          style={{
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 8,
-            color: resolvedColor,
-            letterSpacing: "0.08em",
-            marginTop: 3,
-            textAlign: "right",
-          }}
-        >
+        <p style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 10, // Increased from 8
+          color: resolvedColor,
+          letterSpacing: "0.08em",
+          marginTop: 3,
+          textAlign: "right",
+        }}>
           {Math.round(score)}/100
         </p>
       )}
@@ -1230,10 +1202,7 @@ const FindingsCounter = ({ issues }: { issues: number }) => {
   const [displayIssues, setDisplayIssues] = useState(0);
 
   useEffect(() => {
-    if (issues === 0) {
-      setDisplayIssues(0);
-      return;
-    }
+    if (issues === 0) { setDisplayIssues(0); return; }
     const totalSteps = 24;
     let step = 0;
     const id = window.setInterval(() => {
@@ -1245,15 +1214,13 @@ const FindingsCounter = ({ issues }: { issues: number }) => {
   }, [issues]);
 
   return (
-    <span
-      style={{
-        fontFamily: "'DM Mono', monospace",
-        fontSize: 10,
-        color: "#6B7280",
-        letterSpacing: "0.04em",
-      }}
-    >
-      <span style={{ color: "#DC2626", fontWeight: 700 }}>{displayIssues}</span>
+    <span style={{
+      fontFamily: "'DM Mono', monospace",
+      fontSize: 12, // Increased from 10
+      color: "#D1D5DB", // Lightened from #6B7280 for > 6:1 contrast
+      letterSpacing: "0.04em",
+    }}>
+      <span style={{ color: "#F87171", fontWeight: 700 }}>{displayIssues}</span>
       {" potential issue"}
       {displayIssues !== 1 ? "s" : ""}
       {" detected"}
@@ -1272,46 +1239,86 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
   if (data.pageCount != null) anchorCount++;
 
   let label = "Good";
-  let color = "#059669";
+  // Colors shifted for robust text contrast on dark background
+  let color = "#34D399";
   if (confidenceScore != null) {
-    if (confidenceScore >= 90 || (confidenceScore >= 85 && anchorCount >= 3)) {
-      label = "Excellent";
-      color = "#059669";
-    } else if (confidenceScore >= 70) {
-      label = "Great";
-      color = "#059669";
-    } else if (confidenceScore >= 55) {
-      label = "Good";
-      color = "#2563EB";
-    } else {
-      label = "Fair";
-      color = "#D97706";
-    }
+    if (confidenceScore >= 90 || (confidenceScore >= 85 && anchorCount >= 3)) { label = "Excellent"; color = "#34D399"; }
+    else if (confidenceScore >= 70) { label = "Great"; color = "#34D399"; }
+    else if (confidenceScore >= 55) { label = "Good"; color = "#60A5FA"; }
+    else { label = "Fair"; color = "#FBBF24"; }
   } else if (anchorCount >= 3) {
     label = "Excellent";
-    color = "#059669";
+    color = "#34D399";
   }
 
   return (
     <div className="flex items-center gap-2">
-      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF", letterSpacing: "0.08em" }}>
+      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#D1D5DB", letterSpacing: "0.08em" }}>
         READ QUALITY
       </span>
-      <span
-        style={{
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 12,
-          fontWeight: 700,
-          color,
-          background: `${color}1A`,
-          padding: "2px 10px",
-          letterSpacing: "0.06em",
-        }}
-      >
+      <span style={{
+        fontFamily: "'DM Mono', monospace", fontSize: 14, fontWeight: 700,
+        color, background: `${color}1A`, padding: "2px 10px", letterSpacing: "0.06em",
+      }}>
         {label.toUpperCase()}
       </span>
     </div>
   );
 }
 
-export default ScanTheatrics;
+// ── Demo Wrapper ──────────────────────────────────────────────────────────────
+// The primary App component wraps ScanTheatrics so it can be previewed seamlessly
+
+export default function App() {
+  const [isActive, setIsActive] = useState(false);
+
+  // Example data payload matching your app's structure
+  const mockAnalysisData: AnalysisData = {
+    documentType: "quote",
+    contractorName: "Apex Windows",
+    lineItemCount: 14,
+    openingCount: 10,
+    pageCount: 4,
+    confidenceScore: 94,
+    flagRedCount: 1,
+    flagAmberCount: 2,
+    pillarScores: [
+      { key: "safety_code", score: 98, status: "pass" },
+      { key: "install_scope", score: 75, status: "warn" },
+      { key: "price_fairness", score: 88, status: "pass" },
+      { key: "fine_print", score: 62, status: "fail" },
+      { key: "warranty", score: 92, status: "pass" },
+    ]
+  };
+
+  return (
+    <div style={{ width: '100vw', height: '100vh', background: '#000', position: 'relative' }}>
+       {isActive ? (
+         <>
+           <button 
+             onClick={() => setIsActive(false)} 
+             style={{ position: 'absolute', top: 20, left: 20, zIndex: 9999, padding: '8px 16px', background: '#333', color: '#fff', border: '1px solid #555', cursor: 'pointer', borderRadius: '4px' }}
+           >
+             Reset Animation
+           </button>
+           <ScanTheatrics
+             isActive={isActive}
+             selectedCounty="Miami-Dade"
+             scanSessionId="mock-123"
+             grade="B"
+             analysisData={mockAnalysisData}
+           />
+         </>
+       ) : (
+         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <button 
+              onClick={() => setIsActive(true)} 
+              style={{ padding: '12px 24px', background: '#2563EB', color: '#fff', border: 'none', cursor: 'pointer', borderRadius: '4px', fontSize: '16px', fontWeight: 'bold' }}
+            >
+              Start Forensic Scan Animation
+            </button>
+         </div>
+       )}
+    </div>
+  );
+}
