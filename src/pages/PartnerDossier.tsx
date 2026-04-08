@@ -379,7 +379,7 @@ export default function PartnerDossier() {
             )}
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4">
             <InfoRow label="Location" value={`${lead?.city ?? "—"}, ${lead?.state ?? "FL"}`} />
             <InfoRow label="County" value={lead?.county ?? "N/A"} />
             <InfoRow
@@ -463,7 +463,7 @@ export default function PartnerDossier() {
             </h2>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-3 xl:grid-cols-5 gap-4">
             <div className="bg-muted/40 rounded-xl p-5 text-center border">
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
                 Competitor Grade
