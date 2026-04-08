@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import exitIntentPhoneImg from "@/assets/exit-intent-phone.avif";
@@ -26,6 +26,10 @@ interface ExitIntentPhoneModalProps {
 
 const ExitIntentPhoneModal = ({ leadCaptured, onClose, onCTAClick }: ExitIntentPhoneModalProps) => {
   const [open, setOpen] = useState(false);
+  const lastScrollY = useRef(window.scrollY);
+  const lastScrollTime = useRef(Date.now());
+  const hasScrolled = useRef(false);
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const show = useCallback(() => {
     if (leadCaptured || sessionStorage.getItem("wm_exit_shown") === "true") return;
@@ -33,6 +37,7 @@ const ExitIntentPhoneModal = ({ leadCaptured, onClose, onCTAClick }: ExitIntentP
     setOpen(true);
   }, [leadCaptured]);
 
+  // Desktop triggers: mouseleave + visibilitychange
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
       if (e.clientY < 20) show();
@@ -46,6 +51,66 @@ const ExitIntentPhoneModal = ({ leadCaptured, onClose, onCTAClick }: ExitIntentP
       document.removeEventListener("mouseleave", handleMouse);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
+  }, [show]);
+
+  // Mobile trigger 1: Fast scroll up (URL bar reach)
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const currentTime = Date.now();
+      const deltaY = lastScrollY.current - currentY; // positive = scrolling up
+      const deltaT = currentTime - lastScrollTime.current;
+
+      if (!hasScrolled.current && currentY > 0) {
+        hasScrolled.current = true;
+      }
+
+      if (deltaY > 50 && deltaT < 300) {
+        show();
+      }
+
+      lastScrollY.current = currentY;
+      lastScrollTime.current = currentTime;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [show]);
+
+  // Mobile trigger 2: Idle timer (15s after first scroll)
+  useEffect(() => {
+    const startIdleTimer = () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      if (!hasScrolled.current) return;
+      idleTimer.current = setTimeout(() => show(), 15000);
+    };
+
+    const resetIdle = () => {
+      if (!hasScrolled.current) hasScrolled.current = true;
+      startIdleTimer();
+    };
+
+    window.addEventListener("scroll", resetIdle, { passive: true });
+    window.addEventListener("touchstart", resetIdle, { passive: true });
+    window.addEventListener("click", resetIdle);
+
+    return () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      window.removeEventListener("scroll", resetIdle);
+      window.removeEventListener("touchstart", resetIdle);
+      window.removeEventListener("click", resetIdle);
+    };
+  }, [show]);
+
+  // Mobile trigger 3: Back button intercept
+  useEffect(() => {
+    history.pushState(null, "", location.href);
+    const handlePopState = () => {
+      show();
+      // Re-push so we don't actually navigate away
+      history.pushState(null, "", location.href);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, [show]);
 
   const dismiss = () => {
