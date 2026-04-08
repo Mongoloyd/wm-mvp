@@ -8,6 +8,9 @@ import FixItCTA from "@/components/report/FixItCTA";
 import GapFixModule from "@/components/report/GapFixModule";
 import GreenChecklistModule from "@/components/report/GreenChecklistModule";
 import QuotePriceMath from "@/components/report/QuotePriceMath";
+import ExecutiveSummaryStrip from "@/components/report/ExecutiveSummaryStrip";
+import RedFlagsList from "@/components/report/RedFlagsList";
+import MissingItemsList from "@/components/report/MissingItemsList";
 import type { DerivedMetrics } from "@/components/report/QuotePriceMath";
 import { LockedOverlay } from "@/components/LockedOverlay";
 import type { LockedOverlayProps } from "@/components/LockedOverlay";
@@ -55,6 +58,17 @@ interface TruthReportProps {
   priceFairness?: string | null;
   markupEstimate?: string | null;
   negotiationLeverage?: string | null;
+  warnings?: string[];
+  missingItems?: string[];
+  summary?: string | null;
+  topWarning?: string | null;
+  topMissingItem?: string | null;
+  pricePerOpening?: number | null;
+  pricePerOpeningBand?: "low" | "market" | "high" | "extreme" | null;
+  paymentRiskDetected?: boolean;
+  scopeGapDetected?: boolean;
+  summaryTeaser?: string | null;
+  missingItemsCount?: number;
 }
 
 const gradeConfig: Record<string, { color: string; bg: string; glow: string; label: string; verdict: string }> = {
@@ -115,6 +129,17 @@ const TruthReportClassic = ({
   priceFairness,
   markupEstimate,
   negotiationLeverage,
+  warnings,
+  missingItems,
+  summary,
+  topWarning,
+  topMissingItem,
+  pricePerOpening,
+  pricePerOpeningBand,
+  paymentRiskDetected,
+  scopeGapDetected,
+  summaryTeaser,
+  missingItemsCount,
 }: TruthReportProps) => {
   const config = gradeConfig[grade] || gradeConfig.C;
   const isFull = accessLevel === "full";
@@ -247,6 +272,33 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           )}
         </div>
       </motion.section>
+
+      {/* ─── EXECUTIVE SUMMARY (full only) ─── */}
+      {isFull && (
+        <ExecutiveSummaryStrip
+          summary={summary}
+          pricePerOpening={pricePerOpening}
+          pricePerOpeningBand={pricePerOpeningBand}
+        />
+      )}
+
+      {/* ─── LOCKED PREVIEW TEASER (preview only) ─── */}
+      {!isFull && (topWarning || topMissingItem || summaryTeaser) && (
+        <section className="py-5 px-4 md:px-8 border-b border-border" style={{ background: "hsl(var(--color-caution) / 0.06)" }}>
+          <div className="max-w-4xl mx-auto">
+            <p className="font-mono" style={{ fontSize: 10, color: "hsl(var(--color-caution))", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 8 }}>
+              LOCKED PREVIEW
+            </p>
+            <p className="font-body text-foreground" style={{ fontSize: 14, lineHeight: 1.6 }}>
+              {summaryTeaser || topWarning || "We found several quote issues worth reviewing."}
+            </p>
+            <p className="font-mono text-muted-foreground" style={{ fontSize: 12, marginTop: 6 }}>
+              {missingItemsCount ?? 0} missing contract item{(missingItemsCount ?? 0) !== 1 ? "s" : ""} detected
+              {topMissingItem ? ` · Example: ${topMissingItem}` : ""}
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* ─── RISK SUMMARY HEADER ─── */}
       <RiskSummaryHeader
@@ -382,6 +434,12 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           </div>
         </section>
       )}
+
+      {/* ─── RED FLAGS LIST (full only) ─── */}
+      {isFull && <RedFlagsList warnings={warnings ?? []} />}
+
+      {/* ─── MISSING ITEMS LIST (full only) ─── */}
+      {isFull && <MissingItemsList missingItems={missingItems ?? []} />}
 
       <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
