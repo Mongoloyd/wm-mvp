@@ -535,44 +535,11 @@ export default function PartnerDossier() {
         </section>
 
         {/* ─── Document Vault ─────────────────────────────────────── */}
-        <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <FileText className="h-5 w-5 text-sky-400" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-sky-400">
-              Document Vault
-            </h2>
-          </div>
-
-          <div className="relative bg-slate-800/50 rounded-lg p-6 border border-slate-700/40 flex items-center gap-4">
-            {!isUnlocked ? (
-              <>
-                <div className="blur-md select-none pointer-events-none flex items-center gap-4 flex-1">
-                  <div className="h-12 w-12 rounded-lg bg-slate-700" />
-                  <div>
-                    <p className="text-sm font-medium">Original_Quote.pdf</p>
-                    <p className="text-xs text-slate-500">
-                      Scanned {new Date(analysis?.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <Lock className="h-6 w-6 text-slate-600 absolute right-6" />
-              </>
-            ) : (
-              <>
-                <FileText className="h-12 w-12 text-sky-500 shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-white">Original_Quote.pdf</p>
-                  <p className="text-xs text-slate-500">
-                    Scanned {new Date(analysis?.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <button className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500 transition-colors">
-                  Download Original Quote
-                </button>
-              </>
-            )}
-          </div>
-        </section>
+        <DocumentVault
+          isUnlocked={isUnlocked}
+          analysisId={meta.analysis_id}
+          createdAt={analysis?.created_at}
+        />
 
         {/* ─── Provenance Footer ──────────────────────────────────── */}
         <footer className="text-center text-[11px] text-slate-600 font-mono py-6 space-y-1">
@@ -675,5 +642,91 @@ function MarketIndicator({ price }: { price: number }) {
     <span className="flex items-center justify-center gap-1 text-[10px] text-emerald-400 mt-1">
       <TrendingDown className="h-3 w-3" /> {abs}% below market
     </span>
+  );
+}
+
+function DocumentVault({
+  isUnlocked,
+  analysisId,
+  createdAt,
+}: {
+  isUnlocked: boolean;
+  analysisId: string;
+  createdAt: string | undefined;
+}) {
+  const [docLoading, setDocLoading] = useState(false);
+  const [docError, setDocError] = useState<string | null>(null);
+
+  const handleViewDocument = async () => {
+    setDocLoading(true);
+    setDocError(null);
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke(
+        "get-contractor-document-url",
+        { body: { analysis_id: analysisId } },
+      );
+
+      if (fnErr || !data?.success) {
+        const msg = data?.message ?? fnErr?.message ?? "Failed to retrieve document.";
+        setDocError(msg);
+        toast.error(msg);
+        return;
+      }
+
+      window.open(data.signed_url, "_blank", "noopener,noreferrer");
+    } catch {
+      setDocError("Network error.");
+      toast.error("Network error retrieving document.");
+    } finally {
+      setDocLoading(false);
+    }
+  };
+
+  return (
+    <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <FileText className="h-5 w-5 text-sky-400" />
+        <h2 className="text-sm font-bold uppercase tracking-widest text-sky-400">
+          Document Vault
+        </h2>
+      </div>
+
+      <div className="relative bg-slate-800/50 rounded-lg p-6 border border-slate-700/40 flex items-center gap-4">
+        {!isUnlocked ? (
+          <>
+            <div className="blur-md select-none pointer-events-none flex items-center gap-4 flex-1">
+              <div className="h-12 w-12 rounded-lg bg-slate-700" />
+              <div>
+                <p className="text-sm font-medium">Original_Quote.pdf</p>
+                <p className="text-xs text-slate-500">
+                  Scanned {createdAt ? new Date(createdAt).toLocaleDateString() : "—"}
+                </p>
+              </div>
+            </div>
+            <Lock className="h-6 w-6 text-slate-600 absolute right-6" />
+          </>
+        ) : (
+          <>
+            <FileText className="h-12 w-12 text-sky-500 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-white">Original_Quote.pdf</p>
+              <p className="text-xs text-slate-500">
+                Scanned {createdAt ? new Date(createdAt).toLocaleDateString() : "—"}
+              </p>
+              {docError && (
+                <p className="text-xs text-red-400 mt-1">{docError}</p>
+              )}
+            </div>
+            <button
+              onClick={handleViewDocument}
+              disabled={docLoading}
+              className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500 transition-colors disabled:opacity-50 disabled:cursor-wait"
+            >
+              {docLoading ? "Loading…" : "View Original Quote"}
+            </button>
+          </>
+        )}
+      </div>
+    </section>
   );
 }

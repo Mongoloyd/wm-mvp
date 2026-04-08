@@ -32,6 +32,7 @@ const HowWeBeatWindowQuotes = lazy(() => import("./pages/HowWeBeatWindowQuotes.t
 const Contractors = lazy(() => import("./pages/Contractors.tsx"));
 const PartnerDossier = lazy(() => import("./pages/PartnerDossier.tsx"));
 const ContractorLogin = lazy(() => import("./pages/ContractorLogin.tsx"));
+const ContractorOpportunitiesPage = lazy(() => import("./pages/ContractorOpportunitiesPage.tsx"));
 
 // Redirect helper: /report/:sessionId → /report/classic/:sessionId
 function ReportRedirect() {
@@ -120,6 +121,7 @@ const App = () => (
                   <Route path="/contractors" element={<Contractors />} />
                 </Route>
                 <Route path="/partner/login" element={<ContractorLogin />} />
+                <Route path="/partner/opportunities" element={<ContractorOpportunitiesPage />} />
                 <Route path="/partner/dossier/:id?" element={<PartnerDossier />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
