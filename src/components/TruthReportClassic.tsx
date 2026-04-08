@@ -421,7 +421,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <p className="font-body text-foreground" style={{ fontSize: 15, lineHeight: 1.7, marginTop: 6 }}>
               {summaryTeaser || topWarning || "We found several quote issues worth reviewing."}
             </p>
-            <p className="font-mono text-muted-foreground" style={{ fontSize: 12, marginTop: 6, letterSpacing: "0.04em" }}>
+            <p
+              className="font-mono text-muted-foreground"
+              style={{ fontSize: 12, marginTop: 6, letterSpacing: "0.04em" }}
+            >
               {missingItemsCount ?? 0} missing contract item{(missingItemsCount ?? 0) !== 1 ? "s" : ""} detected
               {topMissingItem ? ` · Example: ${topMissingItem}` : ""}
             </p>
@@ -600,7 +603,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       {isFull && <RedFlagsList warnings={warnings ?? []} />}
       {isFull && <MissingItemsList missingItems={missingItems ?? []} />}
 
-      <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
+      <section className="py-10 md:py-14 px-4 md:px-14 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
           <motion.div {...stagger(3)}>
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
@@ -628,7 +631,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               >
                 <span
                   className="font-mono"
-                  style={{ fontSize: 10, color: "hsl(var(--color-cyan))", letterSpacing: "0.08em" }}
+                  style={{ fontSize: 14, color: "hsl(var(--color-cyan))", letterSpacing: "0.08em" }}
                 >
                   {county.toUpperCase()} COUNTY BENCHMARKS
                 </span>
@@ -699,7 +702,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                                 display: "inline-block",
                                 background: s.badgeBg,
                                 padding: "3px 10px",
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: 700,
                                 color: s.badgeColor,
                                 letterSpacing: "0.06em",
@@ -712,7 +715,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                               <span
                                 className="font-mono bg-secondary text-muted-foreground"
                                 style={{
-                                  fontSize: 9,
+                                  fontSize: 11,
                                   letterSpacing: "0.06em",
                                   padding: "2px 8px",
                                   borderRadius: "var(--radius-btn)",
@@ -722,7 +725,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                               </span>
                             )}
                           </div>
-                          <p className="font-body text-foreground" style={{ fontSize: 18, fontWeight: 700 }}>
+                          <p className="font-body text-foreground" style={{ fontSize: 20, fontWeight: 700 }}>
                             {flag.label}
                           </p>
                         </div>
@@ -757,12 +760,12 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                                 alignItems: "flex-start",
                               }}
                             >
-                              <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
+                              <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
                               <div>
                                 <p
                                   className="font-mono"
                                   style={{
-                                    fontSize: 10,
+                                    fontSize: 12,
                                     color: "hsl(var(--color-gold-accent))",
                                     letterSpacing: "0.08em",
                                     fontWeight: 700,
@@ -801,15 +804,15 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             className="card-raised flex flex-col md:flex-row md:items-center md:justify-between gap-2"
             style={{ padding: "14px 20px", marginTop: 16 }}
           >
-            <p className="font-body text-foreground" style={{ fontSize: 16 }}>
+            <p className="font-body text-foreground" style={{ fontSize: 18 }}>
               {summaryText} across 5 pillars.
             </p>
             <div className="text-right">
-              <p className="font-mono text-foreground" style={{ fontSize: 14 }}>
+              <p className="font-mono text-foreground" style={{ fontSize: 16 }}>
                 Grade {grade} · {issueCount} Issue{issueCount !== 1 ? "s" : ""}
                 {greenCount > 0 ? ` · ${greenCount} Confirmed` : ""}
               </p>
-              <p className="font-mono text-muted-foreground" style={{ fontSize: 12, marginTop: 2 }}>
+              <p className="font-mono text-muted-foreground" style={{ fontSize: 14, marginTop: 2 }}>
                 Analyzed against 37 industry-standard safety signals.
               </p>
             </div>
@@ -834,7 +837,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
       {/* ─── NEGOTIATION SCRIPT ─── */}
       {isFull && (
-        <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
+        <section className="py-10 md:py-14 px-4 md:px-12 bg-background border-b border-border">
           <div className="max-w-4xl mx-auto">
             <motion.div {...stagger(6)}>
               <span className="wm-eyebrow" style={{ color: "hsl(var(--color-cyan))" }}>
@@ -843,7 +846,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <h2 className="wm-title-section text-foreground" style={{ marginTop: 4, marginBottom: 6 }}>
                 Your Word-for-Word Script
               </h2>
-              <p className="font-body text-muted-foreground" style={{ fontSize: 16, marginBottom: 20 }}>
+              <p className="font-body text-muted-foreground" style={{ fontSize: 18, marginBottom: 20 }}>
                 Customized for {displayName} based on the {issueCount} issue{issueCount !== 1 ? "s" : ""} found in your
                 quote.
               </p>
@@ -882,7 +885,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
               <p
                 className="font-mono"
-                style={{ fontSize: 10, color: "hsl(var(--color-cyan))", letterSpacing: "0.1em", marginBottom: 16 }}
+                style={{ fontSize: 12, color: "hsl(var(--color-cyan))", letterSpacing: "0.1em", marginBottom: 16 }}
               >
                 CALL SCRIPT · {displayName.toUpperCase()}
               </p>
@@ -922,7 +925,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   </h2>
                   <p
                     className="font-body text-foreground/90"
-                    style={{ fontSize: 16, maxWidth: 560, margin: "0 auto 32px", lineHeight: 1.7 }}
+                    style={{ fontSize: 18, maxWidth: 560, margin: "0 auto 32px", lineHeight: 1.7 }}
                   >
                     Based on your Grade {grade} and the {issueCount} issue{issueCount !== 1 ? "s" : ""} found, I can
                     introduce you to a vetted {county} County contractor who quotes fair.
@@ -987,7 +990,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
 
                 <p
                   className="font-body text-muted-foreground"
-                  style={{ fontSize: 12, fontStyle: "italic", marginTop: 20 }}
+                  style={{ fontSize: 14, fontStyle: "italic", marginTop: 20 }}
                 >
                   No obligation. Free estimate. Your contractor never sees this report unless you share it.
                 </p>
