@@ -62,8 +62,8 @@ export interface AnalysisData {
   markupEstimate?: string | null;
   negotiationLeverage?: string | null;
   /** Hybrid report compiler fields */
-  warnings?: string[];
-  missingItems?: string[];
+  warnings?: (string | Record<string, unknown>)[];
+  missingItems?: (string | Record<string, unknown>)[];
   summary?: string | null;
   topWarning?: string | null;
   topMissingItem?: string | null;

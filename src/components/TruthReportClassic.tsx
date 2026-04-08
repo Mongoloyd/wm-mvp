@@ -70,8 +70,8 @@ interface TruthReportProps {
   priceFairness?: string | null;
   markupEstimate?: string | null;
   negotiationLeverage?: string | null;
-  warnings?: string[];
-  missingItems?: string[];
+  warnings?: (string | Record<string, unknown>)[];
+  missingItems?: (string | Record<string, unknown>)[];
   summary?: string | null;
   topWarning?: string | null;
   topMissingItem?: string | null;
