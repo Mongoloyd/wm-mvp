@@ -30,6 +30,7 @@ import {
   toPreviewPillarStatus,
   buildPreviewPillarScores,
 } from "./scoring.ts";
+import { compileReportOutput } from "./reportCompiler.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 1: SCHEMA (Zod-like runtime validation — manual for Deno compat)
@@ -113,7 +114,7 @@ function detectFlags(data: ExtractionResult): Flag[] {
 
   // Fine print flags
   if (!data.cancellation_policy) {
-    flags.push({ flag: "no_cancellation_policy", severity: "Low", pillar: "finePrint", detail: "No cancellation policy found" });
+    flags.push({ flag: "no_cancellation_policy", severity: "Medium", pillar: "finePrint", detail: "No cancellation policy found" });
   }
   const unbranded = items.filter(i => !i.brand && !i.series);
   if (unbranded.length > 0) {
@@ -123,6 +124,48 @@ function detectFlags(data: ExtractionResult): Flag[] {
   // Warranty flags
   if (!data.warranty) {
     flags.push({ flag: "no_warranty_section", severity: "High", pillar: "warranty", detail: "No warranty information found" });
+  }
+
+  // ── Payment-trap flags ───────────────────────────────────────────────────
+  if (data.subject_to_remeasure_present) {
+    flags.push({ flag: "subject_to_remeasure_clause", severity: "Critical", pillar: "finePrint", detail: "Quote includes subject-to-remeasure language that may allow price increases after signing" });
+  }
+  if (typeof data.deposit_percent === "number" && data.deposit_percent > 40) {
+    flags.push({ flag: "deposit_over_40_percent", severity: data.deposit_percent > 50 ? "Critical" : "High", pillar: "price", detail: `Deposit requirement is ${data.deposit_percent}% upfront` });
+  }
+  if (data.final_payment_before_inspection === true) {
+    flags.push({ flag: "payment_before_inspection", severity: "High", pillar: "finePrint", detail: "Final payment appears due before inspection or final approval" });
+  }
+  if (data.terms_conditions_present === false) {
+    flags.push({ flag: "terms_conditions_missing", severity: "Medium", pillar: "finePrint", detail: "No terms and conditions section was found" });
+  }
+
+  // ── Scope-gap flags ──────────────────────────────────────────────────────
+  if (!data.wall_repair_scope) {
+    flags.push({ flag: "wall_repair_scope_missing", severity: "Medium", pillar: "install", detail: "Wall repair scope is missing or unclear" });
+  }
+  if (data.debris_removal_included !== true) {
+    flags.push({ flag: "debris_removal_missing", severity: "Medium", pillar: "install", detail: "Debris removal/disposal is not clearly included" });
+  }
+  if (data.engineering_mentioned === false) {
+    flags.push({ flag: "engineering_not_mentioned", severity: "Medium", pillar: "install", detail: "No engineering scope or engineering fees were identified" });
+  }
+  if (data.permit_fees_itemized === false) {
+    flags.push({ flag: "permit_fees_unclear", severity: "Medium", pillar: "install", detail: "Permit responsibility may be mentioned, but permit fees are not itemized clearly" });
+  }
+
+  // ── Trust-signal flags ───────────────────────────────────────────────────
+  if (data.insurance_proof_mentioned !== true || data.licensing_proof_mentioned !== true) {
+    flags.push({ flag: "insurance_licensing_not_shown", severity: "Medium", pillar: "finePrint", detail: "Proof of insurance and licensing was not clearly shown in the quote" });
+  }
+  if (!data.completion_timeline_text) {
+    flags.push({ flag: "completion_timeline_missing", severity: "Medium", pillar: "install", detail: "No project completion timeline was identified" });
+  }
+  if (data.generic_product_description_present === true) {
+    flags.push({ flag: "generic_product_description", severity: "High", pillar: "finePrint", detail: "Product description is too generic to verify the exact impact-rated model" });
+  }
+  if (data.state_jurisdiction_mismatch === true) {
+    flags.push({ flag: "state_jurisdiction_mismatch", severity: "High", pillar: "safety", detail: "Contractor address/jurisdiction appears inconsistent with the Florida project context" });
   }
 
   return flags;
@@ -442,6 +485,11 @@ Rules:
 - For each line item, extract brand, series, DP rating, NOA number, dimensions, quantity, unit price, and total price where visible.
 - Extract warranty, permit, installation, and cancellation details if present.
 - If a field is not found in the document, omit it from the output (do not guess).
+- Detect contract traps such as "subject to remeasure", excessive deposit percentage, payment due before final inspection, or missing terms and conditions.
+- Detect scope gaps such as missing wall repair, debris removal, engineering, or permit fee clarity.
+- Detect generic product descriptions that do not clearly identify the manufacturer/series.
+- Extract the contractor address if shown.
+- Do not infer compliance from branding alone. Only mark fields true when supported by visible document language.
 
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
 {
@@ -454,6 +502,27 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "total_quoted_price": number | null,
   "hvhz_zone": boolean | null,
   "cancellation_policy": "string | null",
+  "subject_to_remeasure_present": "boolean | null",
+  "subject_to_remeasure_text": "string | null",
+  "deposit_percent": "number | null",
+  "deposit_amount": "number | null",
+  "final_payment_before_inspection": "boolean | null",
+  "payment_schedule_text": "string | null",
+  "terms_conditions_present": "boolean | null",
+  "wall_repair_scope": "string | null",
+  "stucco_repair_included": "boolean | null",
+  "drywall_repair_included": "boolean | null",
+  "paint_touchup_included": "boolean | null",
+  "debris_removal_included": "boolean | null",
+  "engineering_mentioned": "boolean | null",
+  "engineering_fees_included": "boolean | null",
+  "permit_fees_itemized": "boolean | null",
+  "insurance_proof_mentioned": "boolean | null",
+  "licensing_proof_mentioned": "boolean | null",
+  "completion_timeline_text": "string | null",
+  "lead_paint_disclosure_present": "boolean | null",
+  "generic_product_description_present": "boolean | null",
+  "contractor_address_text": "string | null",
   "line_items": [
     {
       "description": "string",
@@ -912,6 +981,11 @@ Deno.serve(async (req: Request) => {
 
       const extraction = validation.data;
 
+      // 10b. Derive jurisdiction mismatch before scoring
+      if (extraction.contractor_address_text && /illinois|il\b/i.test(extraction.contractor_address_text) && session?.lead_id) {
+        extraction.state_jurisdiction_mismatch = true;
+      }
+
       // 11. Score all pillars
       const gradeResult = computeGrade(extraction);
       const flags = detectFlags(extraction);
@@ -948,6 +1022,23 @@ Deno.serve(async (req: Request) => {
         derived_metrics: derivedMetrics,
       }, null, 2));
 
+      // 11e. Compile report output (deterministic compiler)
+      const compiledReport = compileReportOutput(
+        extraction,
+        gradeResult,
+        flags.map(f => ({
+          severity: f.severity === "Critical" || f.severity === "High" ? "red" as const : f.severity === "Medium" ? "amber" as const : "green" as const,
+          label: f.detail,
+          id: f.flag,
+          pillar: f.pillar,
+        })),
+        {
+          price_per_opening: (derivedMetrics as Record<string, any>)?.per_opening?.installed_price_per_opening ?? null,
+          county_median_per_opening: (derivedMetrics as Record<string, any>)?.county_benchmark?.benchmark_price_per_opening_avg ?? null,
+          dollar_delta: (derivedMetrics as Record<string, any>)?.county_benchmark?.delta_amount ?? null,
+        },
+      );
+
       // 12. Build payloads
       const openingBucket = (extraction.opening_count || extraction.line_items.length) <= 5 ? "1-5"
         : (extraction.opening_count || extraction.line_items.length) <= 10 ? "6-10"
@@ -971,6 +1062,13 @@ Deno.serve(async (req: Request) => {
         has_warranty: !!extraction.warranty,
         has_permits: !!extraction.permits,
         pillar_scores: buildPreviewPillarScores(gradeResult.pillarScores),
+        top_warning: compiledReport.top_warning,
+        top_missing_item: compiledReport.top_missing_item,
+        missing_items_count: compiledReport.missing_items.length,
+        payment_risk_detected: compiledReport.payment_risk_detected,
+        scope_gap_detected: compiledReport.scope_gap_detected,
+        price_per_opening_band: compiledReport.price_per_opening_band,
+        summary_teaser: compiledReport.summary_teaser,
       };
 
       // Full JSON: complete analysis — gated behind SMS verification on client
@@ -986,6 +1084,15 @@ Deno.serve(async (req: Request) => {
         price_fairness: extraction.price_fairness || null,
         markup_estimate: extraction.markup_estimate || null,
         negotiation_leverage: extraction.negotiation_leverage || null,
+        warnings: compiledReport.warnings,
+        missing_items: compiledReport.missing_items,
+        summary: compiledReport.summary,
+        top_warning: compiledReport.top_warning,
+        top_missing_item: compiledReport.top_missing_item,
+        price_per_opening: compiledReport.price_per_opening,
+        price_per_opening_band: compiledReport.price_per_opening_band,
+        payment_risk_detected: compiledReport.payment_risk_detected,
+        scope_gap_detected: compiledReport.scope_gap_detected,
       };
 
       // 13. Upsert full analyses row
