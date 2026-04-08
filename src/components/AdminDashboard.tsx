@@ -209,7 +209,7 @@ function DashboardContent() {
       {/* Tabs */}
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-6">
         <Tabs defaultValue="command" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-7 max-w-4xl">
             <TabsTrigger value="command">Command Center</TabsTrigger>
             <TabsTrigger value="pipeline">Active Pipeline</TabsTrigger>
             <TabsTrigger value="ghosts" className="relative">
