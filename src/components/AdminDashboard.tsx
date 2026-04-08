@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
 
 import { PreviewModeBadge } from "@/components/PreviewModeBadge";
 import { CommandCenter } from "@/components/admin/CommandCenter";
@@ -26,7 +27,7 @@ import {
 
 import type { CRMLead, WebhookDelivery, CommandCenterKPIs, VoiceFollowupSummary } from "@/components/admin/types";
 
-const REFRESH_INTERVAL_MS = 30_000;
+const REFRESH_INTERVAL_MS = 120_000;
 
 /* ── Map raw DB row → CRMLead ────────────────────────────────────────── */
 
