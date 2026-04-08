@@ -180,6 +180,7 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-background">
+      {leads.length === 0 && !isLoading && <PreviewModeBadge />}
       {/* Header */}
       <div className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
