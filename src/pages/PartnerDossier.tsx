@@ -135,65 +135,64 @@ export default function PartnerDossier() {
   const [isPreview, setIsPreview] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
+  /* ── Fallback helper ───────────────────────────────────────────── */
+  const fallbackToMock = () => {
+    setDossier(MOCK_DOSSIER.dossier as any);
+    setMeta(MOCK_DOSSIER.meta as any);
+    setIsPreview(true);
+    setLoading(false);
+  };
+
   /* ── Fetch dossier via edge function ──────────────────────────── */
   const fetchDossier = useCallback(async () => {
     if (!id) {
-      // No route id — show demo mock
-      setDossier(MOCK_DOSSIER.dossier as any);
-      setMeta(MOCK_DOSSIER.meta as any);
-      setIsPreview(true);
+      fallbackToMock();
+      return;
+    }
+
+    setLoading(true);
+
+    let data: any = null;
+    try {
+      const res = await supabase.functions.invoke("get-contractor-dossier", {
+        body: { id },
+      });
+      if (res.error) {
+        console.warn("[PartnerDossier] Edge function error:", res.error);
+        fallbackToMock();
+        return;
+      }
+      data = res.data;
+    } catch (err) {
+      console.warn("[PartnerDossier] Fetch threw, falling back to mock:", err);
+      fallbackToMock();
+      return;
+    }
+
+    // Handle structured error responses
+    if (!data || data.error === "unauthenticated" || data.error === "internal_error") {
+      console.warn("[PartnerDossier] Auth/server error response, using mock");
+      fallbackToMock();
+      return;
+    }
+
+    if (data.error === "not_found") {
+      setError("Dossier not found for the given ID.");
       setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true);
-      const { data, error: fnErr } = await supabase.functions.invoke("get-contractor-dossier", {
-        body: { id },
-      });
-
-      if (fnErr) {
-        console.warn("[PartnerDossier] Edge function error:", fnErr);
-        // Fall back to preview mock instead of blocking
-        setDossier(MOCK_DOSSIER.dossier as any);
-        setMeta(MOCK_DOSSIER.meta as any);
-        setIsPreview(true);
-        setLoading(false);
-        return;
-      }
-
-      if (data?.error === "unauthenticated") {
-        // Fall back to preview mock
-        setDossier(MOCK_DOSSIER.dossier as any);
-        setMeta(MOCK_DOSSIER.meta as any);
-        setIsPreview(true);
-        setLoading(false);
-        return;
-      }
-
-      if (data?.error === "not_found") {
-        setError("Dossier not found for the given ID.");
-        setLoading(false);
-        return;
-      }
-
-      if (data?.dossier && data?.meta) {
-        setDossier(data.dossier);
-        setMeta(data.meta);
-      } else {
-        // Unexpected shape — fallback
-        console.warn("[PartnerDossier] Unexpected response shape, using mock");
-        setDossier(MOCK_DOSSIER.dossier as any);
-        setMeta(MOCK_DOSSIER.meta as any);
-      }
-    } catch (err) {
-      console.warn("[PartnerDossier] Fetch failed, using mock:", err);
-      setDossier(MOCK_DOSSIER.dossier as any);
-      setMeta(MOCK_DOSSIER.meta as any);
-      setIsPreview(true);
-    } finally {
-      setLoading(false);
+    if (data.dossier && data.meta) {
+      setDossier(data.dossier);
+      setMeta(data.meta);
+      setIsPreview(false);
+    } else {
+      console.warn("[PartnerDossier] Unexpected response shape, using mock");
+      fallbackToMock();
+      return;
     }
+
+    setLoading(false);
   }, [id]);
 
   useEffect(() => {
