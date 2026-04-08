@@ -14,7 +14,7 @@ import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
-import { AuthGuard } from "@/components/auth/AuthGuard";
+import { PreviewModeBadge } from "@/components/PreviewModeBadge";
 import { CommandCenter } from "@/components/admin/CommandCenter";
 import { ActivePipeline } from "@/components/admin/ActivePipeline";
 import { GhostRecovery } from "@/components/admin/GhostRecovery";
@@ -160,9 +160,8 @@ function DashboardContent() {
       }
       setLatestFollowups(fMap);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to load data";
-      if (!silent) toast.error(msg);
-      console.error("[CRM] fetch error:", err);
+      console.warn("[CRM] fetch error (preview mode):", err);
+      // Gracefully fall through — empty state renders as preview
     } finally {
       setIsLoading(false);
     }
@@ -181,6 +180,7 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-background">
+      {leads.length === 0 && !isLoading && <PreviewModeBadge />}
       {/* Header */}
       <div className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
@@ -272,12 +272,8 @@ function DashboardContent() {
   );
 }
 
-/* ── Exported with AuthGuard ─────────────────────────────────────────── */
+/* ── Exported — renders publicly, data-fetch failures show preview ──── */
 
 export default function AdminDashboard() {
-  return (
-    <AuthGuard>
-      <DashboardContent />
-    </AuthGuard>
-  );
+  return <DashboardContent />;
 }

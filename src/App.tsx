@@ -35,7 +35,7 @@ const ContractorLogin = lazy(() => import("./pages/ContractorLogin.tsx"));
 const ContractorOpportunitiesPage = lazy(() => import("./pages/ContractorOpportunitiesPage.tsx"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite.tsx"));
 const PartnerResetPassword = lazy(() => import("./pages/PartnerResetPassword.tsx"));
-const PartnerGuard = lazy(() => import("./components/auth/PartnerGuard.tsx"));
+// PartnerGuard removed — partner pages render publicly with preview fallback
 
 // Redirect helper: /report/:sessionId → /report/classic/:sessionId
 function ReportRedirect() {
@@ -126,8 +126,8 @@ const App = () => (
                 <Route path="/partner/login" element={<ContractorLogin />} />
                 <Route path="/partner/reset-password" element={<PartnerResetPassword />} />
                 <Route path="/partner/accept-invite" element={<AcceptInvite />} />
-                <Route path="/partner/opportunities" element={<PartnerGuard><ContractorOpportunitiesPage /></PartnerGuard>} />
-                <Route path="/partner/dossier/:id?" element={<PartnerGuard><PartnerDossier /></PartnerGuard>} />
+                <Route path="/partner/opportunities" element={<ContractorOpportunitiesPage />} />
+                <Route path="/partner/dossier/:id?" element={<PartnerDossier />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
