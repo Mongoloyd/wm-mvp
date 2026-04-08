@@ -645,8 +645,7 @@ function CalibrationGateModal({ onSubmit }) {
             margin: "0 0 24px",
           }}
         >
-          To compute the final risk score, we need to calibrate the AI against your local county building codes and
-          fair-market pricing.
+          To Compute The Final Risk Report, We Can Calibrate It Against Your Local County Building Codes and Fair-Market Pricing.
         </p>
 
         {/* Fields */}
