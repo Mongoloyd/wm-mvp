@@ -224,6 +224,32 @@ export type Database = {
           },
         ]
       }
+      contractor_credits: {
+        Row: {
+          balance: number
+          contractor_id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          contractor_id: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          contractor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_credits_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: true
+            referencedRelation: "contractor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_opportunities: {
         Row: {
           amber_flag_count: number
@@ -563,6 +589,66 @@ export type Database = {
             columns: ["route_id"]
             isOneToOne: false
             referencedRelation: "contractor_opportunity_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_profiles: {
+        Row: {
+          company_name: string
+          contact_email: string
+          created_at: string
+          id: string
+          status: string
+        }
+        Insert: {
+          company_name: string
+          contact_email: string
+          created_at?: string
+          id: string
+          status?: string
+        }
+        Update: {
+          company_name?: string
+          contact_email?: string
+          created_at?: string
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      contractor_unlocked_leads: {
+        Row: {
+          contractor_id: string
+          id: string
+          lead_id: string
+          unlocked_at: string
+        }
+        Insert: {
+          contractor_id: string
+          id?: string
+          lead_id: string
+          unlocked_at?: string
+        }
+        Update: {
+          contractor_id?: string
+          id?: string
+          lead_id?: string
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_unlocked_leads_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_unlocked_leads_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]
