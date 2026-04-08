@@ -71,13 +71,18 @@ const AuditHero = ({
             {/* Mascot */}
 
             <div className="relative z-20 flex justify-center pointer-events-none w-full">
-              <img
-                src={MASCOT_URL}
-                alt="WindowMan holding a Truth Report"
-                fetchPriority="high"
-                decoding="async"
-                className="w-full max-w-sm md:w-64 lg:w-96 h-auto object-contain"
-              />
+              <motion.div
+                animate={{ y: [-8, 0, -8] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <img
+                  src={MASCOT_URL}
+                  alt="WindowMan holding a Truth Report"
+                  fetchPriority="high"
+                  decoding="async"
+                  className="w-full max-w-md md:w-80 lg:w-[480px] h-auto object-contain"
+                />
+              </motion.div>
             </div>
 
             {/* GradeCard — desktop only */}
