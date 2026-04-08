@@ -67,6 +67,17 @@ interface TruthReportProps {
   priceFairness?: string | null;
   markupEstimate?: string | null;
   negotiationLeverage?: string | null;
+  warnings?: string[];
+  missingItems?: string[];
+  summary?: string | null;
+  topWarning?: string | null;
+  topMissingItem?: string | null;
+  pricePerOpening?: number | null;
+  pricePerOpeningBand?: "low" | "market" | "high" | "extreme" | null;
+  paymentRiskDetected?: boolean;
+  scopeGapDetected?: boolean;
+  summaryTeaser?: string | null;
+  missingItemsCount?: number;
 }
 
 const gradeConfig: Record<string, { color: string; bg: string; glow: string; label: string; verdict: string }> = {
@@ -199,6 +210,17 @@ const TruthReportClassic = ({
   priceFairness,
   markupEstimate,
   negotiationLeverage,
+  warnings,
+  missingItems,
+  summary,
+  topWarning,
+  topMissingItem,
+  pricePerOpening,
+  pricePerOpeningBand,
+  paymentRiskDetected,
+  scopeGapDetected,
+  summaryTeaser,
+  missingItemsCount,
 }: TruthReportProps) => {
   const config = gradeConfig[grade] || gradeConfig.C;
   const isFull = accessLevel === "full";
