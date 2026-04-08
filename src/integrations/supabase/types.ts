@@ -1836,6 +1836,10 @@ export type Database = {
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_internal_operator: { Args: never; Returns: boolean }
+      unlock_contractor_lead: {
+        Args: { p_contractor_id: string; p_lead_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
