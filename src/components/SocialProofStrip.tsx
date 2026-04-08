@@ -1,30 +1,11 @@
 import { motion, useInView } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import { useTickerStats } from "@/hooks/useTickerStats";
-
-function useCountUp(end: number, duration: number, active: boolean) {
-  const [value, setValue] = useState(0);
-  const hasRun = useRef(false);
-  useEffect(() => {
-    if (!active || hasRun.current) return;
-    hasRun.current = true;
-    const startTime = performance.now();
-    const step = (now: number) => {
-      const progress = Math.min((now - startTime) / duration, 1);
-      setValue(Math.round(end * progress));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [active, end, duration]);
-  return value;
-}
 
 const SocialProofStrip = () => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.1 });
   const { total, today } = useTickerStats();
-  const totalCount = useCountUp(total, 2000, inView);
-  const todayCount = useCountUp(today, 1200, inView);
 
   return (
     <motion.div
@@ -85,7 +66,7 @@ const SocialProofStrip = () => {
                     color: "hsl(var(--primary))",
                     textShadow: "0 1px 0 hsla(0 0% 100% / 0.5)",
                   }}
-                >{totalCount.toLocaleString()}</span>
+                >{total.toLocaleString()}</span>
                 <span
                   className="font-body text-xs whitespace-nowrap"
                   style={{
@@ -123,7 +104,7 @@ const SocialProofStrip = () => {
                     textShadow: "0 1px 0 hsla(0 0% 100% / 0.4)",
                   }}
                 >
-                  +{todayCount} Today
+                  +{today} Today
                 </span>
               </div>
             </div>
