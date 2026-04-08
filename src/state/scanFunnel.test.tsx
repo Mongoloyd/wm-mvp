@@ -74,10 +74,10 @@ describe("readPersistedState via ScanFunnelProvider initialisation", () => {
   });
 });
 
-// ── persistFields behaviour (exercised via Provider action side-effects) ──────
+// ── clearFunnel purges persisted keys ─────────────────────────────────────────
 
-describe("persistFields behaviour via ScanFunnelProvider actions", () => {
-  it("removes the phoneE164 LS key when the funnel is cleared (null phoneE164 path)", async () => {
+describe("clearFunnel purges persisted keys", () => {
+  it("removes the phoneE164 LS key after it was written", async () => {
     const { result } = renderFunnel();
 
     // Write a phone number into LS via setPhone
@@ -86,7 +86,7 @@ describe("persistFields behaviour via ScanFunnelProvider actions", () => {
     });
     expect(localStorage.getItem(LS_KEYS.phoneE164)).toBe("+13055551234");
 
-    // clearFunnel removes all persisted keys including phoneE164
+    // clearFunnel → clearPersistedFunnel removes all persisted keys
     await act(async () => {
       result.current.clearFunnel();
     });
@@ -94,7 +94,7 @@ describe("persistFields behaviour via ScanFunnelProvider actions", () => {
     expect(localStorage.getItem(LS_KEYS.phoneE164)).toBeNull();
   });
 
-  it("removes the scanSessionId LS key when the funnel is cleared (null scanSessionId path)", async () => {
+  it("removes the scanSessionId LS key after it was written", async () => {
     const { result } = renderFunnel();
 
     await act(async () => {
