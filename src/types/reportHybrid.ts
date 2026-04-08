@@ -9,8 +9,8 @@ export interface HybridPreviewPayload {
 }
 
 export interface HybridFullPayload {
-  warnings?: string[];
-  missing_items?: string[];
+  warnings?: (string | Record<string, unknown>)[];
+  missing_items?: (string | Record<string, unknown>)[];
   summary?: string | null;
   top_warning?: string | null;
   top_missing_item?: string | null;
