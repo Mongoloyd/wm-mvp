@@ -224,6 +224,53 @@ export type Database = {
           },
         ]
       }
+      contractor_credit_ledger: {
+        Row: {
+          balance_after: number
+          contractor_id: string
+          created_at: string
+          created_by: string | null
+          delta: number
+          entry_type: string
+          id: string
+          notes: string | null
+          reference_id: string | null
+          reference_type: string | null
+        }
+        Insert: {
+          balance_after: number
+          contractor_id: string
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          entry_type: string
+          id?: string
+          notes?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Update: {
+          balance_after?: number
+          contractor_id?: string
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          entry_type?: string
+          id?: string
+          notes?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_credit_ledger_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_credits: {
         Row: {
           balance: number
@@ -656,6 +703,7 @@ export type Database = {
       contractors: {
         Row: {
           accepts_low_grade_leads: boolean
+          auth_user_id: string | null
           company_name: string
           contact_name: string | null
           created_at: string
@@ -676,6 +724,7 @@ export type Database = {
         }
         Insert: {
           accepts_low_grade_leads?: boolean
+          auth_user_id?: string | null
           company_name: string
           contact_name?: string | null
           created_at?: string
@@ -696,6 +745,7 @@ export type Database = {
         }
         Update: {
           accepts_low_grade_leads?: boolean
+          auth_user_id?: string | null
           company_name?: string
           contact_name?: string | null
           created_at?: string
