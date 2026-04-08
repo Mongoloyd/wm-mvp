@@ -833,8 +833,8 @@ function ScanTerminal({ lines, progress, terminalRef, firstName }) {
               lineHeight: 1.2,
             }}
           >
-            {firstName ? `${firstName}, your` : "Your"} <span style={{ color: T.cyan }}>Truth Report</span> is being
-            built
+            {firstName ? `${firstName}, your` : "Your"} <span style={{ color: T.cyan }}>Truth Report</span> Is Being
+            Built
           </h1>
         </div>
 
@@ -1137,13 +1137,13 @@ function DemoReport({ lead, onUploadQuote, onClose }) {
           }}
         >
           <span style={{ fontSize: "13px", color: "#fbbf24", fontWeight: 600 }}>
-            ⚡ DEMO — Real data.{" "}
+            ⚡ DEMO — Real Data.{" "}
             <a
               href="#"
               onClick={handleConversionClick}
               style={{ color: T.cyan, textDecoration: "underline", fontWeight: 700 }}
             >
-              Upload YOUR quote →
+              Upload YOUR Quote →
             </a>
           </span>
           {onClose && (
@@ -1173,7 +1173,7 @@ function DemoReport({ lead, onUploadQuote, onClose }) {
               <Kicker>WINDOW MAN AI TRUTH REPORT</Kicker>
             </div>
             <h1 style={{ fontSize: "38px", fontWeight: 800, lineHeight: 1.1, margin: "0 0 10px" }}>
-              {firstName.charAt(0).toUpperCase() + firstName.slice(1)}'s Quote Safety Audit
+              {firstName.charAt(0).toUpperCase() + firstName.slice(1)}'s WindowMan Truth Report
             </h1>
             <p style={{ color: T.muted, fontSize: "15px", margin: 0 }}>
               Forensic Consumer Protection Analysis — {DEMO.city}, FL {DEMO.zip}
@@ -1309,10 +1309,10 @@ function DemoReport({ lead, onUploadQuote, onClose }) {
               }}
             >
               <div style={{ fontSize: "24px", fontWeight: 800, marginBottom: "8px", color: T.text }}>
-                This was a demo. Yours could be worse.
+                This Was a Demo. Yours Could Be Worse.
               </div>
               <div style={{ fontSize: "14px", color: T.muted, marginBottom: "24px", lineHeight: 1.6 }}>
-                Upload your real quote — get your actual Truth Report in 60 seconds. Free.
+                Upload Your Real Quote — Get Your Actual Truth Report in 60 seconds. Free.
               </div>
               <a
                 href="#"
@@ -1372,8 +1372,8 @@ function DemoReport({ lead, onUploadQuote, onClose }) {
           }}
         >
           <div style={{ fontSize: "14px" }}>
-            <span style={{ fontWeight: 700, color: T.text }}>This is a demo.</span>{" "}
-            <span style={{ color: "#C8952A", fontWeight: 600 }}>Your real quote could have hidden issues too.</span>
+            <span style={{ fontWeight: 700, color: T.text }}>This is a Demo.</span>{" "}
+            <span style={{ color: "#C8952A", fontWeight: 600 }}>Your Real Quote Could Have Hidden Issues Too.</span>
           </div>
           <a
             href="#"
