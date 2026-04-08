@@ -80,6 +80,56 @@ export function buildWarnings(
     warnings.push("Caution: No cancellation policy or right-to-cancel language was found.");
   }
 
+  // ── Area 1-5 Forensic Warnings ──────────────────────────────────────────
+  if (hasFlag(flags, "unilateral_price_adjustment"))
+    warnings.push("🚨 CRITICAL: Quote gives the contractor unilateral power to raise pricing after you sign.");
+  if (hasFlag(flags, "no_homeowner_approval_for_changes"))
+    warnings.push("🚨 CRITICAL: Extra charges may not require your explicit approval before work proceeds.");
+  if (hasFlag(flags, "water_intrusion_excluded"))
+    warnings.push("🚨 CRITICAL: Water intrusion damage appears excluded from warranty coverage.");
+
+  if (hasFlag(flags, "blanket_glass_no_per_opening_detail"))
+    warnings.push("RED FLAG: Quote describes impact glass in general terms, but does not show which opening gets which glass package.");
+  if (hasFlag(flags, "glass_package_unverifiable"))
+    warnings.push("RED FLAG: The glass package cannot be verified opening by opening, which increases downgrade risk.");
+  if (hasFlag(flags, "opening_schedule_missing"))
+    warnings.push("RED FLAG: No room-by-room opening schedule was found in the quote.");
+  if (hasFlag(flags, "opening_product_assignments_missing"))
+    warnings.push("RED FLAG: The quote does not clearly assign a specific product to each opening.");
+  if (hasFlag(flags, "bulk_scope_no_schedule"))
+    warnings.push("RED FLAG: Scope is described in bulk rather than opening by opening, which creates ambiguity about what is actually included.");
+  if (hasFlag(flags, "substrate_clause_no_change_order"))
+    warnings.push("RED FLAG: Hidden rot or substrate work may be billed without a clear written change-order process.");
+  if (hasFlag(flags, "substrate_open_checkbook"))
+    warnings.push("RED FLAG: Rot, buck, or substrate costs appear open-ended because no clear unit pricing was found.");
+  if (hasFlag(flags, "remeasure_no_price_cap"))
+    warnings.push("RED FLAG: The remeasure clause does not show a clear cap on possible price increases.");
+  if (hasFlag(flags, "anchoring_method_missing"))
+    warnings.push("RED FLAG: Anchoring method is not specified.");
+  if (hasFlag(flags, "waterproofing_method_missing"))
+    warnings.push("RED FLAG: Waterproofing or sealant method is not specified, increasing water-intrusion risk.");
+  if (hasFlag(flags, "warranty_execution_missing"))
+    warnings.push("RED FLAG: Warranty exists, but the service process is not clearly explained.");
+  if (hasFlag(flags, "leak_callback_sla_missing"))
+    warnings.push("RED FLAG: No leak callback response timeline was found.");
+
+  if (hasFlag(flags, "incomplete_glass_specs"))
+    warnings.push("Caution: Some openings are missing complete glass details such as Low-E, Argon, or glass makeup.");
+  if (hasFlag(flags, "mixed_glass_visibility"))
+    warnings.push("Caution: Glass specifications appear inconsistent across openings, making apples-to-apples review harder.");
+  if (hasFlag(flags, "opening_dimensions_incomplete"))
+    warnings.push("Caution: Some opening dimensions appear incomplete or missing from the schedule.");
+  if (hasFlag(flags, "anchor_spacing_unspecified"))
+    warnings.push("Caution: Anchor or fastener spacing is not specified.");
+  if (hasFlag(flags, "install_compliance_unverified"))
+    warnings.push("Caution: The quote does not clearly state manufacturer-install or code-compliance methods.");
+  if (hasFlag(flags, "warranty_service_provider_unspecified"))
+    warnings.push("Caution: The quote does not clearly say who will actually perform warranty service.");
+  if (hasFlag(flags, "callback_process_missing"))
+    warnings.push("Caution: The process for requesting warranty service is not clearly described.");
+  if (hasFlag(flags, "finish_exclusions_present"))
+    warnings.push("Caution: The warranty appears to exclude some finish repairs such as stucco or paint touch-up.");
+
   return warnings;
 }
 
@@ -143,6 +193,48 @@ export function buildMissingItems(
   if (!extraction?.completion_timeline_text) {
     missing.push("Project completion timeline");
   }
+
+  // ── Area 1-5 Missing Items ──────────────────────────────────────────────
+  if (hasFlag(flags, "blanket_glass_no_per_opening_detail"))
+    missing.push("Opening-by-opening glass package schedule");
+  if (hasFlag(flags, "glass_package_unverifiable"))
+    missing.push("Per-opening glass package details (Low-E, Argon, makeup type, tint)");
+  if (hasFlag(flags, "incomplete_glass_specs"))
+    missing.push("Complete glass specifications for every opening");
+  if (hasFlag(flags, "opening_schedule_missing"))
+    missing.push("Room-by-room opening schedule");
+  if (hasFlag(flags, "opening_product_assignments_missing"))
+    missing.push("Product assignment for each opening");
+  if (hasFlag(flags, "bulk_scope_no_schedule"))
+    missing.push("Opening-by-opening breakdown instead of bulk scope language");
+  if (hasFlag(flags, "opening_dimensions_incomplete"))
+    missing.push("Complete opening dimensions for each scheduled opening");
+  if (hasFlag(flags, "substrate_clause_no_change_order"))
+    missing.push("Written change-order requirement before extra charges");
+  if (hasFlag(flags, "no_homeowner_approval_for_changes"))
+    missing.push("Explicit homeowner approval requirement before additional work or charges");
+  if (hasFlag(flags, "substrate_open_checkbook"))
+    missing.push("Unit pricing for rot, buck replacement, or substrate repairs");
+  if (hasFlag(flags, "remeasure_no_price_cap"))
+    missing.push("Clear cap or formula for any remeasure-based price change");
+  if (hasFlag(flags, "anchoring_method_missing"))
+    missing.push("Anchoring method details");
+  if (hasFlag(flags, "waterproofing_method_missing"))
+    missing.push("Waterproofing and sealant method details");
+  if (hasFlag(flags, "anchor_spacing_unspecified"))
+    missing.push("Anchor / fastener spacing details");
+  if (hasFlag(flags, "install_compliance_unverified"))
+    missing.push("Statement of manufacturer-install or code-compliance method");
+  if (hasFlag(flags, "warranty_execution_missing"))
+    missing.push("Warranty execution details (who services it, how claims work, and expected response)");
+  if (hasFlag(flags, "warranty_service_provider_unspecified"))
+    missing.push("Named warranty service provider");
+  if (hasFlag(flags, "leak_callback_sla_missing"))
+    missing.push("Leak callback response timeline");
+  if (hasFlag(flags, "callback_process_missing"))
+    missing.push("Warranty callback / service request process");
+  if (hasFlag(flags, "water_intrusion_excluded"))
+    missing.push("Clear written statement confirming whether water intrusion damage is covered");
 
   return missing;
 }
