@@ -99,25 +99,26 @@ const AuditHero = ({
 
           {/* ── ORDER 2 (mobile) / right column (md+): Mascot + GradeCard ── */}
 
-          <div className="order-2 md:order-last md:flex-1 flex flex-col items-center pt-0 md:pt-16">
-            {/* Mascot */}
-
-            <div className="relative z-20 flex justify-center pointer-events-none w-full">
+          <div className="order-2 md:order-last md:flex-1 relative flex flex-col items-center pt-0 md:pt-4">
+            {/* Mascot — absolutely positioned to hover above & behind the GradeCard */}
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-[45%] md:bottom-[40%] z-10 pointer-events-none">
               <img
                 src={MASCOT_URL}
                 alt="WindowMan holding a Truth Report"
-                width={384}
-                height={512}
+                width={420}
+                height={560}
                 fetchPriority="high"
                 decoding="async"
-                className="w-full max-w-sm md:w-64 lg:w-96 h-auto object-contain"
+                className="w-[280px] md:w-[340px] lg:w-[420px] h-auto object-contain"
                 style={{ aspectRatio: '3/4' }}
               />
             </div>
 
-            {/* GradeCard — desktop only */}
+            {/* Spacer to reserve room for the absolutely-positioned mascot */}
+            <div className="h-[200px] md:h-[220px] lg:h-[280px]" aria-hidden="true" />
 
-            <div className="hidden md:block relative z-10">
+            {/* GradeCard — visible on all breakpoints, sits in front of mascot */}
+            <div className="relative z-20 w-full flex justify-center scale-[0.88] md:scale-100">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
