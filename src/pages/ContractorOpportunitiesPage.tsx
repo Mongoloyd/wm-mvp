@@ -106,48 +106,52 @@ export default function ContractorOpportunitiesPage() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const [countyFilter, setCountyFilter] = useState("");
 
+  const fallbackToMock = useCallback(() => {
+    setOpportunities(MOCK_OPPORTUNITIES);
+    setMeta(MOCK_META);
+    setIsPreview(true);
+    setLoading(false);
+  }, []);
+
   const fetchOpportunities = useCallback(async () => {
+    setLoading(true);
+    setErrorMsg(null);
+
+    const body: Record<string, unknown> = {};
+    if (activeFilter === "unlocked") body.unlocked_only = true;
+    if (activeFilter === "pending") body.release_status = "pending_review";
+    if (activeFilter === "released") body.release_status = "released";
+    if (countyFilter.trim()) body.county = countyFilter.trim();
+
+    let data: any = null;
     try {
-      setLoading(true);
-      setErrorMsg(null);
-
-      const body: Record<string, unknown> = {};
-      if (activeFilter === "unlocked") body.unlocked_only = true;
-      if (activeFilter === "pending") body.release_status = "pending_review";
-      if (activeFilter === "released") body.release_status = "released";
-      if (countyFilter.trim()) body.county = countyFilter.trim();
-
-      const { data, error: fnErr } = await supabase.functions.invoke(
+      const res = await supabase.functions.invoke(
         "list-contractor-opportunities",
         { body },
       );
-
-      if (fnErr || data?.error === "unauthenticated" || data?.error === "no_contractor_profile") {
-        // Fall back to preview mode
-        setOpportunities(MOCK_OPPORTUNITIES);
-        setMeta(MOCK_META);
-        setIsPreview(true);
+      if (res.error) {
+        console.warn("[Opportunities] Edge function error:", res.error);
+        fallbackToMock();
         return;
       }
-
-      if (data?.error) {
-        setOpportunities(MOCK_OPPORTUNITIES);
-        setMeta(MOCK_META);
-        setIsPreview(true);
-        return;
-      }
-
-      setOpportunities(data.opportunities ?? []);
-      setMeta(data.meta ?? null);
-      setIsPreview(false);
-    } catch {
-      setOpportunities(MOCK_OPPORTUNITIES);
-      setMeta(MOCK_META);
-      setIsPreview(true);
-    } finally {
-      setLoading(false);
+      data = res.data;
+    } catch (err) {
+      console.warn("[Opportunities] Fetch threw, falling back to mock:", err);
+      fallbackToMock();
+      return;
     }
-  }, [activeFilter, countyFilter]);
+
+    if (!data || data.error === "unauthenticated" || data.error === "no_contractor_profile" || data.error === "internal_error" || data.error) {
+      console.warn("[Opportunities] Error response, using mock");
+      fallbackToMock();
+      return;
+    }
+
+    setOpportunities(data.opportunities ?? []);
+    setMeta(data.meta ?? null);
+    setIsPreview(false);
+    setLoading(false);
+  }, [activeFilter, countyFilter, fallbackToMock]);
 
   useEffect(() => {
     fetchOpportunities();
