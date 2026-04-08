@@ -40,15 +40,27 @@ interface ScanTheatricsProps {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const TERMINAL_STEPS = [
-  { cmd: "> EXTRACT line_items from page_1", done: "> EXTRACT line_items from page_1... [OK]" },
-  { cmd: "> ID brand_specs in document", done: "> ID brand_specs in document... [OK]" },
-  { cmd: "> LOAD market_data/{county}", done: "> LOAD market_data/{county}... [OK]" },
-  { cmd: "> SCAN warranty_blocks + permit_lang", done: "> SCAN warranty_blocks + permit_lang... [OK]" },
-  { cmd: "> CALC market_delta", done: "> CALC market_delta... [OK]" },
-  { cmd: "> COMPILE flag_report", done: "> COMPILE flag_report... [OK]" },
-  { cmd: "> GENERATE grade_score", done: "> GENERATE grade_score... [OK]" },
-];
+function buildTerminalSteps(data: AnalysisData | null | undefined, county: string) {
+  const items = data?.lineItemCount ?? null;
+  const pages = data?.pageCount ?? 1;
+  const brand = data?.contractorName ?? null;
+  const countyLabel = county && county !== "your" ? county : "{county}";
+  const flagCount = data?.flagCount ?? null;
+
+  const itemStr = items != null ? `${items} line_items from ${pages}-page document` : "line_items from page_1";
+  const brandStr = brand ? `brand: ${brand}` : "brand_specs in document";
+  const flagStr = flagCount != null ? `${flagCount} flags compiled` : "flag_report";
+
+  return [
+    { cmd: `> EXTRACT ${itemStr}`, done: `> EXTRACT ${itemStr}... [OK]` },
+    { cmd: `> ID ${brandStr}`, done: `> ID ${brandStr}... [OK]` },
+    { cmd: `> LOAD market_data/${countyLabel}`, done: `> LOAD market_data/${countyLabel}... [OK]` },
+    { cmd: "> SCAN warranty_blocks + permit_lang", done: "> SCAN warranty_blocks + permit_lang... [OK]" },
+    { cmd: "> CALC market_delta", done: "> CALC market_delta... [OK]" },
+    { cmd: `> COMPILE ${flagStr}`, done: `> COMPILE ${flagStr}... [OK]` },
+    { cmd: "> GENERATE grade_score", done: "> GENERATE grade_score... [OK]" },
+  ];
+}
 
 // Forensic bounding box markers revealed on the document silhouette as each step completes
 const FORENSIC_MARKERS: { x: number; y: number; w: number; h: number; label: string; color: string }[] = [
