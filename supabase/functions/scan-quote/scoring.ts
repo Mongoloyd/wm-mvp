@@ -16,6 +16,14 @@ export interface LineItem {
   dp_rating?: string;
   noa_number?: string;
   dimensions?: string;
+
+  // ── Glass package fields ────────────────────────────────────────────────
+  glass_package_text?: string | null;
+  glass_makeup_type?: "monolithic_laminated" | "insulated_laminated" | "laminated" | "insulated" | "tempered" | "unknown" | null;
+  glass_low_e_present?: boolean | null;
+  glass_argon_present?: boolean | null;
+  glass_tint_text?: string | null;
+  glass_spec_complete?: boolean | null;
 }
 
 export interface ExtractionResult {
@@ -82,6 +90,11 @@ export interface ExtractionResult {
 
   // ── Product-quality fields ───────────────────────────────────────────────
   generic_product_description_present?: boolean;
+
+  // ── Glass package fields ──────────────────────────────────────────────────
+  opening_level_glass_specs_present?: boolean | null;
+  blanket_glass_language_present?: boolean | null;
+  mixed_glass_package_visibility?: boolean | null;
 
   // ── Jurisdiction fields ──────────────────────────────────────────────────
   contractor_address_text?: string;
