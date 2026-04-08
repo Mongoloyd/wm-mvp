@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import ForensicPillarSection from "@/components/report/ForensicPillarSection";
 import RiskSummaryHeader from "@/components/report/RiskSummaryHeader";
+import ExecutiveSummaryStrip from "@/components/report/ExecutiveSummaryStrip";
+import RedFlagsList from "@/components/report/RedFlagsList";
+import MissingItemsList from "@/components/report/MissingItemsList";
 import FixItCTA from "@/components/report/FixItCTA";
 import GapFixModule from "@/components/report/GapFixModule";
 import GreenChecklistModule from "@/components/report/GreenChecklistModule";
