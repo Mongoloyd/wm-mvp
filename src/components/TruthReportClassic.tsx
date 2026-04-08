@@ -616,7 +616,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                     ? "Findings Pending"
                     : `${issueCount} Forensic Finding${issueCount !== 1 ? "s" : ""}`}
                 </h2>
-                <p className="font-body text-muted-foreground" style={{ fontSize: 14 }}>
+                <p className="font-body text-muted-foreground" style={{ fontSize: 18 }}>
                   {redCount} critical · {amberCount} review{greenCount > 0 ? ` · ${greenCount} clear` : ""}
                 </p>
               </div>
@@ -631,7 +631,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               >
                 <span
                   className="font-mono"
-                  style={{ fontSize: 14, color: "hsl(var(--color-cyan))", letterSpacing: "0.08em" }}
+                  style={{ fontSize: 16, color: "hsl(var(--color-cyan))", letterSpacing: "0.08em" }}
                 >
                   {county.toUpperCase()} COUNTY BENCHMARKS
                 </span>
