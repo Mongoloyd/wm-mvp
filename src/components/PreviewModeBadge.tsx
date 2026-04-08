@@ -2,9 +2,9 @@ import { Eye } from "lucide-react";
 
 export function PreviewModeBadge() {
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/90 text-black text-xs font-bold uppercase tracking-wider shadow-lg backdrop-blur-sm border border-amber-400/50">
-      <Eye className="h-3.5 w-3.5" />
-      Preview Mode
-    </div>
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 text-amber-700 text-[11px] font-semibold border border-amber-200">
+      <Eye className="h-3 w-3" />
+      Sandbox Preview
+    </span>
   );
 }
