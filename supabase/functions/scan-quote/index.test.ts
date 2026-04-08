@@ -377,6 +377,8 @@ Deno.test("BRAIN: caps grade at D when no line item mentions impact/hurricane/st
   quote.line_items = quote.line_items.map(item => ({
     ...item,
     description: "Standard vinyl single-hung window",
+    dp_rating: undefined,
+    noa_number: undefined,
   }));
   const result = computeGrade(quote);
 
