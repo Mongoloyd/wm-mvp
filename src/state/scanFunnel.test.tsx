@@ -24,6 +24,7 @@ function renderFunnel() {
 
 beforeEach(() => {
   localStorage.clear();
+  vi.useFakeTimers();
 });
 
 afterEach(() => {
@@ -35,7 +36,8 @@ afterEach(() => {
 
 describe("readPersistedState via ScanFunnelProvider initialisation", () => {
   it("initialises with default state and removes all LS keys when timestamp > 24 h", () => {
-    // Seed LS with data that has an expired timestamp
+    // Pin the clock so the expiry arithmetic is fully deterministic
+    vi.setSystemTime(new Date("2024-06-01T12:00:00.000Z"));
     const expiredTs = Date.now() - (TWENTY_FOUR_HOURS_MS + 1);
     localStorage.setItem(LS_KEYS.timestamp, String(expiredTs));
     localStorage.setItem(LS_KEYS.phoneE164, "+13055551234");
@@ -56,8 +58,9 @@ describe("readPersistedState via ScanFunnelProvider initialisation", () => {
   });
 
   it("restores partial state from non-expired LS data", () => {
-    // Seed LS with a fresh timestamp and a known phone + session
-    const freshTs = Date.now() - 60_000; // 1 minute ago — well within 24 h
+    // Pin the clock and seed a timestamp that is 1 minute old (well within 24 h)
+    vi.setSystemTime(new Date("2024-06-01T12:00:00.000Z"));
+    const freshTs = Date.now() - 60_000;
     localStorage.setItem(LS_KEYS.timestamp, String(freshTs));
     localStorage.setItem(LS_KEYS.phoneE164, "+13055551234");
     localStorage.setItem(LS_KEYS.phoneStatus, "otp_sent");

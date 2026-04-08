@@ -6,7 +6,9 @@ import { useAnalysisData } from "./useAnalysisData";
 
 const { mockRpc, mockFrom, mockFunctionsInvoke } = vi.hoisted(() => ({
   mockRpc: vi.fn(),
-  mockFrom: vi.fn(),
+  mockFrom: vi.fn().mockReturnValue({
+    insert: vi.fn().mockResolvedValue({ data: null, error: null }),
+  }),
   mockFunctionsInvoke: vi.fn(),
 }));
 
@@ -74,10 +76,6 @@ async function fetchedFlag(rawSeverity: string | null) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // trackEvent calls supabase.from — stub it to avoid noise
-  mockFrom.mockReturnValue({
-    insert: vi.fn().mockResolvedValue({ data: null, error: null }),
-  });
 });
 
 afterEach(() => {
