@@ -1,58 +1,52 @@
 
 
-# Fix: WindowMan Mascot Size & Position — Converge on Grade Card
+# Plan: Cross-Session Identity Isolation Test + Provider Fix
 
-## What's Wrong Now
+## Critical Architecture Issue Found
 
-**Desktop (1464px):**
-- WindowMan and the GradeCard are stacked vertically in a single column (`flex-col`), but they are **separate, disconnected blocks** — the mascot sits above, then the card sits below with no overlap
-- WindowMan's bottom is cut off at the waist area; the card starts well below him
-- His head is roughly level with "READ THE FINE PRINT" — below the headline top. It should be **above** the "QUOTE INTELLIGENCE ENGINE" pill
-- Size is capped at `max-w-sm` (384px) on mobile, `w-64` (256px) on md, `w-96` (384px) on lg — the md breakpoint makes him too small on typical desktops
+The test expects `ReportClassic` to clear stale localStorage on session mismatch (assertion #3: `wm_funnel_phoneE164 === null`). However, `ScanFunnelProvider` only wraps `Index.tsx` — not the `/report/classic/:sessionId` route. This means:
 
-**Mobile (390px):**
-- WindowMan fills most of the screen (`max-w-sm` = nearly full width) — this is okay for presence but pushes content way down
-- The GradeCard is `hidden md:block` — **completely invisible on mobile**
-- He's floating alone with no visual anchor (no card behind/below him)
+- `useScanFunnelSafe()` returns `null` in `ReportClassic` on direct navigation
+- The cleanup effect (line 173) checks `funnel?.scanSessionId` which is `null?.scanSessionId` — **skips entirely**
+- localStorage retains stale phone/session keys indefinitely
+- The UI is correctly gated (phone input empty), but the storage is dirty
 
-## Root Causes (Lines 102-129 of AuditHero.tsx)
+**The test will fail on assertion #3 without an application fix.**
 
-1. **No overlap/convergence**: Mascot container (z-20) and GradeCard container (z-10) are siblings in a `flex-col`, so they stack with natural flow spacing — no negative margin or absolute positioning to create overlap
-2. **GradeCard hidden on mobile**: `hidden md:block` (line 120) removes it entirely on small screens
-3. **md size too small**: `md:w-64` = 256px makes WindowMan shrink dramatically at the md breakpoint (768-1023px)
-4. **No top padding control**: `pt-0 md:pt-16` means on mobile he starts right at the top with no room; on desktop the 64px padding pushes him down relative to the headline
-5. **Head position**: The right column starts at the same vertical position as the left column. With `md:pt-16` (64px padding), his head starts ~64px below the headline top. He needs to start higher (less or zero top padding) so his head clears the headline's horizontal plane
+## Changes Required
 
-## The Fix
+### 1. Wrap ReportClassic in ScanFunnelProvider (App.tsx)
 
-### Approach: Absolute-position the mascot over the GradeCard to create "hovering above and behind" convergence
+Move `ScanFunnelProvider` up to wrap the `ReportClassic` route so the cleanup effect in `ReportClassic` can actually call `funnel.resetFunnel()`.
 
-**File: `src/components/AuditHero.tsx` (lines 102-129)**
-
-1. **Make the right column a positioned container** — `relative` so we can layer the mascot
-2. **GradeCard becomes the anchor** — stays in normal flow, visible on both mobile and desktop
-3. **Mascot becomes absolutely positioned** — placed above and behind the GradeCard using `absolute bottom-[60%] left-1/2 -translate-x-1/2` (or similar), with `z-10` behind the card's `z-20`
-4. **Increase mascot size**: Remove the restrictive `md:w-64`, use `w-[280px] md:w-[340px] lg:w-[420px]` — bigger at every breakpoint
-5. **Show GradeCard on mobile**: Remove `hidden md:block`, add a smaller mobile variant or scale it down
-6. **Adjust right column top padding**: Reduce `md:pt-16` to `md:pt-8` or `pt-0` so his head rises above the headline plane
-
-### Resulting visual hierarchy:
-```text
-Desktop:                          Mobile:
-                                  
-  [headline]    [mascot head]     [pill]
-  [headline]    [mascot torso]    [mascot head+torso]
-  [subtext ]    [===CARD====]     [====CARD====]
-  [  CTAs  ]    [===CARD====]     [headline...]
-                [===CARD====]     [CTAs]
+```
+// App.tsx line 99
+<Route path="/report/classic/:sessionId"
+  element={<ScanFunnelProvider><ReportClassic /></ScanFunnelProvider>} />
 ```
 
-WindowMan's body overlaps the top of the GradeCard, creating the "hovering above and behind" convergence. His head sits above the horizontal plane of the headline.
+This is the minimal fix. The provider will rehydrate from localStorage, `useScanFunnelSafe()` will return a real context, `isSessionMatch` will detect the mismatch, and the cleanup effect will clear stale keys.
 
-### Specific CSS changes:
-- Right column wrapper: `relative` + enough height to contain both
-- Mascot `<div>`: `absolute` positioning, `bottom-[55%]` or negative margin overlap, `z-10`
-- GradeCard `<div>`: `relative z-20`, remove `hidden` (show on mobile too, possibly scaled `scale-[0.85]` on mobile)
-- Mascot image classes: `w-[280px] md:w-[340px] lg:w-[420px]` (bigger across all breakpoints)
-- Right column: `pt-0 md:pt-8` (raise everything up so head clears headline)
+### 2. Create tests/session-isolation.spec.ts
+
+Use the user's provided test code verbatim. Two test cases:
+
+- **Ghost test**: Seeds Session A credentials, navigates to A, then navigates to B without clearing storage. Asserts phone input is empty, OTP UI hidden, localStorage purged, and correct grade rendered.
+- **Persistence test**: Seeds Session A, navigates away and back to A. Asserts credentials survive (session ID matches).
+
+### 3. Verify `addInitScript` timing
+
+The test uses `addInitScript` to seed localStorage before JS hydration. On the second `page.goto` (Session B), the `addInitScript` from context creation still runs — but it seeded Session A's values. The React app loads, `ScanFunnelProvider` reads those values, `ReportClassic` detects mismatch, calls `resetFunnel()`, which clears them. This flow is correct **only if** the provider wraps the route.
+
+## Risk Assessment
+
+- **Low risk**: Adding `ScanFunnelProvider` around `ReportClassic` is additive — it enables cleanup that was previously impossible, doesn't change any existing behavior for Index.tsx
+- **No regression**: `isSessionMatch` still gates phone data; the only new behavior is that stale localStorage keys get cleaned up
+
+## Files to modify
+
+| File | Change |
+|------|--------|
+| `src/App.tsx` | Wrap ReportClassic route in `ScanFunnelProvider` |
+| `tests/session-isolation.spec.ts` | Create new file with both test cases |
 
