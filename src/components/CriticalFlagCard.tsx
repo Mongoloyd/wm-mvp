@@ -36,10 +36,7 @@ const PILLAR_LABELS: Record<string, string> = {
   warranty: "Warranty",
 };
 
-const SEVERITY_STYLES: Record<
-  "critical" | "high",
-  { label: string; cssVar: string; pulseRgb: string }
-> = {
+const SEVERITY_STYLES: Record<"critical" | "high", { label: string; cssVar: string; pulseRgb: string }> = {
   critical: { label: "CRITICAL FLAG", cssVar: "--color-danger", pulseRgb: "196, 48, 48" },
   high: { label: "HIGH FLAG", cssVar: "--color-caution", pulseRgb: "230, 154, 15" },
 };
@@ -57,7 +54,8 @@ export default function CriticalFlagCard({
 }: CriticalFlagCardProps) {
   const { label: badgeLabel, cssVar, pulseRgb } = SEVERITY_STYLES[severity];
 
-  const isAbsence = yourQuoteText.toLowerCase().includes("not found") ||
+  const isAbsence =
+    yourQuoteText.toLowerCase().includes("not found") ||
     yourQuoteText.toLowerCase().includes("missing") ||
     yourQuoteText.toLowerCase().includes("no ");
 
@@ -128,11 +126,14 @@ export default function CriticalFlagCard({
             }}
           >
             <div className="inline-flex rounded-[6px]" style={{ padding: 1, background: `hsl(var(${cssVar}) / 0.3)` }}>
-              <div className="inline-flex rounded-[5px]" style={{ padding: 1, background: `hsl(var(${cssVar}) / 0.15)` }}>
+              <div
+                className="inline-flex rounded-[5px]"
+                style={{ padding: 1, background: `hsl(var(${cssVar}) / 0.15)` }}
+              >
                 <span
                   className="font-mono inline-block"
                   style={{
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: 700,
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
@@ -175,7 +176,7 @@ export default function CriticalFlagCard({
         <p
           className="font-body text-foreground"
           style={{
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: 600,
             lineHeight: 1.3,
           }}
@@ -197,7 +198,7 @@ export default function CriticalFlagCard({
             <p
               className="font-mono"
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 textTransform: "uppercase",
                 color: "hsl(var(--muted-foreground))",
                 letterSpacing: "0.08em",
@@ -209,11 +210,9 @@ export default function CriticalFlagCard({
             <p
               className="font-body"
               style={{
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: 500,
-                color: isAbsence
-                  ? "hsl(var(--muted-foreground))"
-                  : "hsl(var(--foreground))",
+                color: isAbsence ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))",
                 fontStyle: isAbsence ? "italic" : "normal",
                 fontFamily: isAbsence ? undefined : "var(--wm-font-mono)",
               }}
@@ -228,7 +227,7 @@ export default function CriticalFlagCard({
           <p
             className="font-mono"
             style={{
-              fontSize: 10,
+              fontSize: 12,
               textTransform: "uppercase",
               color: "hsl(var(--color-cyan) / 0.8)",
               letterSpacing: "0.08em",
@@ -240,7 +239,7 @@ export default function CriticalFlagCard({
           <p
             className="font-body"
             style={{
-              fontSize: 13,
+              fontSize: 15,
               lineHeight: 1.6,
               color: "hsl(var(--muted-foreground))",
             }}
@@ -253,7 +252,7 @@ export default function CriticalFlagCard({
         <p
           className="font-body"
           style={{
-            fontSize: 13,
+            fontSize: 15,
             fontWeight: 500,
             lineHeight: 1.55,
             color: "hsl(var(--foreground) / 0.85)",
