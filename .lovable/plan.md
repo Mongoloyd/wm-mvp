@@ -1,40 +1,35 @@
 
 
-# Replace reportCompiler.ts and Update Call Site
+## Investigation Summary
 
-## What's Changing
-The existing `reportCompiler.ts` uses structured objects (`Warning`, `MissingItem`, `DerivedMetrics`). The user's new version uses plain strings for warnings/missing items and accepts `Record<string, unknown>` for derived metrics. This simplifies the compiler and the downstream frontend consumption.
+**Root cause of "Invalid or expired code"**: The network logs show `send-otp` was called **twice** simultaneously (both at 11:55:24Z, both returned 200). The second call expired the first pending `phone_verifications` row and created a new one, which also triggered a **second Twilio Verify session**. When the user entered the code from the first SMS, it failed against the second Twilio verification — hence "Invalid or expired code."
 
-## Step 1: Replace `supabase/functions/scan-quote/reportCompiler.ts`
-Overwrite the entire file with the user's exact code. Key differences from current:
-- `warnings` becomes `string[]` (was `Warning[]`)
-- `missing_items` becomes `string[]` (was `MissingItem[]`)
-- `FlagLike` type replaces `AnalysisFlag` (matches the `Flag` shape in index.ts directly)
-- `derivedMetrics` is `Record<string, unknown>` (no custom type)
-- `buildWarnings` takes `(extraction, flags)` — no derivedMetrics param
-- `buildSummary` takes `(gradeResult, warnings, missingItems, priceBand)` — simplified
-- Price band uses "low"/"market"/"high"/"extreme" (was "budget"/"below-average"/"average"/"above-average"/"premium")
+This is a **duplicate-send race condition**, not a rate-limit issue. However, loosening limits is also a reasonable change.
 
-## Step 2: Update call site in `supabase/functions/scan-quote/index.ts`
-Only lines 1026-1040 change. The new `FlagLike` type accepts `flag?`, `severity?`, `pillar?`, `detail?` — which matches the existing `Flag` interface in index.ts exactly. So the flag mapping can be removed and `flags` passed directly. `derivedMetrics` is already a `Record<string, unknown>` from `computeDerivedMetrics`, so it passes directly too.
+**"Report loading failed"**: The `scanSessionId` is `null` in the verify-otp call (visible in console logs). Without a session ID, even a successful verification can't bind to a lead or fetch the full report. This is a separate upstream issue (the dev OTP gate dropdown doesn't have a scan session context).
 
-Replace lines 1025-1040:
-```typescript
-const compiledReport = compileReportOutput(
-  extraction,
-  gradeResult,
-  flags,
-  derivedMetrics,
-);
-```
+---
 
-The `previewJson` and `fullJson` objects (lines 1056-1096) already reference `compiledReport.*` fields correctly and need no changes — the field names (`top_warning`, `missing_items`, `warnings`, etc.) match the new `CompiledReportOutput` interface.
+## Plan
 
-## What is NOT touched
-- `computeGrade`, `detectFlags`, validation, Gemini prompt, `computeDerivedMetrics`, database upsert flow, lead sync, scan session updates — all unchanged.
-- No frontend files touched.
+### 1. Loosen send-otp rate limits (send-otp/index.ts)
+- Change `MAX_SENDS_PER_WINDOW` from `3` → `5`
+- Keep cooldown at 30s and IP limit at 10 (these are fine)
 
-## Files Changed
-1. `supabase/functions/scan-quote/reportCompiler.ts` — **replaced** (full overwrite)
-2. `supabase/functions/scan-quote/index.ts` — **modified** (lines 1025-1040 only: simplified `compileReportOutput` call)
+### 2. Fix duplicate send-otp race (PostScanReportSwitcher.tsx)
+- The auto-send logic is firing twice. Add a ref guard (`hasSentRef`) so `handleSendCode()` only fires once per gate-mode transition, preventing the double-send that invalidates the first Twilio code.
+
+### 3. No changes to verify-otp
+- The verify-otp function itself has no rate limiting — it just forwards to Twilio. The 400 error is Twilio rejecting a stale code due to the double-send. Fixing step 2 resolves this.
+
+---
+
+### Technical Details
+
+**File changes:**
+
+| File | Change |
+|------|--------|
+| `supabase/functions/send-otp/index.ts` | `MAX_SENDS_PER_WINDOW = 3` → `5` |
+| `src/components/post-scan/PostScanReportSwitcher.tsx` | Add `hasSentRef` guard around auto-send to prevent duplicate calls |
 
