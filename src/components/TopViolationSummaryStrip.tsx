@@ -27,15 +27,9 @@ export default function TopViolationSummaryStrip({
   const isCritical = severity === "critical";
 
   // Accent color tokens
-  const accentColor = isCritical
-    ? "hsl(var(--color-danger))"
-    : "hsl(var(--color-gold-accent))";
-  const accentBg = isCritical
-    ? "hsl(var(--color-danger) / 0.08)"
-    : "hsl(var(--color-gold-accent) / 0.08)";
-  const accentBorder = isCritical
-    ? "hsl(var(--color-danger) / 0.35)"
-    : "hsl(var(--color-gold-accent) / 0.35)";
+  const accentColor = isCritical ? "hsl(var(--color-danger))" : "hsl(var(--color-gold-accent))";
+  const accentBg = isCritical ? "hsl(var(--color-danger) / 0.08)" : "hsl(var(--color-gold-accent) / 0.08)";
+  const accentBorder = isCritical ? "hsl(var(--color-danger) / 0.35)" : "hsl(var(--color-gold-accent) / 0.35)";
 
   return (
     <motion.div
@@ -80,9 +74,9 @@ export default function TopViolationSummaryStrip({
 
         {/* Center: consequence */}
         <p
-          className="font-body text-muted-foreground flex-1 min-w-0"
+          className="font-body text-foreground flex-1 min-w-0"
           style={{
-            fontSize: 13,
+            fontSize: 14,
             lineHeight: 1.55,
             maxWidth: 420,
           }}
@@ -98,9 +92,7 @@ export default function TopViolationSummaryStrip({
             className="inline-flex rounded-[11px]"
             style={{
               padding: 1,
-              background: isCritical
-                ? "hsl(var(--color-danger) / 0.45)"
-                : "hsl(var(--color-gold-accent) / 0.45)",
+              background: isCritical ? "hsl(var(--color-danger) / 0.45)" : "hsl(var(--color-gold-accent) / 0.45)",
               boxShadow: "0 1px 4px hsla(0 0% 0% / 0.08)",
             }}
           >
@@ -108,27 +100,24 @@ export default function TopViolationSummaryStrip({
               className="inline-flex rounded-[10px]"
               style={{
                 padding: 1,
-                background: isCritical
-                  ? "hsl(var(--color-danger) / 0.25)"
-                  : "hsl(var(--color-gold-accent) / 0.25)",
+                background: isCritical ? "hsl(var(--color-danger) / 0.25)" : "hsl(var(--color-gold-accent) / 0.25)",
               }}
             >
               <div
                 className="inline-flex rounded-[9px]"
                 style={{
                   padding: 1,
-                  background: isCritical
-                    ? "hsl(var(--color-danger) / 0.12)"
-                    : "hsl(var(--color-gold-accent) / 0.12)",
+                  background: isCritical ? "hsl(var(--color-danger) / 0.12)" : "hsl(var(--color-gold-accent) / 0.12)",
                 }}
               >
                 <span
-                  className="font-mono inline-block bg-[#ff9a8f]"
+                  className="font-mono inline-block"
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: "0.08em",
                     color: accentColor,
+                    background: accentBg,
                     padding: "4px 12px",
                     borderRadius: "var(--radius-btn)",
                     whiteSpace: "nowrap",
