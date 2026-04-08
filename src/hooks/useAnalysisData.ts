@@ -237,8 +237,15 @@ export function useAnalysisData(
   }, [scanSessionId]);
 
   // ── Phase 1: Preview fetch ─────────────────────────────────────────────
+  // UUID v4 pattern to guard against literal route params like ":sessionId"
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
   useEffect(() => {
     if (!enabled || !scanSessionId || previewFetchedRef.current === scanSessionId) return;
+    if (!UUID_RE.test(scanSessionId)) {
+      console.warn("[useAnalysisData] invalid scanSessionId, skipping fetch:", scanSessionId);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
