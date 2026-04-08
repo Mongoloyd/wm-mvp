@@ -302,6 +302,12 @@ function perfectQuote(): ExtractionResult {
     // ── Fine-print fields ──────────────────────────────────────────────────
     terms_conditions_present: true,
     generic_product_description_present: false,
+    // ── Change-order / substrate fields ──────────────────────────────────
+    written_change_order_required: true,
+    homeowner_approval_required_for_change_orders: true,
+    unilateral_price_adjustment_allowed: false,
+    substrate_condition_clause_present: false,
+    remeasure_price_adjustment_cap_present: false,
     line_items: [
       {
         description: "Impact hurricane-rated sliding glass door",
