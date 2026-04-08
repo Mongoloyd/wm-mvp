@@ -57,7 +57,10 @@ export type AdminAction =
   | "list_contractor_accounts"
   | "get_contractor_ledger"
   | "adjust_contractor_credits"
-  | "get_contractor_unlocks";
+  | "get_contractor_unlocks"
+  | "list_invitations"
+  | "create_invitation"
+  | "revoke_invitation";
 
 /**
  * Payload shapes for each admin action.
@@ -97,6 +100,9 @@ export interface AdminActionPayloads {
   get_contractor_ledger: { contractor_id: string; limit?: number };
   adjust_contractor_credits: { contractor_id: string; delta: number; entry_type: string; notes?: string | null };
   get_contractor_unlocks: { contractor_id: string; limit?: number };
+  list_invitations: Record<string, never>;
+  create_invitation: { invited_email: string; contractor_id: string; initial_credits?: number; expires_in_days?: number };
+  revoke_invitation: { invitation_id: string };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
