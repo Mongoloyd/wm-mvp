@@ -131,7 +131,18 @@ export interface ExtractionResult {
   manufacturer_install_compliance_stated?: boolean | null;
   code_compliance_install_statement_present?: boolean | null;
 
-  // ── Jurisdiction fields ──────────────────────────────────────────────────
+  // ── Warranty execution fields ──────────────────────────────────────────────
+  warranty_execution_details_present?: boolean | null;
+  warranty_service_provider_type?: "contractor" | "manufacturer" | "third_party" | "unknown" | null;
+  warranty_service_provider_name?: string | null;
+  leak_callback_sla_days?: number | null;
+  labor_service_sla_days?: number | null;
+  callback_process_text?: string | null;
+  post_install_stucco_excluded?: boolean | null;
+  post_install_paint_excluded?: boolean | null;
+  water_intrusion_damage_excluded?: boolean | null;
+
+
   contractor_address_text?: string;
   state_jurisdiction_mismatch?: boolean;
 }
