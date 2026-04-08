@@ -34,7 +34,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
         </motion.p>
         <motion.h2
           {...fade(0.02)}
-          className="text-center mx-auto wm-title-section mb-4"
+          className="text-center mx-auto wm-title-section mb-4 font-semibold text-2xl"
           style={{ fontSize: "clamp(36px, 5vw, 48px)", maxWidth: 680, lineHeight: 1.12, color: "hsl(210 50% 8%)" }}
         >
           WE KEEP BOTH SIDES HONEST
@@ -155,7 +155,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
             <div key={i} className={`card-raised p-7 border ${card.borderColor}`}> 
               <div className="flex items-center gap-2.5 mb-3.5">
                 <div
-                  className={`flex items-center justify-center w-9 h-9 border ${card.borderColor} bg-card`}
+                  className="flex items-center justify-center w-9 h-9 bg-card border-blue-200 border-2 border-double rounded shadow-inner"
                   style={{ borderRadius: "var(--radius-btn)" }}
                 >
                   {card.icon}

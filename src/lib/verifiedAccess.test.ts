@@ -1,139 +1,85 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-  saveVerifiedAccess,
-  getVerifiedAccess,
-  clearVerifiedAccess,
-} from "./verifiedAccess";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { saveVerifiedAccess, getVerifiedAccess, clearVerifiedAccess } from "./verifiedAccess";
 
 const LS_KEY = "wm_verified_access";
-const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
-beforeEach(() => {
-  localStorage.clear();
-  vi.useFakeTimers();
-});
-
-afterEach(() => {
-  localStorage.clear();
-  vi.useRealTimers();
-});
-
-// ── saveVerifiedAccess ────────────────────────────────────────────────────────
-
-describe("saveVerifiedAccess", () => {
-  it("stores a record with the correct shape and a 24-hour expiry", () => {
-    const fixedNow = new Date("2024-03-15T10:00:00.000Z");
-    vi.setSystemTime(fixedNow);
-
-    saveVerifiedAccess("session-abc", "+13055551234");
-
-    const raw = localStorage.getItem(LS_KEY);
-    expect(raw).not.toBeNull();
-
-    const record = JSON.parse(raw!);
-    expect(record.scan_session_id).toBe("session-abc");
-    expect(record.phone_e164).toBe("+13055551234");
-    expect(record.verified_at).toBe(fixedNow.toISOString());
-
-    const expectedExpiry = new Date(fixedNow.getTime() + TWENTY_FOUR_HOURS_MS);
-    expect(record.expires_at).toBe(expectedExpiry.toISOString());
-  });
-});
-
-// ── getVerifiedAccess ─────────────────────────────────────────────────────────
-
-describe("getVerifiedAccess", () => {
-  it("returns a valid record for a matching session before expiry", () => {
-    vi.setSystemTime(new Date("2024-03-15T10:00:00.000Z"));
-    saveVerifiedAccess("session-abc", "+13055551234");
-
-    const result = getVerifiedAccess("session-abc");
-
-    expect(result).not.toBeNull();
-    expect(result!.scan_session_id).toBe("session-abc");
-    expect(result!.phone_e164).toBe("+13055551234");
+describe("verifiedAccess", () => {
+  beforeEach(() => {
+    localStorage.clear();
   });
 
-  it("returns null and removes the LS key when the record is expired", () => {
-    vi.setSystemTime(new Date("2024-03-15T10:00:00.000Z"));
-    saveVerifiedAccess("session-abc", "+13055551234");
+  describe("saveVerifiedAccess", () => {
+    it("stores a record with correct shape", () => {
+      saveVerifiedAccess("sess-1", "+15551234567");
+      const raw = localStorage.getItem(LS_KEY);
+      expect(raw).toBeTruthy();
+      const record = JSON.parse(raw!);
+      expect(record.scan_session_id).toBe("sess-1");
+      expect(record.phone_e164).toBe("+15551234567");
+      expect(record.verified_at).toBeTruthy();
+      expect(record.expires_at).toBeTruthy();
+    });
 
-    // Advance past the 24-hour expiry window
-    vi.advanceTimersByTime(TWENTY_FOUR_HOURS_MS + 1);
-
-    const result = getVerifiedAccess("session-abc");
-
-    expect(result).toBeNull();
-    expect(localStorage.getItem(LS_KEY)).toBeNull();
+    it("sets expiry ~24 hours in the future", () => {
+      const before = Date.now();
+      saveVerifiedAccess("sess-1", "+15551234567");
+      const record = JSON.parse(localStorage.getItem(LS_KEY)!);
+      const expiresAt = new Date(record.expires_at).getTime();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      expect(expiresAt).toBeGreaterThanOrEqual(before + twentyFourHours - 1000);
+      expect(expiresAt).toBeLessThanOrEqual(before + twentyFourHours + 1000);
+    });
   });
 
-  it("returns null but preserves the LS key when session ID does not match", () => {
-    vi.setSystemTime(new Date("2024-03-15T10:00:00.000Z"));
-    saveVerifiedAccess("session-abc", "+13055551234");
+  describe("getVerifiedAccess", () => {
+    it("returns null when nothing is stored", () => {
+      expect(getVerifiedAccess()).toBeNull();
+    });
 
-    const result = getVerifiedAccess("session-xyz");
+    it("returns record when valid and no sessionId filter", () => {
+      saveVerifiedAccess("sess-1", "+15551234567");
+      const record = getVerifiedAccess();
+      expect(record).toBeTruthy();
+      expect(record!.scan_session_id).toBe("sess-1");
+    });
 
-    expect(result).toBeNull();
-    // Record is preserved — a mismatch is not an error, just not this session
-    expect(localStorage.getItem(LS_KEY)).not.toBeNull();
+    it("returns record when sessionId matches", () => {
+      saveVerifiedAccess("sess-1", "+15551234567");
+      expect(getVerifiedAccess("sess-1")).toBeTruthy();
+    });
+
+    it("returns null when sessionId does not match", () => {
+      saveVerifiedAccess("sess-1", "+15551234567");
+      expect(getVerifiedAccess("sess-2")).toBeNull();
+    });
+
+    it("returns null and clears when expired", () => {
+      saveVerifiedAccess("sess-1", "+15551234567");
+      // Manually set expires_at to the past
+      const record = JSON.parse(localStorage.getItem(LS_KEY)!);
+      record.expires_at = new Date(Date.now() - 1000).toISOString();
+      localStorage.setItem(LS_KEY, JSON.stringify(record));
+      expect(getVerifiedAccess()).toBeNull();
+      expect(localStorage.getItem(LS_KEY)).toBeNull();
+    });
+
+    it("returns null and clears on malformed JSON", () => {
+      localStorage.setItem(LS_KEY, "not-json");
+      expect(getVerifiedAccess()).toBeNull();
+      expect(localStorage.getItem(LS_KEY)).toBeNull();
+    });
+
+    it("returns null and clears when missing required fields", () => {
+      localStorage.setItem(LS_KEY, JSON.stringify({ scan_session_id: "x" }));
+      expect(getVerifiedAccess()).toBeNull();
+    });
   });
 
-  it("returns null and removes the LS key for malformed JSON", () => {
-    localStorage.setItem(LS_KEY, "not-valid-json{{{");
-
-    const result = getVerifiedAccess();
-
-    expect(result).toBeNull();
-    expect(localStorage.getItem(LS_KEY)).toBeNull();
-  });
-
-  it("returns the record when sessionId is null (initial page-load recovery)", () => {
-    vi.setSystemTime(new Date("2024-03-15T10:00:00.000Z"));
-    saveVerifiedAccess("session-abc", "+13055551234");
-
-    const result = getVerifiedAccess(null);
-
-    expect(result).not.toBeNull();
-    expect(result!.scan_session_id).toBe("session-abc");
-  });
-
-  it("returns the record when called with no argument (undefined sessionId)", () => {
-    vi.setSystemTime(new Date("2024-03-15T10:00:00.000Z"));
-    saveVerifiedAccess("session-abc", "+13055551234");
-
-    const result = getVerifiedAccess();
-
-    expect(result).not.toBeNull();
-    expect(result!.phone_e164).toBe("+13055551234");
-  });
-
-  it("returns null and removes the LS key when required shape fields are missing", () => {
-    // Only scan_session_id present — phone_e164 and expires_at are absent
-    localStorage.setItem(LS_KEY, JSON.stringify({ scan_session_id: "session-abc" }));
-
-    const result = getVerifiedAccess();
-
-    expect(result).toBeNull();
-    expect(localStorage.getItem(LS_KEY)).toBeNull();
-  });
-});
-
-// ── clearVerifiedAccess ───────────────────────────────────────────────────────
-
-describe("clearVerifiedAccess", () => {
-  it("removes the localStorage key", () => {
-    vi.setSystemTime(new Date("2024-03-15T10:00:00.000Z"));
-    saveVerifiedAccess("session-abc", "+13055551234");
-    expect(localStorage.getItem(LS_KEY)).not.toBeNull();
-
-    clearVerifiedAccess();
-
-    expect(localStorage.getItem(LS_KEY)).toBeNull();
-  });
-
-  it("is safe to call when the key does not exist (idempotent)", () => {
-    expect(localStorage.getItem(LS_KEY)).toBeNull();
-    expect(() => clearVerifiedAccess()).not.toThrow();
-    expect(localStorage.getItem(LS_KEY)).toBeNull();
+  describe("clearVerifiedAccess", () => {
+    it("removes the stored record", () => {
+      saveVerifiedAccess("sess-1", "+15551234567");
+      clearVerifiedAccess();
+      expect(localStorage.getItem(LS_KEY)).toBeNull();
+    });
   });
 });

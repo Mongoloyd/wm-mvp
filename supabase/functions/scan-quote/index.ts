@@ -30,6 +30,8 @@ import {
   toPreviewPillarStatus,
   buildPreviewPillarScores,
 } from "./scoring.ts";
+import { compileReportOutput } from "./reportCompiler.ts";
+import { detectFlags, type Flag } from "./flagging.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 1: SCHEMA (Zod-like runtime validation — manual for Deno compat)
@@ -73,60 +75,8 @@ function validateExtraction(raw: unknown): { success: true; data: ExtractionResu
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 4: FORENSIC (red flag detection)
+// SECTION 4: FORENSIC (red flag detection) — imported from ./flagging.ts
 // ═══════════════════════════════════════════════════════════════════════════════
-
-interface Flag {
-  flag: string;
-  severity: "Low" | "Medium" | "High" | "Critical";
-  pillar: string;
-  detail: string;
-}
-
-function detectFlags(data: ExtractionResult): Flag[] {
-  const flags: Flag[] = [];
-  const items = data.line_items;
-
-  // Safety flags
-  const noDp = items.filter(i => !i.dp_rating);
-  if (noDp.length > 0) {
-    flags.push({ flag: "missing_dp_rating", severity: "High", pillar: "safety", detail: `${noDp.length} item(s) missing DP rating` });
-  }
-  const noNoa = items.filter(i => !i.noa_number);
-  if (noNoa.length > 0) {
-    flags.push({ flag: "missing_noa_number", severity: "Medium", pillar: "safety", detail: `${noNoa.length} item(s) missing NOA number` });
-  }
-
-  // Install flags
-  if (!data.permits || data.permits.included === undefined) {
-    flags.push({ flag: "no_permits_mentioned", severity: "High", pillar: "install", detail: "No permit responsibility stated" });
-  }
-  if (!data.installation?.scope_detail) {
-    flags.push({ flag: "vague_install_scope", severity: "Medium", pillar: "install", detail: "Installation scope is vague or missing" });
-  }
-
-  // Price flags
-  const noPrice = items.filter(i => i.unit_price === undefined && i.total_price === undefined);
-  if (noPrice.length > 0) {
-    flags.push({ flag: "missing_line_item_pricing", severity: "High", pillar: "price", detail: `${noPrice.length} item(s) missing pricing` });
-  }
-
-  // Fine print flags
-  if (!data.cancellation_policy) {
-    flags.push({ flag: "no_cancellation_policy", severity: "Low", pillar: "finePrint", detail: "No cancellation policy found" });
-  }
-  const unbranded = items.filter(i => !i.brand && !i.series);
-  if (unbranded.length > 0) {
-    flags.push({ flag: "unspecified_brand", severity: "Medium", pillar: "finePrint", detail: `${unbranded.length} item(s) with unspecified brand/series` });
-  }
-
-  // Warranty flags
-  if (!data.warranty) {
-    flags.push({ flag: "no_warranty_section", severity: "High", pillar: "warranty", detail: "No warranty information found" });
-  }
-
-  return flags;
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 4b: DERIVED FINANCIAL METRICS (inline — same logic as calculate-estimate-metrics)
@@ -442,18 +392,87 @@ Rules:
 - For each line item, extract brand, series, DP rating, NOA number, dimensions, quantity, unit price, and total price where visible.
 - Extract warranty, permit, installation, and cancellation details if present.
 - If a field is not found in the document, omit it from the output (do not guess).
+- Detect contract traps such as "subject to remeasure", excessive deposit percentage, payment due before final inspection, or missing terms and conditions.
+- Detect scope gaps such as missing wall repair, debris removal, engineering, or permit fee clarity.
+- Detect generic product descriptions that do not clearly identify the manufacturer/series.
+- Extract the contractor address if shown.
+- Do not infer compliance from branding alone. Only mark fields true when supported by visible document language.
+- Extract opening-by-opening schedule details when visible, including room/location, dimensions, and product assignment.
+- Extract glass package details for each opening when visible, including whether glass appears to be Low-E, Argon-filled, monolithic laminated, or insulated laminated.
+- Detect blanket glass language such as "impact glass throughout" when opening-level glass detail is missing.
+- Detect change-order rules, especially whether written homeowner approval is required before extra charges for hidden rot, bad bucks, or substrate conditions.
+- Detect whether the quote gives the contractor unilateral price-adjustment power.
+- Extract any unit pricing or allowances for hidden rot, substrate damage, or buck replacement.
+- Extract installation method specifics including anchoring method, fastener/anchor spacing, waterproofing/sealant method, buck treatment, and any statement that installation follows manufacturer instructions or local code.
+- Extract warranty execution details, including who performs service, leak callback timelines, callback process, and exclusions for stucco, paint, or water intrusion.
+- If the quote does not say something explicitly, leave the field null. Do not infer premium glass features or approval mechanics from branding alone.
 
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
 {
-  "document_type": "string (e.g. 'impact_window_quote', 'impact_door_quote', 'mixed_fenestration_proposal', 'general_contractor_estimate', 'unrelated_document')",
+  "document_type": "string",
   "is_window_door_related": boolean,
-  "confidence": number (0-1),
+  "confidence": number,
   "page_count": number | null,
   "contractor_name": "string | null",
   "opening_count": number | null,
   "total_quoted_price": number | null,
   "hvhz_zone": boolean | null,
   "cancellation_policy": "string | null",
+  "subject_to_remeasure_present": "boolean | null",
+  "subject_to_remeasure_text": "string | null",
+  "deposit_percent": "number | null",
+  "deposit_amount": "number | null",
+  "final_payment_before_inspection": "boolean | null",
+  "payment_schedule_text": "string | null",
+  "terms_conditions_present": "boolean | null",
+  "wall_repair_scope": "string | null",
+  "stucco_repair_included": "boolean | null",
+  "drywall_repair_included": "boolean | null",
+  "paint_touchup_included": "boolean | null",
+  "debris_removal_included": "boolean | null",
+  "engineering_mentioned": "boolean | null",
+  "engineering_fees_included": "boolean | null",
+  "permit_fees_itemized": "boolean | null",
+  "insurance_proof_mentioned": "boolean | null",
+  "licensing_proof_mentioned": "boolean | null",
+  "completion_timeline_text": "string | null",
+  "lead_paint_disclosure_present": "boolean | null",
+  "generic_product_description_present": "boolean | null",
+  "contractor_address_text": "string | null",
+  "opening_level_glass_specs_present": boolean | null,
+  "blanket_glass_language_present": boolean | null,
+  "mixed_glass_package_visibility": boolean | null,
+  "opening_schedule_present": boolean | null,
+  "opening_schedule_room_labels_present": boolean | null,
+  "opening_schedule_dimensions_complete": boolean | null,
+  "opening_schedule_product_assignments_present": boolean | null,
+  "bulk_scope_blob_present": boolean | null,
+  "change_order_policy_text": "string | null",
+  "written_change_order_required": boolean | null,
+  "homeowner_approval_required_for_change_orders": boolean | null,
+  "unilateral_price_adjustment_allowed": boolean | null,
+  "substrate_condition_clause_present": boolean | null,
+  "rot_unit_pricing_present": boolean | null,
+  "buck_replacement_unit_pricing_present": boolean | null,
+  "substrate_allowance_text": "string | null",
+  "remeasure_price_adjustment_cap_present": boolean | null,
+  "anchoring_method_text": "string | null",
+  "anchor_spacing_specified": boolean | null,
+  "fastener_type_specified": boolean | null,
+  "waterproofing_method_text": "string | null",
+  "sealant_specified": boolean | null,
+  "buck_treatment_method_text": "string | null",
+  "manufacturer_install_compliance_stated": boolean | null,
+  "code_compliance_install_statement_present": boolean | null,
+  "warranty_execution_details_present": boolean | null,
+  "warranty_service_provider_type": "string | null",
+  "warranty_service_provider_name": "string | null",
+  "leak_callback_sla_days": number | null,
+  "labor_service_sla_days": number | null,
+  "callback_process_text": "string | null",
+  "post_install_stucco_excluded": boolean | null,
+  "post_install_paint_excluded": boolean | null,
+  "water_intrusion_damage_excluded": boolean | null,
   "line_items": [
     {
       "description": "string",
@@ -464,7 +483,16 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
       "series": "string | null",
       "dp_rating": "string | null",
       "noa_number": "string | null",
-      "dimensions": "string | null"
+      "dimensions": "string | null",
+      "opening_location": "string | null",
+      "opening_tag": "string | null",
+      "product_assignment_text": "string | null",
+      "glass_package_text": "string | null",
+      "glass_makeup_type": "string | null",
+      "glass_low_e_present": boolean | null,
+      "glass_argon_present": boolean | null,
+      "glass_tint_text": "string | null",
+      "glass_spec_complete": boolean | null
     }
   ],
   "warranty": {
@@ -483,9 +511,9 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
     "disposal_included": boolean | null,
     "accessories_mentioned": boolean | null
   } | null,
-  "price_fairness": "string | null — 2-3 sentences assessing total price objectivity. Compare against standard Florida wholesale costs ($500-$800/window + $250-$400 labor per opening). Identify inflated retail tactics like fake 'Buy 1 Get 1' deals.",
-  "markup_estimate": "string | null — Estimated dealer markup as percentage range or dollar amount (e.g., '45%-55%' or '~$8,500 over wholesale'). Calculate based on line item count and total quoted price vs wholesale baseline.",
-  "negotiation_leverage": "string | null — 1-2 punchy, actionable talking points the homeowner can use to negotiate a lower price. Reference specific weaknesses found in the quote."
+  "price_fairness": "string | null",
+  "markup_estimate": "string | null",
+  "negotiation_leverage": "string | null"
 }
 
 Financial Forensics Protocol:
@@ -912,6 +940,11 @@ Deno.serve(async (req: Request) => {
 
       const extraction = validation.data;
 
+      // 10b. Derive jurisdiction mismatch before scoring
+      if (extraction.contractor_address_text && /illinois|il\b/i.test(extraction.contractor_address_text) && session?.lead_id) {
+        extraction.state_jurisdiction_mismatch = true;
+      }
+
       // 11. Score all pillars
       const gradeResult = computeGrade(extraction);
       const flags = detectFlags(extraction);
@@ -948,6 +981,14 @@ Deno.serve(async (req: Request) => {
         derived_metrics: derivedMetrics,
       }, null, 2));
 
+      // 11e. Compile report output (deterministic compiler)
+      const compiledReport = compileReportOutput(
+        extraction,
+        gradeResult,
+        flags,
+        derivedMetrics,
+      );
+
       // 12. Build payloads
       const openingBucket = (extraction.opening_count || extraction.line_items.length) <= 5 ? "1-5"
         : (extraction.opening_count || extraction.line_items.length) <= 10 ? "6-10"
@@ -971,6 +1012,13 @@ Deno.serve(async (req: Request) => {
         has_warranty: !!extraction.warranty,
         has_permits: !!extraction.permits,
         pillar_scores: buildPreviewPillarScores(gradeResult.pillarScores),
+        top_warning: compiledReport.top_warning,
+        top_missing_item: compiledReport.top_missing_item,
+        missing_items_count: compiledReport.missing_items.length,
+        payment_risk_detected: compiledReport.payment_risk_detected,
+        scope_gap_detected: compiledReport.scope_gap_detected,
+        price_per_opening_band: compiledReport.price_per_opening_band,
+        summary_teaser: compiledReport.summary_teaser,
       };
 
       // Full JSON: complete analysis — gated behind SMS verification on client
@@ -986,6 +1034,15 @@ Deno.serve(async (req: Request) => {
         price_fairness: extraction.price_fairness || null,
         markup_estimate: extraction.markup_estimate || null,
         negotiation_leverage: extraction.negotiation_leverage || null,
+        warnings: compiledReport.warnings,
+        missing_items: compiledReport.missing_items,
+        summary: compiledReport.summary,
+        top_warning: compiledReport.top_warning,
+        top_missing_item: compiledReport.top_missing_item,
+        price_per_opening: compiledReport.price_per_opening,
+        price_per_opening_band: compiledReport.price_per_opening_band,
+        payment_risk_detected: compiledReport.payment_risk_detected,
+        scope_gap_detected: compiledReport.scope_gap_detected,
       };
 
       // 13. Upsert full analyses row

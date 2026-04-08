@@ -1,49 +1,38 @@
 
 
-# Plan: ScanTheatrics Visual Contrast & Font Size Pass
+## Plan: Create B2B Contractor Intelligence Dossier Page
 
-Style-only edits to `src/components/ScanTheatrics.tsx`. No structural, data, or component changes.
+### What We're Building
+A new standalone page at `/partner/dossier/:id` that fetches an analysis record (with joined lead data) from Supabase and renders a premium, dark-themed B2B intelligence dashboard with a mock paywall unlock mechanism.
 
-## 1. Color Replacements (global find/replace within file)
+### Files Changed
 
-| Old | New | Context |
-|---|---|---|
-| `#2563EB` | `#60A5FA` | Blues — markers, pillar accents, scan line, progress bar, OcrQualityBadge |
-| `#F97316` | `#FB923C` | Oranges — markers, pillar accents, cliffhanger text, terminal active line, progress bar |
-| `#DC2626` | `#F87171` | Reds — grade palette D, pillar fail, pulsar rings/dots, FindingsCounter |
+**1. CREATE `src/pages/PartnerDossier.tsx`**
+- Full new page component with dark forensic aesthetic (navy/slate palette)
+- Fetches `analyses` joined with `leads` via Supabase client using `useParams` ID
+- Local `isUnlocked` state controls paywall blur on PII fields and document vault
+- Four visual sections: Lead Provenance (blurred PII), Competitive Intelligence (grade + pricing), Sniper Strategy (flags as attack surface), Document Vault (locked/unlocked PDF)
+- All deep access uses optional chaining + nullish coalescing for crash safety
+- Pulsing "Unlock Lead (1 Credit)" button toggles unlock state
 
-Affected areas:
-- `GRADE_COLORS` (lines 15-16): C and D entries
-- `FORENSIC_MARKERS` (lines 55-61): 7 marker color values
-- `CANONICAL_PILLAR_DEFS` (lines 80-111): 5 accentColor values
-- `pillarStatusColor` (lines 123-126): warn and fail returns
-- Cliffhanger text (line 521): orange color
-- Terminal active step (lines 946-955): orange color references
-- Progress bar gradient (line 973)
-- Scan line gradient (line 757)
-- `FlagPulsar` (lines 1006, 1048, 1059): red border/bg/text
-- `FindingsCounter` (line 1256): red text
-- `OcrQualityBadge` (line 1284): blue reference
+**2. MODIFY `src/App.tsx`**
+- Add lazy import for `PartnerDossier`
+- Add route `<Route path="/partner/dossier/:id" element={<PartnerDossier />} />` above the catch-all
 
-## 2. Font Size Bumps
+### Enhancements (Thinking 2 Moves Ahead)
 
-| Old | New | Locations |
-|---|---|---|
-| `fontSize: 10` | `fontSize: 12` | ~12 instances: eyebrow labels, proof-of-read chips, FindingsCounter, OcrQualityBadge |
-| `fontSize: 11` | `fontSize: 13` | ~5 instances: cliffhanger message, terminal log lines, "ANALYSIS COMPLETE" text |
+These are additions baked into the plan beyond the base spec:
 
-## 3. Terminal Text Color Lightening
+- **Pillar score radar/bar visualization**: Render `full_json.pillar_scores` as a horizontal bar chart in a "Forensic Breakdown" card, giving contractors instant visual intel on where the competitor quote is weakest
+- **County benchmark comparison strip**: If `full_json.extraction.total_quoted_price` and lead county exist, show a "vs. Market" indicator using the `county_benchmarks` table data (fetch inline)
+- **Copy-to-clipboard on unlock**: When PII is revealed, add a small copy icon next to phone/email for quick CRM entry
+- **Timestamp provenance footer**: Show when the scan was completed and rubric version used, establishing data freshness credibility
 
-| Old | New | Location |
-|---|---|---|
-| `color: "#2D3748"` | `color: "#D1D5DB"` | Completed terminal log lines (line 931) |
-| `color: "#374151"` | `color: "#D1D5DB"` | Terminal titlebar text (line 912), pillar header text (lines 548, 1138) — where on dark bg |
+All enhancements stay within the single new file — no existing components or edge functions touched.
 
-Note: `#374151` used in `pillarStatusColor` default case and DocumentSilhouette "DOCUMENT X-RAY" label — these also get lightened to `#D1D5DB` since they sit on dark backgrounds.
-
-## No Other Changes
-- No mock data added
-- No new components
-- No structural/logic changes
-- Only inline style values modified
+### Technical Details
+- Supabase query: `supabase.from('analyses').select('*, leads(*)').eq('id', id).maybeSingle()` (using `maybeSingle` per project conventions to avoid crashes on missing rows)
+- Type casting: The `leads` join returns as `any` since foreign keys aren't formally defined in the schema; all access is safely chained
+- The `flags` field is `Json | null` — cast to array and map safely
+- `full_json` accessed as `Record<string, any>` with defensive chaining throughout
 

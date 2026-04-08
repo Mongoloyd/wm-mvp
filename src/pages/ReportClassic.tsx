@@ -446,6 +446,17 @@ export default function ReportClassic() {
       isCtaLoading={isCtaLoading}
       suggestedMatch={suggestedMatch}
       derivedMetrics={analysisData.derivedMetrics as any}
+      warnings={analysisData.warnings}
+      missingItems={analysisData.missingItems}
+      summary={analysisData.summary}
+      topWarning={analysisData.topWarning}
+      topMissingItem={analysisData.topMissingItem}
+      pricePerOpening={analysisData.pricePerOpening}
+      pricePerOpeningBand={analysisData.pricePerOpeningBand}
+      paymentRiskDetected={analysisData.paymentRiskDetected}
+      scopeGapDetected={analysisData.scopeGapDetected}
+      summaryTeaser={analysisData.summaryTeaser}
+      missingItemsCount={analysisData.missingItemsCount}
     />
   );
 }

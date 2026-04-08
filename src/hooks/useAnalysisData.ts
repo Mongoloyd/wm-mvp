@@ -17,6 +17,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getVerifiedAccess, saveVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
+import type { HybridPreviewPayload, HybridFullPayload } from "@/types/reportHybrid";
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
@@ -60,6 +61,18 @@ export interface AnalysisData {
   priceFairness?: string | null;
   markupEstimate?: string | null;
   negotiationLeverage?: string | null;
+  /** Hybrid report compiler fields */
+  warnings?: (string | Record<string, unknown>)[];
+  missingItems?: (string | Record<string, unknown>)[];
+  summary?: string | null;
+  topWarning?: string | null;
+  topMissingItem?: string | null;
+  pricePerOpening?: number | null;
+  pricePerOpeningBand?: "low" | "market" | "high" | "extreme" | null;
+  paymentRiskDetected?: boolean;
+  scopeGapDetected?: boolean;
+  summaryTeaser?: string | null;
+  missingItemsCount?: number;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -249,6 +262,9 @@ export function useAnalysisData(
               contractorName: null, confidenceScore: null, pillarScores: PILLAR_DEFS.map(d => ({ ...d, score: null, status: "pending" as const })),
               documentType: null, pageCount: null, openingCount: null, lineItemCount: null,
               qualityBand: null, hasWarranty: null, hasPermits: null, analysisStatus: sessionStatus,
+              warnings: [], missingItems: [], summary: null, topWarning: null, topMissingItem: null,
+              pricePerOpening: null, pricePerOpeningBand: null, paymentRiskDetected: false,
+              scopeGapDetected: false, summaryTeaser: null, missingItemsCount: 0,
             });
             setIsLoading(false);
             previewFetchedRef.current = scanSessionId;
@@ -283,6 +299,8 @@ export function useAnalysisData(
         const qualityBandRaw = previewJson?.quality_band as string | undefined;
         const validBands = new Set(["good", "fair", "poor"]);
 
+        const hybridPreview = previewJson as unknown as HybridPreviewPayload | null;
+
         setData({
           grade: row.grade,
           flags: [],                           // ← EMPTY in preview
@@ -300,6 +318,18 @@ export function useAnalysisData(
           hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
           hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
           analysisStatus: "complete",
+          // Hybrid preview fields
+          warnings: [],
+          missingItems: [],
+          summary: null,
+          topWarning: hybridPreview?.top_warning ?? null,
+          topMissingItem: hybridPreview?.top_missing_item ?? null,
+          pricePerOpening: null,
+          pricePerOpeningBand: hybridPreview?.price_per_opening_band ?? null,
+          paymentRiskDetected: Boolean(hybridPreview?.payment_risk_detected),
+          scopeGapDetected: Boolean(hybridPreview?.scope_gap_detected),
+          summaryTeaser: hybridPreview?.summary_teaser ?? null,
+          missingItemsCount: (typeof hybridPreview?.missing_items_count === "number" && hybridPreview.missing_items_count >= 0) ? hybridPreview.missing_items_count : 0,
         });
       } catch (err) {
         if (cancelled) return;
@@ -389,6 +419,9 @@ export function useAnalysisData(
 
       // Extract derived_metrics from full_json (computed by scan-quote)
       const derivedMetrics = (fullJsonRaw?.derived_metrics as Record<string, unknown>) || null;
+      const hybridFull = fullJsonRaw as unknown as HybridFullPayload | null;
+      const fullWarnings = Array.isArray(hybridFull?.warnings) ? hybridFull.warnings : [];
+      const fullMissingItems = Array.isArray(hybridFull?.missing_items) ? hybridFull.missing_items : [];
 
       setData({
         grade: row.grade,
@@ -411,6 +444,18 @@ export function useAnalysisData(
         priceFairness: (fullJsonRaw?.price_fairness as string) || null,
         markupEstimate: (fullJsonRaw?.markup_estimate as string) || null,
         negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
+        // Hybrid full fields
+        warnings: fullWarnings,
+        missingItems: fullMissingItems,
+        summary: hybridFull?.summary ?? null,
+        topWarning: hybridFull?.top_warning ?? null,
+        topMissingItem: hybridFull?.top_missing_item ?? null,
+        pricePerOpening: typeof hybridFull?.price_per_opening === "number" ? hybridFull.price_per_opening : null,
+        pricePerOpeningBand: hybridFull?.price_per_opening_band ?? null,
+        paymentRiskDetected: Boolean(hybridFull?.payment_risk_detected),
+        scopeGapDetected: Boolean(hybridFull?.scope_gap_detected),
+        summaryTeaser: null,
+        missingItemsCount: fullMissingItems.length,
       });
       setIsFullLoaded(true);
       isFullLoadedRef.current = true;
@@ -477,6 +522,9 @@ export function useAnalysisData(
       const validBands = new Set(["good", "fair", "poor"]);
 
       const derivedMetrics = (fullJsonRaw?.derived_metrics as Record<string, unknown>) || null;
+      const hybridFull = fullJsonRaw as unknown as HybridFullPayload | null;
+      const fullWarnings = Array.isArray(hybridFull?.warnings) ? hybridFull.warnings : [];
+      const fullMissingItems = Array.isArray(hybridFull?.missing_items) ? hybridFull.missing_items : [];
 
       setData({
         grade: row.grade,
@@ -499,6 +547,18 @@ export function useAnalysisData(
         priceFairness: (fullJsonRaw?.price_fairness as string) || null,
         markupEstimate: (fullJsonRaw?.markup_estimate as string) || null,
         negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
+        // Hybrid full fields
+        warnings: fullWarnings,
+        missingItems: fullMissingItems,
+        summary: hybridFull?.summary ?? null,
+        topWarning: hybridFull?.top_warning ?? null,
+        topMissingItem: hybridFull?.top_missing_item ?? null,
+        pricePerOpening: typeof hybridFull?.price_per_opening === "number" ? hybridFull.price_per_opening : null,
+        pricePerOpeningBand: hybridFull?.price_per_opening_band ?? null,
+        paymentRiskDetected: Boolean(hybridFull?.payment_risk_detected),
+        scopeGapDetected: Boolean(hybridFull?.scope_gap_detected),
+        summaryTeaser: null,
+        missingItemsCount: fullMissingItems.length,
       });
       previewFetchedRef.current = scanSessionId;
       setIsFullLoaded(true);
