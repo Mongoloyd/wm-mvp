@@ -127,7 +127,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
             MOST HOMEOWNERS ASSUME THE QUOTE REFLECTS THE MARKET RATE.
           </p>
           <p
-            className="font-display text-destructive tracking-[0.01em] uppercase font-semibold text-3xl"
+            className="font-display text-destructive tracking-[0.01em] uppercase font-semibold text-4xl"
             style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
           >
             IT USUALLY DOESN'T.
