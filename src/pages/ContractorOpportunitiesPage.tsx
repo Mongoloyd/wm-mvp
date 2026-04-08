@@ -88,13 +88,21 @@ const statusPill = (status: string) => {
   );
 };
 
+/* ── Hard-disable live fetch ────────────────────────────────────── */
+const FORCE_PREVIEW_MODE = true;
+
 /* ── Mock data for preview mode ────────────────────────────────── */
 const MOCK_OPPORTUNITIES: Opportunity[] = [
   { opportunity_id: "mock-1", route_id: "r1", analysis_id: "a1", lead_id: "l1", county: "Broward", city: "Fort Lauderdale", project_type: "Full Home Replacement", window_count: 12, quote_range: "$18,000–$24,000", grade: "D", flag_count: 4, red_flag_count: 2, amber_flag_count: 2, priority_score: 85, status: "intro_requested", release_status: "pending", already_unlocked: false, can_unlock: false, credit_balance: 5, dossier_href: "/partner/dossier", has_document: true, created_at: new Date().toISOString() },
   { opportunity_id: "mock-2", route_id: "r2", analysis_id: "a2", lead_id: "l2", county: "Miami-Dade", city: "Miami", project_type: "Partial Replacement", window_count: 6, quote_range: "$8,500–$12,000", grade: "C", flag_count: 2, red_flag_count: 1, amber_flag_count: 1, priority_score: 72, status: "contractor_interested", release_status: "pending", already_unlocked: true, can_unlock: true, credit_balance: 5, dossier_href: "/partner/dossier", has_document: true, created_at: new Date(Date.now() - 86400000).toISOString() },
   { opportunity_id: "mock-3", route_id: "r3", analysis_id: "a3", lead_id: "l3", county: "Palm Beach", city: "Boca Raton", project_type: "Impact Door + Windows", window_count: 18, quote_range: "$32,000–$45,000", grade: "F", flag_count: 7, red_flag_count: 4, amber_flag_count: 3, priority_score: 94, status: "intro_requested", release_status: "pending", already_unlocked: false, can_unlock: false, credit_balance: 5, dossier_href: "/partner/dossier", has_document: false, created_at: new Date(Date.now() - 172800000).toISOString() },
+  { opportunity_id: "mock-4", route_id: "r4", analysis_id: "a4", lead_id: "l4", county: "Hillsborough", city: "Tampa", project_type: "Full Home Replacement", window_count: 22, quote_range: "$28,000–$38,000", grade: "B", flag_count: 1, red_flag_count: 0, amber_flag_count: 1, priority_score: 60, status: "homeowner_contact_released", release_status: "released", already_unlocked: true, can_unlock: true, credit_balance: 5, dossier_href: "/partner/dossier", has_document: true, created_at: new Date(Date.now() - 259200000).toISOString() },
+  { opportunity_id: "mock-5", route_id: "r5", analysis_id: "a5", lead_id: "l5", county: "Duval", city: "Jacksonville", project_type: "Storefront Impact Glazing", window_count: 8, quote_range: "$14,000–$19,500", grade: "C", flag_count: 3, red_flag_count: 1, amber_flag_count: 2, priority_score: 68, status: "intro_requested", release_status: "pending", already_unlocked: false, can_unlock: false, credit_balance: 5, dossier_href: "/partner/dossier", has_document: true, created_at: new Date(Date.now() - 345600000).toISOString() },
+  { opportunity_id: "mock-6", route_id: "r6", analysis_id: "a6", lead_id: "l6", county: "Lee", city: "Cape Coral", project_type: "Hurricane Retrofit", window_count: 15, quote_range: "$22,000–$30,000", grade: "D", flag_count: 5, red_flag_count: 3, amber_flag_count: 2, priority_score: 81, status: "contractor_interested", release_status: "pending", already_unlocked: false, can_unlock: false, credit_balance: 5, dossier_href: "/partner/dossier", has_document: false, created_at: new Date(Date.now() - 432000000).toISOString() },
+  { opportunity_id: "mock-7", route_id: "r7", analysis_id: "a7", lead_id: "l7", county: "Orange", city: "Orlando", project_type: "Sliding Glass Door + Windows", window_count: 10, quote_range: "$16,000–$21,000", grade: "A", flag_count: 0, red_flag_count: 0, amber_flag_count: 0, priority_score: 45, status: "closed_won", release_status: "released", already_unlocked: true, can_unlock: true, credit_balance: 5, dossier_href: "/partner/dossier", has_document: true, created_at: new Date(Date.now() - 518400000).toISOString() },
+  { opportunity_id: "mock-8", route_id: "r8", analysis_id: "a8", lead_id: "l8", county: "Pinellas", city: "St. Petersburg", project_type: "Full Home Replacement", window_count: 20, quote_range: "$26,000–$35,000", grade: "F", flag_count: 8, red_flag_count: 5, amber_flag_count: 3, priority_score: 97, status: "intro_requested", release_status: "pending", already_unlocked: false, can_unlock: false, credit_balance: 5, dossier_href: "/partner/dossier", has_document: true, created_at: new Date(Date.now() - 604800000).toISOString() },
 ];
-const MOCK_META: Meta = { credit_balance: 5, contractor_status: "preview", total: 3 };
+const MOCK_META: Meta = { credit_balance: 5, contractor_status: "preview", total: 8 };
 
 export default function ContractorOpportunitiesPage() {
   const navigate = useNavigate();
@@ -114,6 +122,12 @@ export default function ContractorOpportunitiesPage() {
   }, []);
 
   const fetchOpportunities = useCallback(async () => {
+    // Hard-disable live fetch — always use mock data
+    if (FORCE_PREVIEW_MODE) {
+      fallbackToMock();
+      return;
+    }
+
     setLoading(true);
     setErrorMsg(null);
 
@@ -123,7 +137,6 @@ export default function ContractorOpportunitiesPage() {
     if (activeFilter === "released") body.release_status = "released";
     if (countyFilter.trim()) body.county = countyFilter.trim();
 
-    let data: any = null;
     try {
       const res = await supabase.functions.invoke(
         "list-contractor-opportunities",
@@ -134,23 +147,20 @@ export default function ContractorOpportunitiesPage() {
         fallbackToMock();
         return;
       }
-      data = res.data;
+      const data = res.data as any;
+      if (!data || data.error) {
+        console.warn("[Opportunities] Error response, using mock");
+        fallbackToMock();
+        return;
+      }
+      setOpportunities(data.opportunities ?? []);
+      setMeta(data.meta ?? null);
+      setIsPreview(false);
+      setLoading(false);
     } catch (err) {
       console.warn("[Opportunities] Fetch threw, falling back to mock:", err);
       fallbackToMock();
-      return;
     }
-
-    if (!data || data.error === "unauthenticated" || data.error === "no_contractor_profile" || data.error === "internal_error" || data.error) {
-      console.warn("[Opportunities] Error response, using mock");
-      fallbackToMock();
-      return;
-    }
-
-    setOpportunities(data.opportunities ?? []);
-    setMeta(data.meta ?? null);
-    setIsPreview(false);
-    setLoading(false);
   }, [activeFilter, countyFilter, fallbackToMock]);
 
   useEffect(() => {
