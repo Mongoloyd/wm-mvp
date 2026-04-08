@@ -1,3 +1,25 @@
+// ── Shared item shapes for warnings / missing items ──────────────────────────
+
+export interface WarningItem {
+  id?: string;
+  headline?: string;
+  detail?: string;
+  pillar?: string;
+  severity?: string;
+}
+
+export type WarningEntry = string | WarningItem;
+
+export interface MissingItem {
+  id?: string;
+  label?: string;
+  why_it_matters?: string;
+}
+
+export type MissingItemEntry = string | MissingItem;
+
+// ── Hybrid payloads ──────────────────────────────────────────────────────────
+
 export interface HybridPreviewPayload {
   top_warning?: string | null;
   top_missing_item?: string | null;
@@ -9,8 +31,8 @@ export interface HybridPreviewPayload {
 }
 
 export interface HybridFullPayload {
-  warnings?: (string | Record<string, unknown>)[];
-  missing_items?: (string | Record<string, unknown>)[];
+  warnings?: WarningEntry[];
+  missing_items?: MissingItemEntry[];
   summary?: string | null;
   top_warning?: string | null;
   top_missing_item?: string | null;

@@ -1,10 +1,4 @@
-interface MissingItem {
-  id?: string;
-  label?: string;
-  why_it_matters?: string;
-}
-
-type MissingItemEntry = string | MissingItem;
+import type { MissingItem, MissingItemEntry } from "@/types/reportHybrid";
 
 interface MissingItemsListProps {
   missingItems: MissingItemEntry[];

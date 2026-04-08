@@ -1,12 +1,4 @@
-interface WarningItem {
-  id?: string;
-  headline?: string;
-  detail?: string;
-  pillar?: string;
-  severity?: string;
-}
-
-type WarningEntry = string | WarningItem;
+import type { WarningItem, WarningEntry } from "@/types/reportHybrid";
 
 interface RedFlagsListProps {
   warnings: WarningEntry[];

@@ -982,7 +982,7 @@ Deno.serve(async (req: Request) => {
       const extraction = validation.data;
 
       // 10b. Derive jurisdiction mismatch before scoring
-      if (extraction.contractor_address_text && /illinois|il\b/i.test(extraction.contractor_address_text) && session?.lead_id) {
+      if (extraction.contractor_address_text && /\billinois\b|\bil\b/i.test(extraction.contractor_address_text) && session?.lead_id) {
         extraction.state_jurisdiction_mismatch = true;
       }
 

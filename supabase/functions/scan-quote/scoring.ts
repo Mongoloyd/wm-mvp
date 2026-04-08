@@ -167,7 +167,7 @@ export function scoreSafety(data: ExtractionResult): number {
   // ── Glass package spec gaps ────────────────────────────────────────────
   const incompleteGlassSpecs = items.filter(i => i.glass_spec_complete !== true).length;
   const lowEOrArgonUnknown = items.filter(
-    i => i.glass_low_e_present === null || i.glass_argon_present === null
+    i => i.glass_low_e_present == null || i.glass_argon_present == null
   ).length;
 
   if (data.opening_level_glass_specs_present !== true && items.length > 0) score -= 20;
