@@ -121,6 +121,16 @@ export interface ExtractionResult {
   substrate_allowance_text?: string | null;
   remeasure_price_adjustment_cap_present?: boolean | null;
 
+  // ── Installation method / anchoring fields ────────────────────────────────
+  anchoring_method_text?: string | null;
+  anchor_spacing_specified?: boolean | null;
+  fastener_type_specified?: boolean | null;
+  waterproofing_method_text?: string | null;
+  sealant_specified?: boolean | null;
+  buck_treatment_method_text?: string | null;
+  manufacturer_install_compliance_stated?: boolean | null;
+  code_compliance_install_statement_present?: boolean | null;
+
   // ── Jurisdiction fields ──────────────────────────────────────────────────
   contractor_address_text?: string;
   state_jurisdiction_mismatch?: boolean;
@@ -128,7 +138,7 @@ export interface ExtractionResult {
 
 // ── Rubric constants ─────────────────────────────────────────────────────────
 
-export const RUBRIC_VERSION = "1.4.0";
+export const RUBRIC_VERSION = "1.5.0";
 
 export const PILLAR_WEIGHTS = {
   safety: 0.25,
@@ -200,6 +210,10 @@ export function scoreSafety(data: ExtractionResult): number {
   if (incompleteGlassSpecs > 0) score -= Math.min(20, incompleteGlassSpecs * 5);
   if (lowEOrArgonUnknown > 0) score -= Math.min(10, lowEOrArgonUnknown * 3);
 
+  // ── Install compliance statements ──────────────────────────────────────
+  if (data.manufacturer_install_compliance_stated !== true) score -= 5;
+  if (data.code_compliance_install_statement_present !== true) score -= 5;
+
   return clamp(score);
 }
 
@@ -242,6 +256,14 @@ export function scoreInstall(data: ExtractionResult): number {
   if (data.opening_schedule_present === true && data.opening_schedule_dimensions_complete !== true) score -= 10;
   if (data.opening_schedule_present === true && data.opening_schedule_product_assignments_present !== true) score -= 15;
   if (data.bulk_scope_blob_present === true) score -= 10;
+
+  // ── Anchoring / waterproofing / sealant / buck treatment ───────────────
+  if (!data.anchoring_method_text && items.length > 0) score -= 15;
+  if (data.anchoring_method_text && data.anchor_spacing_specified !== true) score -= 5;
+  if (data.anchoring_method_text && data.fastener_type_specified !== true) score -= 5;
+  if (!data.waterproofing_method_text && items.length > 0) score -= 15;
+  if (data.sealant_specified !== true && items.length > 0) score -= 5;
+  if (!data.buck_treatment_method_text && items.length > 0) score -= 10;
 
   return clamp(score);
 }
@@ -540,6 +562,22 @@ export function computeGrade(data: ExtractionResult): GradeResult {
       hardCapApplied = hardCapApplied
         ? hardCapApplied + "+substrate_open_checkbook"
         : "substrate_open_checkbook";
+    }
+  }
+
+  // Hard cap: install method critically underspecified → max C
+  const installMethodCriticallyUnderspecified =
+    items.length > 0 &&
+    !data.anchoring_method_text &&
+    !data.waterproofing_method_text &&
+    data.manufacturer_install_compliance_stated !== true;
+
+  if (installMethodCriticallyUnderspecified) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = hardCapApplied
+        ? hardCapApplied + "+install_method_unverified"
+        : "install_method_unverified";
     }
   }
 
