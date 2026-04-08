@@ -16,6 +16,14 @@ export interface LineItem {
   dp_rating?: string;
   noa_number?: string;
   dimensions?: string;
+
+  // ── Glass package fields ────────────────────────────────────────────────
+  glass_package_text?: string | null;
+  glass_makeup_type?: "monolithic_laminated" | "insulated_laminated" | "laminated" | "insulated" | "tempered" | "unknown" | null;
+  glass_low_e_present?: boolean | null;
+  glass_argon_present?: boolean | null;
+  glass_tint_text?: string | null;
+  glass_spec_complete?: boolean | null;
 }
 
 export interface ExtractionResult {
@@ -82,6 +90,11 @@ export interface ExtractionResult {
 
   // ── Product-quality fields ───────────────────────────────────────────────
   generic_product_description_present?: boolean;
+
+  // ── Glass package fields ──────────────────────────────────────────────────
+  opening_level_glass_specs_present?: boolean | null;
+  blanket_glass_language_present?: boolean | null;
+  mixed_glass_package_visibility?: boolean | null;
 
   // ── Jurisdiction fields ──────────────────────────────────────────────────
   contractor_address_text?: string;
@@ -150,6 +163,17 @@ export function scoreSafety(data: ExtractionResult): number {
       items.every(i => isMissing(i.dp_rating) && isMissing(i.noa_number));
     if (completelyMissingSpecs) score -= 10;
   }
+
+  // ── Glass package spec gaps ────────────────────────────────────────────
+  const incompleteGlassSpecs = items.filter(i => i.glass_spec_complete !== true).length;
+  const lowEOrArgonUnknown = items.filter(
+    i => i.glass_low_e_present === null || i.glass_argon_present === null
+  ).length;
+
+  if (data.opening_level_glass_specs_present !== true && items.length > 0) score -= 20;
+  if (data.blanket_glass_language_present === true) score -= 10;
+  if (incompleteGlassSpecs > 0) score -= Math.min(20, incompleteGlassSpecs * 5);
+  if (lowEOrArgonUnknown > 0) score -= Math.min(10, lowEOrArgonUnknown * 3);
 
   return clamp(score);
 }
@@ -258,6 +282,10 @@ export function scoreFinePrint(data: ExtractionResult): number {
 
   // ── Lead paint disclosure ──────────────────────────────────────────────
   if (data.lead_paint_disclosure_present === false) score -= 5;
+
+  // ── Glass language transparency ────────────────────────────────────────
+  if (data.blanket_glass_language_present === true) score -= 5;
+  if (data.mixed_glass_package_visibility === true) score -= 5;
 
   return clamp(score);
 }
@@ -388,6 +416,29 @@ export function computeGrade(data: ExtractionResult): GradeResult {
       hardCapApplied = hardCapApplied
         ? hardCapApplied + "+unverified_impact_specs"
         : "unverified_impact_specs";
+    }
+  }
+
+  // Hard cap: unverified glass package → max C
+  const noOpeningGlassSpecs =
+    items.length > 0 && data.opening_level_glass_specs_present !== true;
+  const allGlassPackagesUnspecified =
+    items.length > 0 &&
+    items.every(i =>
+      !i.glass_makeup_type ||
+      i.glass_makeup_type === "unknown" ||
+      i.glass_spec_complete !== true
+    );
+  if (
+    noOpeningGlassSpecs &&
+    allGlassPackagesUnspecified &&
+    data.generic_product_description_present === true
+  ) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = hardCapApplied
+        ? hardCapApplied + "+unverified_glass_package"
+        : "unverified_glass_package";
     }
   }
 
