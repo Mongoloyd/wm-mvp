@@ -1786,6 +1786,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_adjust_contractor_credits: {
+        Args: {
+          p_admin_user_id?: string
+          p_contractor_id: string
+          p_delta: number
+          p_entry_type: string
+          p_notes?: string
+        }
+        Returns: Json
+      }
       get_analysis_full: {
         Args: { p_phone_e164: string; p_scan_session_id: string }
         Returns: {
