@@ -4,6 +4,8 @@
 // Canonical source for all rubric math. Imported by index.ts and index.test.ts.
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { classifyLineItem, isCoreOpening } from "../_shared/metrics.ts";
+
 // ── Schema ───────────────────────────────────────────────────────────────────
 
 export interface LineItem {
@@ -24,6 +26,11 @@ export interface LineItem {
   glass_argon_present?: boolean | null;
   glass_tint_text?: string | null;
   glass_spec_complete?: boolean | null;
+
+  // ── Opening scope fields ───────────────────────────────────────────────
+  opening_location?: string | null;
+  opening_tag?: string | null;
+  product_assignment_text?: string | null;
 }
 
 export interface ExtractionResult {
@@ -96,6 +103,13 @@ export interface ExtractionResult {
   blanket_glass_language_present?: boolean | null;
   mixed_glass_package_visibility?: boolean | null;
 
+  // ── Opening scope fields ──────────────────────────────────────────────────
+  opening_schedule_present?: boolean | null;
+  opening_schedule_room_labels_present?: boolean | null;
+  opening_schedule_dimensions_complete?: boolean | null;
+  opening_schedule_product_assignments_present?: boolean | null;
+  bulk_scope_blob_present?: boolean | null;
+
   // ── Jurisdiction fields ──────────────────────────────────────────────────
   contractor_address_text?: string;
   state_jurisdiction_mismatch?: boolean;
@@ -103,7 +117,7 @@ export interface ExtractionResult {
 
 // ── Rubric constants ─────────────────────────────────────────────────────────
 
-export const RUBRIC_VERSION = "1.2.0";
+export const RUBRIC_VERSION = "1.3.0";
 
 export const PILLAR_WEIGHTS = {
   safety: 0.25,
@@ -193,7 +207,6 @@ export function scoreInstall(data: ExtractionResult): number {
   if (data.debris_removal_included === false) score -= 10;
 
   // ── Wall repair scope gaps ─────────────────────────────────────────────
-  // Missing wall repair info is a significant scope gap in FL window installs
   if (!data.wall_repair_scope) score -= 10;
   if (data.stucco_repair_included === false) score -= 5;
   if (data.drywall_repair_included === false) score -= 5;
@@ -206,6 +219,18 @@ export function scoreInstall(data: ExtractionResult): number {
   // ── Opening count / line items ─────────────────────────────────────────
   if (!data.opening_count && (data.line_items ?? []).length === 0) score -= 10;
   if (!data.installation?.accessories_mentioned) score -= 5;
+
+  // ── Opening schedule / scope map ───────────────────────────────────────
+  const items = data.line_items ?? [];
+  const coreOpeningCount = data.opening_count ??
+    items.filter(i => isCoreOpening(classifyLineItem(i.description))).length;
+  const multiOpeningJob = coreOpeningCount > 1;
+
+  if (multiOpeningJob && data.opening_schedule_present !== true) score -= 20;
+  if (data.opening_schedule_present === true && data.opening_schedule_room_labels_present !== true) score -= 10;
+  if (data.opening_schedule_present === true && data.opening_schedule_dimensions_complete !== true) score -= 10;
+  if (data.opening_schedule_present === true && data.opening_schedule_product_assignments_present !== true) score -= 15;
+  if (data.bulk_scope_blob_present === true) score -= 10;
 
   return clamp(score);
 }
@@ -228,7 +253,6 @@ export function scorePrice(data: ExtractionResult): number {
   }
 
   // ── Deposit traps ──────────────────────────────────────────────────────
-  // Florida statute limits deposits; >50% is a major red flag, >40% is a warning
   if (data.deposit_percent !== undefined && data.deposit_percent !== null) {
     if (data.deposit_percent > 50) score -= 25;
     else if (data.deposit_percent > 40) score -= 15;
@@ -236,15 +260,19 @@ export function scorePrice(data: ExtractionResult): number {
   }
 
   // ── Final payment before inspection ────────────────────────────────────
-  // Paying in full before final inspection removes homeowner leverage
   if (data.final_payment_before_inspection === true) score -= 20;
 
   // ── Subject to remeasure ───────────────────────────────────────────────
-  // "Subject to remeasure" clauses allow price increases after signing
   if (data.subject_to_remeasure_present === true) score -= 15;
 
   // ── Payment schedule transparency ─────────────────────────────────────
   if (!data.payment_schedule_text) score -= 5;
+
+  // ── Opening scope ambiguity on price trust ─────────────────────────────
+  const coreOpeningCount = data.opening_count ??
+    items.filter(i => isCoreOpening(classifyLineItem(i.description))).length;
+  const multiOpeningJob = coreOpeningCount > 1;
+  if (multiOpeningJob && data.opening_schedule_present !== true) score -= 5;
 
   return clamp(score);
 }
@@ -253,7 +281,6 @@ export function scoreFinePrint(data: ExtractionResult): number {
   let score = 100;
 
   // ── Cancellation policy ────────────────────────────────────────────────
-  // Missing cancellation policy is a critical consumer protection gap
   if (!data.cancellation_policy) score -= 25;
 
   // ── Terms & conditions ─────────────────────────────────────────────────
@@ -277,7 +304,6 @@ export function scoreFinePrint(data: ExtractionResult): number {
   if (!data.completion_timeline_text) score -= 5;
 
   // ── Jurisdiction mismatch ──────────────────────────────────────────────
-  // Out-of-state contractor is a transparency concern
   if (data.state_jurisdiction_mismatch === true) score -= 10;
 
   // ── Lead paint disclosure ──────────────────────────────────────────────
@@ -306,7 +332,6 @@ export function scoreWarranty(data: ExtractionResult): number {
   } else if (data.warranty.labor_years < 5) {
     score -= 5;
   }
-  // 5+ years labor = no penalty (strong)
 
   // ── Manufacturer warranty tiers ────────────────────────────────────────
   if (data.warranty.manufacturer_years === undefined) {
@@ -316,7 +341,6 @@ export function scoreWarranty(data: ExtractionResult): number {
   } else if (data.warranty.manufacturer_years < 20) {
     score -= 5;
   }
-  // 20+ years manufacturer = no penalty (strong)
 
   // ── Transferability ────────────────────────────────────────────────────
   if (data.warranty.transferable === undefined) score -= 10;
@@ -439,6 +463,23 @@ export function computeGrade(data: ExtractionResult): GradeResult {
       hardCapApplied = hardCapApplied
         ? hardCapApplied + "+unverified_glass_package"
         : "unverified_glass_package";
+    }
+  }
+
+  // Hard cap: ambiguous opening scope → max C
+  const openingCount = data.opening_count ??
+    items.filter(i => isCoreOpening(classifyLineItem(i.description))).length;
+  const materiallyAmbiguousScope =
+    openingCount >= 5 &&
+    data.opening_schedule_present !== true &&
+    data.opening_schedule_product_assignments_present !== true;
+
+  if (materiallyAmbiguousScope) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = hardCapApplied
+        ? hardCapApplied + "+ambiguous_opening_scope"
+        : "ambiguous_opening_scope";
     }
   }
 
