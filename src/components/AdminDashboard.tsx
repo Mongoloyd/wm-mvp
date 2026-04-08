@@ -1,10 +1,7 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * LEAD SNIPER CRM — Admin Dashboard v4.0
+ * LEAD SNIPER CRM — Admin Dashboard v4.1
  * ═══════════════════════════════════════════════════════════════════════════
- *
- * 6-tab CRM: Command Center · Active Pipeline · Ghost Recovery ·
- *            Needs Review · Dialer Desk · Attribution
  */
 
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -12,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 
 import { PreviewModeBadge } from "@/components/PreviewModeBadge";
 import { CommandCenter } from "@/components/admin/CommandCenter";
@@ -127,11 +123,13 @@ function DashboardContent() {
   const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([]);
   const [latestFollowups, setLatestFollowups] = useState<Record<string, VoiceFollowupSummary>>({});
   const [needsReview, setNeedsReview] = useState<NeedsReviewLead[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  /* Start with isLoading=false so page renders immediately */
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchAll = useCallback(async (silent = false) => {
-    if (!silent) setIsLoading(true);
+  const fetchAll = useCallback(async () => {
+    setIsSyncing(true);
     try {
       const [rawLeads, rawDeliveries, rawFollowups, rawNeedsReview] = await Promise.all([
         invokeAdminData("fetch_leads"),
@@ -161,15 +159,14 @@ function DashboardContent() {
       setLatestFollowups(fMap);
     } catch (err: unknown) {
       console.warn("[CRM] fetch error (preview mode):", err);
-      // Gracefully fall through — empty state renders as preview
     } finally {
-      setIsLoading(false);
+      setIsSyncing(false);
     }
   }, []);
 
   useEffect(() => {
     fetchAll();
-    intervalRef.current = setInterval(() => fetchAll(true), REFRESH_INTERVAL_MS);
+    intervalRef.current = setInterval(() => fetchAll(), REFRESH_INTERVAL_MS);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -180,18 +177,20 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {leads.length === 0 && !isLoading && <PreviewModeBadge />}
       {/* Header */}
       <div className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Lead Sniper CRM</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {leads.length} leads · auto-refreshes every 30s
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">Lead Sniper CRM</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {leads.length} leads · auto-refreshes every 30s
+              </p>
+            </div>
+            {leads.length === 0 && !isSyncing && <PreviewModeBadge />}
           </div>
           <div className="flex items-center gap-3">
-            {isLoading && (
+            {isSyncing && (
               <Badge variant="secondary" className="text-xs animate-pulse">
                 Syncing…
               </Badge>
@@ -235,26 +234,26 @@ function DashboardContent() {
           </TabsList>
 
           <TabsContent value="command">
-            <CommandCenter kpis={kpis} isLoading={isLoading} leads={leads} />
+            <CommandCenter kpis={kpis} isLoading={isSyncing} leads={leads} />
           </TabsContent>
 
           <TabsContent value="pipeline">
-            <ActivePipeline leads={leads} isLoading={isLoading} />
+            <ActivePipeline leads={leads} isLoading={isSyncing} />
           </TabsContent>
 
           <TabsContent value="ghosts">
-            <GhostRecovery ghosts={ghosts} isLoading={isLoading} />
+            <GhostRecovery ghosts={ghosts} isLoading={isSyncing} />
           </TabsContent>
 
           <TabsContent value="needs-review">
-            <NeedsReviewTab needsReview={needsReview} isLoading={isLoading} />
+            <NeedsReviewTab needsReview={needsReview} isLoading={isSyncing} />
           </TabsContent>
 
           <TabsContent value="engine">
             <InternalCRMDesk
               leads={leads}
-              isLoading={isLoading}
-              onStatusChange={() => fetchAll(true)}
+              isLoading={isSyncing}
+              onStatusChange={() => fetchAll()}
               latestFollowups={latestFollowups}
             />
           </TabsContent>
@@ -264,7 +263,7 @@ function DashboardContent() {
           </TabsContent>
 
           <TabsContent value="attribution">
-            <AttributionTab leads={leads} isLoading={isLoading} />
+            <AttributionTab leads={leads} isLoading={isSyncing} />
           </TabsContent>
         </Tabs>
       </div>

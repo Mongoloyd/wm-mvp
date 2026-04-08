@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -8,6 +8,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search } from "lucide-react";
 import { LeadDossierSheet } from "./LeadDossierSheet";
 import type { CRMLead, PipelineStatus } from "./types";
 import { derivePipelineStatus } from "./types";
@@ -64,12 +73,39 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
+type StatusFilter = "all" | PipelineStatus;
+
 /* ── Component ───────────────────────────────────────────────────────── */
 
 export function ActivePipeline({ leads, isLoading }: ActivePipelineProps) {
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-  if (isLoading) {
+  /* ── Canonical derived filtered list ── */
+  const filteredLeads = useMemo(() => {
+    let result = leads;
+
+    // Status filter
+    if (statusFilter !== "all") {
+      result = result.filter((lead) => derivePipelineStatus(lead) === statusFilter);
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((lead) => {
+        const name = displayName(lead).toLowerCase();
+        const email = (lead.email ?? "").toLowerCase();
+        const county = (lead.county ?? "").toLowerCase();
+        return name.includes(q) || email.includes(q) || county.includes(q);
+      });
+    }
+
+    return result;
+  }, [leads, statusFilter, searchQuery]);
+
+  if (isLoading && leads.length === 0) {
     return (
       <div className="flex items-center justify-center py-20 text-muted-foreground">
         Loading pipeline…
@@ -88,6 +124,36 @@ export function ActivePipeline({ leads, isLoading }: ActivePipelineProps) {
 
   return (
     <>
+      {/* ── Filter controls ── */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search name, email, county…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 text-sm"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+          <SelectTrigger className="w-[160px] h-9 text-sm">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="scanning">Scanning</SelectItem>
+            <SelectItem value="pending_otp">Pending OTP</SelectItem>
+            <SelectItem value="verified">Verified</SelectItem>
+            <SelectItem value="webhook_sent">Webhook Sent</SelectItem>
+            <SelectItem value="closed_won">Closed/Won</SelectItem>
+            <SelectItem value="ghost">Ghost</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-xs text-muted-foreground">
+          {filteredLeads.length} of {leads.length} leads
+        </span>
+      </div>
+
       <div className="rounded-md border overflow-auto">
         <Table>
           <TableHeader>
@@ -102,54 +168,62 @@ export function ActivePipeline({ leads, isLoading }: ActivePipelineProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {leads.map((lead) => {
-              const status = derivePipelineStatus(lead);
-              const style = STATUS_STYLES[status];
-              return (
-                <TableRow
-                  key={lead.id}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => setSelectedLead(lead)}
-                >
-                  <TableCell>
-                    <div className="font-medium text-sm truncate max-w-[220px]">
-                      {displayName(lead)}
-                    </div>
-                    {lead.email && lead.first_name && (
-                      <div className="text-xs text-muted-foreground truncate max-w-[220px]">
-                        {lead.email}
+            {filteredLeads.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  No leads match the current filters.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredLeads.map((lead) => {
+                const status = derivePipelineStatus(lead);
+                const style = STATUS_STYLES[status];
+                return (
+                  <TableRow
+                    key={lead.id}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setSelectedLead(lead)}
+                  >
+                    <TableCell>
+                      <div className="font-medium text-sm truncate max-w-[220px]">
+                        {displayName(lead)}
                       </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {lead.phone_verified ? (lead.phone_e164 ?? "—") : maskPhone(lead.phone_e164)}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {lead.grade ? (
-                      <Badge className={`text-xs font-bold ${gradeClass(lead.grade)}`}>
-                        {lead.grade}
+                      {lead.email && lead.first_name && (
+                        <div className="text-xs text-muted-foreground truncate max-w-[220px]">
+                          {lead.email}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {lead.phone_verified ? (lead.phone_e164 ?? "—") : maskPhone(lead.phone_e164)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {lead.grade ? (
+                        <Badge className={`text-xs font-bold ${gradeClass(lead.grade)}`}>
+                          {lead.grade}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center font-mono">
+                      {lead.window_count ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={style.variant} className="text-xs whitespace-nowrap">
+                        {style.label}
                       </Badge>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center font-mono">
-                    {lead.window_count ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={style.variant} className="text-xs whitespace-nowrap">
-                      {style.label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {lead.assigned_partner}
-                  </TableCell>
-                  <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
-                    {timeAgo(lead.created_at)}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {lead.assigned_partner}
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
+                      {timeAgo(lead.created_at)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>
