@@ -16,6 +16,7 @@ import IndustryTruth from "@/components/IndustryTruth";
 import ProcessSteps from "@/components/ProcessSteps";
 import NarrativeProof from "@/components/NarrativeProof";
 import ClosingManifesto from "@/components/ClosingManifesto";
+import Testimonials from "@/components/Testimonials";
 import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
 import InteractiveDemoScan from "@/components/InteractiveDemoScan";
