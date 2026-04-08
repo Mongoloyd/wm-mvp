@@ -270,16 +270,56 @@ function perfectQuote(): ExtractionResult {
     opening_count: 8,
     contractor_name: "ABC Impact Windows LLC",
     hvhz_zone: true,
+    // ── Glass package fields (Area 1) ──────────────────────────────────────
+    opening_level_glass_specs_present: true,
+    blanket_glass_language_present: false,
+    mixed_glass_package_visibility: false,
+    // ── Opening scope fields (Area 2) ──────────────────────────────────────
+    opening_schedule_present: true,
+    opening_schedule_room_labels_present: true,
+    opening_schedule_dimensions_complete: true,
+    opening_schedule_product_assignments_present: true,
+    bulk_scope_blob_present: false,
+    // ── Scope-gap fields ───────────────────────────────────────────────────
+    wall_repair_scope: "Stucco patch and paint touch-up included",
+    stucco_repair_included: true,
+    drywall_repair_included: true,
+    paint_touchup_included: true,
+    debris_removal_included: true,
+    engineering_mentioned: true,
+    engineering_fees_included: true,
+    permit_fees_itemized: true,
+    // ── Trust signals ──────────────────────────────────────────────────────
+    insurance_proof_mentioned: true,
+    licensing_proof_mentioned: true,
+    completion_timeline_text: "8-12 weeks from permit approval",
+    lead_paint_disclosure_present: true,
+    // ── Payment fields ─────────────────────────────────────────────────────
+    payment_schedule_text: "10% deposit, 40% at material delivery, 50% on completion",
+    deposit_percent: 10,
+    subject_to_remeasure_present: false,
+    final_payment_before_inspection: false,
+    // ── Fine-print fields ──────────────────────────────────────────────────
+    terms_conditions_present: true,
+    generic_product_description_present: false,
     line_items: [
       {
         description: "Impact hurricane-rated sliding glass door",
         quantity: 1, unit_price: 2800, total_price: 2800,
         brand: "PGT", series: "WinGuard", dp_rating: "DP50", noa_number: "NOA-21-1234",
+        glass_makeup_type: "insulated_laminated", glass_low_e_present: true,
+        glass_argon_present: true, glass_spec_complete: true,
+        opening_location: "Living Room - East Wall", opening_tag: "D1",
+        product_assignment_text: "PGT WinGuard 770 Sliding Glass Door 72x80",
       },
       {
         description: "Impact hurricane single-hung window",
         quantity: 7, unit_price: 1500, total_price: 10500,
         brand: "PGT", series: "WinGuard", dp_rating: "DP40", noa_number: "NOA-21-5678",
+        glass_makeup_type: "insulated_laminated", glass_low_e_present: true,
+        glass_argon_present: true, glass_spec_complete: true,
+        opening_location: "Master Bedroom - South Wall", opening_tag: "W1-W7",
+        product_assignment_text: "PGT WinGuard 7200 Single Hung 36x60",
       },
     ],
     warranty: {
