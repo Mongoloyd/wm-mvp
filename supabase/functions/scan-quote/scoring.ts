@@ -125,8 +125,12 @@ export function letterGrade(score: number): string {
 export function scoreSafety(data: ExtractionResult): number {
   let score = 100;
   const items = data.line_items ?? [];
-  const itemsWithoutDp = items.filter(i => !i.dp_rating);
-  const itemsWithoutNoa = items.filter(i => !i.noa_number);
+
+  const isMissing = (val?: string) =>
+    !val || /^(n\/a|na|none|unknown|tbd|-|not applicable)$/i.test(val.trim());
+
+  const itemsWithoutDp = items.filter(i => isMissing(i.dp_rating));
+  const itemsWithoutNoa = items.filter(i => isMissing(i.noa_number));
 
   if (itemsWithoutDp.length > 0) score -= Math.min(50, itemsWithoutDp.length * 25);
   if (itemsWithoutNoa.length > 0) score -= Math.min(40, itemsWithoutNoa.length * 20);
@@ -136,6 +140,16 @@ export function scoreSafety(data: ExtractionResult): number {
     /impact|hurricane|storm/i.test(i.description || "")
   );
   if (!hasImpactMention && items.length > 0) score -= 25;
+
+  // Generic descriptions are suspicious, but should not alone create a D-grade.
+  // They matter most when paired with missing specs.
+  if (data.generic_product_description_present === true) {
+    score -= 15;
+    const completelyMissingSpecs =
+      items.length > 0 &&
+      items.every(i => isMissing(i.dp_rating) && isMissing(i.noa_number));
+    if (completelyMissingSpecs) score -= 10;
+  }
 
   return clamp(score);
 }
@@ -344,20 +358,36 @@ export function computeGrade(data: ExtractionResult): GradeResult {
     }
   }
 
-  // Hard cap: safety pillar critically low → max C
-  if (pillarScores.safety < 25 && (data.line_items ?? []).length > 0) {
-    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
-      grade = "C";
+  // Hard cap: safety pillar critically low → max D
+  if (pillarScores.safety < 40 && (data.line_items ?? []).length > 0) {
+    if (GRADE_RANK[grade] > GRADE_RANK["D"]) {
+      grade = "D";
       hardCapApplied = hardCapApplied ? hardCapApplied + "+critical_safety" : "critical_safety";
     }
   }
 
-  // Hard cap: no impact product mentions → max D
-  const hasImpact = (data.line_items ?? []).some(i => /impact|hurricane|storm/i.test(i.description || ""));
-  if (!hasImpact && (data.line_items ?? []).length > 0) {
+  // Hard cap: unverified impact specs → max D
+  const items = data.line_items ?? [];
+  const isMissing = (val?: string) =>
+    !val || /^(n\/a|na|none|unknown|tbd|-|not applicable)$/i.test(val.trim());
+
+  const hasImpactMention = items.some(i =>
+    /impact|hurricane|storm/i.test(i.description || "")
+  );
+
+  const completelyMissingSpecs =
+    items.length > 0 &&
+    items.every(i => isMissing(i.dp_rating) && isMissing(i.noa_number));
+
+  const genericAndUnverified =
+    data.generic_product_description_present === true && completelyMissingSpecs;
+
+  if (((!hasImpactMention && completelyMissingSpecs) || genericAndUnverified) && items.length > 0) {
     if (GRADE_RANK[grade] > GRADE_RANK["D"]) {
       grade = "D";
-      hardCapApplied = hardCapApplied ? hardCapApplied + "+no_impact_products" : "no_impact_products";
+      hardCapApplied = hardCapApplied
+        ? hardCapApplied + "+unverified_impact_specs"
+        : "unverified_impact_specs";
     }
   }
 
