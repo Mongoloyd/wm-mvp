@@ -100,24 +100,26 @@ const AuditHero = ({
           {/* ── ORDER 2 (mobile) / right column (md+): Mascot + GradeCard ── */}
 
           <div className="order-2 md:order-last md:flex-1 flex flex-col items-center pt-0 md:pt-16">
-            {/* Mascot */}
-
-            <div className="relative z-20 flex justify-center pointer-events-none w-full">
+            {/* Mascot — floating bob animation, behind GradeCard on overlap */}
+            <motion.div
+              animate={{ y: [-8, 0, -8] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="relative z-20 flex justify-center pointer-events-none w-full"
+            >
               <img
                 src={MASCOT_URL}
                 alt="WindowMan holding a Truth Report"
-                width={384}
-                height={512}
+                width={480}
+                height={640}
                 fetchPriority="high"
                 decoding="async"
-                className="w-full max-w-sm md:w-64 lg:w-96 h-auto object-contain"
+                className="w-full max-w-md md:w-80 lg:w-[480px] h-auto object-contain"
                 style={{ aspectRatio: '3/4' }}
               />
-            </div>
+            </motion.div>
 
-            {/* GradeCard — desktop only */}
-
-            <div className="hidden md:block relative z-10">
+            {/* GradeCard — desktop only, overlaps mascot via negative margin */}
+            <div className="hidden md:block relative z-30 mt-[-40px] md:mt-[-60px]">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
