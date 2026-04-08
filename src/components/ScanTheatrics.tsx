@@ -73,11 +73,41 @@ const PULSAR_POSITIONS = [
 
 // Canonical 5-pillar definitions — order and keys are authoritative
 const CANONICAL_PILLAR_DEFS = [
-  { key: "safety_code",   label: "SAFETY & CODE MATCH",        text: "Verifying NOA/DP rating compliance for {county}...",   accentColor: "#2563EB", delay: 0.3 },
-  { key: "install_scope", label: "INSTALL & SCOPE CLARITY",    text: "Checking installation scope and opening details...",   accentColor: "#F97316", delay: 0.8 },
-  { key: "price_fairness",label: "PRICE FAIRNESS",             text: "Benchmarking against {county} county market data...",  accentColor: "#2563EB", delay: 1.4 },
-  { key: "fine_print",    label: "FINE PRINT & TRANSPARENCY",  text: "Reviewing permit inclusion and payment schedule...",   accentColor: "#F97316", delay: 2.0 },
-  { key: "warranty",      label: "WARRANTY VALUE",             text: "Reviewing labor and manufacturer warranty language...",accentColor: "#2563EB", delay: 2.6 },
+  {
+    key: "safety_code",
+    label: "SAFETY & CODE MATCH",
+    text: "Verifying NOA/DP rating compliance for {county}...",
+    accentColor: "#2563EB",
+    delay: 0.3,
+  },
+  {
+    key: "install_scope",
+    label: "INSTALL & SCOPE CLARITY",
+    text: "Checking installation scope and opening details...",
+    accentColor: "#F97316",
+    delay: 0.8,
+  },
+  {
+    key: "price_fairness",
+    label: "PRICE FAIRNESS",
+    text: "Benchmarking against {county} county market data...",
+    accentColor: "#2563EB",
+    delay: 1.4,
+  },
+  {
+    key: "fine_print",
+    label: "FINE PRINT & TRANSPARENCY",
+    text: "Reviewing permit inclusion and payment schedule...",
+    accentColor: "#F97316",
+    delay: 2.0,
+  },
+  {
+    key: "warranty",
+    label: "WARRANTY VALUE",
+    text: "Reviewing labor and manufacturer warranty language...",
+    accentColor: "#2563EB",
+    delay: 2.6,
+  },
 ];
 
 // ── Phase type ────────────────────────────────────────────────────────────────
@@ -88,19 +118,27 @@ type Phase = "scanning" | "cliffhanger" | "pillars" | "reveal";
 
 function pillarStatusColor(status: PillarScore["status"]): string {
   switch (status) {
-    case "pass": return "#059669";
-    case "warn": return "#F97316";
-    case "fail": return "#DC2626";
-    default:     return "#374151";
+    case "pass":
+      return "#059669";
+    case "warn":
+      return "#F97316";
+    case "fail":
+      return "#DC2626";
+    default:
+      return "#374151";
   }
 }
 
 function pillarStatusBadge(status: PillarScore["status"]): string {
   switch (status) {
-    case "pass": return "✓ PASS";
-    case "warn": return "⚠ WARN";
-    case "fail": return "✗ FAIL";
-    default:     return "··· PENDING";
+    case "pass":
+      return "✓ PASS";
+    case "warn":
+      return "⚠ WARN";
+    case "fail":
+      return "✗ FAIL";
+    default:
+      return "··· PENDING";
   }
 }
 
@@ -123,25 +161,25 @@ const ScanTheatrics = ({
     externalPhoneE164: funnel?.phoneE164 ?? null,
   });
 
-  const autoSendGuardRef  = useRef<Set<string>>(new Set());
+  const autoSendGuardRef = useRef<Set<string>>(new Set());
   const activeGuardKeyRef = useRef<string | null>(null);
-  const submitPhoneRef    = useRef<(() => Promise<PipelineStartResult>) | null>(null);
+  const submitPhoneRef = useRef<(() => Promise<PipelineStartResult>) | null>(null);
 
-  const [phase, setPhase]                 = useState<Phase>("scanning");
+  const [phase, setPhase] = useState<Phase>("scanning");
   const [activeLogIndex, setActiveLogIndex] = useState(0);
-  const [progressWidth, setProgressWidth]   = useState(0);
-  const [pillarsDone, setPillarsDone]       = useState<boolean[]>([false, false, false, false, false]);
-  const [showGrade, setShowGrade]           = useState(false);
+  const [progressWidth, setProgressWidth] = useState(0);
+  const [pillarsDone, setPillarsDone] = useState<boolean[]>([false, false, false, false, false]);
+  const [showGrade, setShowGrade] = useState(false);
   const [scanningMinDone, setScanningMinDone] = useState(false);
 
   const timersRef = useRef<number[]>([]);
-  const rafRef    = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   // Stable reduced-motion check — evaluated once on first render
   const prefersReducedMotion = useRef(
     typeof window !== "undefined" && typeof window.matchMedia === "function"
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false
+      : false,
   ).current;
 
   const { status: scanStatus, error: pollError } = useScanPolling({
@@ -307,9 +345,16 @@ const ScanTheatrics = ({
     setShowGrade(false);
 
     CANONICAL_PILLAR_DEFS.forEach((def, i) => {
-      addTimer(() => {
-        setPillarsDone((prev) => { const next = [...prev]; next[i] = true; return next; });
-      }, (def.delay + 1.2) * 1000);
+      addTimer(
+        () => {
+          setPillarsDone((prev) => {
+            const next = [...prev];
+            next[i] = true;
+            return next;
+          });
+        },
+        (def.delay + 1.2) * 1000,
+      );
     });
 
     // Transition to reveal phase
@@ -318,7 +363,10 @@ const ScanTheatrics = ({
       setPhase("reveal");
     }, 5000);
 
-    addTimer(() => { console.log({ event: "wm_grade_revealed" }); onRevealComplete?.(); }, 7000);
+    addTimer(() => {
+      console.log({ event: "wm_grade_revealed" });
+      onRevealComplete?.();
+    }, 7000);
   };
 
   // ── Render guards ────────────────────────────────────────────────────────
@@ -332,10 +380,7 @@ const ScanTheatrics = ({
   const pulsarCount = Math.min(3, Math.max(0, (analysisData?.flagRedCount ?? 0) + (analysisData?.flagAmberCount ?? 0)));
 
   // Issue count for cliffhanger counter (capped to prevent overflow)
-  const issueCount = Math.min(
-    (analysisData?.flagRedCount ?? 0) + (analysisData?.flagAmberCount ?? 0),
-    99
-  );
+  const issueCount = Math.min((analysisData?.flagRedCount ?? 0) + (analysisData?.flagAmberCount ?? 0), 99);
 
   // Build resolved pillar slices from live analysisData with canonical fallback
   const scoreMap = new Map<string, PillarScore>();
@@ -348,7 +393,7 @@ const ScanTheatrics = ({
     const live = scoreMap.get(def.key);
     return {
       ...def,
-      score:        live?.score  ?? null,
+      score: live?.score ?? null,
       pillarStatus: live?.status ?? ("pending" as const),
     };
   });
@@ -372,7 +417,6 @@ const ScanTheatrics = ({
       }}
     >
       <AnimatePresence mode="wait">
-
         {/* ── Scanning / Cliffhanger ─────────────────────────────────── */}
         {(phase === "scanning" || phase === "cliffhanger") && (
           <motion.div
@@ -383,14 +427,16 @@ const ScanTheatrics = ({
             transition={{ duration: 0.15 }}
             style={{ maxWidth: 720, width: "100%" }}
           >
-            <p style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 10,
-              color: "#2563EB",
-              letterSpacing: "0.14em",
-              marginBottom: 14,
-              textAlign: "center",
-            }}>
+            <p
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 10,
+                color: "#2563EB",
+                letterSpacing: "0.14em",
+                marginBottom: 14,
+                textAlign: "center",
+              }}
+            >
               WINDOWMAN AI · FORENSIC DOCUMENT ANALYSIS
             </p>
 
@@ -426,16 +472,19 @@ const ScanTheatrics = ({
               >
                 {/* Proof-of-read — truthful, evidence-based signals only */}
                 {analysisData && (
-                  <div style={{
-                    background: "#111111",
-                    border: "1px solid #1A1A1A",
-                    padding: "12px 16px",
-                    marginBottom: 10,
-                  }}>
+                  <div
+                    style={{
+                      background: "#111111",
+                      border: "1px solid #1A1A1A",
+                      padding: "12px 16px",
+                      marginBottom: 10,
+                    }}
+                  >
                     <div className="flex flex-wrap gap-3 mb-2">
                       {analysisData.documentType && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>
-                          Detected: {analysisData.documentType.charAt(0).toUpperCase() + analysisData.documentType.slice(1)}
+                          Detected:{" "}
+                          {analysisData.documentType.charAt(0).toUpperCase() + analysisData.documentType.slice(1)}
                         </span>
                       )}
                       {analysisData.contractorName && (
@@ -465,13 +514,15 @@ const ScanTheatrics = ({
                     </div>
                   </div>
                 )}
-                <p style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 11,
-                  color: "#F97316",
-                  letterSpacing: "0.06em",
-                  textAlign: "center",
-                }}>
+                <p
+                  style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 11,
+                    color: "#F97316",
+                    letterSpacing: "0.06em",
+                    textAlign: "center",
+                  }}
+                >
                   Data extracted successfully. Analysis ready to compile.
                 </p>
               </motion.div>
@@ -490,17 +541,16 @@ const ScanTheatrics = ({
           >
             <AnimatePresence mode="wait">
               {!showGrade ? (
-                <motion.div
-                  key="pillar-slices"
-                  exit={{ opacity: 0, transition: { duration: 0.2 } }}
-                >
-                  <p style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 10,
-                    color: "#4B5563",
-                    letterSpacing: "0.12em",
-                    marginBottom: 14,
-                  }}>
+                <motion.div key="pillar-slices" exit={{ opacity: 0, transition: { duration: 0.2 } }}>
+                  <p
+                    style={{
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 10,
+                      color: "#4B5563",
+                      letterSpacing: "0.12em",
+                      marginBottom: 14,
+                    }}
+                  >
                     DECONSTRUCTING DOCUMENT · 5 PILLARS
                   </p>
                   {resolvedPillarSlices.map((pillar, i) => (
@@ -553,13 +603,17 @@ const ScanTheatrics = ({
                       />
                     )}
                     <motion.div
-                      animate={prefersReducedMotion ? {} : {
-                        boxShadow: [
-                          `0 0 20px ${gradeColor}3D`,
-                          `0 0 60px ${gradeColor}70`,
-                          `0 0 30px ${gradeColor}4D`,
-                        ],
-                      }}
+                      animate={
+                        prefersReducedMotion
+                          ? {}
+                          : {
+                              boxShadow: [
+                                `0 0 20px ${gradeColor}3D`,
+                                `0 0 60px ${gradeColor}70`,
+                                `0 0 30px ${gradeColor}4D`,
+                              ],
+                            }
+                      }
                       transition={{ duration: 0.8, delay: 0.3 }}
                       style={{
                         width: 120,
@@ -574,12 +628,14 @@ const ScanTheatrics = ({
                         zIndex: 1,
                       }}
                     >
-                      <span style={{
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        fontSize: 64,
-                        fontWeight: 900,
-                        color: gradeColor,
-                      }}>
+                      <span
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          fontSize: 64,
+                          fontWeight: 900,
+                          color: gradeColor,
+                        }}
+                      >
                         {gradeProp}
                       </span>
                     </motion.div>
@@ -604,7 +660,6 @@ const ScanTheatrics = ({
             </AnimatePresence>
           </motion.div>
         )}
-
       </AnimatePresence>
     </div>
   );
@@ -628,14 +683,16 @@ const DocumentSilhouette = ({
   reducedMotion: boolean;
 }) => (
   <div style={{ width: 210 }}>
-    <div style={{
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 8,
-      color: "#374151",
-      letterSpacing: "0.1em",
-      marginBottom: 4,
-      textAlign: "center",
-    }}>
+    <div
+      style={{
+        fontFamily: "'DM Mono', monospace",
+        fontSize: 8,
+        color: "#374151",
+        letterSpacing: "0.1em",
+        marginBottom: 4,
+        textAlign: "center",
+      }}
+    >
       DOCUMENT X-RAY
     </div>
     <motion.div
@@ -669,7 +726,9 @@ const DocumentSilhouette = ({
       <div style={{ marginTop: 6, border: "1px solid #1E1E1E" }}>
         {[0, 1, 2, 3].map((i) => (
           <div key={i} style={{ display: "flex", borderBottom: i < 3 ? "1px solid #1A1A1A" : "none", height: 13 }}>
-            <div style={{ flex: 2, borderRight: "1px solid #1A1A1A", background: i % 2 === 0 ? "#111" : "transparent" }} />
+            <div
+              style={{ flex: 2, borderRight: "1px solid #1A1A1A", background: i % 2 === 0 ? "#111" : "transparent" }}
+            />
             <div style={{ flex: 1, background: i % 2 === 0 ? "#111" : "transparent" }} />
           </div>
         ))}
@@ -701,15 +760,17 @@ const DocumentSilhouette = ({
         />
       )}
       {isScanning && reducedMotion && (
-        <div style={{
-          position: "absolute",
-          top: "50%",
-          left: 0,
-          right: 0,
-          height: 1,
-          background: "linear-gradient(90deg, transparent, #2563EB 50%, transparent)",
-          zIndex: 10,
-        }} />
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: 0,
+            right: 0,
+            height: 1,
+            background: "linear-gradient(90deg, transparent, #2563EB 50%, transparent)",
+            zIndex: 10,
+          }}
+        />
       )}
 
       {/* Forensic marker bounding boxes — synced to scan step index */}
@@ -730,27 +791,30 @@ const DocumentSilhouette = ({
             pointerEvents: "none",
           }}
         >
-          <span style={{
-            position: "absolute",
-            top: -7,
-            left: 1,
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 6,
-            color: marker.color,
-            letterSpacing: "0.05em",
-            background: "#0F0F0F",
-            padding: "0 2px",
-            lineHeight: 1,
-          }}>
+          <span
+            style={{
+              position: "absolute",
+              top: -7,
+              left: 1,
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 6,
+              color: marker.color,
+              letterSpacing: "0.05em",
+              background: "#0F0F0F",
+              padding: "0 2px",
+              lineHeight: 1,
+            }}
+          >
             {marker.label}
           </span>
         </motion.div>
       ))}
 
       {/* Flag pulsars — cliffhanger phase, count from real aggregate flags */}
-      {showPulsars && PULSAR_POSITIONS.slice(0, pulsarCount).map((pos, i) => (
-        <FlagPulsar key={i} x={pos.x} y={pos.y} label={pos.label} reducedMotion={reducedMotion} />
-      ))}
+      {showPulsars &&
+        PULSAR_POSITIONS.slice(0, pulsarCount).map((pos, i) => (
+          <FlagPulsar key={i} x={pos.x} y={pos.y} label={pos.label} reducedMotion={reducedMotion} />
+        ))}
     </motion.div>
   </div>
 );
@@ -773,15 +837,11 @@ const ForensicTerminal = ({
   reducedMotion: boolean;
 }) => {
   const [typedText, setTypedText] = useState("");
-  const intervalRef  = useRef<number | null>(null);
+  const intervalRef = useRef<number | null>(null);
   const prevStateRef = useRef<{ index: number; county: string } | null>(null);
 
   useEffect(() => {
-    if (
-      prevStateRef.current &&
-      prevStateRef.current.index === activeIndex &&
-      prevStateRef.current.county === county
-    ) {
+    if (prevStateRef.current && prevStateRef.current.index === activeIndex && prevStateRef.current.county === county) {
       return;
     }
     prevStateRef.current = { index: activeIndex, county };
@@ -823,25 +883,29 @@ const ForensicTerminal = ({
   return (
     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
       {/* Terminal panel */}
-      <div style={{
-        background: "#0D0D0D",
-        border: "1px solid #1F1F1F",
-        padding: "10px 14px",
-        fontFamily: "'DM Mono', monospace",
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        minHeight: 200,
-      }}>
-        {/* macOS-style terminal titlebar */}
-        <div style={{
+      <div
+        style={{
+          background: "#0D0D0D",
+          border: "1px solid #1F1F1F",
+          padding: "10px 14px",
+          fontFamily: "'DM Mono', monospace",
+          flex: 1,
           display: "flex",
-          alignItems: "center",
-          gap: 5,
-          marginBottom: 10,
-          paddingBottom: 8,
-          borderBottom: "1px solid #1A1A1A",
-        }}>
+          flexDirection: "column",
+          minHeight: 200,
+        }}
+      >
+        {/* macOS-style terminal titlebar */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            marginBottom: 10,
+            paddingBottom: 8,
+            borderBottom: "1px solid #1A1A1A",
+          }}
+        >
           {(["#FF5F57", "#FFBD2E", "#28C840"] as const).map((c, i) => (
             <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: c }} />
           ))}
@@ -855,18 +919,21 @@ const ForensicTerminal = ({
           {steps.map((step, i) => {
             const effectiveIndex = isCliffhanger ? steps.length : activeIndex;
             if (i > effectiveIndex) return null;
-            const isComplete   = i < effectiveIndex;
+            const isComplete = i < effectiveIndex;
             const isActiveStep = i === effectiveIndex;
 
             if (isComplete) {
               return (
-                <div key={i} style={{
-                  fontSize: 11,
-                  color: "#2D3748",
-                  marginBottom: 5,
-                  letterSpacing: "0.02em",
-                  lineHeight: 1.5,
-                }}>
+                <div
+                  key={i}
+                  style={{
+                    fontSize: 11,
+                    color: "#2D3748",
+                    marginBottom: 5,
+                    letterSpacing: "0.02em",
+                    lineHeight: 1.5,
+                  }}
+                >
                   {step.done.replace("{county}", county)}
                 </div>
               );
@@ -940,15 +1007,17 @@ const FlagPulsar = ({
   };
 
   return (
-    <div style={{
-      position: "absolute",
-      left: `${x}%`,
-      top: `${y}%`,
-      transform: "translate(-50%, -50%)",
-      zIndex: 20,
-      width: 16,
-      height: 16,
-    }}>
+    <div
+      style={{
+        position: "absolute",
+        left: `${x}%`,
+        top: `${y}%`,
+        transform: "translate(-50%, -50%)",
+        zIndex: 20,
+        width: 16,
+        height: 16,
+      }}
+    >
       {!reducedMotion && (
         <>
           <motion.div
@@ -964,33 +1033,37 @@ const FlagPulsar = ({
         </>
       )}
       {reducedMotion && <div style={{ ...ringBase, opacity: 0.6 }} />}
-      <div style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        width: 5,
-        height: 5,
-        marginTop: -2.5,
-        marginLeft: -2.5,
-        borderRadius: "50%",
-        backgroundColor: "#DC2626",
-        zIndex: 1,
-      }} />
-      <div style={{
-        position: "absolute",
-        top: "100%",
-        left: "50%",
-        transform: "translateX(-50%)",
-        marginTop: 8,
-        fontFamily: "'DM Mono', monospace",
-        fontSize: 6,
-        color: "#DC2626",
-        letterSpacing: "0.05em",
-        whiteSpace: "nowrap",
-        background: "rgba(10,10,10,0.9)",
-        padding: "1px 3px",
-        zIndex: 2,
-      }}>
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          width: 5,
+          height: 5,
+          marginTop: -2.5,
+          marginLeft: -2.5,
+          borderRadius: "50%",
+          backgroundColor: "#DC2626",
+          zIndex: 1,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: "100%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          marginTop: 8,
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 6,
+          color: "#DC2626",
+          letterSpacing: "0.05em",
+          whiteSpace: "nowrap",
+          background: "rgba(10,10,10,0.9)",
+          padding: "1px 3px",
+          zIndex: 2,
+        }}
+      >
         {label}
       </div>
     </div>
@@ -1045,22 +1118,26 @@ const PillarSlice = ({
       }}
     >
       {/* Slice highlight strip */}
-      <div style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 1,
-        background: `linear-gradient(90deg, ${resolvedColor}40, transparent)`,
-      }} />
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          background: `linear-gradient(90deg, ${resolvedColor}40, transparent)`,
+        }}
+      />
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
-        <p style={{
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 8,
-          color: "#4B5563",
-          letterSpacing: "0.1em",
-        }}>
+        <p
+          style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 8,
+            color: "#4B5563",
+            letterSpacing: "0.1em",
+          }}
+        >
           PILLAR {index + 1} / 5
         </p>
         {isDone && (
@@ -1082,22 +1159,26 @@ const PillarSlice = ({
         )}
       </div>
 
-      <p style={{
-        fontFamily: "'DM Mono', monospace",
-        fontSize: 9,
-        color: "#E5E7EB",
-        letterSpacing: "0.1em",
-        marginBottom: 5,
-      }}>
+      <p
+        style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 9,
+          color: "#E5E7EB",
+          letterSpacing: "0.1em",
+          marginBottom: 5,
+        }}
+      >
         {label}
       </p>
 
-      <p style={{
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: 12,
-        color: isDone ? "#4B5563" : "#9CA3AF",
-        marginBottom: 7,
-      }}>
+      <p
+        style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: 12,
+          color: isDone ? "#4B5563" : "#9CA3AF",
+          marginBottom: 7,
+        }}
+      >
         {isDone ? "Analysis complete" : text.replace("{county}", county)}
       </p>
 
@@ -1122,14 +1203,16 @@ const PillarSlice = ({
 
       {/* Score label — only rendered when a real numeric score is available */}
       {isDone && score != null && (
-        <p style={{
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 8,
-          color: resolvedColor,
-          letterSpacing: "0.08em",
-          marginTop: 3,
-          textAlign: "right",
-        }}>
+        <p
+          style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 8,
+            color: resolvedColor,
+            letterSpacing: "0.08em",
+            marginTop: 3,
+            textAlign: "right",
+          }}
+        >
           {Math.round(score)}/100
         </p>
       )}
@@ -1147,7 +1230,10 @@ const FindingsCounter = ({ issues }: { issues: number }) => {
   const [displayIssues, setDisplayIssues] = useState(0);
 
   useEffect(() => {
-    if (issues === 0) { setDisplayIssues(0); return; }
+    if (issues === 0) {
+      setDisplayIssues(0);
+      return;
+    }
     const totalSteps = 24;
     let step = 0;
     const id = window.setInterval(() => {
@@ -1159,12 +1245,14 @@ const FindingsCounter = ({ issues }: { issues: number }) => {
   }, [issues]);
 
   return (
-    <span style={{
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 10,
-      color: "#6B7280",
-      letterSpacing: "0.04em",
-    }}>
+    <span
+      style={{
+        fontFamily: "'DM Mono', monospace",
+        fontSize: 10,
+        color: "#6B7280",
+        letterSpacing: "0.04em",
+      }}
+    >
       <span style={{ color: "#DC2626", fontWeight: 700 }}>{displayIssues}</span>
       {" potential issue"}
       {displayIssues !== 1 ? "s" : ""}
@@ -1186,10 +1274,19 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
   let label = "Good";
   let color = "#059669";
   if (confidenceScore != null) {
-    if (confidenceScore >= 90 || (confidenceScore >= 85 && anchorCount >= 3)) { label = "Excellent"; color = "#059669"; }
-    else if (confidenceScore >= 70) { label = "Great"; color = "#059669"; }
-    else if (confidenceScore >= 55) { label = "Good"; color = "#2563EB"; }
-    else { label = "Fair"; color = "#D97706"; }
+    if (confidenceScore >= 90 || (confidenceScore >= 85 && anchorCount >= 3)) {
+      label = "Excellent";
+      color = "#059669";
+    } else if (confidenceScore >= 70) {
+      label = "Great";
+      color = "#059669";
+    } else if (confidenceScore >= 55) {
+      label = "Good";
+      color = "#2563EB";
+    } else {
+      label = "Fair";
+      color = "#D97706";
+    }
   } else if (anchorCount >= 3) {
     label = "Excellent";
     color = "#059669";
@@ -1200,10 +1297,17 @@ function OcrQualityBadge({ confidenceScore, data }: { confidenceScore: number | 
       <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF", letterSpacing: "0.08em" }}>
         READ QUALITY
       </span>
-      <span style={{
-        fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700,
-        color, background: `${color}1A`, padding: "2px 10px", letterSpacing: "0.06em",
-      }}>
+      <span
+        style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 12,
+          fontWeight: 700,
+          color,
+          background: `${color}1A`,
+          padding: "2px 10px",
+          letterSpacing: "0.06em",
+        }}
+      >
         {label.toUpperCase()}
       </span>
     </div>
