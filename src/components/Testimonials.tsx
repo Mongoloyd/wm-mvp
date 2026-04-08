@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { useTickerStats } from "../hooks/useTickerStats";
 import { motion, useInView } from "framer-motion";
 import { Star } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
@@ -83,6 +84,7 @@ interface TestimonialsProps {
 }
 
 const Testimonials = ({ onScanClick }: TestimonialsProps) => {
+  const { total } = useTickerStats();
   const sectionRef = useRef<HTMLElement>(null);
   const inView = useInView(sectionRef, { once: true, margin: "-80px" });
 
@@ -243,7 +245,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
         >
           <div className="card-raised p-6 text-center">
             <p className="font-display font-extrabold text-3xl md:text-4xl text-[hsl(var(--color-emerald))] mb-1">
-              $2.4M+
+              ${((total * 3800) / 1000000).toFixed(1)}M+
             </p>
             <p className="font-body text-sm text-muted-foreground">
               Total Saved This Year
@@ -251,7 +253,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
           </div>
           <div className="card-raised p-6 text-center">
             <p className="font-display font-extrabold text-3xl md:text-4xl text-primary mb-1">
-              3,847
+              {total.toLocaleString()}
             </p>
             <p className="font-body text-sm text-muted-foreground">
               Quotes Analyzed
