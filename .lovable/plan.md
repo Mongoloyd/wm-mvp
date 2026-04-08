@@ -1,28 +1,25 @@
 
 
-# Plan: Sync Ticker Stats & Testimonials
+# Plan: Simplify SocialProofStrip to Use Central Ticker Directly
 
 ## What Changes
 
-Two files, two edits each.
+One file: `src/components/SocialProofStrip.tsx`
 
-### 1. `src/hooks/useTickerStats.ts`
-- Change `EPOCH` from `"2025-06-01"` to `"2026-04-07"`
-- Change `SEED_TOTAL` from `3212` to `671`
-- Keep the existing seeded-random daily increment loop and `today` calculation exactly as-is
+### Remove
+- The `useCountUp` helper function (lines 5-20)
+- `useRef` and `useState` imports (no longer needed)
+- `totalCount` and `todayCount` intermediate variables
 
-Result: Today (April 8) shows ~671 + one day's increment (~7-31), so roughly 690.
+### Keep
+- The `useTickerStats` import (already present)
+- The `useInView` from framer-motion for entry animation
+- All visual styling (rings, gradients, shadows) exactly as-is
 
-### 2. `src/components/Testimonials.tsx`
-- Import `useTickerStats` at the top
-- Call `const { total } = useTickerStats()` inside the component
-- **Line 254**: Replace hardcoded `3,847` with `{total.toLocaleString()}`
-- **Line 246**: Replace hardcoded `$2.4M+` with `{`$${((total * 3800) / 1000000).toFixed(1)}M+`}`
+### Update
+- Line 88: `{totalCount.toLocaleString()}` → `{total.toLocaleString()}`
+- Line 126: `+{todayCount} Today` → `+{today} Today`
 
-Result: Stats strip reads ~690 quotes / ~$2.6M+ savings, growing daily in sync with the SocialProofStrip pill.
-
-## No Other Changes
-- The existing `SocialProofStrip` already calls `useTickerStats` — it will automatically reflect the new seed
-- The "94% Had Hidden Red Flags" stays static
-- No visual or layout changes
+## Result
+The pill displays the same values as the Testimonials stats strip, both reading from `useTickerStats`. The count-up animation is removed in favor of instant display, matching the Testimonials behavior.
 
