@@ -19,7 +19,7 @@ import ClosingManifesto from "@/components/ClosingManifesto";
 import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
 import InteractiveDemoScan from "@/components/InteractiveDemoScan";
-import ExitIntentModal from "@/components/ExitIntentModal";
+import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
 import Footer from "@/components/Footer";
@@ -350,7 +350,7 @@ const Index = () => {
         </>
       )}
 
-      <ExitIntentModal stepsCompleted={stepsCompleted} flowMode={flowMode as 'A' | 'B' | 'C'} leadCaptured={leadCaptured} flowBLeadCaptured={flowBLeadCaptured} county={selectedCounty}
+      <ExitIntentPhoneModal stepsCompleted={stepsCompleted} flowMode={flowMode as 'A' | 'B' | 'C'} leadCaptured={leadCaptured} flowBLeadCaptured={flowBLeadCaptured} county={selectedCounty}
         answers={{ windowCount: null, projectType: null, county: selectedCounty !== "your county" ? selectedCounty : null, quoteStage: null, firstName: null, email: null, phone: null }}
         onClose={() => {}} onCTAClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
 
