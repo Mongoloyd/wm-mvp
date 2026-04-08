@@ -1,26 +1,58 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Shield, ArrowRight, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { usePartnerAuth } from "@/hooks/usePartnerAuth";
 
 export default function ContractorLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const partner = usePartnerAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // If already active, redirect
+  if (partner.state === "active") {
+    navigate("/partner/opportunities", { replace: true });
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        toast({
+          title: "Sign In Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.session) {
+        // usePartnerAuth will re-resolve on auth state change
+        // and the component will redirect if active,
+        // or PartnerGuard on the next page will handle state
+        navigate("/partner/opportunities", { replace: true });
+      }
+    } catch (err) {
       toast({
-        title: "Access Pending",
-        description: "Partner authentication is not yet active. Contact ops@windowman.pro for access.",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
       });
-    }, 1400);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
