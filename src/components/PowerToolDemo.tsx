@@ -381,7 +381,7 @@ function LeadModal({ onComplete, onClose }) {
             See a Tailored AI Truth Report
           </h2>
           <p style={{ fontSize: "14px", color: T.muted, margin: "0 0 24px", lineHeight: 1.6 }}>
-            Get the same AI scanner contractors don't want you to have.
+            Get The Same AI Scanner Contractors Don't Want You to See.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <ModalField
@@ -645,7 +645,8 @@ function CalibrationGateModal({ onSubmit }) {
             margin: "0 0 24px",
           }}
         >
-          To Compute The Final Risk Report, We Can Calibrate It Against Your Local County Building Codes and Fair-Market Pricing.
+          To compute the final risk score, we need to calibrate the AI against your local county building codes and
+          fair-market pricing.
         </p>
 
         {/* Fields */}
