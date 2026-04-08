@@ -504,7 +504,45 @@ export function computeGrade(data: ExtractionResult): GradeResult {
     }
   }
 
-  // Hard cap: zero line items → F
+  // Hard cap: unilateral price adjustment → max D
+  if (data.unilateral_price_adjustment_allowed === true && items.length > 0) {
+    if (GRADE_RANK[grade] > GRADE_RANK["D"]) {
+      grade = "D";
+      hardCapApplied = hardCapApplied
+        ? hardCapApplied + "+unilateral_price_adjustment"
+        : "unilateral_price_adjustment";
+    }
+  }
+
+  // Hard cap: remeasure without homeowner approval → max D
+  if (
+    data.subject_to_remeasure_present === true &&
+    data.homeowner_approval_required_for_change_orders !== true &&
+    items.length > 0
+  ) {
+    if (GRADE_RANK[grade] > GRADE_RANK["D"]) {
+      grade = "D";
+      hardCapApplied = hardCapApplied
+        ? hardCapApplied + "+remeasure_without_approval"
+        : "remeasure_without_approval";
+    }
+  }
+
+  // Hard cap: substrate open checkbook → max C
+  if (
+    data.substrate_condition_clause_present === true &&
+    data.rot_unit_pricing_present !== true &&
+    data.buck_replacement_unit_pricing_present !== true &&
+    items.length > 0
+  ) {
+    if (GRADE_RANK[grade] > GRADE_RANK["C"]) {
+      grade = "C";
+      hardCapApplied = hardCapApplied
+        ? hardCapApplied + "+substrate_open_checkbook"
+        : "substrate_open_checkbook";
+    }
+  }
+
   if ((data.line_items ?? []).length === 0) {
     grade = "F";
     hardCapApplied = "zero_line_items";
