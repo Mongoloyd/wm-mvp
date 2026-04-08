@@ -543,7 +543,8 @@ function AdminSettingsContent() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <header className="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 space-y-3">
+          <AdminBackLink />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-11 h-11 rounded-2xl bg-gradient-to-b from-blue-500 to-blue-600 shadow-lg shadow-blue-200/50 flex items-center justify-center">
