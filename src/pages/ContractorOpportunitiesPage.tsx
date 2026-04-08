@@ -189,7 +189,7 @@ export default function ContractorOpportunitiesPage() {
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* ─── Header ────────────────────────────────────────────── */}
       <header className="border-b bg-card sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center">
               <Shield className="h-5 w-5 text-sky-600" />
@@ -216,9 +216,9 @@ export default function ContractorOpportunitiesPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <main className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-6 space-y-6">
         {/* ─── Stats Row ───────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-4 gap-3">
           <StatCard icon={<LayoutGrid className="h-4 w-4 text-sky-600" />} label="Total" value={totalCount} />
           <StatCard icon={<Unlock className="h-4 w-4 text-emerald-600" />} label="Unlocked" value={unlockedCount} />
           <StatCard icon={<Target className="h-4 w-4 text-amber-600" />} label="New Leads" value={newCount} />
@@ -278,7 +278,7 @@ export default function ContractorOpportunitiesPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
             {filteredOpportunities.map((opp) => (
               <OpportunityCard key={opp.opportunity_id} opp={opp} navigate={navigate} />
             ))}

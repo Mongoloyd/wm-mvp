@@ -179,7 +179,7 @@ function DashboardContent() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-xl font-bold tracking-tight">Lead Sniper CRM</h1>
@@ -207,9 +207,9 @@ function DashboardContent() {
       </div>
 
       {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-6">
         <Tabs defaultValue="command" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-7 max-w-4xl">
             <TabsTrigger value="command">Command Center</TabsTrigger>
             <TabsTrigger value="pipeline">Active Pipeline</TabsTrigger>
             <TabsTrigger value="ghosts" className="relative">
