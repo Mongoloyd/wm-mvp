@@ -164,6 +164,17 @@ export function scoreSafety(data: ExtractionResult): number {
     if (completelyMissingSpecs) score -= 10;
   }
 
+  // ── Glass package spec gaps ────────────────────────────────────────────
+  const incompleteGlassSpecs = items.filter(i => i.glass_spec_complete !== true).length;
+  const lowEOrArgonUnknown = items.filter(
+    i => i.glass_low_e_present === null || i.glass_argon_present === null
+  ).length;
+
+  if (data.opening_level_glass_specs_present !== true && items.length > 0) score -= 20;
+  if (data.blanket_glass_language_present === true) score -= 10;
+  if (incompleteGlassSpecs > 0) score -= Math.min(20, incompleteGlassSpecs * 5);
+  if (lowEOrArgonUnknown > 0) score -= Math.min(10, lowEOrArgonUnknown * 3);
+
   return clamp(score);
 }
 
