@@ -17,7 +17,8 @@ type ActionName =
   | "fetch_lead_analysis"
   | "fetch_needs_review" | "rescan_lead" | "update_lead_manual_entry"
   | "list_contractor_accounts" | "get_contractor_ledger"
-  | "adjust_contractor_credits" | "get_contractor_unlocks";
+  | "adjust_contractor_credits" | "get_contractor_unlocks"
+  | "list_invitations" | "create_invitation" | "revoke_invitation";
 
 const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   fetch_leads: ["super_admin", "operator", "viewer"],
@@ -46,6 +47,10 @@ const ACTION_ROLES: Record<ActionName, AppRole[]> = {
   get_contractor_ledger: ["super_admin", "operator", "viewer"],
   adjust_contractor_credits: ["super_admin", "operator"],
   get_contractor_unlocks: ["super_admin", "operator", "viewer"],
+  // Invitation management
+  list_invitations: ["super_admin", "operator", "viewer"],
+  create_invitation: ["super_admin", "operator"],
+  revoke_invitation: ["super_admin", "operator"],
 };
 
 Deno.serve(async (req) => {
