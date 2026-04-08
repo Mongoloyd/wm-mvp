@@ -271,6 +271,59 @@ export type Database = {
           },
         ]
       }
+      contractor_credit_purchases: {
+        Row: {
+          amount_total_cents: number
+          contractor_id: string
+          created_at: string
+          credit_pack_code: string
+          credits_purchased: number
+          currency: string
+          fulfilled_at: string | null
+          id: string
+          status: string
+          stripe_checkout_session_id: string
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          amount_total_cents: number
+          contractor_id: string
+          created_at?: string
+          credit_pack_code: string
+          credits_purchased: number
+          currency?: string
+          fulfilled_at?: string | null
+          id?: string
+          status?: string
+          stripe_checkout_session_id: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          amount_total_cents?: number
+          contractor_id?: string
+          created_at?: string
+          credit_pack_code?: string
+          credits_purchased?: number
+          currency?: string
+          fulfilled_at?: string | null
+          id?: string
+          status?: string
+          stripe_checkout_session_id?: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_credit_purchases_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_credits: {
         Row: {
           balance: number
@@ -1839,6 +1892,10 @@ export type Database = {
           p_entry_type: string
           p_notes?: string
         }
+        Returns: Json
+      }
+      fulfill_contractor_credit_purchase: {
+        Args: { p_payment_intent_id?: string; p_session_id: string }
         Returns: Json
       }
       get_analysis_full: {
