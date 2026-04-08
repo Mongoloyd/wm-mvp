@@ -53,7 +53,11 @@ export type AdminAction =
   | "fetch_lead_voice_followups"
   | "fetch_needs_review"
   | "rescan_lead"
-  | "update_lead_manual_entry";
+  | "update_lead_manual_entry"
+  | "list_contractor_accounts"
+  | "get_contractor_ledger"
+  | "adjust_contractor_credits"
+  | "get_contractor_unlocks";
 
 /**
  * Payload shapes for each admin action.
@@ -89,6 +93,10 @@ export interface AdminActionPayloads {
   fetch_needs_review: Record<string, never>;
   rescan_lead: { lead_id: string };
   update_lead_manual_entry: { lead_id: string; manual_entry_data?: Record<string, unknown>; manually_reviewed?: boolean };
+  list_contractor_accounts: Record<string, never>;
+  get_contractor_ledger: { contractor_id: string; limit?: number };
+  adjust_contractor_credits: { contractor_id: string; delta: number; entry_type: string; notes?: string | null };
+  get_contractor_unlocks: { contractor_id: string; limit?: number };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
