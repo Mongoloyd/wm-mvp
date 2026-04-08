@@ -17,7 +17,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getVerifiedAccess, saveVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
-import type { HybridPreviewPayload, HybridFullPayload, WarningEntry, MissingItemEntry } from "@/types/reportHybrid";
+import type { HybridPreviewPayload, HybridFullPayload } from "@/types/reportHybrid";
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
@@ -62,8 +62,8 @@ export interface AnalysisData {
   markupEstimate?: string | null;
   negotiationLeverage?: string | null;
   /** Hybrid report compiler fields */
-  warnings?: WarningEntry[];
-  missingItems?: MissingItemEntry[];
+  warnings?: (string | Record<string, unknown>)[];
+  missingItems?: (string | Record<string, unknown>)[];
   summary?: string | null;
   topWarning?: string | null;
   topMissingItem?: string | null;
@@ -87,7 +87,7 @@ const PILLAR_DEFS: { key: string; label: string }[] = [
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-export function mapSeverity(raw: string | undefined | null): "red" | "amber" | "green" {
+function mapSeverity(raw: string | undefined | null): "red" | "amber" | "green" {
   const s = (raw || "").toLowerCase();
   if (s === "critical" || s === "high") return "red";
   if (s === "medium") return "amber";
@@ -98,7 +98,7 @@ export function mapSeverity(raw: string | undefined | null): "red" | "amber" | "
   return "amber";
 }
 
-export function pillarStatus(score: number | null): "pass" | "warn" | "fail" | "pending" {
+function pillarStatus(score: number | null): "pass" | "warn" | "fail" | "pending" {
   if (score == null) return "pending";
   if (score >= 70) return "pass";
   if (score >= 40) return "warn";

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { trackGtmEvent } from "@/lib/trackConversion";
-import type { WarningEntry, MissingItemEntry } from "@/types/reportHybrid";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Copy,
@@ -71,8 +70,8 @@ interface TruthReportProps {
   priceFairness?: string | null;
   markupEstimate?: string | null;
   negotiationLeverage?: string | null;
-  warnings?: WarningEntry[];
-  missingItems?: MissingItemEntry[];
+  warnings?: (string | Record<string, unknown>)[];
+  missingItems?: (string | Record<string, unknown>)[];
   summary?: string | null;
   topWarning?: string | null;
   topMissingItem?: string | null;

@@ -271,7 +271,8 @@ useEffect(() => {
       autoSendFiredRef.current = true;
       handleSendCode();
     }
-  }, [gateMode, funnel?.phoneE164, isSendInFlight, handleSendCode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally fire only once
+  }, [gateMode, funnel?.phoneE164]);
 
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
