@@ -116,7 +116,7 @@ export default function TopViolationSummaryStrip({
                     fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: "0.08em",
-                    color: accentColor,
+                    color: "black",
                     background: accentBg,
                     padding: "4px 12px",
                     borderRadius: "var(--radius-btn)",
