@@ -276,7 +276,7 @@ const SampleGradeCard = () => {
       </AnimatePresence>
       <div className="text-center relative border-t border-border mt-3 pt-3.5">
         <p className="font-body text-xs italic text-muted-foreground">
-          Sample View. Your Scan Reveals What To Do With Your Grade
+          Sample View.
         </p>
       </div>
     </motion.div>
