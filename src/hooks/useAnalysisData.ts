@@ -237,8 +237,15 @@ export function useAnalysisData(
   }, [scanSessionId]);
 
   // ── Phase 1: Preview fetch ─────────────────────────────────────────────
+  // UUID v4 pattern to guard against literal route params like ":sessionId"
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
   useEffect(() => {
     if (!enabled || !scanSessionId || previewFetchedRef.current === scanSessionId) return;
+    if (!UUID_RE.test(scanSessionId)) {
+      console.warn("[useAnalysisData] invalid scanSessionId, skipping fetch:", scanSessionId);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -365,8 +372,8 @@ export function useAnalysisData(
   // ── Phase 2: Full gated fetch ──────────────────────────────────────────
   const fetchFull = useCallback(async (phoneE164: string) => {
     
-    if (!scanSessionId || isFullLoaded) {
-      console.warn("[fetchFull] skipped — missing scanSessionId or already loaded", { scanSessionId, isFullLoaded });
+    if (!scanSessionId || isFullLoaded || !UUID_RE.test(scanSessionId)) {
+      console.warn("[fetchFull] skipped — missing/invalid scanSessionId or already loaded", { scanSessionId, isFullLoaded });
       return;
     }
     setIsLoadingFull(true);
@@ -472,7 +479,7 @@ export function useAnalysisData(
 
   // ── Phase 3: Auto-resume for returning verified users ─────────────────
   const tryResume = useCallback(async (): Promise<boolean> => {
-    if (!scanSessionId || isFullLoaded) return false;
+    if (!scanSessionId || isFullLoaded || !UUID_RE.test(scanSessionId)) return false;
     if (resumeAttemptedRef.current === scanSessionId) return false;
     resumeAttemptedRef.current = scanSessionId;
 
