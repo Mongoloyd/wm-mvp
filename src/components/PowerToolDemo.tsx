@@ -275,7 +275,6 @@ function PowerToolButton({ onClick }) {
         transition: "transform 0.15s ease, box-shadow 0.2s ease",
       }}
     >
-      <span style={{ flexShrink: 0, fontSize: 18 }}>✨</span>
       <span style={{ flex: 1, textAlign: "left" }}>No Quote Yet? Start Here</span>
       <span
         style={{
