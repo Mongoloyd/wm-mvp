@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import cellphoneImg from "@/assets/cellphone.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
 import { Check } from "lucide-react";
@@ -774,6 +775,15 @@ const TruthGateFlow = ({
         >
           <AnimatePresence mode="wait">{renderStepContent()}</AnimatePresence>
         </div>
+
+        <motion.img
+          src={cellphoneImg}
+          alt="AI Document Scanner analyzing a contract"
+          className="mx-auto max-w-[280px] md:max-w-[320px] mt-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        />
       </div>
     </section>
   );
