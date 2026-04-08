@@ -125,7 +125,7 @@ function pillarStatusColor(status: PillarScore["status"]): string {
     case "fail":
       return "#F87171";
     default:
-      return "#374151";
+      return "#D1D5DB";
   }
 }
 
