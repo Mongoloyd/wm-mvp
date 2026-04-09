@@ -1,58 +1,65 @@
 
 
-## Problem Explanation
+# Fix `create-checkout-session` to Fail Closed
 
-There are **two errors** compounding here:
+## Problem
+The Edge Function creates a Stripe session first, then attempts to insert a pending purchase row. When the insert fails (FK violation because the preview contractor doesn't exist in `contractor_profiles`), it silently returns the Stripe URL anyway. The webhook later fails with `purchase_not_found`.
 
-1. **`getClaims` is not a function** (line 79): The `esm.sh/@supabase/supabase-js@2.49.1` version used in this Edge Function does not expose `auth.getClaims()`. That method was added in a later SDK version and is only available with the signing-keys system. Since the function imports an older SDK pinned at `2.49.1`, the call throws a `TypeError` at runtime.
+## Root Causes
+1. Preview fallback resolves a contractor ID without validating it exists in `contractor_profiles` or has a `contractor_credits` row.
+2. The function "fails open" — line 236-239 logs the insert error but still returns the URL.
 
-2. **`Deno.core.runMicrotasks() is not supported`**: This is a cascading error. The Stripe SDK imported via `esm.sh/stripe@17.7.0?target=deno` pulls in Node.js compatibility shims from `deno.land/std@0.177.1/node/`, which call `Deno.core.runMicrotasks()` — an API not available in the Supabase Edge Runtime. This means the Stripe import itself is incompatible.
+## Changes (single file: `supabase/functions/create-checkout-session/index.ts`)
 
-**In summary**: Both the auth call and the Stripe import are broken due to version/environment mismatches.
+### 1. Unified contractor validation in `resolveContractor`
+Both the authenticated path and the preview path already check `contractor_profiles` for auth users — but the preview path skips this entirely. Fix:
 
----
+- Read `PREVIEW_CONTRACTOR_PROFILE_ID` (renamed from `PREVIEW_CONTRACTOR_ID` for clarity; also fall back to old name for backward compat).
+- For preview path: query `contractor_profiles` where `id = previewId` and verify `status = 'active'`, same as the auth path already does.
+- If the profile is missing or inactive, return a `422 config_error` immediately — before any Stripe call.
 
-## Fix Plan
+### 2. Validate `contractor_credits` row exists
+After resolving the contractor (auth or preview), query `contractor_credits` for the resolved ID. If missing, return error. This prevents the downstream FK issue and ensures the fulfillment RPC won't fail on a missing credits row either.
 
-### File: `supabase/functions/create-checkout-session/index.ts`
+### 3. Fail closed on pending insert
+Replace lines 236-239. If `insertErr` is truthy:
+- Log the error with full detail.
+- Attempt `stripe.checkout.sessions.expire(session.id)` in a try/catch (best-effort cleanup).
+- Return `500` with `error: "purchase_record_failed"`. Do NOT return the URL.
 
-**Change 1 — Fix auth (line 79-85)**
+### 4. Only return URL after confirmed insert
+Move the `return json({ url, session_id })` inside the success path of the insert, after confirming no error.
 
-Replace `anonClient.auth.getClaims(token)` with `anonClient.auth.getUser()`. The `getUser()` method works reliably in all Supabase JS versions inside Edge Functions when the Authorization header is forwarded via the client constructor.
+## Sequence After Fix
 
-```typescript
-const { data: userData, error: userErr } = await anonClient.auth.getUser();
-if (userErr || !userData?.user?.id) {
-  return json({ error: "unauthenticated", message: "Invalid auth token." }, 401);
-}
-const authUserId = userData.user.id;
+```text
+1. Resolve contractor identity (auth JWT or preview env)
+2. Validate contractor_profiles row exists + active
+3. Validate contractor_credits row exists
+4. Parse + validate request body (pack_code)
+5. Create Stripe Checkout Session
+6. Insert pending purchase row
+7. IF insert fails → expire Stripe session → return error
+8. Return { url, session_id }
 ```
 
-**Change 2 — Fix Stripe import (line 12)**
+## What Does NOT Change
+- Webhook (`stripe-webhook`) — untouched
+- Fulfillment RPC (`fulfill_contractor_credit_purchase`) — untouched
+- Frontend code — untouched
+- Metadata shape — preserved
+- `preview_purchase: "true"` marking — preserved
+- Credit pack definitions — preserved
+- CORS headers — preserved
+- OTP/Twilio — untouched
 
-Replace the `esm.sh` Stripe import with the `npm:` specifier, which is natively supported by the Supabase Edge Runtime and avoids the Node.js shim incompatibility:
+## Secret Rename
+- Function reads `PREVIEW_CONTRACTOR_PROFILE_ID` first, falls back to `PREVIEW_CONTRACTOR_ID` — no secret rotation needed immediately.
+- A new secret `PREVIEW_CONTRACTOR_PROFILE_ID` should be set to a valid `contractor_profiles.id` that is `active` and has a `contractor_credits` row. This can be done after implementation via the secrets tool.
 
-```typescript
-import Stripe from "npm:stripe@17.7.0";
-```
-
-Remove the `?target=deno` esm.sh URL entirely.
-
-**Change 3 — Optionally update Supabase SDK import (line 11)**
-
-For consistency and to ensure `getUser()` works correctly:
-
-```typescript
-import { createClient } from "npm:@supabase/supabase-js@2";
-```
-
-No other files are modified. Deploy the function after the edit.
-
----
-
-## What Comes Next (Prompts 2 and 3)
-
-**Prompt 2 — Fix `stripe-webhook/index.ts` with the same import pattern.** The webhook function also imports Stripe via `esm.sh` and will hit the same `Deno.core.runMicrotasks()` crash when Stripe sends an event. That function needs the identical `npm:stripe` import fix, plus the Supabase SDK import update.
-
-**Prompt 3 — End-to-end test of the full credit purchase flow.** Log into the partner portal, click "Add Credits," complete a test payment with Stripe test card `4242 4242 4242 4242`, verify the success toast appears, and confirm the `contractor_credit_purchases` row transitions from `pending` → `paid` → `fulfilled` and the `contractor_credits.balance` increments correctly.
+## Post-Deploy Verification
+- Call the function via `curl_edge_functions` with `pack_code: "pack_10_credits"` to confirm:
+  - If preview contractor is invalid → clear error, no Stripe session created.
+  - If preview contractor is valid → URL returned, pending row exists.
+- Check edge function logs to confirm fail-closed behavior.
 
