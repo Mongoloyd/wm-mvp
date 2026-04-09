@@ -1,41 +1,48 @@
 
 
-## Assessment: No Changes Required
+## Plan: Add Preview Checkout Diagnostic Mode
 
-The current `supabase/functions/create-checkout-session/index.ts` already implements every requirement and acceptance criterion specified in the prompt. This was the result of the work done in the preceding conversation messages (seeding the preview contractor profile, adding the `PREVIEW_CONTRACTOR_PROFILE_ID` secret, deploying and testing the function).
+### Approach
+Add a `GET` request handler to the existing `create-checkout-session` function. The current handler only processes `POST` (and `OPTIONS`). A `GET` request will run the preview config validation checks and return a readiness report — no Stripe calls, no DB writes.
 
-### Verification Against Acceptance Criteria
+This is the lowest-risk option: single file change, no new functions, no production behavior change (production callers always `POST`).
 
-| Criterion | Status | Evidence |
-|-----------|--------|----------|
-| No Stripe URL unless pending row inserted | Done | Lines 282-297: `insertErr` check gates the return |
-| Invalid preview config fails before Stripe | Done | `validateContractor()` runs at step 3, before Stripe call at step 6 |
-| Profile + credits both validated | Done | Lines 128-175 in `validateContractor()` |
-| Webhook unchanged | Done | No modifications to `stripe-webhook/index.ts` |
-| Missing purchases not backfilled in webhook | Done | Webhook is not touched |
-| Preview fallback sandbox/test-only | Done | `PREVIEW_CHECKOUT_ENABLED` + `sk_test_` guard (lines 97-107) |
-| Error contract (422/500/200) | Done | 422 for preview config, 500 for insert failure, 200 only on success |
+### What Changes
 
-### Sequence Implemented
+**File:** `supabase/functions/create-checkout-session/index.ts`
 
-```text
-1. Resolve contractor identity (auth JWT or preview fallback)
-2. Validate contractor_profiles.status = 'active'
-3. Validate contractor_credits row exists
-4. Parse + validate request body / pack_code
-5. Create Stripe Checkout Session
-6. Insert pending purchase row
-7. If insert fails → expire Stripe session → return 500
-8. Return URL only after confirmed insert
+Add a `GET` handler branch at the top of `Deno.serve`, before the existing `POST` logic:
+
+1. Check `PREVIEW_CHECKOUT_ENABLED` env var
+2. Read `PREVIEW_CONTRACTOR_PROFILE_ID` (with `PREVIEW_CONTRACTOR_ID` fallback)
+3. Check Stripe key is test mode (`sk_test_`)
+4. Query `contractor_profiles` for existence + active status
+5. Query `contractor_credits` for existence + current balance
+6. Return a JSON readiness object with all check results and an overall `ready: boolean`
+
+### Response Shape
+
+```json
+{
+  "preview_enabled": true,
+  "contractor_id_configured": true,
+  "contractor_id": "f184e9db-...",
+  "stripe_test_mode": true,
+  "profile_exists": true,
+  "profile_status": "active",
+  "credits_row_exists": true,
+  "credits_balance": 10,
+  "ready": true
+}
 ```
 
-### What Was Already Done (Earlier in This Conversation)
+### Safety Guarantees
+- `GET` only — no Stripe session created, no DB mutation
+- Does not expose Stripe keys or service role keys
+- Only reveals the contractor UUID (already in env config, not sensitive)
+- Production `POST` path is completely untouched
+- No frontend changes
 
-- Seeded `contractor_profiles` and `contractor_credits` rows for the preview contractor (`f184e9db-dcc4-4a54-a818-7a8e95db8697`)
-- Set `PREVIEW_CONTRACTOR_PROFILE_ID` secret
-- Deployed the function and verified a successful end-to-end test (pending purchase row confirmed in DB)
-
-### Recommendation
-
-No code changes needed. The function is correctly fail-closed. If you want to re-verify, we can curl the edge function again or check logs.
+### Technical Detail
+The diagnostic branch reuses the existing `svc` (service-role) client and queries the same tables that `validateContractor()` checks, but returns structured results instead of error responses.
 
