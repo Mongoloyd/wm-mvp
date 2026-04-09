@@ -802,18 +802,23 @@ export type Database = {
         Row: {
           accepts_low_grade_leads: boolean
           auth_user_id: string | null
+          budget_bands: string[]
           company_name: string
           contact_name: string | null
           created_at: string
           email: string | null
           id: string
           is_vetted: boolean
+          max_leads_per_week: number | null
           max_window_count: number | null
           min_window_count: number | null
           notes: string | null
           phone_e164: string | null
+          preferred_contact_method: string | null
           pricing_model: string | null
           project_types: string[]
+          routing_setup_completed_at: string | null
+          schedule_notes: string | null
           service_counties: string[]
           service_regions: string[]
           status: string
@@ -823,18 +828,23 @@ export type Database = {
         Insert: {
           accepts_low_grade_leads?: boolean
           auth_user_id?: string | null
+          budget_bands?: string[]
           company_name: string
           contact_name?: string | null
           created_at?: string
           email?: string | null
           id?: string
           is_vetted?: boolean
+          max_leads_per_week?: number | null
           max_window_count?: number | null
           min_window_count?: number | null
           notes?: string | null
           phone_e164?: string | null
+          preferred_contact_method?: string | null
           pricing_model?: string | null
           project_types?: string[]
+          routing_setup_completed_at?: string | null
+          schedule_notes?: string | null
           service_counties?: string[]
           service_regions?: string[]
           status?: string
@@ -844,18 +854,23 @@ export type Database = {
         Update: {
           accepts_low_grade_leads?: boolean
           auth_user_id?: string | null
+          budget_bands?: string[]
           company_name?: string
           contact_name?: string | null
           created_at?: string
           email?: string | null
           id?: string
           is_vetted?: boolean
+          max_leads_per_week?: number | null
           max_window_count?: number | null
           min_window_count?: number | null
           notes?: string | null
           phone_e164?: string | null
+          preferred_contact_method?: string | null
           pricing_model?: string | null
           project_types?: string[]
+          routing_setup_completed_at?: string | null
+          schedule_notes?: string | null
           service_counties?: string[]
           service_regions?: string[]
           status?: string
