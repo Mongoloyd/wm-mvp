@@ -184,6 +184,74 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  /* ── GET = preview checkout diagnostic (read-only) ────────────── */
+  if (req.method === "GET") {
+    const previewEnabled = Deno.env.get("PREVIEW_CHECKOUT_ENABLED")?.trim().toLowerCase() === "true";
+    const contractorId = (
+      Deno.env.get("PREVIEW_CONTRACTOR_PROFILE_ID")?.trim() ||
+      Deno.env.get("PREVIEW_CONTRACTOR_ID")?.trim() ||
+      null
+    );
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+    const stripeTestMode = stripeKey.startsWith("sk_test_");
+
+    const result: Record<string, unknown> = {
+      preview_enabled: previewEnabled,
+      contractor_id_configured: !!contractorId,
+      contractor_id: contractorId,
+      stripe_test_mode: stripeTestMode,
+      profile_exists: false,
+      profile_status: null,
+      credits_row_exists: false,
+      credits_balance: null,
+      ready: false,
+    };
+
+    if (contractorId) {
+      try {
+        const svc = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+        );
+
+        const { data: profile } = await svc
+          .from("contractor_profiles")
+          .select("id, status")
+          .eq("id", contractorId)
+          .maybeSingle();
+
+        if (profile) {
+          result.profile_exists = true;
+          result.profile_status = profile.status;
+        }
+
+        const { data: credits } = await svc
+          .from("contractor_credits")
+          .select("contractor_id, balance")
+          .eq("contractor_id", contractorId)
+          .maybeSingle();
+
+        if (credits) {
+          result.credits_row_exists = true;
+          result.credits_balance = credits.balance;
+        }
+      } catch (dbErr) {
+        console.error("[create-checkout-session] Diagnostic DB error:", dbErr);
+      }
+    }
+
+    result.ready = (
+      previewEnabled &&
+      !!contractorId &&
+      stripeTestMode &&
+      result.profile_exists === true &&
+      result.profile_status === "active" &&
+      result.credits_row_exists === true
+    );
+
+    return json(result);
+  }
+
   try {
     // ── 1. Service client ─────────────────────────────────────────
     const svc = createClient(
