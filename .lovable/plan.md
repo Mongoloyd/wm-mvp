@@ -1,50 +1,58 @@
 
 
-## Fix Admin Page Sync Jank
+## Problem Explanation
 
-### Problem
-The `/admin` page fires 4 edge function calls every 30 seconds and shows a pulsing "Syncing…" badge each time. With ~15 leads and cold-start latency on each edge function, this creates a perception of constant loading even though the page is fully usable.
+There are **two errors** compounding here:
 
-### Changes (1 file: `src/components/AdminDashboard.tsx`)
+1. **`getClaims` is not a function** (line 79): The `esm.sh/@supabase/supabase-js@2.49.1` version used in this Edge Function does not expose `auth.getClaims()`. That method was added in a later SDK version and is only available with the signing-keys system. Since the function imports an older SDK pinned at `2.49.1`, the call throws a `TypeError` at runtime.
 
-#### 1. Increase polling interval
-Change `REFRESH_INTERVAL_MS` from `30_000` (30s) to `120_000` (2 min). With <20 leads, 2-minute refresh is more than sufficient.
+2. **`Deno.core.runMicrotasks() is not supported`**: This is a cascading error. The Stripe SDK imported via `esm.sh/stripe@17.7.0?target=deno` pulls in Node.js compatibility shims from `deno.land/std@0.177.1/node/`, which call `Deno.core.runMicrotasks()` — an API not available in the Supabase Edge Runtime. This means the Stripe import itself is incompatible.
 
-#### 2. Hide "Syncing…" badge on background refreshes
-Track whether this is the initial load vs a background poll. Only show "Syncing…" on the first fetch. Background refreshes happen silently — the data just updates in place.
+**In summary**: Both the auth call and the Stripe import are broken due to version/environment mismatches.
 
-Add an `initialLoadDone` ref. On first fetch, show the badge. On subsequent polls, set `isSyncing` to `false` so no visual indicator appears.
+---
 
-#### 3. Stagger non-critical fetches
-Split the `Promise.all` into two tiers:
-- **Tier 1 (immediate)**: `fetch_leads` — this is the primary dataset, fetch it first and render
-- **Tier 2 (deferred)**: `fetch_webhook_deliveries`, `fetch_voice_followups`, `fetch_needs_review` — fetch after leads arrive, don't block the main render
+## Fix Plan
 
-This means leads render ~1s faster on initial load.
+### File: `supabase/functions/create-checkout-session/index.ts`
 
-#### 4. Show last-synced timestamp instead of pulsing badge
-Replace the pulsing "Syncing…" badge with a subtle static timestamp like "Updated 2m ago" near the lead count. This communicates freshness without anxiety.
+**Change 1 — Fix auth (line 79-85)**
 
-### Technical Detail
+Replace `anonClient.auth.getClaims(token)` with `anonClient.auth.getUser()`. The `getUser()` method works reliably in all Supabase JS versions inside Edge Functions when the Authorization header is forwarded via the client constructor.
 
-```text
-Before:
-  mount → [Syncing…] → 4 parallel edge calls → render
-  +30s  → [Syncing…] → 4 parallel edge calls → re-render
-  +60s  → [Syncing…] → 4 parallel edge calls → re-render
-  ...
-
-After:
-  mount → fetch_leads → render immediately
-        → fetch_webhooks + followups + needs_review (background)
-  +2min → silent background refresh (no badge)
-  +4min → silent background refresh
-  ...
+```typescript
+const { data: userData, error: userErr } = await anonClient.auth.getUser();
+if (userErr || !userData?.user?.id) {
+  return json({ error: "unauthenticated", message: "Invalid auth token." }, 401);
+}
+const authUserId = userData.user.id;
 ```
 
-### What stays the same
-- All 4 data sources still fetched
-- `isLoading=false` on mount (instant first paint)
-- No backend/edge function changes
-- No auth changes
+**Change 2 — Fix Stripe import (line 12)**
+
+Replace the `esm.sh` Stripe import with the `npm:` specifier, which is natively supported by the Supabase Edge Runtime and avoids the Node.js shim incompatibility:
+
+```typescript
+import Stripe from "npm:stripe@17.7.0";
+```
+
+Remove the `?target=deno` esm.sh URL entirely.
+
+**Change 3 — Optionally update Supabase SDK import (line 11)**
+
+For consistency and to ensure `getUser()` works correctly:
+
+```typescript
+import { createClient } from "npm:@supabase/supabase-js@2";
+```
+
+No other files are modified. Deploy the function after the edit.
+
+---
+
+## What Comes Next (Prompts 2 and 3)
+
+**Prompt 2 — Fix `stripe-webhook/index.ts` with the same import pattern.** The webhook function also imports Stripe via `esm.sh` and will hit the same `Deno.core.runMicrotasks()` crash when Stripe sends an event. That function needs the identical `npm:stripe` import fix, plus the Supabase SDK import update.
+
+**Prompt 3 — End-to-end test of the full credit purchase flow.** Log into the partner portal, click "Add Credits," complete a test payment with Stripe test card `4242 4242 4242 4242`, verify the success toast appears, and confirm the `contractor_credit_purchases` row transitions from `pending` → `paid` → `fulfilled` and the `contractor_credits.balance` increments correctly.
 
