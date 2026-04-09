@@ -2,7 +2,7 @@
  * create-checkout-session — Creates a Stripe Checkout Session for contractor credit purchases.
  *
  * Auth: JWT required (contractor auth user).
- * Preview fallback: If PREVIEW_CHECKOUT_ENABLED=true and no auth, uses PREVIEW_CONTRACTOR_ID.
+ * Preview fallback: If PREVIEW_CHECKOUT_ENABLED=true and no auth, uses PREVIEW_CONTRACTOR_PROFILE_ID.
  * Does NOT grant credits — that happens in the webhook fulfillment flow.
  *
  * POST body: { pack_code: string, origin?: string }
@@ -64,10 +64,13 @@ interface ResolvedContractor {
   isPreview: boolean;
 }
 
-async function resolveContractor(
+/**
+ * Resolves the contractor identity from auth JWT or preview fallback.
+ * Returns the raw contractor ID — profile/credits validation happens in the main handler.
+ */
+async function resolveContractorIdentity(
   req: Request,
-  svc: ReturnType<typeof createClient>,
-): Promise<{ contractor: ResolvedContractor | null; errorResponse: Response | null }> {
+): Promise<{ contractorId: string | null; isPreview: boolean; errorResponse: Response | null }> {
   // ── Try real auth first ──────────────────────────────────────────
   const authHeader = req.headers.get("Authorization");
   if (authHeader?.startsWith("Bearer ")) {
@@ -79,39 +82,17 @@ async function resolveContractor(
 
     const { data: userData, error: userErr } = await anonClient.auth.getUser();
     if (!userErr && userData?.user?.id) {
-      const authUserId = userData.user.id;
-
-      // Verify contractor profile
-      const { data: profile } = await svc
-        .from("contractor_profiles")
-        .select("id, status")
-        .eq("id", authUserId)
-        .maybeSingle();
-
-      if (!profile) {
-        return {
-          contractor: null,
-          errorResponse: json({ error: "no_contractor_profile", message: "No contractor profile found." }, 404),
-        };
-      }
-
-      if (profile.status !== "active") {
-        return {
-          contractor: null,
-          errorResponse: json({
-            error: "contractor_inactive",
-            message: `Contractor account is ${profile.status}.`,
-          }, 403),
-        };
-      }
-
-      return { contractor: { contractorId: authUserId, isPreview: false }, errorResponse: null };
+      return { contractorId: userData.user.id, isPreview: false, errorResponse: null };
     }
   }
 
   // ── Preview fallback (server-side only, env-gated) ────────────────
   const previewEnabled = Deno.env.get("PREVIEW_CHECKOUT_ENABLED")?.trim().toLowerCase();
-  const previewContractorId = Deno.env.get("PREVIEW_CONTRACTOR_ID")?.trim();
+  // Support renamed secret with backward compat
+  const previewContractorId = (
+    Deno.env.get("PREVIEW_CONTRACTOR_PROFILE_ID")?.trim() ||
+    Deno.env.get("PREVIEW_CONTRACTOR_ID")?.trim()
+  );
 
   if (previewEnabled === "true" && previewContractorId) {
     // Only allow in Stripe test mode
@@ -119,20 +100,81 @@ async function resolveContractor(
     if (!stripeKey.startsWith("sk_test_")) {
       console.warn("[create-checkout-session] Preview fallback blocked — not in Stripe test mode");
       return {
-        contractor: null,
+        contractorId: null,
+        isPreview: false,
         errorResponse: json({ error: "preview_blocked", message: "Preview checkout only available in test mode." }, 403),
       };
     }
 
     console.log(`[create-checkout-session] Using preview contractor: ${previewContractorId}`);
-    return { contractor: { contractorId: previewContractorId, isPreview: true }, errorResponse: null };
+    return { contractorId: previewContractorId, isPreview: true, errorResponse: null };
   }
 
   // ── Neither path available ────────────────────────────────────────
   return {
-    contractor: null,
+    contractorId: null,
+    isPreview: false,
     errorResponse: json({ error: "unauthenticated", message: "Sign in to purchase credits." }, 401),
   };
+}
+
+/* ── Validate contractor profile + credits ───────────────────────────── */
+
+async function validateContractor(
+  svc: ReturnType<typeof createClient>,
+  contractorId: string,
+  isPreview: boolean,
+): Promise<{ errorResponse: Response | null }> {
+  // 1. Profile must exist and be active
+  const { data: profile } = await svc
+    .from("contractor_profiles")
+    .select("id, status")
+    .eq("id", contractorId)
+    .maybeSingle();
+
+  if (!profile) {
+    const ctx = isPreview ? "preview config" : "auth";
+    console.error(`[create-checkout-session] No contractor_profiles row for ${contractorId} (${ctx})`);
+    return {
+      errorResponse: json({
+        error: isPreview ? "config_error" : "no_contractor_profile",
+        message: isPreview
+          ? "Preview contractor profile not found. Check PREVIEW_CONTRACTOR_PROFILE_ID secret."
+          : "No contractor profile found.",
+      }, isPreview ? 422 : 404),
+    };
+  }
+
+  if (profile.status !== "active") {
+    console.error(`[create-checkout-session] Contractor ${contractorId} status is '${profile.status}'`);
+    return {
+      errorResponse: json({
+        error: "contractor_inactive",
+        message: `Contractor account is ${profile.status}.`,
+      }, 403),
+    };
+  }
+
+  // 2. Credits row must exist
+  const { data: credits } = await svc
+    .from("contractor_credits")
+    .select("contractor_id")
+    .eq("contractor_id", contractorId)
+    .maybeSingle();
+
+  if (!credits) {
+    console.error(`[create-checkout-session] No contractor_credits row for ${contractorId}`);
+    return {
+      errorResponse: json({
+        error: isPreview ? "config_error" : "no_credit_account",
+        message: isPreview
+          ? "Preview contractor has no credit account. Seed a contractor_credits row first."
+          : "No credit account found. Contact support.",
+      }, isPreview ? 422 : 404),
+    };
+  }
+
+  return { errorResponse: null };
 }
 
 /* ── Handler ─────────────────────────────────────────────────────────── */
@@ -150,11 +192,15 @@ Deno.serve(async (req) => {
     );
 
     // ── 2. Resolve contractor identity ────────────────────────────
-    const { contractor, errorResponse } = await resolveContractor(req, svc);
-    if (errorResponse) return errorResponse;
-    const { contractorId, isPreview } = contractor!;
+    const { contractorId, isPreview, errorResponse: identityErr } = await resolveContractorIdentity(req);
+    if (identityErr) return identityErr;
+    if (!contractorId) return json({ error: "unauthenticated", message: "Could not resolve contractor identity." }, 401);
 
-    // ── 3. Parse & validate request body ──────────────────────────
+    // ── 3. Validate contractor profile + credits ──────────────────
+    const { errorResponse: validationErr } = await validateContractor(svc, contractorId, isPreview);
+    if (validationErr) return validationErr;
+
+    // ── 4. Parse & validate request body ──────────────────────────
     let body: Record<string, unknown>;
     try {
       body = await req.json();
@@ -175,12 +221,12 @@ Deno.serve(async (req) => {
       }, 400);
     }
 
-    // ── 4. Build URLs ─────────────────────────────────────────────
+    // ── 5. Build URLs ─────────────────────────────────────────────
     const origin = (body.origin as string) || Deno.env.get("REPORT_BASE_URL") || "https://wmmvp.lovable.app";
     const successUrl = `${origin}/partner/opportunities?payment=success&session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${origin}/partner/opportunities?payment=cancel`;
 
-    // ── 5. Create Stripe Checkout Session ─────────────────────────
+    // ── 6. Create Stripe Checkout Session ─────────────────────────
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
       console.error("[create-checkout-session] STRIPE_SECRET_KEY not configured");
@@ -220,7 +266,7 @@ Deno.serve(async (req) => {
       return json({ error: "stripe_error", message: "Failed to create checkout session." }, 500);
     }
 
-    // ── 6. Create pending purchase row ────────────────────────────
+    // ── 7. Insert pending purchase row (FAIL CLOSED) ──────────────
     const { error: insertErr } = await svc
       .from("contractor_credit_purchases")
       .insert({
@@ -234,11 +280,23 @@ Deno.serve(async (req) => {
       });
 
     if (insertErr) {
-      console.error("[create-checkout-session] Failed to insert purchase row:", insertErr);
-      // Still return URL — the webhook can reconcile later
+      console.error("[create-checkout-session] FAIL CLOSED — pending purchase insert failed:", JSON.stringify(insertErr));
+
+      // Best-effort: expire the orphaned Stripe session
+      try {
+        await stripe.checkout.sessions.expire(session.id);
+        console.log(`[create-checkout-session] Expired orphaned Stripe session ${session.id}`);
+      } catch (expireErr) {
+        console.warn(`[create-checkout-session] Could not expire Stripe session ${session.id}:`, expireErr);
+      }
+
+      return json({
+        error: "purchase_record_failed",
+        message: "Failed to record purchase. Payment was not initiated. Please try again.",
+      }, 500);
     }
 
-    // ── 7. Return checkout URL ────────────────────────────────────
+    // ── 8. Return checkout URL (only after confirmed insert) ──────
     console.log(
       `[create-checkout-session] Created session ${session.id} for contractor ${contractorId}${isPreview ? " (preview)" : ""}, pack ${pack.code}`,
     );
