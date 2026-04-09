@@ -54,13 +54,41 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
 
   const handleSubmit = () => {
     const errs: Record<string, string> = {};
-    try { textSchema.parse(businessName); } catch { errs.businessName = "Required"; }
-    try { textSchema.parse(licenseNumber); } catch { errs.licenseNumber = "Required"; }
-    try { textSchema.parse(licenseState); } catch { errs.licenseState = "Required"; }
-    try { textSchema.parse(contactName); } catch { errs.contactName = "Required"; }
-    try { textSchema.parse(contactRole); } catch { errs.contactRole = "Required"; }
-    try { emailSchema.parse(contactEmail); } catch { errs.contactEmail = "Valid email required"; }
-    try { phoneSchema.parse(contactPhone); } catch { errs.contactPhone = "Valid phone required"; }
+    try {
+      textSchema.parse(businessName);
+    } catch {
+      errs.businessName = "Required";
+    }
+    try {
+      textSchema.parse(licenseNumber);
+    } catch {
+      errs.licenseNumber = "Required";
+    }
+    try {
+      textSchema.parse(licenseState);
+    } catch {
+      errs.licenseState = "Required";
+    }
+    try {
+      textSchema.parse(contactName);
+    } catch {
+      errs.contactName = "Required";
+    }
+    try {
+      textSchema.parse(contactRole);
+    } catch {
+      errs.contactRole = "Required";
+    }
+    try {
+      emailSchema.parse(contactEmail);
+    } catch {
+      errs.contactEmail = "Valid email required";
+    }
+    try {
+      phoneSchema.parse(contactPhone);
+    } catch {
+      errs.contactPhone = "Valid phone required";
+    }
 
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
@@ -69,10 +97,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
 
     if (quoteClarity === "not_consistently") {
       setOutcome("not_a_fit");
-    } else if (
-      installStandard === "code_compliant" ||
-      paymentPref === "subscription"
-    ) {
+    } else if (installStandard === "code_compliant" || paymentPref === "subscription") {
       setOutcome("waitlist");
     } else {
       setOutcome("approved");
@@ -81,13 +106,16 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
   };
 
   const areaOptions = [
-    "Northeast Metro", "Southeast Metro", "Midwest", "Southwest", "Pacific Northwest", "Southern California"
+    "Northeast Metro",
+    "Southeast Metro",
+    "Midwest",
+    "Southwest",
+    "Pacific Northwest",
+    "Southern California",
   ];
 
   const toggleArea = (area: string) => {
-    setServiceAreas((prev) =>
-      prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]
-    );
+    setServiceAreas((prev) => (prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]));
   };
 
   if (!isOpen) return null;
@@ -99,10 +127,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
 
       <motion.div
         className="relative w-full max-w-lg z-10"
@@ -155,12 +180,10 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
             >
               {step === 0 && (
                 <div>
-                  <h3 className="text-xl font-bold text-foreground mb-3">
-                    Request Contractor Access
-                  </h3>
+                  <h3 className="text-xl font-bold text-foreground mb-3">Request Contractor Access</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                    We work with contractors who win on scope, install quality,
-                    and warranty — not price games. This takes about 2 minutes.
+                    We Work With Contractors Who Win on Scope, Install Quality, and Warranty — Not Price Games. This
+                    Takes about 1 minute.
                   </p>
                   <CTAButton onClick={nextStep}>Continue</CTAButton>
                   <p className="text-xs text-muted-foreground/50 mt-4 text-center">
@@ -171,9 +194,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
 
               {step === 1 && (
                 <div>
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    Where do you currently install?
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Where Do You Currently Install?</h3>
                   <p className="text-xs mb-4 text-secondary-foreground">
                     This helps us route homeowners to the right crews — fast.
                   </p>
@@ -201,9 +222,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
                     maxLength={200}
                   />
 
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    Monthly project volume?
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Monthly Project Volume?</h3>
                   <p className="text-xs mb-3 text-secondary-foreground">
                     We're not looking for "big." We're looking for consistent execution.
                   </p>
@@ -228,9 +247,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
 
               {step === 2 && (
                 <div>
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    Typical install standard?
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Typical Install Standard?</h3>
                   <p className="text-xs mb-3 text-secondary-foreground">
                     Homeowners use Windowman to understand scope. Clear scope wins here.
                   </p>
@@ -255,9 +272,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
                     ))}
                   </div>
 
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    Quote clarity?
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Quote Clarity?</h3>
                   <p className="text-xs mb-3 text-secondary-foreground">
                     Windowman rewards clarity. Vague quotes get treated as risk.
                   </p>
@@ -286,11 +301,9 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
 
               {step === 3 && (
                 <div>
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    Preferred payment model?
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Preferred Payment Model?</h3>
                   <p className="text-xs mb-3 text-secondary-foreground">
-                    Windowman is performance-based. We don't sell lists.
+                    Windowman is Performance-based. We don't sell lists.
                   </p>
                   <div className="space-y-2 mb-6">
                     {[
@@ -312,9 +325,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
                     ))}
                   </div>
 
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    Warranty posture?
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Warranty Posture?</h3>
                   <p className="text-xs mb-3 text-secondary-foreground">
                     Homeowners interpret warranty as a proxy for confidence.
                   </p>
@@ -343,9 +354,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
 
               {step === 4 && (
                 <div>
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    Business identity
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Business Identity</h3>
                   <p className="text-xs mb-4 text-secondary-foreground">
                     We verify legitimacy to protect homeowners and contractors.
                   </p>
@@ -372,7 +381,9 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
                           maxLength={50}
                           className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/50"
                         />
-                        {errors.licenseNumber && <p className="text-xs text-destructive mt-1">{errors.licenseNumber}</p>}
+                        {errors.licenseNumber && (
+                          <p className="text-xs text-destructive mt-1">{errors.licenseNumber}</p>
+                        )}
                       </div>
                       <div>
                         <select
@@ -381,8 +392,61 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
                           className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                         >
                           <option value="">State</option>
-                          {["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"].map(s => (
-                            <option key={s} value={s}>{s}</option>
+                          {[
+                            "AL",
+                            "AK",
+                            "AZ",
+                            "AR",
+                            "CA",
+                            "CO",
+                            "CT",
+                            "DE",
+                            "FL",
+                            "GA",
+                            "HI",
+                            "ID",
+                            "IL",
+                            "IN",
+                            "IA",
+                            "KS",
+                            "KY",
+                            "LA",
+                            "ME",
+                            "MD",
+                            "MA",
+                            "MI",
+                            "MN",
+                            "MS",
+                            "MO",
+                            "MT",
+                            "NE",
+                            "NV",
+                            "NH",
+                            "NJ",
+                            "NM",
+                            "NY",
+                            "NC",
+                            "ND",
+                            "OH",
+                            "OK",
+                            "OR",
+                            "PA",
+                            "RI",
+                            "SC",
+                            "SD",
+                            "TN",
+                            "TX",
+                            "UT",
+                            "VT",
+                            "VA",
+                            "WA",
+                            "WV",
+                            "WI",
+                            "WY",
+                          ].map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
                           ))}
                         </select>
                         {errors.licenseState && <p className="text-xs text-destructive mt-1">{errors.licenseState}</p>}
@@ -390,9 +454,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
                     </div>
                   </div>
 
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    Primary contact
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Primary Contact</h3>
                   <p className="text-xs mb-4 text-secondary-foreground">
                     We'll send access details and routing preferences here.
                   </p>
@@ -459,13 +521,10 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
                   <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
                     <span className="text-2xl">✓</span>
                   </div>
-                  <h3 className="text-xl font-bold text-foreground mb-3">
-                    Access Approved
-                  </h3>
+                  <h3 className="text-xl font-bold text-foreground mb-3">Access Approved</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                    You'll receive contractor access details and routing
-                    preferences next. Windowman will begin sending educated
-                    homeowners in your service area.
+                    You'll Receive Contractor Access Details and Routing Preferences Next. Windowman Will Start Sending
+                    Motivated & Educated Buyers in Your Service Area.
                   </p>
                   <CTAButton onClick={onClose}>Set Routing Preferences</CTAButton>
                 </div>
@@ -473,17 +532,12 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
 
               {step === 5 && outcome === "waitlist" && (
                 <div className="text-center py-4">
-                  <h3 className="text-xl font-bold text-foreground mb-3">
-                    You're on the waitlist
-                  </h3>
+                  <h3 className="text-xl font-bold text-foreground mb-3">You're on the waitlist</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                    Based on your current setup, we're not ready to route
-                    homeowners yet. If you tighten quote clarity and warranty
-                    presentation, you'll be a strong fit.
+                    Based on your current setup, we're not ready to route homeowners yet. If you tighten quote clarity
+                    and warranty presentation, you'll be a strong fit.
                   </p>
-                  <CTAButton onClick={onClose}>
-                    See what "clear scope" looks like
-                  </CTAButton>
+                  <CTAButton onClick={onClose}>See what "clear scope" looks like</CTAButton>
                   <button
                     onClick={onClose}
                     className="mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors block mx-auto"
@@ -495,13 +549,10 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
 
               {step === 5 && outcome === "not_a_fit" && (
                 <div className="text-center py-4">
-                  <h3 className="text-xl font-bold text-foreground mb-3">
-                    Not a fit right now
-                  </h3>
+                  <h3 className="text-xl font-bold text-foreground mb-3">Not a fit right now</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                    Windowman is built for contractors who document scope and
-                    stand behind installs consistently. If that changes, you're
-                    welcome to reapply.
+                    Windowman is built for contractors who document scope and stand behind installs consistently. If
+                    that changes, you're welcome to reapply.
                   </p>
                   <CTAButton variant="secondary" onClick={onClose}>
                     Close
