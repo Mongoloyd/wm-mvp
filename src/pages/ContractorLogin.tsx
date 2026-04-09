@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
 import { Shield, ArrowRight, Lock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,9 +20,9 @@ export default function ContractorLogin() {
   const navigate = useNavigate();
   const partner = usePartnerAuth();
 
+  // Redirect active partners via component return, not imperative navigate during render
   if (partner.state === "active") {
-    navigate("/partner/opportunities", { replace: true });
-    return null;
+    return <Navigate to="/partner/opportunities" replace />;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
