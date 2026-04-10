@@ -72,7 +72,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
             className="wm-title-section mx-auto mb-4"
             style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)", maxWidth: 700 }}
           >
-            THE IMPACT WINDOW INDUSTRY HAS NO PRICING STANDARD.
+            The Impact Window Industry Has No Pricing Standard.
           </h2>
           <p className="wm-body mx-auto mb-14" style={{ fontSize: 17, maxWidth: 640, lineHeight: 1.75 }}>
             That means the contractor who wrote your quote decided what to include, how to describe it, and whether to
@@ -100,7 +100,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
               <div className="flex items-center justify-center w-12 h-12 card-raised">
                 <span className="text-2xl leading-none">{block.icon}</span>
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground mt-4 uppercase tracking-[0.02em]">
+              <h3 className="font-display text-xl font-bold text-foreground mt-4 tracking-[0.01em]">
                 {block.heading}
               </h3>
               <p className="wm-body mt-2">{block.copy}</p>
@@ -121,16 +121,16 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           className="text-center mt-16 card-raised p-7 md:p-8"
         >
           <p
-            className="font-display text-foreground tracking-[0.01em] uppercase mb-4 opacity-75 font-extrabold text-2xl"
+            className="font-display text-foreground tracking-[0.01em] mb-4 opacity-75 font-extrabold text-2xl"
             style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
           >
-            MOST HOMEOWNERS ASSUME THE QUOTE REFLECTS THE MARKET RATE.
+            Most Homeowners Assume the Quote Reflects the Market Rate.
           </p>
           <p
-            className="font-display text-destructive tracking-[0.01em] uppercase font-semibold text-4xl"
+            className="font-display text-destructive tracking-[0.01em] font-semibold text-4xl"
             style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
           >
-            IT USUALLY DOESN'T.
+            It Usually Doesn't.
           </p>
         </motion.div>
 
