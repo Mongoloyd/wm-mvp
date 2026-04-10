@@ -1,50 +1,52 @@
-import React from "react";
-import { ScanSearch, Target, Flag, Diamond, CheckCircle2, FileCheck } from "lucide-react";
+import React from 'react';
+import {
+  ScanSearch,
+  Target,
+  Flag,
+  Diamond,
+  CheckCircle2,
+  FileCheck,
+} from 'lucide-react';
 
 const steps = [
   {
-    num: "01",
-    title: "Answer 4 quick questions",
-    desc: "County, scope, project type, and quote stage. No account required.",
+    num: '01',
+    title: 'Upload your quote',
+    desc: 'PDF or image. Any format from any Florida contractor.',
   },
   {
-    num: "02",
-    title: "Upload your quote",
-    desc: "PDF or image. Any format from any Florida contractor.",
+    num: '02',
+    title: 'AI scans every line',
+    desc: 'Pricing, brands, warranties, permits, payment terms, and installation specs.',
   },
   {
-    num: "03",
-    title: "AI scans every line",
-    desc: "Pricing, brands, warranties, permits, payment terms, and installation specs.",
+    num: '03',
+    title: 'Your grade is calculated',
+    desc: 'Compared against real contracts in your county and scope.',
   },
   {
-    num: "04",
-    title: "Your grade is calculated",
-    desc: "Compared against real contracts in your county and scope.",
-  },
-  {
-    num: "05",
-    title: "You decide what to do",
-    desc: "Use your negotiation script, request a better quote, or simply know you signed fairly.",
+    num: '04',
+    title: 'You decide what to do',
+    desc: 'Use your negotiation script, request a better quote, or simply know you signed fairly.',
   },
 ];
 
 const takeaways = [
   {
     icon: Target,
-    text: "Whether your price is above, below, or at fair market for your specific county",
+    text: 'Whether your price is above, below, or at fair market for your specific county',
   },
   {
     icon: Flag,
-    text: "Which line items are vague, missing, or potentially inflated",
+    text: 'Which line items are vague, missing, or potentially inflated',
   },
   {
     icon: Diamond,
-    text: "What window brand — if any — your contractor actually specified",
+    text: 'What window brand — if any — your contractor actually specified',
   },
   {
     icon: CheckCircle2,
-    text: "A letter grade: A through F",
+    text: 'A letter grade: A through F',
   },
 ];
 
@@ -63,17 +65,20 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
             className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-b from-white to-[#F8FAFC] border border-border mb-5"
             style={{
               boxShadow:
-                "inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.08)",
+                'inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.08)',
             }}
           >
             <ScanSearch className="w-8 h-8 text-primary" strokeWidth={1.8} />
           </div>
-          <div className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase mb-4">How it works</div>
+          <div className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase mb-4">
+            How it works
+          </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-[-0.02em] leading-[1.08]">
             What happens when you scan
           </h2>
           <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-7">
-            Upload Your Quote Details and Instantly Know the Truth About Your Estimate
+            Upload your quote. In under 60 seconds, you'll know exactly where
+            you stand — before you sign.
           </p>
         </div>
 
@@ -84,16 +89,21 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
             <div className="hidden sm:block absolute left-[22px] top-6 bottom-6 w-px bg-gradient-to-b from-primary/30 via-border to-border" />
             <div className="space-y-5 sm:space-y-6">
               {steps.map((step) => (
-                <div key={step.num} className="relative z-10 flex items-start gap-4 sm:gap-5 group">
+                <div
+                  key={step.num}
+                  className="relative z-10 flex items-start gap-4 sm:gap-5 group"
+                >
                   {/* Convex step number circle */}
                   <div
                     className="shrink-0 w-11 h-11 rounded-full bg-gradient-to-b from-white to-[#F8FAFC] border border-primary/40 text-primary flex items-center justify-center"
                     style={{
                       boxShadow:
-                        "inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.1)",
+                        'inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.1)',
                     }}
                   >
-                    <span className="font-mono text-sm font-bold tracking-wide">{step.num}</span>
+                    <span className="font-mono text-sm font-bold tracking-wide">
+                      {step.num}
+                    </span>
                   </div>
 
                   {/* 3D raised card */}
@@ -101,18 +111,20 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                     className="flex-1 rounded-[10px] border border-[hsl(214_30%_82%)] bg-gradient-to-b from-white to-[#F8FAFC] p-5 sm:p-6 transition-all duration-300 group-hover:-translate-y-1.5"
                     style={{
                       boxShadow:
-                        "inset 0 1px 0 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06)",
+                        'inset 0 1px 0 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06)',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.boxShadow =
-                        "inset 0 1px 0 0 rgba(255,255,255,0.7), 0 8px 16px rgba(0,0,0,0.06), 0 24px 48px rgba(0,0,0,0.12)";
+                        'inset 0 1px 0 0 rgba(255,255,255,0.7), 0 8px 16px rgba(0,0,0,0.06), 0 24px 48px rgba(0,0,0,0.12)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.boxShadow =
-                        "inset 0 1px 0 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06)";
+                        'inset 0 1px 0 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06)';
                     }}
                   >
-                    <h3 className="text-lg sm:text-xl font-semibold text-foreground">{step.title}</h3>
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground">
+                      {step.title}
+                    </h3>
                     <p className="mt-2 text-sm sm:text-[15px] leading-7 text-muted-foreground max-w-[42ch]">
                       {step.desc}
                     </p>
@@ -134,7 +146,7 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                     className="rounded-[11px] bg-gradient-to-b from-white to-[#F8FAFC] overflow-hidden"
                     style={{
                       boxShadow:
-                        "inset 0 1px 0 0 rgba(255,255,255,0.7), 0 8px 24px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.10)",
+                        'inset 0 1px 0 0 rgba(255,255,255,0.7), 0 8px 24px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.10)',
                     }}
                   >
                     <div className="h-2 bg-gradient-to-r from-primary via-primary/80 to-primary/60" />
@@ -145,7 +157,8 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                       />
                       <div className="relative z-10">
                         <h3 className="text-2xl sm:text-[30px] leading-tight font-bold text-foreground pb-5 border-b border-border">
-                          You'll walk away <span className="text-primary">knowing:</span>
+                          You'll walk away{' '}
+                          <span className="text-primary">knowing:</span>
                         </h3>
 
                         <ul className="mt-6 space-y-5 sm:space-y-6">
@@ -161,7 +174,7 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                                   className="w-11 h-11 shrink-0 rounded-full bg-gradient-to-b from-white to-[#F8FAFC] border border-border flex items-center justify-center"
                                   style={{
                                     boxShadow:
-                                      "inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.08)",
+                                      'inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.08)',
                                   }}
                                 >
                                   <Icon className="w-5 h-5 text-primary" strokeWidth={2} />
@@ -178,20 +191,23 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                         <div
                           className="mt-8 rounded-[10px] border border-primary/20 bg-gradient-to-b from-primary/5 to-primary/10 p-4 sm:p-5 flex items-center gap-4"
                           style={{
-                            boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.06)",
+                            boxShadow:
+                              'inset 0 1px 0 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.06)',
                           }}
                         >
                           <div
                             className="w-14 h-14 rounded-xl bg-gradient-to-b from-white to-[#F8FAFC] border border-primary/20 text-primary flex items-center justify-center shrink-0 font-bold text-lg"
                             style={{
                               boxShadow:
-                                "inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.08)",
+                                'inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.08)',
                             }}
                           >
                             A–F
                           </div>
                           <div>
-                            <p className="font-semibold text-foreground">Clear action plan</p>
+                            <p className="font-semibold text-foreground">
+                              Clear action plan
+                            </p>
                             <p className="text-sm text-muted-foreground mt-1">
                               Grade, flags, and negotiation direction in one report
                             </p>
@@ -203,24 +219,30 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                           <div
                             className="rounded-[10px] bg-gradient-to-b from-white to-[#F8FAFC] border border-border px-4 py-3"
                             style={{
-                              boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)",
+                              boxShadow:
+                                'inset 0 1px 0 0 rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)',
                             }}
                           >
                             <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                               Includes
                             </div>
-                            <div className="mt-1 text-sm font-semibold text-foreground">Dollar delta vs market</div>
+                            <div className="mt-1 text-sm font-semibold text-foreground">
+                              Dollar delta vs market
+                            </div>
                           </div>
                           <div
                             className="rounded-[10px] bg-gradient-to-b from-white to-[#F8FAFC] border border-border px-4 py-3"
                             style={{
-                              boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)",
+                              boxShadow:
+                                'inset 0 1px 0 0 rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)',
                             }}
                           >
                             <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                               Includes
                             </div>
-                            <div className="mt-1 text-sm font-semibold text-foreground">Red flags explained</div>
+                            <div className="mt-1 text-sm font-semibold text-foreground">
+                              Red flags explained
+                            </div>
                           </div>
                         </div>
                       </div>
