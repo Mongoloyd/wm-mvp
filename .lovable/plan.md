@@ -1,19 +1,47 @@
 
 
-## Remove 3 Cards from MarketMakerManifesto
+## System Font Reset and Casing Lockdown
 
-**File:** `src/components/MarketMakerManifesto.tsx`
+### 1. Update font tokens in `src/index.css` (line 150-153)
 
-**What changes:**
-Delete the last 3 entries from the card array (lines 124-153):
-- "Hidden Cost Traps" (Search icon, orange)
-- "The Negotiation Script" (ArrowRight icon, primary)
-- "Warranty Protection Audit" (Home icon, gold)
+Replace the `--wm-font-display` and `--wm-font-body` CSS custom properties with the system UI stack:
 
-This leaves 3 cards in the grid: "What Do You Get — Free", "So How Do I Make Money", and "Why Work With Me".
+```
+--wm-font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+--wm-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+```
 
-**No other changes needed:**
-- All icon imports (`Home`, `ArrowRight`, `Search`) are still used in the flow diagram above the cards
-- Grid class (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`) fits perfectly with 3 remaining cards
-- No global tokens, fonts, or layout wrappers are touched
+### 2. Update font families in `tailwind.config.ts` (lines 16-21)
+
+Replace Barlow Condensed and DM Sans references with the system UI stack:
+
+```
+sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+heading: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+display: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+body: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+```
+
+Mono stays as-is (`DM Mono`).
+
+### 3. Remove forced casing from utility classes in `src/index.css`
+
+**`.wm-eyebrow`** (line 412-418): Delete `text-transform: uppercase;` -- keep font-family, size, weight, letter-spacing.
+
+**`.wm-title-section`** (line 420-427): Delete `text-transform: uppercase;` -- keep font-family, weight, letter-spacing, line-height, color.
+
+No `.wm-title-report` exists, so nothing to change there.
+
+### 4. Fix ProcessSteps heading in `src/components/ProcessSteps.tsx`
+
+**Line 83**: Change text from `What happens when you scan` to `What Happens When You Scan`
+
+**Line 86-87**: Change from `Upload your quote. In under 60 seconds, you'll know exactly where you stand — before you sign.` to `Upload Your Quote. In Under 60 Seconds, You'll Know Exactly Where You Stand — Before You Sign.`
+
+### What stays untouched
+- All `@font-face` declarations (kept for fallback, won't load if not referenced)
+- DM Mono font stack
+- All shadow tokens, color tokens, layout classes
+- Component structure, props, functionality
+- No new files created
 
