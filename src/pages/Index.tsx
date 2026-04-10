@@ -21,6 +21,7 @@ import Testimonials from "@/components/Testimonials";
 import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
 import InteractiveDemoScan from "@/components/InteractiveDemoScan";
+import ArbitrageEngine from "@/components/ArbitrageEngine";
 import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
@@ -246,6 +247,7 @@ const Index = () => {
               <XRayScannerBackground>
                 <InteractiveDemoScan onScanClick={() => triggerTruthGate('demo_scan')} />
               </XRayScannerBackground>
+              <ArbitrageEngine onStartCertifiedAudit={() => triggerTruthGate("arbitrage_engine_cta")} />
               <TruthGateFlow
                 onLeadCaptured={(sid) => { setLeadCaptured(true); setSessionId(sid); }}
                 onStepChange={(step, county) => { setStepsCompleted(step); setSelectedCounty(county); }}
