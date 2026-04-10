@@ -277,7 +277,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
             transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
             className="card-dominant p-8 text-center"
           >
-            <h3 className="font-display text-foreground mb-3 uppercase tracking-[0.02em]" style={{ fontSize: "clamp(1.25rem, 3vw, 1.5rem)", fontWeight: 800 }}>
+            <h3 className="font-display text-foreground mb-3 tracking-[0.01em]" style={{ fontSize: "clamp(1.25rem, 3vw, 1.5rem)", fontWeight: 800 }}>
               See What's Hiding in Your Quote
             </h3>
             <p className="font-body text-sm text-muted-foreground mb-6 max-w-md mx-auto">

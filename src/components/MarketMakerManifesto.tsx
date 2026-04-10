@@ -37,7 +37,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
           className="text-center mx-auto wm-title-section mb-4"
           style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)", maxWidth: 680 }}
         >
-          WE KEEP BOTH SIDES HONEST
+          We Keep Both Sides Honest
         </motion.h2>
         <motion.p
           {...fade(0.04)}

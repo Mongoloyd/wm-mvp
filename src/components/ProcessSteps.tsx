@@ -67,7 +67,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
             className="wm-title-section mb-12"
             style={{ fontSize: "clamp(1.5rem, 4vw, 2.25rem)" }}
           >
-            UPLOAD YOUR QUOTE. IN UNDER 60 SECONDS, YOU'LL KNOW:
+            Upload Your Quote. In Under 60 Seconds, You'll Know:
           </h2>
         </motion.div>
 
@@ -120,8 +120,8 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           transition={{ duration: 0.15, delay: 0.2 }}
           className="mt-14"
         >
-          <h3 className="font-display text-foreground uppercase tracking-[0.02em] mb-6" style={{ fontSize: "clamp(1.25rem, 3vw, 1.875rem)", fontWeight: 800 }}>
-            YOU'LL WALK AWAY KNOWING:
+          <h3 className="font-display text-foreground tracking-[0.01em] mb-6" style={{ fontSize: "clamp(1.25rem, 3vw, 1.875rem)", fontWeight: 800 }}>
+            You'll Walk Away Knowing:
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {deliverables.map((d, i) => (

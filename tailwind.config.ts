@@ -14,10 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['DM Sans', 'DM Sans Fallback', 'Inter', 'system-ui', 'sans-serif'],
-        heading: ['Barlow Condensed', 'Barlow Condensed Fallback', 'sans-serif'],
-        display: ['Barlow Condensed', 'Barlow Condensed Fallback', 'sans-serif'],
-        body: ['DM Sans', 'DM Sans Fallback', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'Inter Fallback', 'system-ui', 'sans-serif'],
+        heading: ['Barlow', 'Barlow Fallback', 'sans-serif'],
+        display: ['Barlow', 'Barlow Fallback', 'sans-serif'],
+        body: ['Inter', 'Inter Fallback', 'system-ui', 'sans-serif'],
         mono: ['DM Mono', 'IBM Plex Mono', 'monospace'],
       },
       colors: {

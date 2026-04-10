@@ -24,7 +24,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, ease: "easeOut" }} className="text-center">
           <p className="wm-eyebrow text-primary mb-4">REAL RESULTS FROM FLORIDA HOMEOWNERS</p>
-          <h2 className="wm-title-section mb-3" style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)" }}>WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
+          <h2 className="wm-title-section mb-3" style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)" }}>What Happens When You Know the Truth.</h2>
           <p className="font-body text-base text-muted-foreground mb-12">These Are Outcomes Not Reviews</p>
         </motion.div>
 
@@ -62,8 +62,8 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.15 }}
           className="text-center mt-12 card-raised p-7 md:p-8">
-          <h3 className="font-display text-foreground tracking-[0.02em] uppercase" style={{ fontSize: "clamp(1.25rem, 3vw, 1.625rem)", fontWeight: 800 }}>
-            YOUR QUOTE IS EITHER PRICED FAIRLY OR IT ISN'T.
+          <h3 className="font-display text-foreground tracking-[0.01em]" style={{ fontSize: "clamp(1.25rem, 3vw, 1.625rem)", fontWeight: 800 }}>
+            Your Quote Is Either Priced Fairly or It Isn't.
           </h3>
           <p className="font-body text-lg text-muted-foreground italic mt-3">
             Right Now, The Contractor Knows Which One. You Don't.

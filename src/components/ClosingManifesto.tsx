@@ -43,16 +43,16 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           className="wm-title-section leading-[1.25] mb-6"
           style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)" }}
         >
-          THE INDUSTRY BUILT A SYSTEM WHERE YOU NEED THEIR EXPERTISE TO UNDERSTAND THEIR QUOTE.
+          The Industry Built a System Where You Need Their Expertise to Understand Their Quote.
         </motion.p>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, delay: 0.16, ease: "easeOut" }}
-          className="font-display text-primary font-black tracking-[-0.005em] uppercase leading-[1.25]"
+          className="font-display text-primary font-black tracking-[0.005em] leading-[1.25]"
           style={{ fontSize: "clamp(32px, 5vw, 48px)" }}
         >
-          WE BUILT A SYSTEM WHERE YOU DON'T.
+          We Built a System Where You Don't.
         </motion.p>
 
         <motion.div
