@@ -21,7 +21,7 @@ export interface HomepageVariant {
 export const ALL_VARIANTS: Record<string, HomepageVariant> = {
   accusation: {
     id: "accusation",
-    badgeText: "FORENSIC QUOTE INTELLIGENCE",
+    badgeText: "Forensic Quote Intelligence",
     // Empty strings trigger AuditHero's JSX fallback, preserving the original
     // orange-glow "THEY'RE COUNTING ON." span and the "under 60 seconds" bold.
     headline: "",
@@ -30,48 +30,48 @@ export const ALL_VARIANTS: Record<string, HomepageVariant> = {
   },
   direct_action: {
     id: "direct_action",
-    badgeText: "AI-POWERED QUOTE ANALYSIS",
-    headline: "SCAN YOUR QUOTE. BEAT YOUR CONTRACTORS.",
+    badgeText: "AI-Powered Quote Analysis",
+    headline: "Scan Your Quote. Beat Your Contractors.",
     subheadline:
       "See exactly where you're being overcharged and get the leverage to negotiate fair pricing — powered by AI that's analyzed thousands of Florida quotes.",
     weight: 1,
   },
   loss_aversion: {
     id: "loss_aversion",
-    badgeText: "EXPOSED: FLORIDA PRICING DATA",
-    headline: "THE AVERAGE FLORIDA HOMEOWNER OVERPAYS $4,800 ON IMPACT WINDOWS. DON'T BE AVERAGE.",
+    badgeText: "Exposed: Florida Pricing Data",
+    headline: "The Average Florida Homeowner Overpays $4,800 on Impact Windows. Don't Be Average.",
     subheadline:
       "We've analyzed thousands of contractor quotes across all 67 Florida counties. Upload yours and see exactly where your money is going — and where it shouldn't be.",
     weight: 1,
   },
   fine_print: {
     id: "fine_print",
-    badgeText: "QUOTE INTELLIGENCE ENGINE",
-    headline: "YOUR CONTRACTOR HOPES YOU DON'T READ THE FINE PRINT. WE READ IT FOR YOU.",
+    badgeText: "Quote Intelligence Engine",
+    headline: "Your Contractor Hopes You Don't Read the Fine Print. We Read It for You.",
     subheadline:
       "Hidden fees, scope gaps, missing warranties — our AI catches what contractors count on you missing. Free forensic analysis in under 60 seconds.",
     weight: 1,
   },
   pre_sign: {
     id: "pre_sign",
-    badgeText: "FREE AI QUOTE AUDIT",
-    headline: "BEFORE YOU SIGN THAT QUOTE, LET AI CHECK THE MATH.",
+    badgeText: "Free AI Quote Audit",
+    headline: "Before You Sign That Quote, Let AI Check the Math.",
     subheadline:
-      "Upload Your Estimate. In Seconds, Our AI Forensically Grades it Across 5 Key Areas: Safety, Scope, Pricing, Fine Print, and Warranty. Best of All It's Free.",
+      "Upload your estimate. In seconds, our AI forensically grades it across 5 key areas: safety, scope, pricing, fine print, and warranty. Best of all, it's free.",
     weight: 1,
   },
   question: {
     id: "question",
-    badgeText: "INSTANT AI ANALYSIS",
-    headline: "IS YOUR CONTRACTOR OVERCHARGING YOU? FIND OUT IN 60 SECONDS.",
+    badgeText: "Instant AI Analysis",
+    headline: "Is Your Contractor Overcharging You? Find Out in 60 Seconds.",
     subheadline:
       "Drop your impact window quote below. Our AI compares your pricing to thousands of verified Florida projects — then tells you exactly what to do about it.",
     weight: 1,
   },
   free_audit: {
     id: "free_audit",
-    badgeText: "100% FREE · NO SIGNUP REQUIRED",
-    headline: "FREE AI AUDIT: SEE EXACTLY WHERE YOUR QUOTE IS OVERPRICED.",
+    badgeText: "100% Free · No Signup Required",
+    headline: "Free AI Audit: See Exactly Where Your Quote Is Overpriced.",
     subheadline:
       "Upload any contractor estimate — PDF, photo, screenshot. Our AI reads every line item, checks pricing against county benchmarks, and flags what's wrong. Takes 60 seconds.",
     weight: 1,
