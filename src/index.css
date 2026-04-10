@@ -365,6 +365,65 @@
     }
   }
 
+  /* ═══ BTN-DEPTH-DESTRUCTIVE: Orange version of btn-depth-primary ═══ */
+  .btn-depth-destructive {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(180deg, hsl(30 95% 62%) 0%, hsl(25 95% 53%) 40%, hsl(20 90% 42%) 100%);
+    color: #ffffff;
+    font-family: var(--wm-font-body);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    border: 1px solid hsl(20 85% 38%);
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    border-radius: var(--radius-btn);
+    box-shadow:
+      0 2px 6px hsla(25 95% 53% / 0.3),
+      0 6px 16px hsla(25 95% 53% / 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition:
+      box-shadow 0.15s ease,
+      transform 0.1s ease;
+  }
+
+  .btn-depth-destructive::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    animation: glint 2.5s ease-in-out infinite;
+  }
+
+  .btn-depth-destructive:hover {
+    box-shadow:
+      0 4px 12px hsla(25 95% 53% / 0.4),
+      0 8px 24px hsla(25 95% 53% / 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transform: translateY(-3px);
+  }
+
+  .btn-depth-destructive:active {
+    transform: translateY(1px);
+    box-shadow:
+      inset 0 2px 6px rgba(0, 0, 0, 0.25),
+      inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-depth-destructive::after {
+      animation: none;
+    }
+  }
+
   /* ═══ BTN-SECONDARY-TACTILE: Outline button with physical feel ═══ */
   .btn-secondary-tactile {
     display: inline-flex;

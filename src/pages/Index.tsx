@@ -213,7 +213,6 @@ const Index = () => {
             {flowMode === 'A' ? (
               <motion.div key="flow-a-hero" exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                 <AuditHero
-                  onFlowBClick={() => { setFlowMode('B'); setTimeout(() => { document.getElementById("flow-b")?.scrollIntoView({ behavior: "smooth" }); }, 400); }}
                   onUploadQuote={() => triggerTruthGate('hero_scan_cta')}
                   triggerPowerTool={powerToolTriggered}
                   onPowerToolClose={() => setPowerToolTriggered(false)}
