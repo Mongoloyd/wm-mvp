@@ -98,13 +98,11 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  const autoplayPlugin = useRef(
-    Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })
-  );
+  const autoplayPlugin = useRef(Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true }));
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { align: "start", loop: true },
-    prefersReducedMotion ? [] : [autoplayPlugin.current]
+    prefersReducedMotion ? [] : [autoplayPlugin.current],
   );
 
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -120,7 +118,9 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
       onSelect();
     });
     onSelect();
-    return () => { emblaApi.off("select", onSelect); };
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
   }, [emblaApi]);
 
   return (
@@ -134,9 +134,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
           className="text-center mb-12"
         >
           <p className="wm-eyebrow text-primary mb-3">Real Homeowner Results</p>
-          <h2 className="wm-title-section text-foreground">
-            What Florida Homeowners Are Saying
-          </h2>
+          <h2 className="wm-title-section text-foreground">What Homeowners Are Saying</h2>
         </motion.div>
 
         {/* Carousel */}
@@ -149,10 +147,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
           <div ref={emblaRef} className="overflow-hidden">
             <div className="flex -ml-4">
               {reviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="min-w-0 shrink-0 grow-0 basis-full md:basis-1/2 lg:basis-1/3 pl-4"
-                >
+                <div key={review.id} className="min-w-0 shrink-0 grow-0 basis-full md:basis-1/2 lg:basis-1/3 pl-4">
                   <div className="card-raised p-6 h-full border-l-4 border-l-[hsl(var(--color-emerald))] transition-transform duration-150 ease-out hover:-translate-y-[1px]">
                     {/* Header */}
                     <div className="flex items-start gap-3 mb-4">
@@ -160,15 +155,9 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
                         {review.name.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-body font-bold text-sm text-foreground">
-                          {review.name}
-                        </p>
-                        <p className="font-mono text-[11px] text-muted-foreground">
-                          {review.location}
-                        </p>
-                        <p className="font-mono text-[11px] text-muted-foreground mt-0.5">
-                          {review.platform}
-                        </p>
+                        <p className="font-body font-bold text-sm text-foreground">{review.name}</p>
+                        <p className="font-mono text-[11px] text-muted-foreground">{review.location}</p>
+                        <p className="font-mono text-[11px] text-muted-foreground mt-0.5">{review.platform}</p>
                       </div>
                     </div>
 
@@ -179,16 +168,12 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
                           <Star
                             key={i}
                             className={`h-3.5 w-3.5 ${
-                              i < review.stars
-                                ? "fill-primary text-primary"
-                                : "fill-muted text-muted"
+                              i < review.stars ? "fill-primary text-primary" : "fill-muted text-muted"
                             }`}
                           />
                         ))}
                       </div>
-                      <span className="text-xs font-semibold text-primary">
-                        {review.stars.toFixed(1)}
-                      </span>
+                      <span className="text-xs font-semibold text-primary">{review.stars.toFixed(1)}</span>
                     </div>
 
                     {/* Headline */}
@@ -197,15 +182,11 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
                     </h3>
 
                     {/* Body */}
-                    <p className="font-body text-sm text-muted-foreground leading-relaxed mb-4">
-                      {review.body}
-                    </p>
+                    <p className="font-body text-sm text-muted-foreground leading-relaxed mb-4">{review.body}</p>
 
                     {/* Savings badge */}
                     <div className="pt-3 border-t border-border/50">
-                      <p className="text-sm font-bold text-[hsl(var(--color-emerald))]">
-                        💰 {review.savings}
-                      </p>
+                      <p className="text-sm font-bold text-[hsl(var(--color-emerald))]">💰 {review.savings}</p>
                     </div>
                   </div>
                 </div>
@@ -226,10 +207,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
                 style={{
                   width: selectedIndex === i ? 20 : 8,
                   height: 8,
-                  backgroundColor:
-                    selectedIndex === i
-                      ? "hsl(var(--primary))"
-                      : "hsl(var(--border))",
+                  backgroundColor: selectedIndex === i ? "hsl(var(--primary))" : "hsl(var(--border))",
                 }}
               />
             ))}
@@ -247,25 +225,19 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
             <p className="font-display font-extrabold text-3xl md:text-4xl text-[hsl(var(--color-emerald))] mb-1">
               ${((total * 3800) / 1000000).toFixed(1)}M+
             </p>
-            <p className="font-body text-sm text-muted-foreground">
-              Total Saved This Year
-            </p>
+            <p className="font-body text-sm text-muted-foreground">Total Saved This Year</p>
           </div>
           <div className="card-raised p-6 text-center">
             <p className="font-display font-extrabold text-3xl md:text-4xl text-primary mb-1">
               {total.toLocaleString()}
             </p>
-            <p className="font-body text-sm text-muted-foreground">
-              Quotes Analyzed
-            </p>
+            <p className="font-body text-sm text-muted-foreground">Quotes Analyzed</p>
           </div>
           <div className="card-raised p-6 text-center">
             <p className="font-display font-extrabold text-3xl md:text-4xl text-[hsl(var(--color-vivid-orange))] mb-1">
               94%
             </p>
-            <p className="font-body text-sm text-muted-foreground">
-              Had Hidden Red Flags
-            </p>
+            <p className="font-body text-sm text-muted-foreground">Had Hidden Red Flags</p>
           </div>
         </motion.div>
 
