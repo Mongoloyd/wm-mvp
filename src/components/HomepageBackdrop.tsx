@@ -1,11 +1,13 @@
-/* Animated gradient blobs — pure CSS, GPU-composited, respects prefers-reduced-motion via Tailwind */
+/* Animated gradient blobs — pure CSS, GPU-composited */
+
+const HomepageBackdrop = () => (
   <div
     className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
     aria-hidden="true"
   >
     {/* Blue blob — upper left */}
     <div
-      className="absolute animate-blob-drift-1"
+      className="absolute motion-safe:animate-blob-drift-1"
       style={{
         top: "5%",
         left: "-10%",
@@ -20,7 +22,7 @@
 
     {/* Orange blob — center right */}
     <div
-      className="absolute animate-blob-drift-2"
+      className="absolute motion-safe:animate-blob-drift-2"
       style={{
         top: "25%",
         right: "-8%",
@@ -35,7 +37,7 @@
 
     {/* Blue blob — lower left */}
     <div
-      className="absolute animate-blob-drift-3"
+      className="absolute motion-safe:animate-blob-drift-3"
       style={{
         top: "55%",
         left: "-5%",
@@ -50,7 +52,7 @@
 
     {/* Orange glow — bottom right */}
     <div
-      className="absolute animate-blob-drift-4"
+      className="absolute motion-safe:animate-blob-drift-4"
       style={{
         top: "78%",
         right: "-5%",
