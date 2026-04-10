@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -103,6 +103,15 @@ export default function ArbitrageEngine({ onStartCertifiedAudit }: ArbitrageEngi
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<DemoSnapshot | null>(null);
+  const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (processingTimerRef.current !== null) {
+        clearTimeout(processingTimerRef.current);
+      }
+    };
+  }, []);
 
   const quoteWordCount = useMemo(() => {
     return quoteText.trim() ? quoteText.trim().split(/\s+/).length : 0;
@@ -123,39 +132,48 @@ export default function ArbitrageEngine({ onStartCertifiedAudit }: ArbitrageEngi
     setUiState("qualifying");
     setErrorMessage(null);
 
-    const result = await qualifyHomepageLead({
-      source: "arbitrage_engine",
-      name: payload.name,
-      email: payload.email,
-      phone: payload.phone,
-      context: {
-        quote_excerpt: summarizeQuote(quoteText),
-        quote_word_count: quoteWordCount,
-        module: "arbitrage_engine",
-      },
-    });
+    try {
+      const result = await qualifyHomepageLead({
+        source: "arbitrage_engine",
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        context: {
+          quote_excerpt: summarizeQuote(quoteText),
+          quote_word_count: quoteWordCount,
+          module: "arbitrage_engine",
+        },
+      });
 
-    if (!result.success) {
-      setUiState("capture");
-      setErrorMessage(result.reason || "We could not process this request. Please try again.");
-      return;
-    }
+      if (!result.success) {
+        setUiState("capture");
+        setErrorMessage(result.reason || "We could not process this request. Please try again.");
+        return;
+      }
 
-    if (!result.qualified || !result.can_run_ai) {
+      if (!result.qualified || !result.can_run_ai) {
+        setModalOpen(false);
+        setUiState("rejected");
+        setErrorMessage(null);
+        return;
+      }
+
       setModalOpen(false);
-      setUiState("rejected");
-      setErrorMessage(null);
-      return;
+      setUiState("processing");
+
+      if (processingTimerRef.current !== null) {
+        clearTimeout(processingTimerRef.current);
+      }
+      // No real AI call in this sprint. We intentionally simulate processing before showing deterministic output.
+      processingTimerRef.current = window.setTimeout(() => {
+        setSnapshot(createDemoSnapshot(quoteText));
+        setUiState("revealed");
+      }, 1700);
+    } catch (error) {
+      console.error("[ArbitrageEngine] qualification error", error);
+      setUiState("capture");
+      setErrorMessage("We could not process this request. Please try again.");
     }
-
-    setModalOpen(false);
-    setUiState("processing");
-
-    // No real AI call in this sprint. We intentionally simulate processing before showing deterministic output.
-    window.setTimeout(() => {
-      setSnapshot(createDemoSnapshot(quoteText));
-      setUiState("revealed");
-    }, 1700);
   };
 
   return (

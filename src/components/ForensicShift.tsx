@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowUpRight,
@@ -171,6 +171,15 @@ export default function ForensicShift({ onStartCertifiedAudit }: ForensicShiftPr
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [preview, setPreview] = useState<ForensicPreview | null>(null);
+  const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (processingTimerRef.current !== null) {
+        clearTimeout(processingTimerRef.current);
+      }
+    };
+  }, []);
 
   const wordCount = useMemo(() => {
     return quoteText.trim() ? quoteText.trim().split(/\s+/).length : 0;
@@ -180,7 +189,10 @@ export default function ForensicShift({ onStartCertifiedAudit }: ForensicShiftPr
     setState("processing");
     setErrorMessage(null);
 
-    window.setTimeout(() => {
+    if (processingTimerRef.current !== null) {
+      clearTimeout(processingTimerRef.current);
+    }
+    processingTimerRef.current = window.setTimeout(() => {
       setPreview(buildForensicPreview(quoteText));
       setState("revealed");
     }, 1400);
@@ -208,40 +220,46 @@ export default function ForensicShift({ onStartCertifiedAudit }: ForensicShiftPr
     setState("qualifying");
     setErrorMessage(null);
 
-    const result = await qualifyHomepageLead({
-      source: "forensic_shift",
-      name: payload.name,
-      email: payload.email,
-      phone: payload.phone,
-      context: {
-        module: "forensic_shift",
-        quote_excerpt: summarizeQuote(quoteText),
-        quote_word_count: wordCount,
-      },
-    });
+    try {
+      const result = await qualifyHomepageLead({
+        source: "forensic_shift",
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        context: {
+          module: "forensic_shift",
+          quote_excerpt: summarizeQuote(quoteText),
+          quote_word_count: wordCount,
+        },
+      });
 
-    if (!result.success) {
-      setState("capture");
-      setErrorMessage(result.reason || "Qualification is unavailable right now. Please try again.");
-      return;
-    }
+      if (!result.success) {
+        setState("capture");
+        setErrorMessage(result.reason || "Qualification is unavailable right now. Please try again.");
+        return;
+      }
 
-    if (!result.qualified || !result.can_run_ai) {
+      if (!result.qualified || !result.can_run_ai) {
+        setModalOpen(false);
+        setState("rejected");
+        return;
+      }
+
+      setStoredQualification({
+        qualified: true,
+        can_run_ai: true,
+        lead_id: result.lead_id,
+        source: "forensic_shift",
+        qualified_at: new Date().toISOString(),
+      });
+
       setModalOpen(false);
-      setState("rejected");
-      return;
+      launchDeepScan();
+    } catch (error) {
+      console.error("[ForensicShift] qualification error", error);
+      setState("capture");
+      setErrorMessage("Qualification is unavailable right now. Please try again.");
     }
-
-    setStoredQualification({
-      qualified: true,
-      can_run_ai: true,
-      lead_id: result.lead_id,
-      source: "forensic_shift",
-      qualified_at: new Date().toISOString(),
-    });
-
-    setModalOpen(false);
-    launchDeepScan();
   };
 
   return (
