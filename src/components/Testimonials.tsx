@@ -134,7 +134,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
           className="text-center mb-12"
         >
           <p className="wm-eyebrow text-primary mb-3">Real Homeowner Results</p>
-          <h2 className="wm-title-section text-foreground">What Homeowners Are Saying</h2>
+          <h2 className="wm-title-section md:text-4xl text-foreground">What Homeowners Are Saying</h2>
         </motion.div>
 
         {/* Carousel */}
