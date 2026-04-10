@@ -20,6 +20,7 @@ interface QualificationFlowProps {
 }
 
 const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
