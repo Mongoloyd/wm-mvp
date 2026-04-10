@@ -130,9 +130,9 @@ const AuditHero = ({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.15 }}
-            className="order-3 lg:order-first lg:flex-1 mt-8 lg:mt-0 lg:pt-32 flex flex-col items-center lg:items-stretch"
+            className="order-3 lg:order-first lg:flex-1 mt-8 lg:mt-0 lg:pt-32 flex flex-col items-center lg:items-start"
           >
-            <div className="hidden lg:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
+            <div className="hidden lg:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5 lg:self-center lg:-translate-x-8">
               {trustPillContent}
             </div>
 
