@@ -61,10 +61,6 @@ export function XRayScannerBackground({ children }: XRayScannerBackgroundProps) 
     { speed: 60, delay: -35 },
     { speed: 42, delay: -5 },
     { speed: 58, delay: -28 },
-    { speed: 48, delay: -15 },
-    { speed: 52, delay: -40 },
-    { speed: 44, delay: -8 },
-    { speed: 65, delay: -32 },
   ];
 
   const redFlags = [
