@@ -139,7 +139,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
             Scan My Quote — It's Free
           </button>
           {onDemoClick && (
-            <button onClick={onDemoClick} className="btn-secondary-tactile" style={{ padding: "12px 24px" }}>
+            <button onClick={onDemoClick} className="btn-depth-destructive" style={{ padding: "12px 24px" }}>
               See the AI in Action — No Upload Needed
             </button>
           )}

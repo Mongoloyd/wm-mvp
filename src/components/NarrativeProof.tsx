@@ -73,7 +73,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
             Show Me My Grade →
           </button>
           {onDemoClick && <button onClick={onDemoClick}
-            className="block mx-auto mt-4 btn-secondary-tactile" style={{ padding: "12px 24px" }}>
+            className="block mx-auto mt-4 btn-depth-destructive" style={{ padding: "12px 24px" }}>
             See the AI in Action — No Upload Needed
           </button>}
         </motion.div>
