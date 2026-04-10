@@ -132,9 +132,13 @@ const AuditHero = ({
             transition={{ duration: 0.15 }}
             className="order-3 lg:order-first lg:flex-1 mt-8 lg:mt-0 lg:pt-32 flex flex-col items-center lg:items-start"
           >
-            <div className="hidden lg:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5 lg:self-center lg:-translate-x-8">
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              className="hidden lg:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5 lg:self-center lg:-translate-x-8"
+            >
               {trustPillContent}
-            </div>
+            </motion.div>
 
             <h1
               className="font-display uppercase leading-[1.08] mb-5"
