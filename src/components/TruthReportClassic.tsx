@@ -387,7 +387,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 GRADE {grade} — {config.label}
               </span>
             </div>
-            <p className="font-body text-foreground/90" style={{ fontSize: 16 }}>
+            <p className="font-body text-foreground/90 capitalize" style={{ fontSize: 16 }}>
               {config.verdict}
             </p>
           </div>
