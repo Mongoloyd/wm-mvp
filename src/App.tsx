@@ -36,7 +36,7 @@ const ContractorOpportunitiesPage = lazy(() => import("./pages/ContractorOpportu
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite.tsx"));
 const PartnerResetPassword = lazy(() => import("./pages/PartnerResetPassword.tsx"));
 const ContractorOnboarding = lazy(() => import("./pages/ContractorOnboarding.tsx"));
-const HeroBackdropTest = lazy(() => import("./pages/HeroBackdropTest.tsx"));
+
 // PartnerGuard removed — partner pages render publicly with preview fallback
 
 // Redirect helper: /report/:sessionId → /report/classic/:sessionId
@@ -113,7 +113,7 @@ const App = () => (
                 <Route path="/admin/settings" element={<AdminSettings />} />
                 <Route path="/demo-classic" element={<DemoClassic />} />
                 <Route path="/dev/report-preview" element={<DevReportPreview />} />
-                <Route path="/hero-backdrop-test" element={<HeroBackdropTest />} />
+                
 
                 {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
                 <Route element={<PublicLayout />}>
