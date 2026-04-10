@@ -148,9 +148,14 @@
     --radius-input: 7px;
 
     /* ── FONT TOKENS ── */
-    --wm-font-display: "Barlow Condensed", sans-serif;
-    --wm-font-body: "Barlow", sans-serif;
+    --wm-font-display: "Barlow Condensed", "Barlow Condensed Fallback", sans-serif;
+    --wm-font-body: "DM Sans", "DM Sans Fallback", "Inter", system-ui, sans-serif;
     --wm-font-mono: "DM Mono", "IBM Plex Mono", monospace;
+
+    /* ── HEADING COLOR TOKENS (Mode A) ── */
+    --wm-heading-primary: 210 50% 8%;
+    --wm-heading-secondary: 210 40% 15%;
+    --wm-heading-tertiary: 210 30% 25%;
 
     /* Palette tokens */
     --color-obsidian: 214 35% 95%;
@@ -422,8 +427,8 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    line-height: 1.12;
-    color: hsl(var(--foreground));
+    line-height: 1.2;
+    color: hsl(var(--wm-heading-primary));
   }
 
   .wm-body {
