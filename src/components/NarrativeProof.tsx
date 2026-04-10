@@ -116,22 +116,6 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.15 }}
-          className="text-center mt-12 card-raised p-7 md:p-8">
-          <h3 className="font-display text-[26px] text-foreground font-extrabold tracking-[0.01em] uppercase">
-            YOUR QUOTE IS EITHER PRICED FAIRLY OR IT ISN'T.
-          </h3>
-          <p className="font-body text-lg text-muted-foreground italic mt-3">
-            Right Now, The Contractor Knows Which One. You Don't.
-          </p>
-          <button onClick={handleScanClick} className="btn-depth-primary mt-8" style={{ padding: "16px 32px" }}>
-            Show Me My Grade →
-          </button>
-          {onDemoClick && <button onClick={onDemoClick}
-            className="block mx-auto mt-4 btn-depth-destructive" style={{ padding: "12px 24px" }}>
-            See the AI in Action — No Upload Needed
-          </button>}
-        </motion.div>
       </div>
     </section>
   );
