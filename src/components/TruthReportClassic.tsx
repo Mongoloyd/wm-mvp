@@ -1305,11 +1305,11 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   <div key={i} className="flex items-start gap-2.5">
                     <span
                       className="font-body"
-                      style={{ fontSize: 14, color: "hsl(var(--color-gold-accent))", flexShrink: 0, marginTop: 2 }}
+                      style={{ fontSize: 16, fontWeight: 700, color: "hsl(var(--color-gold-accent))", flexShrink: 0, marginTop: 2 }}
                     >
                       ✓
                     </span>
-                    <span className="font-body text-foreground/90" style={{ fontSize: 14, lineHeight: 1.6 }}>
+                    <span className="font-body text-foreground/90" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.6 }}>
                       {item}
                     </span>
                   </div>
