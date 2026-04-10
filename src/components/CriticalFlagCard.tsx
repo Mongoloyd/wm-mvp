@@ -157,10 +157,11 @@ export default function CriticalFlagCard({
                   <span
                     className="font-mono bg-secondary text-muted-foreground"
                     style={{
-                      fontSize: 9,
+                      fontSize: 11,
                       letterSpacing: "0.06em",
                       padding: "2px 8px",
                       borderRadius: 4,
+                      fontFamily: "'Roboto', sans-serif",
                     }}
                   >
                     {PILLAR_LABELS[pillar]}
