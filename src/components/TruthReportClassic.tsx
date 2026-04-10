@@ -713,9 +713,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                             </span>
                             {pillarLabel && (
                               <span
-                                className="font-mono bg-secondary text-muted-foreground"
+                                className="bg-secondary text-muted-foreground"
                                 style={{
                                   fontSize: 11,
+                                  fontFamily: "'Roboto', sans-serif",
                                   letterSpacing: "0.06em",
                                   padding: "2px 8px",
                                   borderRadius: "var(--radius-btn)",
