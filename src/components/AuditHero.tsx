@@ -13,17 +13,11 @@ const MASCOT_URL =
 
 interface AuditHeroProps {
   onFlowBClick?: () => void;
-
   onUploadQuote?: () => void;
-
   triggerPowerTool?: boolean;
-
   onPowerToolClose?: () => void;
-
   variantHeadline?: string;
-
   variantSubheadline?: string;
-
   variantBadgeText?: string;
 }
 
@@ -43,7 +37,6 @@ const AuditHero = ({
   const trustPillContent = (
     <>
       <span className="text-primary text-sm">🛡️</span>
-
       <span className="wm-eyebrow text-primary">{variantBadgeText || "FORENSIC QUOTE INTELLIGENCE"}</span>
     </>
   );
@@ -55,21 +48,15 @@ const AuditHero = ({
         background: "linear-gradient(168deg, hsl(214 35% 95%) 0%, hsl(216 38% 93%) 40%, hsl(218 32% 94%) 100%)",
       }}
     >
-      {/* ── HERO LAYOUT: flex-col on mobile, flex-row on md+ ── */}
-
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pb-16 md:pb-24">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8 text-center md:text-left">
           {/* ── ORDER 1 (mobile): Trust Pill ── */}
-
           <div className="order-1 md:hidden z-10 mt-4 inline-flex items-center gap-2 card-raised px-3 py-1 bg-primary/5">
             {trustPillContent}
           </div>
 
           {/* ── ORDER 2 (mobile) / right column (md+): Mascot + GradeCard ── */}
-
           <div className="order-2 md:order-last md:flex-1 flex flex-col items-center pt-0 md:pt-16">
-            {/* Mascot */}
-
             <div className="relative z-20 flex justify-center pointer-events-none w-full">
               <motion.div
                 animate={{ y: [-8, 0, -8] }}
@@ -85,8 +72,6 @@ const AuditHero = ({
               </motion.div>
             </div>
 
-            {/* GradeCard — desktop only */}
-
             <div className="hidden md:block relative z-10">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -99,25 +84,23 @@ const AuditHero = ({
           </div>
 
           {/* ── ORDER 3 (mobile) / left column (md+): Text + CTAs ── */}
-
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.15 }}
             className="order-3 md:order-first md:flex-1 mt-8 md:mt-0 md:pt-20 flex flex-col items-center md:items-start"
           >
-            {/* Pill — desktop only (mobile pill is rendered above as order-1) */}
-
+            {/* Pill — desktop only */}
             <div className="hidden md:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
               {trustPillContent}
             </div>
 
             <h1
-              className="font-display uppercase leading-[1.2] mb-5"
+              className="font-display leading-[1.15] mb-5"
               style={{
-                fontSize: "clamp(2rem, 5vw, 3.5rem)",
+                fontSize: "clamp(2rem, 5vw, 3.25rem)",
                 fontWeight: 800,
-                letterSpacing: "0.02em",
+                letterSpacing: "0.01em",
                 color: "hsl(var(--wm-heading-primary))",
               }}
             >
@@ -125,11 +108,11 @@ const AuditHero = ({
                 variantHeadline
               ) : (
                 <>
-                  YOUR QUOTE LOOKS LEGITIMATE.
+                  Your Quote Looks Legitimate.
                   <br />
-                  THAT'S EXACTLY WHAT{" "}
+                  That's Exactly What{" "}
                   <span className="text-destructive" style={{ textShadow: "0 0 20px hsla(25, 95%, 53%, 0.15)" }}>
-                    THEY'RE COUNTING ON.
+                    They're Counting On.
                   </span>
                 </>
               )}
@@ -143,17 +126,15 @@ const AuditHero = ({
                 variantSubheadline
               ) : (
                 <>
-                  The Impact Window Industry Has No Pricing Transparency Standard.
+                  The impact window industry has no pricing transparency standard.
                   <br />
-                  WindowMan Built One — and It Audits Your Quote In{" "}
+                  WindowMan built one — and it audits your quote in{" "}
                   <strong style={{ color: "hsl(var(--wm-heading-primary))" }}>under 60 seconds</strong>.
                 </>
               )}
             </p>
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 md:gap-4 w-full">
-              {/* Hero CTA — largest on page */}
-
               <button
                 onClick={() => onUploadQuote?.()}
                 className="btn-depth-primary w-full sm:w-auto whitespace-nowrap"
@@ -181,10 +162,8 @@ const AuditHero = ({
                   <span className="inline-flex items-center justify-center bg-primary text-primary-foreground font-mono text-[9px] font-bold tracking-[0.05em] px-1.5 py-0.5">
                     NEW
                   </span>
-
-                  <span>Getting Quotes Soon- Start Here</span>
+                  <span>Getting Quotes Soon — Start Here</span>
                 </span>
-
                 <span className="ml-[4.5ch] md:ml-0"> →</span>
               </button>
             </div>
