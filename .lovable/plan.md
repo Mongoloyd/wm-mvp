@@ -1,53 +1,33 @@
 
 
-## Plan: Add Forensic Explanations to Red Flags
+## Plan: Replace the NarrativeProof CTA block with the 3D "How WindowMan Actually Works" section
 
-### What We're Building
-An "Advisor List" section that replaces or enhances the current `RedFlagsList` component to show expert reasoning underneath each red flag title, helping homeowners understand *why* each issue matters.
+### What's Changing
+Replace the bottom CTA card in `NarrativeProof.tsx` (lines 119-134: "YOUR QUOTE IS EITHER PRICED FAIRLY...") with the full 3D layered card design from the user's provided code. This new section includes: header with badge, flow diagram (You → WindowMan → Contractor), "What Do You Get" benefits grid, and the "How/Why" bottom cards.
 
-### Layout Design
-- Clean paper background (`#FAF9F6`)
-- Each flag: **bold title** (text-slate-900) + **explanation** underneath (text-slate-600, text-sm)
-- Items separated by thin hairlines (`border-t border-slate-200`)
-- Generous vertical padding (`py-4`) per item for airy, scannable feel
+Additionally, replace the current `MarketMakerManifesto.tsx` with this same new design, since the new code covers all the same content (flow diagram, benefits list, how/why cards) but with the upgraded 3D aesthetic.
 
 ### Implementation
 
-**1. Create a reasoning map** (`src/utils/flagReasoningMap.ts`)
+**1. Rewrite `MarketMakerManifesto.tsx`**
+- Replace the entire component with the user's provided code, adapted to fit the project:
+  - Use `motion` from framer-motion (already a dependency) for animations
+  - Keep the existing `onDemoClick` prop interface
+  - Add `LayeredCard` and `BenefitItem` as local sub-components
+  - Use lucide-react icons (already imported throughout the project)
+  - Keep the existing background blobs, 3D offset cards, flow diagram, benefits grid, and How/Why cards exactly as provided
+  - Preserve the `useInView` pattern for scroll-triggered animations (consistent with existing code)
 
-A keyword-matched lookup (same pattern as `evidenceMapping.ts`) mapping ~18 flag labels to expert explanations:
+**2. Remove the CTA block from `NarrativeProof.tsx`**
+- Delete lines 119-134 (the "YOUR QUOTE IS EITHER PRICED FAIRLY" card with buttons)
+- The testimonial carousel above it remains untouched
 
-- `missing_dp_rating` → "The Design Pressure (DP) rating determines the wind load..."
-- `missing_noa_number` → "The Notice of Acceptance (NOA) is the 'legal birth certificate'..."
-- `no_permits_mentioned` → "Permits are your primary legal protection..."
-- `vague_install_scope` / `wall_repair_missing` / `completion_timeline_missing` / `opening_schedule_missing` / `waterproofing_missing`
-- `state_jurisdiction_mismatch`, `glass_package_unverifiable`, `unspecified_brand`, `no_warranty_section`, `no_cancellation_policy`, `missing_line_item_pricing`
-- Plus remaining flags from the full list
+### Files
+1. **Rewrite** `src/components/MarketMakerManifesto.tsx` — full replacement with 3D layered design
+2. **Edit** `src/components/NarrativeProof.tsx` — remove lines 119-134 (the bottom CTA block)
 
-Uses keyword matching on the flag label (same approach as `LABEL_KEYWORDS` in `evidenceMapping.ts`).
-
-**2. Update `RedFlagsList.tsx`**
-
-- Import the reasoning map
-- For each warning, resolve the reasoning text via keyword match
-- Render: title (bold, slate-900) → reasoning (sm, slate-600) → hairline separator
-- Wrap in `#FAF9F6` background, system UI font
-- `py-4` spacing between items keeps it airy despite 18+ items
-
-**3. No backend/edge function/OTP changes needed**
-
-This is purely a frontend presentation change. The data already flows correctly:
-- `warnings` array comes from `full_json` (already gated behind OTP)
-- `RedFlagsList` only renders in `isFull` mode (line 603)
-- The reasoning map is a static client-side dictionary — no new API calls
-
-### Risk Assessment
-- **No OTP issues**: Warnings only render post-verification
-- **No edge function changes**: Static map, no backend touch
-- **No error risk**: Keyword match returns `null` for unknown flags — component gracefully skips the explanation line
-- **No data model changes**: Pure UI layer addition
-
-### Files to Create/Edit
-1. **Create** `src/utils/flagReasoningMap.ts` — keyword→explanation dictionary
-2. **Edit** `src/components/report/RedFlagsList.tsx` — add reasoning display + paper styling
+### No Risk
+- No backend, OTP, or data model changes
+- No new dependencies (framer-motion + lucide-react already in use)
+- Index.tsx already renders `MarketMakerManifesto` — no routing changes needed
 
