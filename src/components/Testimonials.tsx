@@ -124,7 +124,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
   }, [emblaApi]);
 
   return (
-    <section ref={sectionRef} className="py-16 md:py-24 bg-background">
+    <section ref={sectionRef} className="py-16 md:py-24 bg-transparent">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <motion.div

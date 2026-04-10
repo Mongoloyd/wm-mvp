@@ -20,7 +20,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
   };
 
   return (
-    <section className="bg-background">
+    <section className="bg-transparent">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, ease: "easeOut" }} className="text-center">
           <p className="wm-eyebrow text-primary mb-4">REAL RESULTS FROM FLORIDA HOMEOWNERS</p>
