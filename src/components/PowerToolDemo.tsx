@@ -645,8 +645,8 @@ function CalibrationGateModal({ onSubmit }) {
             margin: "0 0 24px",
           }}
         >
-          To compute the final risk score, we need to calibrate the AI against your local county building codes and
-          fair-market pricing.
+          To compute your true score, the AI must calibrate against your local county codes. Enter your zip code and
+          mobile number to securely unlock your private results.
         </p>
 
         {/* Fields */}
