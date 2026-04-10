@@ -14,7 +14,7 @@ import { PostScanReportSwitcher } from "@/components/post-scan/PostScanReportSwi
 // ContractorMatch removed — CTAs now native in TruthReportClassic
 import IndustryTruth from "@/components/IndustryTruth";
 import ProcessSteps from "@/components/ProcessSteps";
-import XRayScannerBackground from "@/components/XRayScannerBackground";
+import { XRayScannerBackground } from "@/components/XRayScannerBackground";
 import NarrativeProof from "@/components/NarrativeProof";
 import ClosingManifesto from "@/components/ClosingManifesto";
 import Testimonials from "@/components/Testimonials";
