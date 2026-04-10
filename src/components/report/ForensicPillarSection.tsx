@@ -242,7 +242,7 @@ function PillarCard({
                     {redFlags[0].label}
                   </p>
                   <p
-                    className="font-body text-muted-foreground"
+                    className="font-body text-muted-foreground capitalize"
                     style={{ fontSize: 12, lineHeight: 1.5, marginTop: 2 }}
                   >
                     {redFlags[0].detail}
