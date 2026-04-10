@@ -377,10 +377,10 @@ function LeadModal({ onComplete, onClose }) {
         <div style={{ padding: "6px 28px 30px" }}>
           <Kicker>WINDOW MAN AI AUDIT</Kicker>
           <h2 style={{ fontSize: "24px", fontWeight: 800, color: T.text, margin: "0 0 10px", lineHeight: 1.2 }}>
-            See a Tailored AI Truth Report
+            See The AI Scanner in Real-Time
           </h2>
           <p style={{ fontSize: "14px", color: T.muted, margin: "0 0 24px", lineHeight: 1.6 }}>
-            Get The Same AI Scanner Contractors Don't Want You to See.
+            Watch WindowMan Forensically Analyze Your Quote & Give You the Truth
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <ModalField
