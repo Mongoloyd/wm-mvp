@@ -1,33 +1,35 @@
 
 
-## Plan: Replace the NarrativeProof CTA block with the 3D "How WindowMan Actually Works" section
+## Plan: Add Floating Quotes "Fairly Priced" Section
 
-### What's Changing
-Replace the bottom CTA card in `NarrativeProof.tsx` (lines 119-134: "YOUR QUOTE IS EITHER PRICED FAIRLY...") with the full 3D layered card design from the user's provided code. This new section includes: header with badge, flow diagram (You → WindowMan → Contractor), "What Do You Get" benefits grid, and the "How/Why" bottom cards.
+### What We're Building
+A new component (`QuoteSpreadShowcase`) that displays 5 animated floating contractor quotes with red-flag stamps, a bold headline ("YOUR QUOTE IS EITHER PRICED FAIRLY OR IT ISN'T"), and two CTA buttons ("Grade My Quote" and "Translate Jargon"). The design matches the user's provided screenshot with a dark liquid-quartz background, 3D paper-drift animations, and glossy CTA buttons.
 
-Additionally, replace the current `MarketMakerManifesto.tsx` with this same new design, since the new code covers all the same content (flow diagram, benefits list, how/why cards) but with the upgraded 3D aesthetic.
+**Important**: The AI modal functionality from the provided code will NOT be included since WindowMan uses server-side AI via edge functions (per project rules). The "Grade My Quote" button will trigger the existing scan funnel, and "Translate Jargon" will trigger the existing PowerTool/demo flow.
+
+### Placement
+Between the `InteractiveDemoScan` / `ProcessSteps` block and the `Testimonials` ("Real Homeowner Results") section. Specifically, it will be inserted in `Index.tsx` at line 356, right before `IndustryTruth`.
 
 ### Implementation
 
-**1. Rewrite `MarketMakerManifesto.tsx`**
-- Replace the entire component with the user's provided code, adapted to fit the project:
-  - Use `motion` from framer-motion (already a dependency) for animations
-  - Keep the existing `onDemoClick` prop interface
-  - Add `LayeredCard` and `BenefitItem` as local sub-components
-  - Use lucide-react icons (already imported throughout the project)
-  - Keep the existing background blobs, 3D offset cards, flow diagram, benefits grid, and How/Why cards exactly as provided
-  - Preserve the `useInView` pattern for scroll-triggered animations (consistent with existing code)
+**1. Create `src/components/QuoteSpreadShowcase.tsx`**
+- 5 `MockEstimate` cards with company names, line items, totals, and colored "gotcha" stamps (e.g., "60% NON-REFUNDABLE DEPOSIT", "MISSING NOA CODES")
+- CSS keyframe animations for paper drifting (`drift-paper-1` through `drift-paper-5`)
+- Liquid quartz background with gradient blobs and noise texture overlay
+- Mouse-tracking 3D tilt via `perspective` and `rotateX/Y` transforms
+- Headline + subheadline with the provided copy
+- Two glossy CTA buttons wired to `onScanClick` and `onDemoClick` props
 
-**2. Remove the CTA block from `NarrativeProof.tsx`**
-- Delete lines 119-134 (the "YOUR QUOTE IS EITHER PRICED FAIRLY" card with buttons)
-- The testimonial carousel above it remains untouched
+**2. Edit `src/pages/Index.tsx`**
+- Import `QuoteSpreadShowcase`
+- Add it at ~line 356 (before `IndustryTruth`), passing `onScanClick={() => triggerTruthGate('quote_spread')}` and `onDemoClick` to trigger the PowerTool
 
 ### Files
-1. **Rewrite** `src/components/MarketMakerManifesto.tsx` — full replacement with 3D layered design
-2. **Edit** `src/components/NarrativeProof.tsx` — remove lines 119-134 (the bottom CTA block)
+1. **Create** `src/components/QuoteSpreadShowcase.tsx`
+2. **Edit** `src/pages/Index.tsx` — add import + render
 
 ### No Risk
-- No backend, OTP, or data model changes
-- No new dependencies (framer-motion + lucide-react already in use)
-- Index.tsx already renders `MarketMakerManifesto` — no routing changes needed
+- Pure frontend visual component, no backend/OTP/data changes
+- Reuses existing `triggerTruthGate` and `powerToolTriggered` handlers
+- No new dependencies needed (uses standard React + CSS animations)
 
