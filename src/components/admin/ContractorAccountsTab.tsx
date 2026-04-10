@@ -40,6 +40,7 @@ interface ContractorAccount {
   has_contractor_record: boolean;
   contractor_record_id: string | null;
   marketplace_company_name: string | null;
+  routing_setup_completed_at: string | null;
 }
 
 interface LedgerEntry {
