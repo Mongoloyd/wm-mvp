@@ -146,7 +146,7 @@ const AuditHero = ({
                   The Impact Window Industry Has No Pricing Transparency Standard.
                   <br />
                   WindowMan Built One — and It Audits Your Quote In{" "}
-                  <strong style={{ color: "hsl(210 50% 8%)" }}>under 60 seconds</strong>.
+                  <strong style={{ color: "hsl(var(--wm-heading-primary))" }}>under 60 seconds</strong>.
                 </>
               )}
             </p>

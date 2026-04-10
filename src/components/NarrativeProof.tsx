@@ -62,7 +62,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.15, delay: 0.15 }}
           className="text-center mt-12 card-raised p-7 md:p-8">
-          <h3 className="font-display text-[26px] text-foreground font-extrabold tracking-[0.01em] uppercase">
+          <h3 className="font-display text-foreground tracking-[0.02em] uppercase" style={{ fontSize: "clamp(1.25rem, 3vw, 1.625rem)", fontWeight: 800 }}>
             YOUR QUOTE IS EITHER PRICED FAIRLY OR IT ISN'T.
           </h3>
           <p className="font-body text-lg text-muted-foreground italic mt-3">
