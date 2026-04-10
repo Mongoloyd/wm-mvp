@@ -108,7 +108,7 @@ const ExitIntentModal = ({ leadCaptured, county, onClose, onCTAClick }: ExitInte
               </div>
 
               <h2
-                className="font-display font-black uppercase leading-tight tracking-wide text-foreground mb-4"
+                className="font-heading font-bold  leading-tight  text-foreground mb-4"
                 style={{ fontSize: "clamp(22px, 4vw, 28px)" }}
               >
                 1 Question Before You Go

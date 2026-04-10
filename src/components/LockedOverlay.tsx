@@ -269,10 +269,10 @@ export function LockedOverlay({
               🔒 VERIFICATION REQUIRED
             </p>
             <p
-              className="font-display text-foreground"
+              className="font-heading text-foreground"
               style={{
                 fontSize: 22,
-                fontWeight: 800,
+                fontWeight: 700,
                 lineHeight: 1.25,
                 marginBottom: 6,
               }}
@@ -564,7 +564,7 @@ export function LockedOverlay({
                   whileTap={{ scale: 0.97 }}
                   onClick={onSendCode}
                   disabled={isLoading}
-                  className="btn-depth-gold w-full max-w-[320px] h-[54px] text-[17px] font-extrabold flex items-center justify-center gap-2"
+                  className="btn-depth-gold w-full max-w-[320px] h-[54px] text-[17px] font-bold flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -700,7 +700,7 @@ export function LockedOverlay({
                   whileTap={canSubmitPhone ? { scale: 0.97 } : {}}
                   onClick={onPhoneSubmit}
                   disabled={!canSubmitPhone}
-                  className={`w-full max-w-[320px] h-[54px] text-[17px] font-extrabold flex items-center justify-center gap-2 ${
+                  className={`w-full max-w-[320px] h-[54px] text-[17px] font-bold flex items-center justify-center gap-2 ${
                     canSubmitPhone ? "btn-depth-gold" : "btn-depth-gold--pending"
                   }`}
                 >
