@@ -4,7 +4,7 @@ import { TrustBullets } from "./TrustBullets";
 import SampleGradeCard from "./SampleGradeCard";
 import { useTickerStats } from "@/hooks/useTickerStats";
 import { Shield, TrendingDown, BarChart3 } from "lucide-react";
-import scanOcrImg from "@/assets/scan_ocr.avif";
+import scanOcrImg from "@/assets/scan_ocr_hero.png";
 
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
 
