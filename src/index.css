@@ -7,75 +7,67 @@
    Eliminates visible font swap (FOUT)
    ═══════════════════════════════════════════════════════════ */
 
-/* ── Barlow Condensed (headings) ── */
+/* ── Barlow (standard — headings) ── */
 @font-face {
-  font-family: "Barlow Condensed";
+  font-family: "Barlow";
   font-style: normal;
   font-weight: 700;
   font-display: optional;
-  src: url("./assets/fonts/barlow-condensed-latin-700-normal.woff2") format("woff2");
+  src: url("./assets/fonts/barlow-latin-700-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "Barlow Condensed";
+  font-family: "Barlow";
   font-style: normal;
   font-weight: 800;
   font-display: optional;
-  src: url("./assets/fonts/barlow-condensed-latin-800-normal.woff2") format("woff2");
+  src: url("./assets/fonts/barlow-latin-800-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "Barlow Condensed";
+  font-family: "Barlow";
   font-style: normal;
   font-weight: 900;
   font-display: optional;
-  src: url("./assets/fonts/barlow-condensed-latin-900-normal.woff2") format("woff2");
+  src: url("./assets/fonts/barlow-latin-900-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* ── DM Sans (body) ── */
+/* ── Inter (body / UI) ── */
 @font-face {
-  font-family: "DM Sans";
+  font-family: "Inter";
   font-style: normal;
   font-weight: 400;
   font-display: optional;
-  src: url("./assets/fonts/dm-sans-latin-400-normal.woff2") format("woff2");
+  src: url("./assets/fonts/inter-latin-400-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "DM Sans";
+  font-family: "Inter";
   font-style: normal;
   font-weight: 500;
   font-display: optional;
-  src: url("./assets/fonts/dm-sans-latin-500-normal.woff2") format("woff2");
+  src: url("./assets/fonts/inter-latin-500-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "DM Sans";
+  font-family: "Inter";
   font-style: normal;
   font-weight: 600;
   font-display: optional;
-  src: url("./assets/fonts/dm-sans-latin-600-normal.woff2") format("woff2");
+  src: url("./assets/fonts/inter-latin-600-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "DM Sans";
+  font-family: "Inter";
   font-style: normal;
   font-weight: 700;
   font-display: optional;
-  src: url("./assets/fonts/dm-sans-latin-700-normal.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: "DM Sans";
-  font-style: normal;
-  font-weight: 800;
-  font-display: optional;
-  src: url("./assets/fonts/dm-sans-latin-800-normal.woff2") format("woff2");
+  src: url("./assets/fonts/inter-latin-700-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* ── DM Mono (code/data) ── */
+/* ── DM Mono (code/data — kept for utility text) ── */
 @font-face {
   font-family: "DM Mono";
   font-style: normal;
@@ -87,18 +79,18 @@
 
 /* ── Metric-adjusted fallbacks (minimize CLS) ── */
 @font-face {
-  font-family: "Barlow Condensed Fallback";
-  src: local("Arial Narrow"), local("Arial");
-  size-adjust: 90%;
-  ascent-override: 105%;
+  font-family: "Barlow Fallback";
+  src: local("Arial"), local("Helvetica");
+  size-adjust: 100%;
+  ascent-override: 100%;
   descent-override: 22%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: "DM Sans Fallback";
+  font-family: "Inter Fallback";
   src: local("Helvetica Neue"), local("Helvetica"), local("Arial");
-  size-adjust: 105%;
-  ascent-override: 95%;
+  size-adjust: 107%;
+  ascent-override: 90%;
   descent-override: 23%;
   line-gap-override: 0%;
 }
@@ -148,8 +140,8 @@
     --radius-input: 7px;
 
     /* ── FONT TOKENS ── */
-    --wm-font-display: "Barlow Condensed", "Barlow Condensed Fallback", sans-serif;
-    --wm-font-body: "DM Sans", "DM Sans Fallback", "Inter", system-ui, sans-serif;
+    --wm-font-display: "Barlow", "Barlow Fallback", sans-serif;
+    --wm-font-body: "Inter", "Inter Fallback", system-ui, sans-serif;
     --wm-font-mono: "DM Mono", "IBM Plex Mono", monospace;
 
     /* ── HEADING COLOR TOKENS (Mode A) ── */
@@ -425,8 +417,7 @@
   .wm-title-section {
     font-family: var(--wm-font-display);
     font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
     line-height: 1.2;
     color: hsl(var(--wm-heading-primary));
   }
