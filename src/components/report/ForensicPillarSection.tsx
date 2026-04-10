@@ -13,6 +13,7 @@ import { Shield, Ruler, DollarSign, FileText, ShieldCheck, ShieldAlert, MessageS
 import type { PillarScore, AnalysisFlag } from "@/hooks/useAnalysisData";
 import { rankPillars, type RankedPillar } from "@/utils/pillarRanking";
 import VerdictPositionBar from "@/components/report/VerdictPositionBar";
+import { getFlagReasoning } from "@/utils/flagReasoningMap";
 
 interface ForensicPillarSectionProps {
   pillarScores: PillarScore[];
