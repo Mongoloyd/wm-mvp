@@ -29,8 +29,8 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
   return (
     <section className="bg-card border-t border-border section-recessed">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 content-section">
-        <motion.p {...fade(0)} className="text-center wm-eyebrow text-primary mb-5">
-          HOW WINDOWMAN ACTUALLY WORKS
+        <motion.p {...fade(0)} className="text-center wm-eyebrow mb-5">
+          How WindowMan Actually Works
         </motion.p>
         <motion.h2
           {...fade(0.02)}

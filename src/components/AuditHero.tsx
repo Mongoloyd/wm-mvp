@@ -37,7 +37,7 @@ const AuditHero = ({
   const trustPillContent = (
     <>
       <span className="text-primary text-sm">🛡️</span>
-      <span className="wm-eyebrow text-primary">{variantBadgeText || "FORENSIC QUOTE INTELLIGENCE"}</span>
+      <span className="text-primary text-xs font-semibold tracking-wide">{variantBadgeText || "Forensic Quote Intelligence"}</span>
     </>
   );
 
@@ -96,12 +96,13 @@ const AuditHero = ({
             </div>
 
             <h1
-              className="font-heading leading-[1.15] mb-5"
+              className="font-heading mb-6"
               style={{
                 fontSize: "clamp(2rem, 5vw, 3.25rem)",
-                fontWeight: 800,
-                letterSpacing: "normal",
-                color: "hsl(var(--wm-heading-primary))",
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+                lineHeight: 1.1,
+                color: "hsl(210 50% 8%)",
               }}
             >
               {variantHeadline ? (
@@ -120,16 +121,16 @@ const AuditHero = ({
 
             <p
               className="font-body mb-8"
-              style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(var(--wm-heading-tertiary))" }}
+              style={{ fontSize: "clamp(16px, 2vw, 19px)", lineHeight: 1.6, color: "hsl(210 20% 32%)" }}
             >
               {variantSubheadline ? (
                 variantSubheadline
               ) : (
                 <>
                   The impact window industry has no pricing transparency standard.
-                  <br />
+                  <br className="hidden md:inline" />
                   WindowMan built one — and it audits your quote in{" "}
-                  <strong style={{ color: "hsl(var(--wm-heading-primary))" }}>under 60 seconds</strong>.
+                  <strong style={{ color: "hsl(210 50% 8%)" }}>under 60 seconds</strong>.
                 </>
               )}
             </p>

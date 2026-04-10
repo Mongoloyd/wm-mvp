@@ -32,7 +32,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           initial={{ opacity: 0, y: 12 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="wm-eyebrow text-muted-foreground mb-10"
+          className="wm-eyebrow mb-8"
         >
           WHY WINDOWMAN EXISTS
         </motion.p>
@@ -48,7 +48,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, delay: 0.16, ease: "easeOut" }}
-          className="section-header-major text-primary"
+          className="section-header-major text-primary leading-[1.15]"
           style={{ marginBottom: 0 }}
         >
           We Built a System Where You Don't.

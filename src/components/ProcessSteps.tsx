@@ -62,7 +62,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="text-center"
         >
-          <p className="wm-eyebrow text-primary mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
+          <p className="wm-eyebrow mb-4">What Happens When You Scan</p>
           <h2 className="section-header-medium mb-12">
             Upload Your Quote. In Under 60 Seconds, You'll Know:
           </h2>

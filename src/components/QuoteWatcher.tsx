@@ -53,7 +53,7 @@ const QuoteWatcher = ({ onSwitchToFlowA, onViewChecklist, onReminderSet }: Quote
   return (
     <section id="quote-watcher" className="bg-background">
       <div className="mx-auto max-w-4xl px-4 pt-20 md:px-8 md:pt-28 text-center">
-        <p className="wm-eyebrow text-primary mb-5">WHAT HAPPENS WHEN YOU UPLOAD YOUR QUOTE</p>
+        <p className="wm-eyebrow mb-5">What Happens When You Upload Your Quote</p>
         <h2 className="section-header-medium mb-10">This Is What Will Happen to Your Quote Once You Get It</h2>
         <ScanPreview />
       </div>

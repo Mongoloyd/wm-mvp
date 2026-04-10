@@ -16,7 +16,7 @@ const CtaButton = memo(() => (
         const target = document.getElementById("market-baseline") || document.getElementById("truth-gate");
         target?.scrollIntoView({ behavior: "smooth" });
       }}
-      className="font-heading text-sm text-primary hover:text-primary/80 transition-colors cursor-pointer font-bold md:text-xl"
+      className="font-heading text-sm text-primary hover:text-primary/80 transition-colors cursor-pointer font-semibold md:text-lg"
     >
       Don't Sign Until You've Got Your Free WindowMan AI Truth Report →
     </button>
