@@ -62,7 +62,7 @@ interface ProcessStepsProps {
 
 export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsProps) {
   return (
-    <section className="bg-background py-20 px-4 sm:px-6 lg:px-8">
+    <section className="bg-transparent py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">

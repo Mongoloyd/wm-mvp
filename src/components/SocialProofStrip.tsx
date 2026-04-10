@@ -13,7 +13,7 @@ const SocialProofStrip = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.15, delay: 0.1 }}
-      className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-center wm-bridge-strip"
+      className="w-full py-4 px-4 md:py-5 md:px-8 flex items-center justify-center"
     >
       {/* Ring 1 — outermost, darkest */}
       <motion.div

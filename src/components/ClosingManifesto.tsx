@@ -26,7 +26,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
   };
 
   return (
-    <section className="bg-background">
+    <section className="bg-transparent">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28 text-center">
         <motion.p
           initial={{ opacity: 0, y: 12 }}

@@ -58,7 +58,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
   };
 
   return (
-    <section className="bg-background section-recessed">
+    <section className="bg-transparent">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

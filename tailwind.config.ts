@@ -140,6 +140,26 @@ export default {
           "50%": { transform: "scale(1.08) translate(5px, -8px)" },
           "75%": { transform: "scale(1.08) translate(8px, 3px)" },
         },
+        "blob-drift-1": {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "33%": { transform: "translate(30px, 20px)" },
+          "66%": { transform: "translate(-20px, 10px)" },
+        },
+        "blob-drift-2": {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "33%": { transform: "translate(-25px, 15px)" },
+          "66%": { transform: "translate(15px, -20px)" },
+        },
+        "blob-drift-3": {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "33%": { transform: "translate(20px, -15px)" },
+          "66%": { transform: "translate(-15px, 25px)" },
+        },
+        "blob-drift-4": {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "33%": { transform: "translate(-20px, -10px)" },
+          "66%": { transform: "translate(25px, 15px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.15s ease-out",
@@ -151,6 +171,10 @@ export default {
         "status-pulse": "status-pulse 2s ease-in-out infinite",
         "holo-pulse": "holo-pulse 4s ease infinite",
         "hero-drift": "hero-drift 15s ease-in-out infinite",
+        "blob-drift-1": "blob-drift-1 25s ease-in-out infinite",
+        "blob-drift-2": "blob-drift-2 30s ease-in-out infinite",
+        "blob-drift-3": "blob-drift-3 28s ease-in-out infinite",
+        "blob-drift-4": "blob-drift-4 22s ease-in-out infinite",
       },
     },
   },

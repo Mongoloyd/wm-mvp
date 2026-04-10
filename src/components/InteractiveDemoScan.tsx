@@ -300,7 +300,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
   const counter = useCounter(activeScan.delta, 1200, phase === "reveal" || phase === "hook");
 
   return (
-    <section className="border-t border-b border-border bg-background py-20 md:py-28">
+    <section className="bg-transparent py-20 md:py-28">
       <div className="mx-auto max-w-5xl px-4 md:px-8">
         <div className="text-center mb-9">
           <p className="wm-eyebrow text-cobalt mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
