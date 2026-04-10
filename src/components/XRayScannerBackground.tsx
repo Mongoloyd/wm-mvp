@@ -77,7 +77,7 @@ export function XRayScannerBackground({ children }: XRayScannerBackgroundProps) 
     >
       {/* Layer 1: Dense scrolling contract text */}
       {!prefersReducedMotion && (
-        <div className="absolute inset-x-0 bottom-0 opacity-[0.12] pointer-events-none hidden md:block" style={{ top: '120px' }}>
+        <div className="absolute inset-x-0 bottom-0 opacity-[0.12] pointer-events-none hidden md:block" style={{ top: '280px' }}>
           {rowConfigs.map((cfg, rowIdx) => (
             <div
               key={rowIdx}
