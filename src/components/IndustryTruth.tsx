@@ -67,7 +67,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           className="text-center"
         >
           <div className="mx-auto mb-6 w-10 h-px bg-primary" />
-          <p className="wm-eyebrow text-primary mb-5">HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.</p>
+          <p className="wm-eyebrow mb-5">Here's What No Contractor Will Tell You Before You Sign</p>
           <h2 className="section-header-major mx-auto mb-4" style={{ maxWidth: 700 }}>
             The Impact Window Industry Has No Pricing Standard.
           </h2>
@@ -97,7 +97,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
               <div className="flex items-center justify-center w-12 h-12 card-raised">
                 <span className="text-2xl leading-none">{block.icon}</span>
               </div>
-              <h3 className="font-heading text-xl font-bold text-foreground mt-4">
+              <h3 className="section-header-small mt-4">
                 {block.heading}
               </h3>
               <p className="wm-body mt-2">{block.copy}</p>

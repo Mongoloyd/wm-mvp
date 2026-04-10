@@ -133,7 +133,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="text-center mb-12"
         >
-          <p className="wm-eyebrow text-primary mb-3">Real Homeowner Results</p>
+          <p className="wm-eyebrow mb-3">Real Homeowner Results</p>
           <h2 className="section-header-medium">
             What Florida Homeowners Are Saying
           </h2>

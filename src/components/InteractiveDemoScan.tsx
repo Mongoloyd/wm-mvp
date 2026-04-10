@@ -303,7 +303,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
     <section className="border-t border-b border-border bg-background content-section">
       <div className="mx-auto max-w-5xl px-4 md:px-8">
         <div className="text-center mb-9">
-          <p className="wm-eyebrow text-cobalt mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
+          <p className="wm-eyebrow mb-3">Live Demo — Watch a Real Scan</p>
           <h2 className="section-header-medium mb-1.5">
             See the AI at work.
           </h2>

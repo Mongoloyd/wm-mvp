@@ -42,14 +42,14 @@ const LinearHeader = ({ ctaText = "Get Started Free", onCtaClick }: LinearHeader
               🛡️
             </span>
           </span>
-          <span className="font-heading" style={{ fontWeight: 800, fontSize: 20, letterSpacing: "normal" }}>
-            <span className="text-foreground">WINDOW</span>
-            <span style={{ color: "#448df7" }}>MAN</span>
+          <span className="font-heading" style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-0.01em" }}>
+            <span style={{ color: "hsl(210 50% 8%)" }}>WINDOW</span>
+            <span style={{ color: "hsl(217 91% 53%)" }}>MAN</span>
             <sup
               className="text-muted-foreground"
-              style={{ fontSize: 9, fontWeight: 400, letterSpacing: "0.15em", marginLeft: 2, verticalAlign: "super" }}
+              style={{ fontSize: 9, fontWeight: 500, letterSpacing: "0.08em", marginLeft: 2, verticalAlign: "super" }}
             >
-              .PRO
+              PRO
             </sup>
           </span>
         </a>
