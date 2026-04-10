@@ -156,7 +156,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
                   <div className="card-raised p-6 h-full border-l-4 border-l-[hsl(var(--color-emerald))] transition-transform duration-150 ease-out hover:-translate-y-[1px]">
                     {/* Header */}
                     <div className="flex items-start gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-display font-bold text-sm text-primary shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-heading font-bold text-sm text-primary shrink-0">
                         {review.name.charAt(0)}
                       </div>
                       <div className="min-w-0">
@@ -244,7 +244,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
           className="grid md:grid-cols-3 gap-4 mb-12"
         >
           <div className="card-raised p-6 text-center">
-            <p className="font-display font-extrabold text-3xl md:text-4xl text-[hsl(var(--color-emerald))] mb-1">
+            <p className="font-heading font-bold text-3xl md:text-4xl text-[hsl(var(--color-emerald))] mb-1">
               ${((total * 3800) / 1000000).toFixed(1)}M+
             </p>
             <p className="font-body text-sm text-muted-foreground">
@@ -252,7 +252,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
             </p>
           </div>
           <div className="card-raised p-6 text-center">
-            <p className="font-display font-extrabold text-3xl md:text-4xl text-primary mb-1">
+            <p className="font-heading font-bold text-3xl md:text-4xl text-primary mb-1">
               {total.toLocaleString()}
             </p>
             <p className="font-body text-sm text-muted-foreground">
@@ -260,7 +260,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
             </p>
           </div>
           <div className="card-raised p-6 text-center">
-            <p className="font-display font-extrabold text-3xl md:text-4xl text-[hsl(var(--color-vivid-orange))] mb-1">
+            <p className="font-heading font-bold text-3xl md:text-4xl text-[hsl(var(--color-vivid-orange))] mb-1">
               94%
             </p>
             <p className="font-body text-sm text-muted-foreground">
@@ -277,7 +277,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
             transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
             className="card-dominant p-8 text-center"
           >
-            <h3 className="font-display text-foreground mb-3 tracking-[0.01em]" style={{ fontSize: "clamp(1.25rem, 3vw, 1.5rem)", fontWeight: 800 }}>
+            <h3 className="font-heading text-foreground mb-3" style={{ fontSize: "clamp(1.25rem, 3vw, 1.5rem)", fontWeight: 700 }}>
               See What's Hiding in Your Quote
             </h3>
             <p className="font-body text-sm text-muted-foreground mb-6 max-w-md mx-auto">

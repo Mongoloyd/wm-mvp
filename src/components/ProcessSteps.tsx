@@ -120,7 +120,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           transition={{ duration: 0.15, delay: 0.2 }}
           className="mt-14"
         >
-          <h3 className="font-display text-foreground tracking-[0.01em] mb-6" style={{ fontSize: "clamp(1.25rem, 3vw, 1.875rem)", fontWeight: 800 }}>
+          <h3 className="font-heading text-foreground mb-6" style={{ fontSize: "clamp(1.25rem, 3vw, 1.875rem)", fontWeight: 700 }}>
             You'll Walk Away Knowing:
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

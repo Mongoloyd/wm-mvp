@@ -100,7 +100,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
               <div className="flex items-center justify-center w-12 h-12 card-raised">
                 <span className="text-2xl leading-none">{block.icon}</span>
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground mt-4 tracking-[0.01em]">
+              <h3 className="font-heading text-xl font-bold text-foreground mt-4">
                 {block.heading}
               </h3>
               <p className="wm-body mt-2">{block.copy}</p>
@@ -121,13 +121,13 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           className="text-center mt-16 card-raised p-7 md:p-8"
         >
           <p
-            className="font-display text-foreground tracking-[0.01em] mb-4 opacity-75 font-extrabold text-2xl"
+            className="font-heading text-foreground mb-4 opacity-75 font-bold text-2xl"
             style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
           >
             Most Homeowners Assume the Quote Reflects the Market Rate.
           </p>
           <p
-            className="font-display text-destructive tracking-[0.01em] font-semibold text-4xl"
+            className="font-heading text-destructive font-semibold text-4xl"
             style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
           >
             It Usually Doesn't.
