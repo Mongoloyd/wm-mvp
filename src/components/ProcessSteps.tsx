@@ -1,162 +1,181 @@
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import React from 'react';
+import {
+  ScanSearch,
+  Target,
+  Flag,
+  Diamond,
+  CheckCircle2,
+  FileCheck,
+} from 'lucide-react';
 
 const steps = [
   {
-    num: "01",
-    title: "Answer 4 Questions",
-    copy: "Window count, project type, county, and quote range. Takes 45 seconds.",
+    num: '01',
+    title: 'Answer 4 quick questions',
+    desc: 'County, scope, project type, and quote stage. No account required.',
   },
   {
-    num: "02",
-    title: "Enter your details",
-    copy: "Name, email, and mobile. Your report is sent here. No password needed.",
-  },
-  { num: "03", title: "Upload your quote", copy: "PDF, photo, or screenshot. Any format. We extract every line item." },
-  {
-    num: "04",
-    title: "AI scans your quote",
-    copy: "Our AI benchmarks your price against county averages and flags every issue.",
+    num: '02',
+    title: 'Upload your quote',
+    desc: 'PDF or image. Any format from any Florida contractor.',
   },
   {
-    num: "05",
-    title: "Your grade appears",
-    copy: "A through F. A dollar delta. Every red flag. Your negotiation ammunition.",
+    num: '03',
+    title: 'AI scans every line',
+    desc: 'Pricing, brands, warranties, permits, payment terms, and installation specs.',
+  },
+  {
+    num: '04',
+    title: 'Your grade is calculated',
+    desc: 'Compared against real contracts in your county and scope.',
+  },
+  {
+    num: '05',
+    title: 'You decide what to do',
+    desc: 'Use your negotiation script, request a better quote, or simply know you signed fairly.',
   },
 ];
 
-const deliverables = [
+const takeaways = [
   {
-    color: "#2563EB",
-    icon: "◎",
-    text: "Whether your price is above, below, or at fair market for your specific county",
+    icon: Target,
+    text: 'Whether your price is above, below, or at fair market for your specific county',
   },
-  { color: "#F97316", icon: "⚑", text: "Which line items are vague, missing, or potentially inflated" },
-  { color: "#C8952A", icon: "◈", text: "What window brand — if any — your contractor actually specified" },
-  { color: "#2563EB", icon: "◉", text: "A letter grade: A through F" },
-  { color: "#2563EB", icon: "$", text: "The specific dollar amount you're over or under market" },
+  {
+    icon: Flag,
+    text: 'Which line items are vague, missing, or potentially inflated',
+  },
+  {
+    icon: Diamond,
+    text: 'What window brand — if any — your contractor actually specified',
+  },
+  {
+    icon: CheckCircle2,
+    text: 'A letter grade: A through F',
+  },
 ];
 
-interface ProcessStepsProps {
-  onScanClick?: () => void;
-  onDemoClick?: () => void;
-}
-
-const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.1 });
-  const handleScanClick = () => {
-    if (onScanClick) {
-      onScanClick();
-    } else {
-      document.getElementById("truth-gate")?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
+export default function ProcessSteps() {
   return (
-    <section id="how-it-works" className="bg-card border-y border-border section-recessed">
-      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="text-center"
-        >
-          <p className="wm-eyebrow text-primary mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
-          <h2
-            className="wm-title-section mb-12"
-            style={{ fontSize: "clamp(32px, 5vw, 36px)", color: "hsl(210 50% 8%)" }}
-          >
-            UPLOAD YOUR QUOTE. IN UNDER 60 SECONDS, YOU'LL KNOW:
+    <section className="bg-background py-20 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary border border-border mb-5 shadow-sm">
+            <ScanSearch className="w-8 h-8 text-primary" strokeWidth={1.8} />
+          </div>
+          <div className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase mb-4">
+            How it works
+          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-[-0.02em] leading-[1.08]">
+            What happens when you scan
           </h2>
-        </motion.div>
-
-        {/* Desktop */}
-        <div className="hidden md:block relative">
-          <div className="absolute top-5 left-0 right-0 h-px bg-border" />
-          <div className="grid grid-cols-5 gap-6">
-            {steps.map((step, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.35, delay: 0.1 + i * 0.08, ease: "easeOut" }}
-                className="relative text-center"
-              >
-                <div className="mx-auto flex items-center justify-center relative z-10 w-10 h-10 card-raised">
-                  <span className="font-mono text-[15px] font-bold text-primary">{step.num}</span>
-                </div>
-                <h3 className="font-body text-base font-bold text-foreground mt-3">{step.title}</h3>
-                <p className="font-body text-[13px] text-muted-foreground leading-relaxed mt-1">{step.copy}</p>
-              </motion.div>
-            ))}
-          </div>
+          <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-7">
+            Upload your quote. In under 60 seconds, you'll know exactly where
+            you stand — before you sign.
+          </p>
         </div>
 
-        {/* Mobile */}
-        <div className="md:hidden flex flex-col gap-6">
-          {steps.map((step, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 12 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.15, delay: i * 0.05 }}
-              className="flex items-start gap-4"
-            >
-              <div className="flex items-center justify-center flex-shrink-0 w-9 h-9 bg-primary">
-                <span className="font-mono text-[13px] font-bold text-primary-foreground">{step.num}</span>
-              </div>
-              <div>
-                <h3 className="font-body text-base font-bold text-foreground">{step.title}</h3>
-                <p className="font-body text-[13px] text-muted-foreground leading-relaxed mt-1">{step.copy}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.15, delay: 0.2 }}
-          className="mt-14"
-        >
-          <h3 className="font-display text-[22px] font-bold text-foreground uppercase tracking-[0.02em] mb-6">
-            YOU'LL WALK AWAY KNOWING:
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {deliverables.map((d, i) => (
-              <div key={i} className="flex items-start gap-3 card-raised p-3">
+        {/* Two-column layout */}
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+          {/* Timeline */}
+          <div className="lg:col-span-7 relative">
+            <div className="hidden sm:block absolute left-[22px] top-6 bottom-6 w-px bg-gradient-to-b from-primary/30 via-border to-border" />
+            <div className="space-y-5 sm:space-y-6">
+              {steps.map((step) => (
                 <div
-                  className="flex items-center justify-center flex-shrink-0 w-7 h-7"
-                  style={{ backgroundColor: `${d.color}15` }}
+                  key={step.num}
+                  className="relative z-10 flex items-start gap-4 sm:gap-5 group"
                 >
-                  <span className="font-mono text-sm font-bold" style={{ color: d.color }}>
-                    {d.icon}
-                  </span>
+                  <div className="shrink-0 w-11 h-11 rounded-full bg-background border-2 border-primary text-primary flex items-center justify-center shadow-sm">
+                    <span className="font-mono text-sm font-bold tracking-wide">
+                      {step.num}
+                    </span>
+                  </div>
+                  <div className="flex-1 rounded-2xl border border-border bg-background p-5 sm:p-6 shadow-[0_10px_30px_rgba(15,20,25,0.06)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_14px_36px_rgba(15,20,25,0.10)]">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-sm sm:text-[15px] leading-7 text-muted-foreground max-w-[42ch]">
+                      {step.desc}
+                    </p>
+                  </div>
                 </div>
-                <p className="font-body text-sm text-muted-foreground leading-relaxed">{d.text}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </motion.div>
 
-        <div className="text-center mt-8">
-          <button onClick={handleScanClick} className="btn-depth-primary" style={{ padding: "16px 32px" }}>
-            Scan My Quote — It's Free
-          </button>
-          {onDemoClick && (
-            <button
-              onClick={onDemoClick}
-              className="block mx-auto mt-4 btn-secondary-tactile"
-              style={{ padding: "12px 24px" }}
-            >
-              See the AI in Action — No Upload Needed
-            </button>
-          )}
+          {/* Sticky takeaway card */}
+          <div className="lg:col-span-5 lg:sticky lg:top-24">
+            <div className="rounded-[28px] border border-border bg-secondary shadow-[0_18px_50px_rgba(15,20,25,0.08)] overflow-hidden">
+              <div className="h-2 bg-gradient-to-r from-primary via-primary/80 to-primary/60" />
+              <div className="relative p-6 sm:p-8">
+                <FileCheck
+                  className="absolute right-4 bottom-4 w-32 h-32 text-muted/30 pointer-events-none"
+                  strokeWidth={1.25}
+                />
+                <div className="relative z-10">
+                  <h3 className="text-2xl sm:text-[30px] leading-tight font-bold text-foreground pb-5 border-b border-border">
+                    You'll walk away{' '}
+                    <span className="text-primary">knowing:</span>
+                  </h3>
+
+                  <ul className="mt-6 space-y-5 sm:space-y-6">
+                    {takeaways.map((item, index) => {
+                      const Icon = item.icon;
+                      return (
+                        <li key={index} className="flex items-start gap-4">
+                          <div className="w-11 h-11 shrink-0 rounded-full bg-background border border-border shadow-sm flex items-center justify-center">
+                            <Icon className="w-5 h-5 text-primary" strokeWidth={2} />
+                          </div>
+                          <p className="text-[15px] sm:text-base font-medium leading-7 text-foreground/80">
+                            {item.text}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {/* Action plan badge */}
+                  <div className="mt-8 rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 sm:p-5 flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-xl bg-background border border-primary/20 text-primary flex items-center justify-center shadow-sm shrink-0 font-bold text-lg">
+                      A–F
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">
+                        Clear action plan
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Grade, flags, and negotiation direction in one report
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Includes chips */}
+                  <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="rounded-xl bg-background border border-border px-4 py-3">
+                      <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        Includes
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-foreground">
+                        Dollar delta vs market
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-background border border-border px-4 py-3">
+                      <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        Includes
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-foreground">
+                        Red flags explained
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
   );
-};
-
-export default ProcessSteps;
+}
