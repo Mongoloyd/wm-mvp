@@ -1,4 +1,4 @@
-const HomepageBackdrop = () => (
+/* Animated gradient blobs — pure CSS, GPU-composited, respects prefers-reduced-motion via Tailwind */
   <div
     className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
     aria-hidden="true"
