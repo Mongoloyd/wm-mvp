@@ -1,27 +1,21 @@
 
 
-## Plan: Change All Scan/Upload CTA Buttons to Orange
+## Plan: Add OCR Screenshot Below Stats Strip on Desktop
 
 ### What
-Every CTA button across the site that triggers the quote scan/upload flow currently uses `btn-depth-primary` (blue). Change them all to `btn-depth-destructive` (orange) to match the hero CTA style. No behavior changes.
+Place the uploaded `scan_ocr.avif` image below the stats strip on desktop (left column), positioned to the left of the grade card. The image lazy-loads with a slide-up/fade-in animation.
 
-### Buttons to change (`btn-depth-primary` → `btn-depth-destructive`)
+### Changes to `src/components/AuditHero.tsx`
 
-| File | Line | Button Text |
-|------|------|-------------|
-| `src/components/IndustryTruth.tsx` | 138 | "Scan My Quote — It's Free" |
-| `src/components/NarrativeProof.tsx` | 72 | "Show Me My Grade →" |
-| `src/components/ClosingManifesto.tsx` | 81 | "Scan My Quote — It's Free" |
-| `src/components/Testimonials.tsx` | 258 | "Show Me My Grade →" |
-| `src/components/InteractiveDemoScan.tsx` | 446 | "Upload My Real Quote — It's Free →" |
-| `src/components/InteractiveDemoScan.tsx` | 461 | "Want to See YOUR Quote Graded? →" |
-| `src/components/StickyCTAFooter.tsx` | 69 | "Scan My Quote" |
-| `src/components/ForensicChecklist.tsx` | 80 | "Upload My Quote for a Full Grade →" |
-
-### What stays the same
-- All button text, sizing, padding, behavior, and click handlers remain identical
-- Non-scan buttons (e.g. QuoteWatcher reminder, MarketBaselineTool, AboutHero) stay blue — they serve different purposes
+1. **Copy the uploaded image** into `src/assets/scan_ocr.avif`
+2. **Import it** at the top of AuditHero
+3. **Add a new block after the stats strip** (line 201, inside the left column `motion.div`), visible only on `lg+`:
+   - Wrapped in a `motion.div` with `initial={{ opacity: 0, y: 30 }}` and `whileInView={{ opacity: 1, y: 0 }}` with `viewport={{ once: true }}`
+   - The image uses `loading="lazy"`, rounded corners, subtle shadow
+   - Constrained width (~`max-w-sm`) so it sits naturally to the left of the grade card in the right column
+4. **On tablet** (order-4 block, lines 204-218): add the same image above or below the stats strip, centered, with the same animation
 
 ### Files touched
-8 files, one class name swap each
+1. `src/components/AuditHero.tsx` — add lazy-loaded image block
+2. Copy `user-uploads://scan_ocr.avif` → `src/assets/scan_ocr.avif`
 

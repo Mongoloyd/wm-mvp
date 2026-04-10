@@ -66,7 +66,7 @@ export const StickyCTAFooter = ({
             <div className="flex justify-center gap-3 w-full md:w-auto">
               <button
                 onClick={onScanClick}
-                className="flex-1 md:flex-none w-full max-w-[200px] btn-depth-destructive"
+                className="flex-1 md:flex-none w-full max-w-[200px] btn-depth-primary"
                 style={{ padding: "12px 20px", fontSize: 14 }}
               >
                 Scan My Quote

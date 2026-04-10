@@ -69,7 +69,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
             Right Now, The Contractor Knows Which One. You Don't.
           </p>
           <button onClick={handleScanClick}
-            className="btn-depth-destructive mt-8" style={{ padding: "16px 32px" }}>
+            className="btn-depth-primary mt-8" style={{ padding: "16px 32px" }}>
             Show Me My Grade →
           </button>
           {onDemoClick && <button onClick={onDemoClick}

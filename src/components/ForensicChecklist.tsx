@@ -77,7 +77,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
             {checkedCount === 5 && (
               <>
                 <p className="font-body text-sm font-semibold text-primary">✓ All 5 confirmed. Upload your final contract for a full AI grade before you sign.</p>
-                <motion.button onClick={() => onUploadQuote?.()} className="btn-depth-destructive mt-3" style={{ fontSize: 15, padding: "14px 28px" }}>
+                <motion.button onClick={() => onUploadQuote?.()} className="btn-depth-primary mt-3" style={{ fontSize: 15, padding: "14px 28px" }}>
                   Upload My Quote for a Full Grade →
                 </motion.button>
               </>

@@ -255,7 +255,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
             <p className="font-body text-sm text-muted-foreground mb-6 max-w-md mx-auto">
               Upload your estimate and get a free forensic grade in under 60 seconds.
             </p>
-            <button onClick={onScanClick} className="btn-depth-destructive py-4 px-8 text-[16px]">
+            <button onClick={onScanClick} className="btn-depth-primary py-4 px-8 text-[16px]">
               Show Me My Grade →
             </button>
           </motion.div>
