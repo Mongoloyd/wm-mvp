@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -103,6 +103,15 @@ export default function ArbitrageEngine({ onStartCertifiedAudit }: ArbitrageEngi
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<DemoSnapshot | null>(null);
+  const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (processingTimerRef.current !== null) {
+        clearTimeout(processingTimerRef.current);
+      }
+    };
+  }, []);
 
   const quoteWordCount = useMemo(() => {
     return quoteText.trim() ? quoteText.trim().split(/\s+/).length : 0;
@@ -152,13 +161,16 @@ export default function ArbitrageEngine({ onStartCertifiedAudit }: ArbitrageEngi
       setModalOpen(false);
       setUiState("processing");
 
+      if (processingTimerRef.current !== null) {
+        clearTimeout(processingTimerRef.current);
+      }
       // No real AI call in this sprint. We intentionally simulate processing before showing deterministic output.
-      window.setTimeout(() => {
+      processingTimerRef.current = window.setTimeout(() => {
         setSnapshot(createDemoSnapshot(quoteText));
         setUiState("revealed");
       }, 1700);
     } catch (error) {
-      console.error("[ArbitrageEngine] handleLeadSubmit error:", error);
+      console.error("[ArbitrageEngine] qualification error", error);
       setUiState("capture");
       setErrorMessage("We could not process this request. Please try again.");
     }
