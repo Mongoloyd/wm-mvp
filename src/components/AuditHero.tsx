@@ -37,6 +37,50 @@ const AuditHero = ({
     </>
   );
 
+  const statsStrip = (
+    <div className="flex items-center justify-center lg:justify-start gap-6 mt-8 pt-6 border-t border-border/40 w-full">
+      <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/10">
+          <Shield className="w-4 h-4 text-primary" />
+        </div>
+        <div>
+          <p className="font-mono text-sm font-bold tabular-nums" style={{ color: "hsl(210 50% 8%)" }}>
+            {total.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-muted-foreground leading-tight">Quotes Scanned</p>
+        </div>
+      </div>
+
+      <div className="w-px h-8 bg-border/50" />
+
+      <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-destructive/10">
+          <TrendingDown className="w-4 h-4 text-destructive" />
+        </div>
+        <div>
+          <p className="font-mono text-sm font-bold tabular-nums" style={{ color: "hsl(210 50% 8%)" }}>
+            ${savingsFound}M+
+          </p>
+          <p className="text-[11px] text-muted-foreground leading-tight">Overcharges Found</p>
+        </div>
+      </div>
+
+      <div className="w-px h-8 bg-border/50" />
+
+      <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/10">
+          <BarChart3 className="w-4 h-4 text-primary" />
+        </div>
+        <div>
+          <p className="font-mono text-sm font-bold tabular-nums" style={{ color: "hsl(210 50% 8%)" }}>
+            $3,100
+          </p>
+          <p className="text-[11px] text-muted-foreground leading-tight">Avg. Savings</p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <section
       className="relative bg-background"
@@ -44,15 +88,15 @@ const AuditHero = ({
         background: "linear-gradient(168deg, hsl(214 35% 95%) 0%, hsl(216 38% 93%) 40%, hsl(218 32% 94%) 100%)",
       }}
     >
-      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pb-16 md:pb-24">
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-8 text-center md:text-left">
-          {/* ── ORDER 1 (mobile): Trust Pill ── */}
-          <div className="order-1 md:hidden z-10 mt-4 inline-flex items-center gap-2 card-raised px-3 py-1 bg-primary/5">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 lg:px-8 pb-16 lg:pb-24">
+        <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 text-center lg:text-left">
+          {/* ── ORDER 1 (mobile/tablet): Trust Pill ── */}
+          <div className="order-1 lg:hidden z-10 mt-4 inline-flex items-center gap-2 card-raised px-3 py-1 bg-primary/5">
             {trustPillContent}
           </div>
 
-          {/* ── ORDER 2 (mobile) / right column (md+): Mascot + GradeCard ── */}
-          <div className="order-2 md:order-last md:flex-1 flex flex-col items-center pt-0 md:pt-16">
+          {/* ── ORDER 2 (mobile/tablet) / right column (lg+): Mascot + GradeCard ── */}
+          <div className="order-2 lg:order-last lg:flex-1 flex flex-col items-center pt-0 lg:pt-16">
             <div className="relative z-20 flex justify-center pointer-events-none w-full">
               <motion.div
                 animate={{ y: [-8, 0, -8] }}
@@ -63,12 +107,13 @@ const AuditHero = ({
                   alt="WindowMan holding a Truth Report"
                   fetchPriority="high"
                   decoding="async"
-                  className="w-full max-w-md md:w-80 lg:w-[480px] h-auto object-contain"
+                  className="w-full max-w-md lg:w-80 xl:w-[480px] h-auto object-contain"
                 />
               </motion.div>
             </div>
 
-            <div className="hidden md:block relative z-10">
+            {/* Grade card: visible on lg+ (desktop right column) */}
+            <div className="hidden lg:block relative z-10">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -79,14 +124,14 @@ const AuditHero = ({
             </div>
           </div>
 
-          {/* ── ORDER 3 (mobile) / left column (md+): Text + CTAs ── */}
+          {/* ── ORDER 3 (mobile/tablet) / left column (lg+): Text + CTAs ── */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.15 }}
-            className="order-3 md:order-first md:flex-1 mt-8 md:mt-0 md:pt-20 flex flex-col items-center md:items-start"
+            className="order-3 lg:order-first lg:flex-1 mt-8 lg:mt-0 lg:pt-32 flex flex-col items-center lg:items-start"
           >
-            <div className="hidden md:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
+            <div className="hidden lg:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
               {trustPillContent}
             </div>
 
@@ -129,14 +174,14 @@ const AuditHero = ({
               )}
             </p>
 
-            {/* ── CTA ROW: side-by-side on md+, stacked on mobile ── */}
-            <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 w-full md:w-auto">
+            {/* ── CTA ROW: side-by-side on sm+, stacked on xs ── */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={() => onUploadQuote?.()}
-                className="btn-depth-primary w-full md:w-auto whitespace-nowrap"
+                className="btn-depth-primary w-full sm:w-auto whitespace-nowrap"
                 style={{ fontSize: 18, padding: "20px 40px" }}
               >
-                Scan My Quote<span className="inline md:hidden lg:inline"> — It's Free</span>
+                Scan My Quote<span className="inline sm:hidden lg:inline"> — It's Free</span>
               </button>
 
               <React.Suspense fallback={<div className="h-[54px]" />}>
@@ -150,49 +195,27 @@ const AuditHero = ({
 
             <TrustBullets />
 
-            {/* ── Desktop stats strip — fills vertical gap below bullets ── */}
-            <div className="hidden md:flex items-center gap-6 mt-8 pt-6 border-t border-border/40 w-full">
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/10">
-                  <Shield className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="font-mono text-sm font-bold tabular-nums" style={{ color: "hsl(210 50% 8%)" }}>
-                    {total.toLocaleString()}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground leading-tight">Quotes Scanned</p>
-                </div>
-              </div>
-
-              <div className="w-px h-8 bg-border/50" />
-
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-destructive/10">
-                  <TrendingDown className="w-4 h-4 text-destructive" />
-                </div>
-                <div>
-                  <p className="font-mono text-sm font-bold tabular-nums" style={{ color: "hsl(210 50% 8%)" }}>
-                    ${savingsFound}M+
-                  </p>
-                  <p className="text-[11px] text-muted-foreground leading-tight">Overcharges Found</p>
-                </div>
-              </div>
-
-              <div className="w-px h-8 bg-border/50" />
-
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/10">
-                  <BarChart3 className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="font-mono text-sm font-bold tabular-nums" style={{ color: "hsl(210 50% 8%)" }}>
-                    $3,100
-                  </p>
-                  <p className="text-[11px] text-muted-foreground leading-tight">Avg. Savings</p>
-                </div>
-              </div>
+            {/* ── Stats strip: desktop only (lg+) ── */}
+            <div className="hidden lg:block w-full">
+              {statsStrip}
             </div>
           </motion.div>
+
+          {/* ── ORDER 4 (tablet only): Grade card + stats below content ── */}
+          <div className="order-4 lg:hidden w-full flex flex-col items-center">
+            <div className="hidden sm:block relative z-10">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.15, delay: 0.1 }}
+              >
+                <SampleGradeCard />
+              </motion.div>
+            </div>
+            <div className="hidden sm:flex w-full max-w-lg">
+              {statsStrip}
+            </div>
+          </div>
         </div>
       </div>
     </section>
