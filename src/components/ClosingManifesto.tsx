@@ -78,7 +78,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           transition={{ duration: 0.15, delay: 0.2 }}
           className="mt-8"
         >
-          <button onClick={handleScanClick} className="btn-depth-primary" style={{ padding: "16px 32px" }}>
+          <button onClick={handleScanClick} className="btn-depth-destructive" style={{ padding: "16px 32px" }}>
             Scan My Quote — It's Free
           </button>
           {onDemoClick && (

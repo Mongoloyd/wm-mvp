@@ -135,7 +135,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
         </motion.div>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-8">
-          <button onClick={handleScanClick} className="btn-depth-primary" style={{ padding: "16px 32px" }}>
+          <button onClick={handleScanClick} className="btn-depth-destructive" style={{ padding: "16px 32px" }}>
             Scan My Quote — It's Free
           </button>
           {onDemoClick && (
