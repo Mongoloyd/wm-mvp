@@ -380,7 +380,8 @@ function LeadModal({ onComplete, onClose }) {
             See The AI Scanner in Real-Time
           </h2>
           <p style={{ fontSize: "14px", color: T.muted, margin: "0 0 24px", lineHeight: 1.6 }}>
-            Watch WindowMan Forensically Analyze Your Quote & Give You the Truth
+            Watch WindowMan Forensically Analyze a Quote to Spot Traps, Hidden Fees and Red Flags- Then Present the REAL
+            Value of your Estimate.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <ModalField
@@ -399,9 +400,9 @@ function LeadModal({ onComplete, onClose }) {
               onChange={set("email")}
               error={errors.email}
             />
-            <ModalBtn onClick={handleSubmit}>Get Instant Access →</ModalBtn>
+            <ModalBtn onClick={handleSubmit}>View Live Scan→</ModalBtn>
             <div style={{ fontSize: "11px", color: "#FFFFFF", textAlign: "center" }}>
-              No spam, no sales pitches. Just the truth about your quote.
+              No spam, No Sales Pitch. Just the Truth About Your Quote.
             </div>
           </div>
         </div>
