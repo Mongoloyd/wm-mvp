@@ -579,13 +579,14 @@ Deno.serve(async (req) => {
       if (profileIds.length > 0) {
         const { data: contractors } = await supabaseAdmin
           .from("contractors")
-          .select("id, auth_user_id, company_name")
+          .select("id, auth_user_id, company_name, routing_setup_completed_at")
           .in("auth_user_id", profileIds);
         for (const c of contractors ?? []) {
           if (c.auth_user_id) {
             authBridgeMap[c.auth_user_id] = {
               contractor_record_id: c.id,
               company_name: c.company_name,
+              routing_setup_completed_at: c.routing_setup_completed_at ?? null,
             };
           }
         }
@@ -618,6 +619,7 @@ Deno.serve(async (req) => {
         has_contractor_record: !!authBridgeMap[p.id],
         contractor_record_id: authBridgeMap[p.id]?.contractor_record_id ?? null,
         marketplace_company_name: authBridgeMap[p.id]?.company_name ?? null,
+        routing_setup_completed_at: authBridgeMap[p.id]?.routing_setup_completed_at ?? null,
       }));
 
       return successResponse({ data: enriched });
