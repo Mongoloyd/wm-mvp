@@ -84,7 +84,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           {onDemoClick && (
             <button
               onClick={onDemoClick}
-              className="block mx-auto mt-4 btn-secondary-tactile"
+              className="block mx-auto mt-4 btn-depth-destructive"
               style={{ padding: "12px 24px" }}
             >
               See the AI in Action — No Upload Needed
