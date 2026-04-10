@@ -4,7 +4,7 @@ import { TrustBullets } from "./TrustBullets";
 import SampleGradeCard from "./SampleGradeCard";
 import { useTickerStats } from "@/hooks/useTickerStats";
 import { Shield, TrendingDown, BarChart3 } from "lucide-react";
-import scanOcrImg from "@/assets/scan_ocr.avif";
+import scanOcrImg from "@/assets/scan_ocr_hero.png";
 
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
 
@@ -203,7 +203,7 @@ const AuditHero = ({
 
             {/* ── OCR screenshot: desktop only (lg+) ── */}
             <motion.div
-              className="hidden lg:block mt-6 w-full max-w-sm"
+              className="hidden lg:flex justify-center mt-8 w-full max-w-md mx-auto"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -211,7 +211,7 @@ const AuditHero = ({
             >
               <img
                 src={scanOcrImg}
-                alt="WindowMan OCR scanning a quote line-by-line"
+                alt="WindowMan AI scanning a quote — extraction, context injection, anomaly detection"
                 loading="lazy"
                 decoding="async"
                 className="w-full h-auto rounded-xl shadow-lg"
@@ -234,7 +234,7 @@ const AuditHero = ({
               {statsStrip}
             </div>
             <motion.div
-              className="hidden sm:block mt-6 w-full max-w-sm"
+              className="hidden sm:flex justify-center mt-6 w-full max-w-md mx-auto"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -242,7 +242,7 @@ const AuditHero = ({
             >
               <img
                 src={scanOcrImg}
-                alt="WindowMan OCR scanning a quote line-by-line"
+                alt="WindowMan AI scanning a quote — extraction, context injection, anomaly detection"
                 loading="lazy"
                 decoding="async"
                 className="w-full h-auto rounded-xl shadow-lg"
