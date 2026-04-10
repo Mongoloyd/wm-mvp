@@ -250,46 +250,13 @@ function FadeIn({ children, delay = 0 }) {
 }
 
 function PowerToolButton({ onClick }) {
-  const [hover, setHover] = useState(false);
   return (
     <button
       onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className="w-full sm:w-auto py-4 px-6 sm:px-8"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "10px",
-        background: "#0891B2",
-        color: "#FFFFFF",
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: 16,
-        fontWeight: 700,
-        borderRadius: 5,
-        border: "none",
-        boxShadow: "0 4px 14px rgba(8,145,178,0.35)",
-        cursor: "pointer",
-        whiteSpace: "nowrap",
-        transform: hover ? "scale(1.02)" : "scale(1)",
-        transition: "transform 0.15s ease, box-shadow 0.2s ease",
-      }}
+      className="btn-depth-destructive w-full sm:w-auto whitespace-nowrap"
+      style={{ fontSize: 18, padding: "20px 40px" }}
     >
-      <span style={{ flex: 1, textAlign: "left" }}>No Quote Yet? Start Here</span>
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: 28,
-          height: 28,
-          borderRadius: "50%",
-          background: "rgba(255,255,255,0.2)",
-          flexShrink: 0,
-        }}
-      >
-        ▶
-      </span>
+      No Quote Yet? Start Here
     </button>
   );
 }
