@@ -1,21 +1,35 @@
 
 
-## Plan: Add OCR Screenshot Below Stats Strip on Desktop
+## Plan: Swap Card Content Between NarrativeProof and Testimonials
 
-### What
-Place the uploaded `scan_ocr.avif` image below the stats strip on desktop (left column), positioned to the left of the grade card. The image lazy-loads with a slide-up/fade-in animation.
+### What's happening
+The two narrative story cards (Maria/David with grades, flags, outcomes) swap places with the testimonial review carousel (6 star-rated reviews). Headers, subtext, CTAs, and stats strips stay exactly where they are.
 
-### Changes to `src/components/AuditHero.tsx`
+### Changes
 
-1. **Copy the uploaded image** into `src/assets/scan_ocr.avif`
-2. **Import it** at the top of AuditHero
-3. **Add a new block after the stats strip** (line 201, inside the left column `motion.div`), visible only on `lg+`:
-   - Wrapped in a `motion.div` with `initial={{ opacity: 0, y: 30 }}` and `whileInView={{ opacity: 1, y: 0 }}` with `viewport={{ once: true }}`
-   - The image uses `loading="lazy"`, rounded corners, subtle shadow
-   - Constrained width (~`max-w-sm`) so it sits naturally to the left of the grade card in the right column
-4. **On tablet** (order-4 block, lines 204-218): add the same image above or below the stats strip, centered, with the same animation
+**1. `src/components/NarrativeProof.tsx`**
+- Remove the `stories` array and its card rendering (lines 4-7, 31-60)
+- Import `Star` from lucide-react, `useEmblaCarousel`, and `Autoplay`
+- Add the `reviews` array (6 review objects) currently in Testimonials
+- Add the Embla carousel setup (autoplay, reduced-motion check, dot nav, selectedIndex state)
+- Render the testimonial review cards inside the carousel where the story cards used to be (between the header and the bottom CTA card)
+- Keep the existing header ("REAL RESULTS FROM FLORIDA HOMEOWNERS" / "WHAT HAPPENS WHEN YOU KNOW THE TRUTH."), bottom CTA card, and all props unchanged
+
+**2. `src/components/Testimonials.tsx`**
+- Remove the `reviews` array, Embla imports, carousel logic, and dot navigation
+- Add the `stories` array (Maria + David) currently in NarrativeProof
+- Render the two narrative proof cards in a `grid grid-cols-1 md:grid-cols-2 gap-8` where the carousel used to be (between the header and stats strip)
+- Each card keeps its grade badge, narrative paragraphs, result checkmark, and red flag pill
+- Keep the existing header ("Real Homeowner Results" / "What Homeowners Are Saying"), stats strip, and bottom CTA unchanged
 
 ### Files touched
-1. `src/components/AuditHero.tsx` — add lazy-loaded image block
-2. Copy `user-uploads://scan_ocr.avif` → `src/assets/scan_ocr.avif`
+1. `src/components/NarrativeProof.tsx` — replace story cards with review carousel
+2. `src/components/Testimonials.tsx` — replace review carousel with story cards
+
+### What stays the same
+- All headers, subtext, eyebrows in both sections
+- Stats strip in Testimonials
+- Bottom CTA blocks in both sections
+- All props and click handlers
+- Page order / component placement in Index.tsx
 
