@@ -154,7 +154,7 @@ const Index = () => {
 
   return (
     <ScanFunnelProvider>
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative overflow-hidden">
       <HomepageBackdrop />
       <div className="relative z-10">
       <LinearHeader onCtaClick={() => triggerTruthGate('header_cta')} />

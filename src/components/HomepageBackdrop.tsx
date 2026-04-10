@@ -1,69 +1,52 @@
-/* Animated gradient blobs — pure CSS, GPU-composited */
+/* Animated gradient blobs — absolute-positioned, zigzag pattern, soft blending */
+
+const blobs: Array<{
+  top: string;
+  left?: string;
+  right?: string;
+  color: string;
+  animClass: string;
+}> = [
+  // ~0% — BLUE left
+  { top: "0%", left: "-8%", color: "hsl(var(--primary) / 0.06)", animClass: "motion-safe:animate-blob-drift-1" },
+  // ~10% — ORANGE right
+  { top: "10%", right: "-6%", color: "hsl(var(--color-vivid-orange) / 0.045)", animClass: "motion-safe:animate-blob-drift-2" },
+  // ~25% — ORANGE left
+  { top: "25%", left: "-6%", color: "hsl(var(--color-vivid-orange) / 0.04)", animClass: "motion-safe:animate-blob-drift-3" },
+  // ~40% — BLUE right
+  { top: "40%", right: "-8%", color: "hsl(var(--primary) / 0.055)", animClass: "motion-safe:animate-blob-drift-4" },
+  // ~55% — BLUE left
+  { top: "55%", left: "-5%", color: "hsl(var(--primary) / 0.05)", animClass: "motion-safe:animate-blob-drift-1" },
+  // ~65% — ORANGE right
+  { top: "65%", right: "-5%", color: "hsl(var(--color-vivid-orange) / 0.04)", animClass: "motion-safe:animate-blob-drift-2" },
+  // ~80% — ORANGE left
+  { top: "80%", left: "-6%", color: "hsl(var(--color-vivid-orange) / 0.035)", animClass: "motion-safe:animate-blob-drift-3" },
+  // ~90% — BLUE right
+  { top: "90%", right: "-6%", color: "hsl(var(--primary) / 0.05)", animClass: "motion-safe:animate-blob-drift-4" },
+];
 
 const HomepageBackdrop = () => (
   <div
-    className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
+    className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
     aria-hidden="true"
   >
-    {/* Blue blob — upper left */}
-    <div
-      className="absolute motion-safe:animate-blob-drift-1"
-      style={{
-        top: "5%",
-        left: "-10%",
-        width: "clamp(400px, 50vw, 800px)",
-        height: "clamp(400px, 50vw, 800px)",
-        borderRadius: "50%",
-        background: "hsl(var(--primary) / 0.06)",
-        filter: "blur(120px)",
-        willChange: "transform",
-      }}
-    />
-
-    {/* Orange blob — center right */}
-    <div
-      className="absolute motion-safe:animate-blob-drift-2"
-      style={{
-        top: "25%",
-        right: "-8%",
-        width: "clamp(350px, 40vw, 700px)",
-        height: "clamp(350px, 40vw, 700px)",
-        borderRadius: "50%",
-        background: "hsl(var(--color-vivid-orange) / 0.045)",
-        filter: "blur(130px)",
-        willChange: "transform",
-      }}
-    />
-
-    {/* Blue blob — lower left */}
-    <div
-      className="absolute motion-safe:animate-blob-drift-3"
-      style={{
-        top: "55%",
-        left: "-5%",
-        width: "clamp(300px, 45vw, 750px)",
-        height: "clamp(300px, 45vw, 750px)",
-        borderRadius: "50%",
-        background: "hsl(var(--primary) / 0.05)",
-        filter: "blur(140px)",
-        willChange: "transform",
-      }}
-    />
-
-    {/* Orange glow — bottom right */}
-    <div
-      className="absolute motion-safe:animate-blob-drift-4"
-      style={{
-        top: "78%",
-        right: "-5%",
-        width: "clamp(300px, 35vw, 600px)",
-        height: "clamp(300px, 35vw, 600px)",
-        borderRadius: "50%",
-        background: "hsl(var(--color-vivid-orange) / 0.04)",
-        filter: "blur(120px)",
-        willChange: "transform",
-      }}
-    />
+    {blobs.map((b, i) => (
+      <div
+        key={i}
+        className={`absolute ${b.animClass}`}
+        style={{
+          top: b.top,
+          left: b.left,
+          right: b.right,
+          width: "clamp(400px, 50vw, 900px)",
+          height: "clamp(500px, 35vh, 800px)",
+          borderRadius: "50%",
+          background: b.color,
+          filter: "blur(160px)",
+          willChange: "transform",
+        }}
+      />
+    ))}
   </div>
 );
 
