@@ -1,38 +1,18 @@
 
 
-## Plan: Cinematic X-Ray Scanner Background
+## Plan: Reposition X-Ray Scanner Text Rows Behind the Interactive Demo Card
 
-### Problem
-The current XRayScannerBackground is invisible because:
-1. `--success` CSS variable is undefined -- the green scan bar renders as nothing
-2. Text opacity is 3% -- practically invisible
-3. `shadow-glow-success` / `shadow-glow-destructive` Tailwind classes don't exist
-4. Only 2 rows of scrolling text -- not enough density
+### Understanding
+The 6 scrolling text rows currently start too high (at `top: 120px`), causing them to appear behind the section titles ("Live Demo", "See the AI at Work", "This runs automatically"). You want the rows to only scroll behind the interactive scan card area — the auto-running demo that shows grades, flags, and the "Upload My Real Quote" CTA.
 
 ### Changes
 
-**1. `src/index.css`** -- Add `--success` CSS variable
-- Add `--success: 142 100% 50%;` (neon green) to both light and dark theme blocks
-- Add `--success-foreground` for completeness
+**`src/components/XRayScannerBackground.tsx`**
 
-**2. `src/components/XRayScannerBackground.tsx`** -- Full visual overhaul
-
-- **Text density**: Increase from 2 rows to 10 rows of scrolling contract text at staggered speeds (40s, 50s, 55s, 65s, etc.) with varying animation delays
-- **Text opacity**: Bump from `opacity-[0.03]` to `opacity-[0.12]` -- visible but still background-level; light and tasteful
-- **Scan bar height**: Increase from `h-24` to `h-48` (not the full `h-64` to keep it elegant)
-- **Bloom glow**: Replace the single `boxShadow` with a stacked multi-layer bloom effect using inline styles:
-  ```
-  boxShadow: '0 0 30px rgba(74,222,128,0.3), 0 0 60px rgba(74,222,128,0.2), 0 0 120px rgba(74,222,128,0.1)'
-  ```
-- **Scan line**: Replace missing `shadow-glow-success` class with inline `style={{ boxShadow }}` on the center line
-- **Pulse**: Add a subtle pulse keyframe to the scan bar wrapper via the inline `<style>` block
-- **Red flags**: Use inline `boxShadow` instead of missing `shadow-glow-destructive`; increase brightness when the scan bar passes (full opacity flash with a brighter glow)
-- **All green colors**: Use hardcoded `rgba(74,222,128,...)` as the primary value alongside the CSS variable fallback so it always renders
-
-### Visual result
-A light, elegant scanner effect: faint scrolling contract text creates texture behind the "How It Works" cards, a soft green glow sweeps down as you scroll, and red flag pills flash when the green bar reaches them. Visible and polished but not overwhelming on the white background.
+1. Increase the top offset from `120px` to approximately `280px` (or use a percentage like `35%`) so the text rows begin at the top edge of the interactive demo card, not behind the header text
+2. Keep 6 `rowConfigs` entries — no change to row count
+3. Tighten row spacing slightly so all 6 rows fit within the vertical bounds of the demo card area
 
 ### Files touched
-1. `src/index.css` -- add `--success` variable
-2. `src/components/XRayScannerBackground.tsx` -- full visual overhaul
+1. `src/components/XRayScannerBackground.tsx` — adjust the text layer's `top` offset
 
