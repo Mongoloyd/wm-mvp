@@ -382,6 +382,7 @@ const Index = () => {
       <div className="bg-card pb-[240px] sm:pb-[180px] lg:pb-32">
         <Footer />
       </div>
+      </div>
     </div>
     </ScanFunnelProvider>
   );
