@@ -28,14 +28,14 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
 
   return (
     <section className="bg-card border-t border-border section-recessed">
-      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
+      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 content-section">
         <motion.p {...fade(0)} className="text-center wm-eyebrow text-primary mb-5">
           HOW WINDOWMAN ACTUALLY WORKS
         </motion.p>
         <motion.h2
           {...fade(0.02)}
-          className="text-center mx-auto wm-title-section mb-4"
-          style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)", maxWidth: 680 }}
+          className="text-center mx-auto section-header-medium mb-4"
+          style={{ maxWidth: 680 }}
         >
           We Keep Both Sides Honest
         </motion.h2>

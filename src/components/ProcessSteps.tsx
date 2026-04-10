@@ -55,7 +55,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
 
   return (
     <section id="how-it-works" className="bg-card border-y border-border section-recessed">
-      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
+      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 content-section">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -63,10 +63,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           className="text-center"
         >
           <p className="wm-eyebrow text-primary mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
-          <h2
-            className="wm-title-section mb-12"
-            style={{ fontSize: "clamp(1.5rem, 4vw, 2.25rem)" }}
-          >
+          <h2 className="section-header-medium mb-12">
             Upload Your Quote. In Under 60 Seconds, You'll Know:
           </h2>
         </motion.div>
@@ -120,7 +117,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           transition={{ duration: 0.15, delay: 0.2 }}
           className="mt-14"
         >
-          <h3 className="font-heading text-foreground mb-6" style={{ fontSize: "clamp(1.25rem, 3vw, 1.875rem)", fontWeight: 700 }}>
+          <h3 className="section-header-small">
             You'll Walk Away Knowing:
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

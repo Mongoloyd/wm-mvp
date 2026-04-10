@@ -300,11 +300,11 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
   const counter = useCounter(activeScan.delta, 1200, phase === "reveal" || phase === "hook");
 
   return (
-    <section className="border-t border-b border-border bg-background py-20 md:py-28">
+    <section className="border-t border-b border-border bg-background content-section">
       <div className="mx-auto max-w-5xl px-4 md:px-8">
         <div className="text-center mb-9">
           <p className="wm-eyebrow text-cobalt mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
-          <h2 className="wm-title-section mb-1.5" >
+          <h2 className="section-header-medium mb-1.5">
             See the AI at work.
           </h2>
           <p className="wm-body">This Runs Automatically. No Upload Required.</p>
