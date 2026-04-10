@@ -380,8 +380,8 @@ function LeadModal({ onComplete, onClose }) {
             See The AI Scanner in Real-Time
           </h2>
           <p style={{ fontSize: "14px", color: T.muted, margin: "0 0 24px", lineHeight: 1.6 }}>
-            Watch WindowMan Forensically Analyze a Quote to Spot Traps, Hidden Fees and Red Flags- Then Present the REAL
-            Value of your Estimate.
+            Watch WindowMan Forensically Analyze a Quote to Spot Traps, Hidden Fees and Red Flags- Revealing Just the
+            Truth
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <ModalField
