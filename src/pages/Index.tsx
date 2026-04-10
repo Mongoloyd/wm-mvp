@@ -25,6 +25,7 @@ import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
 import HomepageBackdrop from "@/components/HomepageBackdrop";
+import QuoteSpreadShowcase from "@/components/QuoteSpreadShowcase";
 import Footer from "@/components/Footer";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useHomepageVariant } from "@/hooks/useHomepageVariant";
@@ -353,6 +354,7 @@ const Index = () => {
 
       {!shouldShowReport && !isDevPreview && (
         <>
+          <QuoteSpreadShowcase onScanClick={() => triggerTruthGate('quote_spread')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <IndustryTruth onScanClick={() => triggerTruthGate('industry_truth')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <MarketMakerManifesto onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <NarrativeProof onScanClick={() => triggerTruthGate('narrative_proof')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
