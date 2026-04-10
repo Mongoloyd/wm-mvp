@@ -121,36 +121,6 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
                 </p>
               ),
             },
-            {
-              icon: <Search size={16} className="text-orange-500" strokeWidth={2.5} />, 
-              title: "Hidden Cost Traps",
-              borderColor: "border-orange-500/20",
-              content: (
-                <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
-                  Where The "TBD" Fees And Fine-Print Surprises Are Buried In Your Estimate.
-                </p>
-              ),
-            },
-            {
-              icon: <ArrowRight size={16} className="text-primary" strokeWidth={2.5} />, 
-              title: "The Negotiation Script",
-              borderColor: "border-primary/20",
-              content: (
-                <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
-                  Exactly What To Say To Your Contractor To Negotiate A Fair Price Based On The AI Findings.
-                </p>
-              ),
-            },
-            {
-              icon: <Home size={16} className="text-gold" strokeWidth={2.5} />, 
-              title: "Warranty Protection Audit",
-              borderColor: "border-gold/20",
-              content: (
-                <p className="font-body text-[13px] text-muted-foreground leading-[1.9] mt-3">
-                  Whether The Fine Print Actually Protects Your Home Or Just Protects The Installer's Bottom Line.
-                </p>
-              ),
-            },
           ].map((card, i) => (
             <div key={i} className={`card-raised p-7 border ${card.borderColor}`}> 
               <div className="flex items-center gap-2.5 mb-3.5">
