@@ -23,6 +23,7 @@ import InteractiveDemoScan from "@/components/InteractiveDemoScan";
 import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
+import HomepageBackdrop from "@/components/HomepageBackdrop";
 import Footer from "@/components/Footer";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useHomepageVariant } from "@/hooks/useHomepageVariant";
@@ -153,7 +154,9 @@ const Index = () => {
 
   return (
     <ScanFunnelProvider>
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <HomepageBackdrop />
+      <div className="relative z-10">
       <LinearHeader onCtaClick={() => triggerTruthGate('header_cta')} />
 
       {/* ─── DEV: Special states (invalid doc, bad upload) ─── */}
@@ -349,13 +352,9 @@ const Index = () => {
       {!shouldShowReport && !isDevPreview && (
         <>
           <IndustryTruth onScanClick={() => triggerTruthGate('industry_truth')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
-          <div className="wm-bridge-strip py-3" />
           <MarketMakerManifesto onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
-          
-          <div className="wm-bridge-strip py-3" />
           <NarrativeProof onScanClick={() => triggerTruthGate('narrative_proof')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <ClosingManifesto onScanClick={() => triggerTruthGate('closing_manifesto')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
-          <div className="wm-bridge-strip py-3" />
           <Testimonials onScanClick={() => triggerTruthGate('testimonials')} />
         </>
       )}

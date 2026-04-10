@@ -35,7 +35,7 @@ const ScamConcernImage = () => {
   }, []);
 
   return (
-    <section ref={ref} className="w-full py-8 md:py-12 px-4 flex justify-center wm-bridge-strip">
+    <section ref={ref} className="w-full py-8 md:py-12 px-4 flex justify-center">
       <motion.figure
         initial={{ opacity: 0, y: 20 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}

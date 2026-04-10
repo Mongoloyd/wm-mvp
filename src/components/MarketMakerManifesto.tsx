@@ -27,7 +27,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
   });
 
   return (
-    <section className="bg-card border-t border-border section-recessed">
+    <section className="bg-transparent">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.p {...fade(0)} className="text-center wm-eyebrow text-primary mb-5">
           HOW WINDOWMAN ACTUALLY WORKS
