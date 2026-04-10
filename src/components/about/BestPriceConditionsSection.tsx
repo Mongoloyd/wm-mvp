@@ -88,7 +88,7 @@ export default function BestPriceConditionsSection() {
                 aria-hidden="true"
               />
 
-              <h3 className="mb-3 font-display text-lg font-bold tracking-tight text-foreground">
+              <h3 className="mb-3 font-heading text-lg font-bold text-foreground">
                 {card.title}
               </h3>
               <p className="text-sm leading-relaxed text-foreground/70">

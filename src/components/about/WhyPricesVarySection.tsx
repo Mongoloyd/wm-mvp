@@ -66,7 +66,7 @@ export default function WhyPricesVarySection() {
           {varianceCards.map((card) => (
             <SkeuoCard key={card.title}>
               <div className="mb-3 h-0.5 w-8 rounded-full bg-cyan-500" />
-              <h3 className="mb-3 font-display text-xl font-bold tracking-tight text-foreground">
+              <h3 className="mb-3 font-heading text-xl font-bold text-foreground">
                 {card.title}
               </h3>
               <p className="text-sm leading-relaxed text-foreground/70">
@@ -101,7 +101,7 @@ export default function WhyPricesVarySection() {
                     }}
                     aria-hidden="true"
                   />
-                  <span className="font-display text-lg font-bold tracking-tight text-foreground">
+                  <span className="font-heading text-lg font-bold text-foreground">
                     {marker.label}
                   </span>
                 </div>

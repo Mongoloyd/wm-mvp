@@ -304,7 +304,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
       <div className="mx-auto max-w-5xl px-4 md:px-8">
         <div className="text-center mb-9">
           <p className="wm-eyebrow text-cobalt mb-3">LIVE DEMO — WATCH A REAL SCAN</p>
-          <h2 className="wm-title-section mb-1.5" style={{ fontSize: "clamp(28px, 4vw, 34px)" }}>
+          <h2 className="wm-title-section mb-1.5" >
             See the AI at work.
           </h2>
           <p className="wm-body">This Runs Automatically. No Upload Required.</p>

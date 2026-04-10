@@ -60,7 +60,7 @@ export default function TopViolationSummaryStrip({
             {isCritical ? "TOP VIOLATION" : "TOP FINDING"}
           </span>
           <p
-            className="font-display text-foreground"
+            className="font-heading text-foreground"
             style={{
               fontSize: "clamp(15px, 2.5vw, 18px)",
               fontWeight: 700,

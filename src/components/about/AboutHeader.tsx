@@ -6,7 +6,7 @@ export default function AboutHeader() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-8">
         {/* Logo / Wordmark */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="font-display text-2xl font-bold tracking-tight text-foreground">
+          <span className="font-heading text-2xl font-bold text-foreground">
             WindowMan<span className="text-primary">.PRO</span>
           </span>
         </Link>

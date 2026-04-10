@@ -64,7 +64,7 @@ export default function NotAContractorSection() {
                 className={`mb-4 inline-block h-1.5 w-8 rounded-full ${card.accent}`}
                 aria-hidden="true"
               />
-              <h3 className="mb-3 font-display text-lg font-bold tracking-tight text-foreground">
+              <h3 className="mb-3 font-heading text-lg font-bold text-foreground">
                 {card.label}
               </h3>
               <p className="text-sm leading-relaxed text-foreground/70">
@@ -75,7 +75,7 @@ export default function NotAContractorSection() {
         </div>
 
         {/* Closing Statement */}
-        <p className="text-center font-display text-lg font-semibold tracking-tight text-foreground/60 md:text-xl">
+        <p className="text-center font-heading text-lg font-semibold text-foreground/60 md:text-xl">
           The goal is not more noise. The goal is better visibility before
           commitment.
         </p>

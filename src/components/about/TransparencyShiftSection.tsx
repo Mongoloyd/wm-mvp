@@ -46,7 +46,7 @@ export default function TransparencyShiftSection() {
               >
                 ⌂
               </span>
-              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
+              <h3 className="font-heading text-xl font-bold text-foreground">
                 Homeowners Win
               </h3>
             </div>
@@ -83,7 +83,7 @@ export default function TransparencyShiftSection() {
               >
                 ✓
               </span>
-              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
+              <h3 className="font-heading text-xl font-bold text-foreground">
                 Good Contractors Win
               </h3>
             </div>

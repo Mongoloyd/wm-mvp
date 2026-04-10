@@ -59,7 +59,7 @@ export default function AboutHero({ onTrack }: AboutHeroProps) {
               MARKET INTELLIGENCE FOR HOME IMPROVEMENT
             </SectionEyebrow>
 
-            <h1 className="mb-6 font-display text-4xl font-extrabold leading-tight tracking-tight text-foreground md:text-5xl lg:text-6xl">
+            <h1 className="mb-6 font-heading text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl">
               The Home Improvement Industry Has a Data Problem
             </h1>
 
@@ -158,7 +158,7 @@ export default function AboutHero({ onTrack }: AboutHeroProps) {
                   </span>
                 </div>
                 <div className="text-center">
-                  <span className="font-display text-6xl font-extrabold text-caution">
+                  <span className="font-heading text-6xl font-bold text-caution">
                     C+
                   </span>
                 </div>
