@@ -111,11 +111,12 @@ const EvidenceLocker = ({
         </p>
         <h2
           style={{
-            fontFamily: "'Jost', sans-serif",
-            fontSize: "clamp(32px, 5vw, 40px)",
+            fontFamily: "var(--wm-font-display)",
+            fontSize: "clamp(28px, 5vw, 40px)",
             color: "#FFFFFF",
             fontWeight: 800,
-            letterSpacing: "-0.02em",
+            letterSpacing: "0.02em",
+            textTransform: "uppercase" as const,
           }}
         >
           Your Analysis is Saved. Here's What's Inside.

@@ -114,7 +114,7 @@ const GradeReveal = ({
           <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" as const }}
             style={{ width: 120, height: 120, borderRadius: "50%", border: `4px solid ${config.color}`, background: "#111111", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 6px ${config.color}1A` }}
             className="w-[120px] h-[120px] md:w-[160px] md:h-[160px]">
-            <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "clamp(80px, 10vw, 96px)", fontWeight: 900, color: config.color }}>{grade}</span>
+            <span style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(80px, 10vw, 96px)", fontWeight: 900, color: config.color }}>{grade}</span>
           </motion.div>
           <motion.div {...stagger(2.5)} style={{ background: config.bg, border: `1px solid ${config.color}`, borderRadius: 0, padding: "6px 20px", marginTop: 20 }}>
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 700, color: config.color, letterSpacing: "0.1em" }}>GRADE {grade} — {config.label}</span>
@@ -164,7 +164,7 @@ const GradeReveal = ({
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
             <div>
-              <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#FFFFFF" }}>What We Found</h2>
+              <h2 style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(24px, 4vw, 28px)", fontWeight: 800, letterSpacing: "0.02em", color: "#FFFFFF", textTransform: "uppercase" as const }}>What We Found</h2>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#9CA3AF" }}>{issueCount} issue{issueCount !== 1 ? "s" : ""} identified · {greenCount} item{greenCount !== 1 ? "s" : ""} confirmed correct</p>
             </div>
             <div className="hidden md:block" style={{ background: "rgba(37,99,235,0.12)", border: "1px solid #2563EB", borderRadius: 0, padding: "6px 12px" }}>
@@ -232,7 +232,7 @@ const GradeReveal = ({
         <>
           <section style={{ background: "#0A0A0A", borderTop: "1px solid rgba(255,255,255,0.1)" }} className="py-12 md:py-16 px-4 md:px-8">
             <div className="max-w-4xl mx-auto">
-              <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#FFFFFF" }}>How to handle this quote.</h2>
+              <h2 style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(24px, 4vw, 28px)", fontWeight: 800, letterSpacing: "0.02em", color: "#FFFFFF", textTransform: "uppercase" as const }}>How to Handle This Quote</h2>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#9CA3AF", marginTop: 8, marginBottom: 28 }}>Use this exact language when you call your contractor back.</p>
               <div style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.1)", borderLeft: "4px solid #2563EB", borderRadius: 0, padding: "24px 28px", position: "relative", boxShadow: "none" }}>
                 <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "#0A0A0A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 0, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}>
@@ -246,7 +246,7 @@ const GradeReveal = ({
 
           <section style={{ background: "#0A0A0A", borderTop: "1px solid rgba(255,255,255,0.1)" }} className="py-12 md:py-16 px-4 md:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", color: "#FFFFFF", marginBottom: 8 }}>What do you want to do with this?</h2>
+              <h2 style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(20px, 3vw, 24px)", fontWeight: 800, letterSpacing: "0.02em", color: "#FFFFFF", marginBottom: 8, textTransform: "uppercase" as const }}>What Do You Want to Do With This?</h2>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#9CA3AF", marginBottom: 32 }}>Your analysis is saved. You can come back to it anytime.</p>
               <div className="flex flex-col md:flex-row justify-center gap-4">
                 <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
@@ -275,7 +275,7 @@ const GradeReveal = ({
           <div className="max-w-4xl mx-auto text-center">
             <div style={{ background: "#0A0A0A", borderRadius: 0, padding: "32px 28px", boxShadow: "0 8px 32px rgba(15,31,53,0.2)" }}>
               <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 12 }}>🔒 FULL REPORT LOCKED</p>
-              <h3 style={{ fontFamily: "'Jost', sans-serif", fontSize: 24, fontWeight: 800, color: "white", marginBottom: 8 }}>
+              <h3 style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(20px, 3vw, 24px)", fontWeight: 800, color: "white", marginBottom: 8, textTransform: "uppercase" as const }}>
                 Your negotiation script and action tools are ready.
               </h3>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#94A3B8", marginBottom: 24, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>

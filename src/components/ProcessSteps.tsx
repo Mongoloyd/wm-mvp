@@ -65,7 +65,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           <p className="wm-eyebrow text-primary mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
           <h2
             className="wm-title-section mb-12"
-            style={{ fontSize: "clamp(32px, 5vw, 36px)", color: "hsl(210 50% 8%)" }}
+            style={{ fontSize: "clamp(1.5rem, 4vw, 2.25rem)" }}
           >
             UPLOAD YOUR QUOTE. IN UNDER 60 SECONDS, YOU'LL KNOW:
           </h2>
@@ -120,7 +120,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           transition={{ duration: 0.15, delay: 0.2 }}
           className="mt-14"
         >
-          <h3 className="font-display text-[22px] font-bold text-foreground uppercase tracking-[0.02em] mb-6">
+          <h3 className="font-display text-foreground uppercase tracking-[0.02em] mb-6" style={{ fontSize: "clamp(1.25rem, 3vw, 1.875rem)", fontWeight: 800 }}>
             YOU'LL WALK AWAY KNOWING:
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

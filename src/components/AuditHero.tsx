@@ -113,15 +113,12 @@ const AuditHero = ({
             </div>
 
             <h1
-              className="font-display uppercase leading-[1.08] mb-5"
+              className="font-display uppercase leading-[1.2] mb-5"
               style={{
-                fontSize: "clamp(40px, 5vw, 58px)",
-
-                fontWeight: 900,
-
-                letterSpacing: "-0.005em",
-
-                color: "hsl(210 50% 8%)",
+                fontSize: "clamp(2rem, 5vw, 3.5rem)",
+                fontWeight: 800,
+                letterSpacing: "0.02em",
+                color: "hsl(var(--wm-heading-primary))",
               }}
             >
               {variantHeadline ? (
@@ -140,7 +137,7 @@ const AuditHero = ({
 
             <p
               className="font-body mb-8"
-              style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}
+              style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(var(--wm-heading-tertiary))" }}
             >
               {variantSubheadline ? (
                 variantSubheadline
@@ -149,7 +146,7 @@ const AuditHero = ({
                   The Impact Window Industry Has No Pricing Transparency Standard.
                   <br />
                   WindowMan Built One — and It Audits Your Quote In{" "}
-                  <strong style={{ color: "hsl(210 50% 8%)" }}>under 60 seconds</strong>.
+                  <strong style={{ color: "hsl(var(--wm-heading-primary))" }}>under 60 seconds</strong>.
                 </>
               )}
             </p>

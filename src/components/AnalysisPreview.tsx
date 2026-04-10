@@ -419,7 +419,7 @@ export default function AnalysisPreview() {
   // ── RENDER ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-slate-100" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-slate-100" style={{ fontFamily: "var(--wm-font-body)" }}>
       <style>{TEASE_STYLES}</style>
 
       {/* Header */}
@@ -458,7 +458,7 @@ export default function AnalysisPreview() {
                 <Lock className="w-3 h-3" />
                 Partial Preview
               </div>
-              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Your Quote Analysis</h1>
+              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight" style={{ fontFamily: "var(--wm-font-display)" }}>Your Quote Analysis</h1>
               <p className="text-slate-500 max-w-lg mx-auto text-sm leading-relaxed">
                 We found issues in your quote. Verify your number to see exactly how much.
               </p>
@@ -494,7 +494,7 @@ export default function AnalysisPreview() {
 
                 {/* Pillar statuses */}
                 <div className="space-y-3">
-                  <h2 className="text-lg font-bold text-slate-900">5-Pillar Analysis</h2>
+                  <h2 className="text-lg font-bold text-slate-900" style={{ fontFamily: "var(--wm-font-display)" }}>5-Pillar Analysis</h2>
                   {PILLAR_CONFIG.map((pillar) => {
                     const finding = MOCK_PREVIEW.preview.findings.find(
                       (f) => f.pillarKey === pillar.key
@@ -601,7 +601,7 @@ export default function AnalysisPreview() {
                 <Unlock className="w-3 h-3" />
                 Full Analysis Unlocked
               </div>
-              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Complete Quote Report</h1>
+              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight" style={{ fontFamily: "var(--wm-font-display)" }}>Complete Quote Report</h1>
               <p className="text-slate-500 max-w-lg mx-auto text-sm leading-relaxed">
                 Your full analysis is ready with detailed findings and savings estimates.
               </p>
@@ -626,7 +626,7 @@ export default function AnalysisPreview() {
 
             {/* Full Pillar Details */}
             <div className="space-y-3">
-              <h2 className="text-lg font-bold text-slate-900">Detailed 5-Pillar Breakdown</h2>
+              <h2 className="text-lg font-bold text-slate-900" style={{ fontFamily: "var(--wm-font-display)" }}>Detailed 5-Pillar Breakdown</h2>
               {fullAnalysis.pillars.map((p) => {
                 const pillarCfg = PILLAR_CONFIG.find((c) => c.key === p.key) ?? PILLAR_CONFIG[0];
                 return (
@@ -644,7 +644,7 @@ export default function AnalysisPreview() {
             {/* Recommendations */}
             {fullAnalysis.recommendations && fullAnalysis.recommendations.length > 0 && (
               <div className={`${SURFACE} p-6 space-y-3`}>
-                <h2 className="text-lg font-bold text-slate-900">Recommendations</h2>
+                <h2 className="text-lg font-bold text-slate-900" style={{ fontFamily: "var(--wm-font-display)" }}>Recommendations</h2>
                 <div className="space-y-2">
                   {fullAnalysis.recommendations.map((r, i) => (
                     <div key={i} className="flex items-start gap-3 text-sm text-slate-700">
