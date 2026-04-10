@@ -130,7 +130,7 @@ const AuditHero = ({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.15 }}
-            className="order-3 lg:order-first lg:flex-1 mt-8 lg:mt-0 lg:pt-32 flex flex-col items-center lg:items-start"
+            className="order-3 lg:order-first lg:flex-1 mt-8 lg:mt-0 lg:pt-32 flex flex-col items-center lg:items-stretch"
           >
             <div className="hidden lg:inline-flex items-center gap-2 mb-5 card-raised px-3 py-1 bg-primary/5">
               {trustPillContent}
@@ -176,7 +176,7 @@ const AuditHero = ({
             </p>
 
             {/* ── CTA ROW: side-by-side on sm+, stacked on xs ── */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center lg:items-start gap-3 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={() => onUploadQuote?.()}
                 className="btn-depth-primary w-full sm:w-auto whitespace-nowrap"
@@ -203,12 +203,11 @@ const AuditHero = ({
 
             {/* ── OCR screenshot: desktop only (lg+) ── */}
             <motion.div
-              className="hidden lg:flex justify-center mt-8 w-full max-w-3xl mx-auto"
+              className="hidden lg:block mt-8 w-full max-w-3xl"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              style={{ marginLeft: "-10%" }}
             >
               <img
                 src={scanOcrImg}
