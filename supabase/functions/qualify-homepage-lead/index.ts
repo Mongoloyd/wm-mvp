@@ -199,36 +199,43 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: existingLeadByPhone, error: phoneQueryError } = await supabase
+    const { data: existingLeadByPhoneRows, error: phoneQueryError } = await supabase
       .from("leads")
       .select("id")
       .eq("phone_e164", phoneE164)
-      .maybeSingle();
+      .order("created_at", { ascending: false })
+      .limit(1);
 
     if (phoneQueryError) {
       console.error("[qualify-homepage-lead] lead lookup by phone failed", phoneQueryError);
     }
 
-    let leadId = existingLeadByPhone?.id ?? null;
+    let leadId = existingLeadByPhoneRows?.[0]?.id ?? null;
 
     if (!leadId) {
-      const { data: existingLeadByEmail, error: emailQueryError } = await supabase
+      const { data: existingLeadByEmailRows, error: emailQueryError } = await supabase
         .from("leads")
         .select("id")
         .eq("email", payload.email)
-        .maybeSingle();
+        .order("created_at", { ascending: false })
+        .limit(1);
 
       if (emailQueryError) {
         console.error("[qualify-homepage-lead] lead lookup by email failed", emailQueryError);
       }
 
-      leadId = existingLeadByEmail?.id ?? null;
+      leadId = existingLeadByEmailRows?.[0]?.id ?? null;
     }
 
+    const trimmedName = payload.name?.trim() ?? "";
+    const nameParts = trimmedName ? trimmedName.split(/\s+/) : [];
+    const firstName = nameParts.length > 0 ? nameParts[0] : null;
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+
     const leadPatch = {
-      name: payload.name,
+      first_name: firstName,
+      last_name: lastName,
       email: payload.email,
-      phone: phoneE164,
       phone_e164: phoneE164,
       source: payload.source,
       lead_source: payload.source,
