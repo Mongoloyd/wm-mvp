@@ -7,11 +7,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-/* ── Rate-limit constants ─────────────────────────────────────────────── */
-const WINDOW_MINUTES = 15;
-const MAX_REQUESTS_PER_PHONE = 5;   // max qualification attempts per phone in window
-const MAX_REQUESTS_PER_IP = 20;     // max attempts per IP in window (catches phone-cycling)
-
 type LeadQualificationRequest = {
   name: string;
   email: string;
@@ -86,16 +81,15 @@ async function runTwilioLookup(phoneE164: string): Promise<LookupOutcome> {
   const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
   const lookupEnabled = Deno.env.get("TWILIO_LOOKUP_ENABLED") === "true";
 
-  // Fail-open: when lookup is not configured, qualify based on phone formatting alone.
-  // This keeps the demo usable in dev/staging without Twilio credentials.
+  // Fail-closed for qualification: if lookup is unavailable, no qualification can occur.
   if (!lookupEnabled || !accountSid || !authToken) {
     return {
       checked: false,
-      valid: true,
+      valid: false,
       lineType: null,
       carrierName: null,
       riskTier: null,
-      reason: null,
+      reason: "Phone verification service is currently unavailable.",
     };
   }
 
@@ -190,8 +184,6 @@ Deno.serve(async (req) => {
       return badRequest("Invalid US phone number. Expected format: +1XXXXXXXXXX");
     }
 
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-
     const lookup = await runTwilioLookup(phoneE164);
     const qualified = lookup.valid;
     const nowIso = new Date().toISOString();
@@ -207,67 +199,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // ── Rate-limit check ──────────────────────────────────────────────────
-    const windowStart = new Date(Date.now() - WINDOW_MINUTES * 60 * 1000).toISOString();
-
-    const { data: recentByPhone, error: rlPhoneErr } = await supabase
-      .from("leads")
-      .select("id")
-      .eq("phone_e164", phoneE164)
-      .gte("updated_at", windowStart);
-
-    if (rlPhoneErr) {
-      console.error("[qualify-homepage-lead] rate-limit phone query failed", rlPhoneErr);
-    }
-
-    if (recentByPhone && recentByPhone.length >= MAX_REQUESTS_PER_PHONE) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          lead_id: null,
-          qualified: false,
-          can_run_ai: false,
-          phone_e164: null,
-          phone_line_type: null,
-          reason: "Too many requests for this phone number. Please wait a few minutes.",
-        } satisfies LeadQualificationResponse),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    // Secondary: IP-based rate limit (catches phone-cycling bots).
-    // Uses phone_verifications as the tracking table because it stores ip_address;
-    // leads does not have an ip_address column. This cross-flow signal is intentional:
-    // an IP that has already hit the OTP send limit is treated as high-risk for all flows.
-    if (clientIp !== "unknown") {
-      const { data: recentByIp, error: rlIpErr } = await supabase
-        .from("phone_verifications")
-        .select("id")
-        .eq("ip_address", clientIp)
-        .gte("created_at", windowStart);
-
-      if (rlIpErr) {
-        console.error("[qualify-homepage-lead] rate-limit IP query failed", rlIpErr);
-      }
-
-      if (recentByIp && recentByIp.length >= MAX_REQUESTS_PER_IP) {
-        console.warn("[qualify-homepage-lead] IP rate limit hit", { ip: clientIp, count: recentByIp.length });
-        return new Response(
-          JSON.stringify({
-            success: false,
-            lead_id: null,
-            qualified: false,
-            can_run_ai: false,
-            phone_e164: null,
-            phone_line_type: null,
-            reason: "Too many requests from this network. Please wait a few minutes.",
-          } satisfies LeadQualificationResponse),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-    }
-
-    // ── Deterministic lead lookup (most recent row wins) ─────────────────
     const { data: existingLeadByPhoneRows, error: phoneQueryError } = await supabase
       .from("leads")
       .select("id")
