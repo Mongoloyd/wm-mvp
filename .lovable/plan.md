@@ -1,14 +1,11 @@
 
 
-## Tighten Letter Spacing on Demo Heading
+You want the "What Homeowners Are Saying" heading to use two responsive sizes:
 
-### File: `src/components/InteractiveDemoScan.tsx` (line 307)
+- **Mobile**: `text-lg` (18px)
+- **Desktop** (`md:` breakpoint and up): `text-4xl` (36px)
 
-Add `letterSpacing: "-0.02em"` to the existing inline style object:
+The className should be: `"wm-title-section text-lg md:text-4xl text-foreground"`
 
-```tsx
-<h2 className="wm-title-section mb-1.5" style={{ fontSize: "clamp(28px, 4vw, 34px)", letterSpacing: "-0.02em" }}>
-```
-
-No other changes needed — text is already correct.
+This replaces the current `text-base` with `text-lg` for mobile, keeping `md:text-4xl` for desktop.
 
