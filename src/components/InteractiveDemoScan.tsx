@@ -443,7 +443,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
                       </p>
                       <motion.button
                         onClick={handleCtaClick}
-                        className="w-full rounded-none btn-depth-primary px-7 py-3 font-body text-[14px] font-bold cursor-pointer"
+                        className="w-full rounded-none btn-depth-destructive px-7 py-3 font-body text-[14px] font-bold cursor-pointer"
                         style={{ borderRadius: 0 }}
                       >
                         Upload My Real Quote — It's Free →
@@ -458,7 +458,7 @@ const InteractiveDemoScan = ({ onScanClick }: InteractiveDemoScanProps) => {
 
         {/* Persistent CTA below demo */}
         <div className="mx-auto max-w-[520px] mt-6 mb-16 text-center min-h-[80px]">
-          <button onClick={handleCtaClick} className="btn-depth-primary w-full" style={{ padding: "16px 32px" }}>
+          <button onClick={handleCtaClick} className="btn-depth-destructive w-full" style={{ padding: "16px 32px" }}>
             Want to See YOUR Quote Graded? →
           </button>
         </div>
