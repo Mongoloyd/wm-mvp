@@ -63,7 +63,7 @@ const RiskSummaryHeader = ({
     >
       <div className="max-w-4xl mx-auto flex items-center gap-3">
         <Icon size={22} style={{ color, flexShrink: 0 }} strokeWidth={2} />
-        <p className="font-body text-foreground" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4 }}>
+        <p className="font-body text-foreground capitalize" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4 }}>
           {verdict}
         </p>
       </div>
