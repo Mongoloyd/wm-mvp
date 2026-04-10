@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassPanel from "@/components/contractors/GlassPanel";
 import CTAButton from "@/components/contractors/CTAButton";
@@ -526,7 +527,7 @@ const QualificationFlow = ({ isOpen, onClose }: QualificationFlowProps) => {
                     You'll Receive Contractor Access Details and Routing Preferences Next. Windowman Will Start Sending
                     Motivated & Educated Buyers in Your Service Area.
                   </p>
-                  <CTAButton onClick={onClose}>Set Routing Preferences</CTAButton>
+                  <CTAButton onClick={() => { onClose(); navigate("/partner/onboarding"); }}>Set Routing Preferences</CTAButton>
                 </div>
               )}
 
