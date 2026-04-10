@@ -387,7 +387,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 GRADE {grade} — {config.label}
               </span>
             </div>
-            <p className="font-body text-foreground/90 capitalize" style={{ fontSize: 16 }}>
+            <p className="font-body text-foreground/90" style={{ fontSize: 16 }}>
               {config.verdict}
             </p>
           </div>
@@ -715,8 +715,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                               <span
                                 className="font-mono bg-secondary text-muted-foreground"
                                 style={{
-                                  fontSize: 12,
-                                  fontFamily: "'Roboto', sans-serif",
+                                  fontSize: 11,
                                   letterSpacing: "0.06em",
                                   padding: "2px 8px",
                                   borderRadius: "var(--radius-btn)",
@@ -993,7 +992,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   className="font-body text-muted-foreground"
                   style={{ fontSize: 14, fontStyle: "italic", marginTop: 20 }}
                 >
-                  No obligation. Free estimate. Your contractor never sees this report unless you share it.
+                  No obligation. Free Estimate. Your Contractor Never Sees This Unless You Want WindowMan To Secure a
+                  Better Deal
                 </p>
               </>
             ) : introRequested ? (
