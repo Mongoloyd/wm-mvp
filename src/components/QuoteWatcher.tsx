@@ -54,7 +54,7 @@ const QuoteWatcher = ({ onSwitchToFlowA, onViewChecklist, onReminderSet }: Quote
     <section id="quote-watcher" className="bg-background">
       <div className="mx-auto max-w-4xl px-4 pt-20 md:px-8 md:pt-28 text-center">
         <p className="wm-eyebrow text-primary mb-5">WHAT HAPPENS WHEN YOU UPLOAD YOUR QUOTE</p>
-        <h2 className="wm-title-section mb-10" style={{ fontSize: "clamp(1.5rem, 4vw, 2.25rem)" }}>This Is What Will Happen to Your Quote Once You Get It</h2>
+        <h2 className="section-header-medium mb-10">This Is What Will Happen to Your Quote Once You Get It</h2>
         <ScanPreview />
       </div>
 
@@ -110,8 +110,8 @@ const QuoteWatcher = ({ onSwitchToFlowA, onViewChecklist, onReminderSet }: Quote
       </div>
 
       <div className="mx-auto max-w-3xl px-4 pb-16 md:pb-28 text-center" style={{ marginTop: 40 }}>
-        <p className="font-heading text-foreground font-bold" style={{ fontSize: "clamp(1.25rem, 3vw, 1.75rem)" }}>Most homeowners decide whether to sign based on how the contractor made them feel.</p>
-        <p className="font-heading text-primary font-bold mt-3" style={{ fontSize: "clamp(1.25rem, 3vw, 1.75rem)" }}>You'll decide based on what the data says.</p>
+        <p className="section-header-medium" style={{ marginBottom: '0.75rem' }}>Most homeowners decide whether to sign based on how the contractor made them feel.</p>
+        <p className="section-header-medium text-primary" style={{ marginBottom: 0 }}>You'll decide based on what the data says.</p>
         <button onClick={() => onSwitchToFlowA?.()} className="text-muted-foreground underline bg-transparent border-none cursor-pointer mt-4 inline-block text-[13px]">Already have a quote? Scan it now →</button>
       </div>
     </section>

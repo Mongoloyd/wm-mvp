@@ -27,7 +27,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
 
   return (
     <section className="bg-background">
-      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28 text-center">
+      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 content-section text-center">
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -36,21 +36,20 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
         >
           WHY WINDOWMAN EXISTS
         </motion.p>
-        <motion.p
+        <motion.h2
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, delay: 0.08, ease: "easeOut" }}
-          className="wm-title-section leading-[1.25] mb-6"
-          style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)" }}
+          className="section-header-major leading-[1.25] mb-6"
         >
           The Industry Built a System Where You Need Their Expertise to Understand Their Quote.
-        </motion.p>
+        </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, delay: 0.16, ease: "easeOut" }}
-          className="font-heading text-primary font-bold leading-[1.25]"
-          style={{ fontSize: "clamp(32px, 5vw, 48px)" }}
+          className="section-header-major text-primary"
+          style={{ marginBottom: 0 }}
         >
           We Built a System Where You Don't.
         </motion.p>

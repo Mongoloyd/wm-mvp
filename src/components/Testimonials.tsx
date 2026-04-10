@@ -124,7 +124,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
   }, [emblaApi]);
 
   return (
-    <section ref={sectionRef} className="py-16 md:py-24 bg-background">
+    <section ref={sectionRef} className="bg-background content-section">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <motion.div
@@ -134,7 +134,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
           className="text-center mb-12"
         >
           <p className="wm-eyebrow text-primary mb-3">Real Homeowner Results</p>
-          <h2 className="wm-title-section text-foreground">
+          <h2 className="section-header-medium">
             What Florida Homeowners Are Saying
           </h2>
         </motion.div>
@@ -277,7 +277,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
             transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
             className="card-dominant p-8 text-center"
           >
-            <h3 className="font-heading text-foreground mb-3" style={{ fontSize: "clamp(1.25rem, 3vw, 1.5rem)", fontWeight: 700 }}>
+            <h3 className="section-header-small mb-3">
               See What's Hiding in Your Quote
             </h3>
             <p className="font-body text-sm text-muted-foreground mb-6 max-w-md mx-auto">

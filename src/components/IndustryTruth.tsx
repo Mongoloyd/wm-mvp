@@ -59,7 +59,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
 
   return (
     <section className="bg-background section-recessed">
-      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
+      <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 content-section">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -68,10 +68,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
         >
           <div className="mx-auto mb-6 w-10 h-px bg-primary" />
           <p className="wm-eyebrow text-primary mb-5">HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.</p>
-          <h2
-            className="wm-title-section mx-auto mb-4"
-            style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)", maxWidth: 700 }}
-          >
+          <h2 className="section-header-major mx-auto mb-4" style={{ maxWidth: 700 }}>
             The Impact Window Industry Has No Pricing Standard.
           </h2>
           <p className="wm-body mx-auto mb-14" style={{ fontSize: 17, maxWidth: 640, lineHeight: 1.75 }}>
@@ -120,16 +117,10 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           transition={{ duration: 0.15, delay: 0.2 }}
           className="text-center mt-16 card-raised p-7 md:p-8"
         >
-          <p
-            className="font-heading text-foreground mb-4 opacity-75 font-bold text-2xl"
-            style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
-          >
+          <p className="section-header-medium mb-4" style={{ opacity: 0.85 }}>
             Most Homeowners Assume the Quote Reflects the Market Rate.
           </p>
-          <p
-            className="font-heading text-destructive font-semibold text-4xl"
-            style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
-          >
+          <p className="section-header-medium text-destructive" style={{ marginBottom: 0 }}>
             It Usually Doesn't.
           </p>
         </motion.div>
