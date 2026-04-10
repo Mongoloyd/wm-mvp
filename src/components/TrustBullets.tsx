@@ -19,7 +19,7 @@ export const TrustBullets = () => (
       {trustBullets.map((item) => (
         <div key={item} className="flex items-center gap-2">
           <Check size={16} className="shrink-0 text-primary" strokeWidth={2.5} />
-          <span className="whitespace-nowrap font-medium text-xs sm:text-[13px] lg:text-sm text-muted-foreground">{item}</span>
+          <span className="whitespace-nowrap font-medium text-xs sm:text-[13px] lg:text-sm" style={{ color: "hsl(210 20% 38%)" }}>{item}</span>
         </div>
       ))}
     </div>
