@@ -11,26 +11,21 @@ import {
 const steps = [
   {
     num: '01',
-    title: 'Answer 4 quick questions',
-    desc: 'County, scope, project type, and quote stage. No account required.',
-  },
-  {
-    num: '02',
     title: 'Upload your quote',
     desc: 'PDF or image. Any format from any Florida contractor.',
   },
   {
-    num: '03',
+    num: '02',
     title: 'AI scans every line',
     desc: 'Pricing, brands, warranties, permits, payment terms, and installation specs.',
   },
   {
-    num: '04',
+    num: '03',
     title: 'Your grade is calculated',
     desc: 'Compared against real contracts in your county and scope.',
   },
   {
-    num: '05',
+    num: '04',
     title: 'You decide what to do',
     desc: 'Use your negotiation script, request a better quote, or simply know you signed fairly.',
   },
