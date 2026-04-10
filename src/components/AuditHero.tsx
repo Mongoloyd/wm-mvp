@@ -4,6 +4,7 @@ import { TrustBullets } from "./TrustBullets";
 import SampleGradeCard from "./SampleGradeCard";
 import { useTickerStats } from "@/hooks/useTickerStats";
 import { Shield, TrendingDown, BarChart3 } from "lucide-react";
+import scanOcrImg from "@/assets/scan_ocr.avif";
 
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
 
@@ -199,6 +200,23 @@ const AuditHero = ({
             <div className="hidden lg:block w-full">
               {statsStrip}
             </div>
+
+            {/* ── OCR screenshot: desktop only (lg+) ── */}
+            <motion.div
+              className="hidden lg:block mt-6 w-full max-w-sm"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              <img
+                src={scanOcrImg}
+                alt="WindowMan OCR scanning a quote line-by-line"
+                loading="lazy"
+                decoding="async"
+                className="w-full h-auto rounded-xl shadow-lg"
+              />
+            </motion.div>
           </motion.div>
 
           {/* ── ORDER 4 (tablet only): Grade card + stats below content ── */}
@@ -215,6 +233,21 @@ const AuditHero = ({
             <div className="hidden sm:flex w-full max-w-lg">
               {statsStrip}
             </div>
+            <motion.div
+              className="hidden sm:block mt-6 w-full max-w-sm"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              <img
+                src={scanOcrImg}
+                alt="WindowMan OCR scanning a quote line-by-line"
+                loading="lazy"
+                decoding="async"
+                className="w-full h-auto rounded-xl shadow-lg"
+              />
+            </motion.div>
           </div>
         </div>
       </div>
