@@ -645,8 +645,8 @@ function CalibrationGateModal({ onSubmit }) {
             margin: "0 0 24px",
           }}
         >
-          To compute your true score, the AI must calibrate against your local county codes. Enter your zip code and
-          mobile number to securely unlock your private results.
+          Enter your zip code to finalize the local data, and your mobile number to instantly and privately unlock your
+          report.
         </p>
 
         {/* Fields */}
