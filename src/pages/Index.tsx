@@ -242,7 +242,9 @@ const Index = () => {
             <>
               <SocialProofStrip />
               <ScamConcernImage />
-              <InteractiveDemoScan onScanClick={() => triggerTruthGate('demo_scan')} />
+              <XRayScannerBackground>
+                <InteractiveDemoScan onScanClick={() => triggerTruthGate('demo_scan')} />
+              </XRayScannerBackground>
               <TruthGateFlow
                 onLeadCaptured={(sid) => { setLeadCaptured(true); setSessionId(sid); }}
                 onStepChange={(step, county) => { setStepsCompleted(step); setSelectedCounty(county); }}
@@ -250,15 +252,13 @@ const Index = () => {
                 onHighlightDone={() => setTruthGateHighlight(false)}
               />
               <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={(_fileName, ssId) => { trackEvent({ event_name: "scan_started", session_id: ssId, metadata: { file_name: _fileName } }); setScanSessionId(ssId); setFileUploaded(true); }} />
-              <XRayScannerBackground>
-                <ProcessSteps
-                  onScanClick={() => triggerTruthGate('process_steps')}
-                  onDemoClick={() => {
-                    setPowerToolTriggered(true);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                />
-              </XRayScannerBackground>
+              <ProcessSteps
+                onScanClick={() => triggerTruthGate('process_steps')}
+                onDemoClick={() => {
+                  setPowerToolTriggered(true);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
               <div className="mt-24">
                 <SocialProofStrip />
               </div>
