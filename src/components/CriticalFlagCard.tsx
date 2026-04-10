@@ -133,11 +133,9 @@ export default function CriticalFlagCard({
                 <span
                   className="font-mono inline-block text-emerald-50 text-base"
                   style={{
-                    fontSize: 13,
                     fontWeight: 700,
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
-                    color: `hsl(var(${cssVar}))`,
                     background: `hsl(var(${cssVar}) / 0.08)`,
                     padding: "2px 6px",
                     borderRadius: 4,
