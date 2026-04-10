@@ -65,7 +65,7 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
           <p className="wm-eyebrow text-primary mb-4">WHAT HAPPENS WHEN YOU SCAN</p>
           <h2
             className="wm-title-section mb-12"
-            style={{ fontSize: "clamp(32px, 5vw, 36px)", color: "hsl(210 50% 8%)" }}
+            style={{ fontSize: "clamp(1.5rem, 4vw, 2.25rem)" }}
           >
             UPLOAD YOUR QUOTE. IN UNDER 60 SECONDS, YOU'LL KNOW:
           </h2>

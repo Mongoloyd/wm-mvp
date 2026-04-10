@@ -24,7 +24,7 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, ease: "easeOut" }} className="text-center">
           <p className="wm-eyebrow text-primary mb-4">REAL RESULTS FROM FLORIDA HOMEOWNERS</p>
-          <h2 className="wm-title-section mb-3" style={{ fontSize: "clamp(32px, 5vw, 48px)", color: "hsl(210 50% 8%)" }}>WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
+          <h2 className="wm-title-section mb-3" style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)" }}>WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
           <p className="font-body text-base text-muted-foreground mb-12">These Are Outcomes Not Reviews</p>
         </motion.div>
 

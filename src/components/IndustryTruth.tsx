@@ -70,7 +70,7 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           <p className="wm-eyebrow text-primary mb-5">HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.</p>
           <h2
             className="wm-title-section mx-auto mb-4"
-            style={{ fontSize: "clamp(34px, 5vw, 48px)", maxWidth: 700, lineHeight: 1.12, color: "hsl(210 50% 8%)" }}
+            style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)", maxWidth: 700 }}
           >
             THE IMPACT WINDOW INDUSTRY HAS NO PRICING STANDARD.
           </h2>
