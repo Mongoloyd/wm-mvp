@@ -248,6 +248,19 @@ function PillarCard({
                   >
                     {redFlags[0].detail}
                   </p>
+                  {getFlagReasoning(redFlags[0].label) && (
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "hsl(215 15% 45%)",
+                        lineHeight: 1.55,
+                        marginTop: 6,
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {getFlagReasoning(redFlags[0].label)}
+                    </p>
+                  )}
                   {redFlags[0].tip && (
                     <div className="flex items-start gap-1.5 mt-2">
                       <MessageSquare
