@@ -407,16 +407,16 @@
      ═══════════════════════════════════════════════════════════ */
 
   .wm-eyebrow {
-    font-family: var(--wm-font-mono);
+    font-family: var(--wm-font-display);
     font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
   }
 
   .wm-title-section {
     font-family: var(--wm-font-display);
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: normal;
     text-transform: none;
     line-height: 1.2;

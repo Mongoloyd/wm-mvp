@@ -99,7 +99,7 @@ const AuditHero = ({
               className="font-heading leading-[1.15] mb-5"
               style={{
                 fontSize: "clamp(2rem, 5vw, 3.25rem)",
-                fontWeight: 700,
+                fontWeight: 800,
                 letterSpacing: "normal",
                 color: "hsl(var(--wm-heading-primary))",
               }}
