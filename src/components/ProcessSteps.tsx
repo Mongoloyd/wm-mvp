@@ -80,11 +80,11 @@ const ProcessSteps = ({ onScanClick, onDemoClick }: ProcessStepsProps) => {
             How it works
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0F1419] tracking-[-0.02em] leading-[1.08]">
-            What happens when you scan
+            What Happens When You Scan
           </h2>
           <p className="mt-4 text-base sm:text-lg text-slate-600 leading-7">
-            Upload your quote. In under 60 seconds, you'll know exactly where
-            you stand — before you sign.
+            Upload Your Quote. In Under 60 Seconds, You'll Know Exactly Where
+            You Stand — Before You Sign.
           </p>
         </div>
 

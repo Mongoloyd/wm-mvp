@@ -14,10 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['DM Sans', 'DM Sans Fallback', 'Inter', 'system-ui', 'sans-serif'],
-        heading: ['Barlow Condensed', 'Barlow Condensed Fallback', 'sans-serif'],
-        display: ['Barlow Condensed', 'Barlow Condensed Fallback', 'sans-serif'],
-        body: ['DM Sans', 'DM Sans Fallback', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        heading: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        display: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        body: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
         mono: ['DM Mono', 'IBM Plex Mono', 'monospace'],
       },
       colors: {
