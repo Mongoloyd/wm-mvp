@@ -66,7 +66,13 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary border border-border mb-5 shadow-sm">
+          <div
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-b from-white to-[#F8FAFC] border border-border mb-5"
+            style={{
+              boxShadow:
+                'inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.08)',
+            }}
+          >
             <ScanSearch className="w-8 h-8 text-primary" strokeWidth={1.8} />
           </div>
           <div className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase mb-4">
@@ -92,12 +98,35 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                   key={step.num}
                   className="relative z-10 flex items-start gap-4 sm:gap-5 group"
                 >
-                  <div className="shrink-0 w-11 h-11 rounded-full bg-background border-2 border-primary text-primary flex items-center justify-center shadow-sm">
+                  {/* Convex step number circle */}
+                  <div
+                    className="shrink-0 w-11 h-11 rounded-full bg-gradient-to-b from-white to-[#F8FAFC] border border-primary/40 text-primary flex items-center justify-center"
+                    style={{
+                      boxShadow:
+                        'inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.1)',
+                    }}
+                  >
                     <span className="font-mono text-sm font-bold tracking-wide">
                       {step.num}
                     </span>
                   </div>
-                  <div className="flex-1 rounded-2xl border border-border bg-background p-5 sm:p-6 shadow-[0_10px_30px_rgba(15,20,25,0.06)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_14px_36px_rgba(15,20,25,0.10)]">
+
+                  {/* 3D raised card */}
+                  <div
+                    className="flex-1 rounded-[10px] border border-[hsl(214_30%_82%)] bg-gradient-to-b from-white to-[#F8FAFC] p-5 sm:p-6 transition-all duration-300 group-hover:-translate-y-1.5"
+                    style={{
+                      boxShadow:
+                        'inset 0 1px 0 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow =
+                        'inset 0 1px 0 0 rgba(255,255,255,0.7), 0 8px 16px rgba(0,0,0,0.06), 0 24px 48px rgba(0,0,0,0.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow =
+                        'inset 0 1px 0 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06)';
+                    }}
+                  >
                     <h3 className="text-lg sm:text-xl font-semibold text-foreground">
                       {step.title}
                     </h3>
@@ -110,68 +139,117 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
             </div>
           </div>
 
-          {/* Sticky takeaway card */}
+          {/* Sticky takeaway card — 3-ring graduated depth */}
           <div className="lg:col-span-5 lg:sticky lg:top-24">
-            <div className="rounded-[28px] border border-border bg-secondary shadow-[0_18px_50px_rgba(15,20,25,0.08)] overflow-hidden">
-              <div className="h-2 bg-gradient-to-r from-primary via-primary/80 to-primary/60" />
-              <div className="relative p-6 sm:p-8">
-                <FileCheck
-                  className="absolute right-4 bottom-4 w-32 h-32 text-muted/30 pointer-events-none"
-                  strokeWidth={1.25}
-                />
-                <div className="relative z-10">
-                  <h3 className="text-2xl sm:text-[30px] leading-tight font-bold text-foreground pb-5 border-b border-border">
-                    You'll walk away{' '}
-                    <span className="text-primary">knowing:</span>
-                  </h3>
+            {/* Outer ring */}
+            <div className="rounded-[16px] border border-border/50 p-[3px]">
+              {/* Middle ring */}
+              <div className="rounded-[14px] border border-border/30 p-[3px]">
+                {/* Inner ring */}
+                <div className="rounded-[12px] border border-border/15 overflow-hidden">
+                  <div
+                    className="rounded-[11px] bg-gradient-to-b from-white to-[#F8FAFC] overflow-hidden"
+                    style={{
+                      boxShadow:
+                        'inset 0 1px 0 0 rgba(255,255,255,0.7), 0 8px 24px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.10)',
+                    }}
+                  >
+                    <div className="h-2 bg-gradient-to-r from-primary via-primary/80 to-primary/60" />
+                    <div className="relative p-6 sm:p-8">
+                      <FileCheck
+                        className="absolute right-4 bottom-4 w-32 h-32 text-muted/30 pointer-events-none"
+                        strokeWidth={1.25}
+                      />
+                      <div className="relative z-10">
+                        <h3 className="text-2xl sm:text-[30px] leading-tight font-bold text-foreground pb-5 border-b border-border">
+                          You'll walk away{' '}
+                          <span className="text-primary">knowing:</span>
+                        </h3>
 
-                  <ul className="mt-6 space-y-5 sm:space-y-6">
-                    {takeaways.map((item, index) => {
-                      const Icon = item.icon;
-                      return (
-                        <li key={index} className="flex items-start gap-4">
-                          <div className="w-11 h-11 shrink-0 rounded-full bg-background border border-border shadow-sm flex items-center justify-center">
-                            <Icon className="w-5 h-5 text-primary" strokeWidth={2} />
+                        <ul className="mt-6 space-y-5 sm:space-y-6">
+                          {takeaways.map((item, index) => {
+                            const Icon = item.icon;
+                            return (
+                              <li
+                                key={index}
+                                className="flex items-start gap-4 transition-all duration-200 hover:scale-[1.02]"
+                              >
+                                {/* Convex icon circle */}
+                                <div
+                                  className="w-11 h-11 shrink-0 rounded-full bg-gradient-to-b from-white to-[#F8FAFC] border border-border flex items-center justify-center"
+                                  style={{
+                                    boxShadow:
+                                      'inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.08)',
+                                  }}
+                                >
+                                  <Icon className="w-5 h-5 text-primary" strokeWidth={2} />
+                                </div>
+                                <p className="text-[15px] sm:text-base font-medium leading-7 text-foreground/80">
+                                  {item.text}
+                                </p>
+                              </li>
+                            );
+                          })}
+                        </ul>
+
+                        {/* Action plan badge — embossed */}
+                        <div
+                          className="mt-8 rounded-[10px] border border-primary/20 bg-gradient-to-b from-primary/5 to-primary/10 p-4 sm:p-5 flex items-center gap-4"
+                          style={{
+                            boxShadow:
+                              'inset 0 1px 0 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.06)',
+                          }}
+                        >
+                          <div
+                            className="w-14 h-14 rounded-xl bg-gradient-to-b from-white to-[#F8FAFC] border border-primary/20 text-primary flex items-center justify-center shrink-0 font-bold text-lg"
+                            style={{
+                              boxShadow:
+                                'inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.08)',
+                            }}
+                          >
+                            A–F
                           </div>
-                          <p className="text-[15px] sm:text-base font-medium leading-7 text-foreground/80">
-                            {item.text}
-                          </p>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              Clear action plan
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Grade, flags, and negotiation direction in one report
+                            </p>
+                          </div>
+                        </div>
 
-                  {/* Action plan badge */}
-                  <div className="mt-8 rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 sm:p-5 flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-background border border-primary/20 text-primary flex items-center justify-center shadow-sm shrink-0 font-bold text-lg">
-                      A–F
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">
-                        Clear action plan
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Grade, flags, and negotiation direction in one report
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Includes chips */}
-                  <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="rounded-xl bg-background border border-border px-4 py-3">
-                      <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                        Includes
-                      </div>
-                      <div className="mt-1 text-sm font-semibold text-foreground">
-                        Dollar delta vs market
-                      </div>
-                    </div>
-                    <div className="rounded-xl bg-background border border-border px-4 py-3">
-                      <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                        Includes
-                      </div>
-                      <div className="mt-1 text-sm font-semibold text-foreground">
-                        Red flags explained
+                        {/* Includes chips — embossed */}
+                        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div
+                            className="rounded-[10px] bg-gradient-to-b from-white to-[#F8FAFC] border border-border px-4 py-3"
+                            style={{
+                              boxShadow:
+                                'inset 0 1px 0 0 rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)',
+                            }}
+                          >
+                            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                              Includes
+                            </div>
+                            <div className="mt-1 text-sm font-semibold text-foreground">
+                              Dollar delta vs market
+                            </div>
+                          </div>
+                          <div
+                            className="rounded-[10px] bg-gradient-to-b from-white to-[#F8FAFC] border border-border px-4 py-3"
+                            style={{
+                              boxShadow:
+                                'inset 0 1px 0 0 rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)',
+                            }}
+                          >
+                            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                              Includes
+                            </div>
+                            <div className="mt-1 text-sm font-semibold text-foreground">
+                              Red flags explained
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
