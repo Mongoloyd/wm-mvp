@@ -163,7 +163,7 @@ const Index = () => {
             <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <FileX size={28} style={{ color: "#DC2626" }} />
             </div>
-            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, fontWeight: 800, color: "#0F1F35", marginBottom: 8 }}>
+            <p style={{ fontFamily: "var(--wm-font-display)", fontSize: 22, fontWeight: 800, color: "hsl(210 50% 8%)", marginBottom: 8, textTransform: "uppercase" as const }}>
               This Doesn't Appear to Be a Window Quote
             </p>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", lineHeight: 1.7, marginBottom: 24 }}>
@@ -183,7 +183,7 @@ const Index = () => {
             <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FFFBEB", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <AlertTriangle size={28} style={{ color: "#D97706" }} />
             </div>
-            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, fontWeight: 800, color: "#0F1F35", marginBottom: 8 }}>
+            <p style={{ fontFamily: "var(--wm-font-display)", fontSize: 22, fontWeight: 800, color: "hsl(210 50% 8%)", marginBottom: 8, textTransform: "uppercase" as const }}>
               We Need a Clearer Image
             </p>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7280", lineHeight: 1.7, marginBottom: 16 }}>
