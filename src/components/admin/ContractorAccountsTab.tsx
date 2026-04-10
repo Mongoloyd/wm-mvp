@@ -278,7 +278,12 @@ export function ContractorAccountsTab() {
                     <span className="block text-xs text-muted-foreground">{acct.contact_email}</span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusColor(acct.status) as any}>{acct.status}</Badge>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Badge variant={statusColor(acct.status) as any}>{acct.status}</Badge>
+                      {acct.has_contractor_record && !acct.routing_setup_completed_at && (
+                        <Badge variant="outline" className="text-amber-500 border-amber-500/30 text-[10px]">Needs Setup</Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">{acct.auth_email ?? "—"}</span>
