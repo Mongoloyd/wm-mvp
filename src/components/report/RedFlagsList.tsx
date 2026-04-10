@@ -1,3 +1,5 @@
+import { getFlagReasoning } from "@/utils/flagReasoningMap";
+
 interface WarningItem {
   id?: string;
   headline?: string;
@@ -17,51 +19,65 @@ function renderHeadline(item: WarningEntry): string {
   return item.headline || item.detail || item.id || "Unknown warning";
 }
 
-function renderDetail(item: WarningEntry): string | null {
-  if (typeof item === "string") return null;
-  // Only show detail if it's different from headline
-  if (item.detail && item.detail !== item.headline) return item.detail;
-  return null;
-}
-
 export default function RedFlagsList({ warnings }: RedFlagsListProps) {
   if (!warnings.length) return null;
 
   return (
-    <section className="py-6 px-4 md:px-8 bg-background border-b border-border">
+    <section
+      className="py-8 px-4 md:px-8 border-b border-border"
+      style={{ backgroundColor: "#FAF9F6", fontFamily: "system-ui, -apple-system, sans-serif" }}
+    >
       <div className="max-w-4xl mx-auto">
         <p
-          className="font-mono"
           style={{
-            fontSize: 10,
+            fontSize: 11,
             color: "hsl(var(--color-danger))",
             letterSpacing: "0.1em",
             fontWeight: 700,
-            marginBottom: 12,
+            marginBottom: 16,
+            fontFamily: "system-ui, -apple-system, sans-serif",
           }}
         >
           RED FLAGS
         </p>
-        {warnings.map((warning, i) => (
-          <div
-            key={typeof warning === "string" ? i : warning.id ?? i}
-            className="card-raised"
-            style={{
-              borderLeft: "4px solid hsl(var(--color-danger))",
-              padding: "14px 20px",
-              marginBottom: 8,
-            }}
-          >
-            <p className="font-body text-foreground font-semibold" style={{ fontSize: 14 }}>
-              {renderHeadline(warning)}
-            </p>
-            {renderDetail(warning) && (
-              <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 13 }}>
-                {renderDetail(warning)}
+
+        {warnings.map((warning, i) => {
+          const headline = renderHeadline(warning);
+          const reasoning = getFlagReasoning(headline);
+
+          return (
+            <div
+              key={typeof warning === "string" ? i : warning.id ?? i}
+              className={i > 0 ? "border-t border-slate-200" : ""}
+              style={{ padding: "16px 0" }}
+            >
+              <p
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: "hsl(215 25% 15%)",
+                  lineHeight: 1.4,
+                  margin: 0,
+                }}
+              >
+                {headline}
               </p>
-            )}
-          </div>
-        ))}
+              {reasoning && (
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "hsl(215 15% 45%)",
+                    lineHeight: 1.55,
+                    marginTop: 6,
+                    marginBottom: 0,
+                  }}
+                >
+                  {reasoning}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
