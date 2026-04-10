@@ -203,11 +203,12 @@ const AuditHero = ({
 
             {/* ── OCR screenshot: desktop only (lg+) ── */}
             <motion.div
-              className="hidden lg:flex justify-center mt-8 w-full max-w-md mx-auto"
+              className="hidden lg:flex justify-center mt-8 w-full max-w-3xl mx-auto"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, ease: "easeOut" }}
+              style={{ marginLeft: "-10%" }}
             >
               <img
                 src={scanOcrImg}
