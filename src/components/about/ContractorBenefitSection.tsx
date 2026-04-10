@@ -59,7 +59,7 @@ export default function ContractorBenefitSection() {
               >
                 <span className="text-base font-bold">✓</span>
               </div>
-              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
+              <h3 className="font-heading text-xl font-bold text-foreground">
                 {card.title}
               </h3>
               <p className="text-base leading-relaxed text-foreground/70">

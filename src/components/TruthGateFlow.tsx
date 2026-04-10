@@ -187,7 +187,7 @@ const OptionButton = ({
       {parts ? (
         <>
           <span className="font-heading text-2xl font-bold leading-none">{parts.number}</span>
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground mt-1">{parts.unit}</span>
+          <span className="text-xs font-medium  r text-muted-foreground mt-1">{parts.unit}</span>
         </>
       ) : (
         <>
@@ -519,7 +519,7 @@ const TruthGateFlow = ({
           transition={{ duration: 0.15 }}
         >
           <div className="bg-primary/5 border border-primary/20 p-5" style={{ borderRadius: 0 }}>
-            <p className="font-mono text-wm-body-soft text-primary uppercase tracking-widest mb-2">
+            <p className="font-mono text-wm-body-soft text-primary  st mb-2">
               BASED ON YOUR ANSWERS
             </p>
             <p className="font-body text-wm-label text-foreground mb-1">
@@ -548,10 +548,10 @@ const TruthGateFlow = ({
           transition={{ duration: 0.15 }}
         >
           <h2
-            className="font-display font-black uppercase leading-tight text-foreground"
+            className="font-heading font-bold  leading-tight text-foreground"
             style={{
               fontSize: "clamp(22px, 4vw, 30px)",
-              letterSpacing: "0.02em",
+              letterSpacing: "normal",
               marginBottom: 8,
             }}
           >
@@ -597,10 +597,10 @@ const TruthGateFlow = ({
         </div>
 
         <h2
-          className="font-display font-black uppercase leading-tight text-foreground"
+          className="font-heading font-bold  leading-tight text-foreground"
           style={{
             fontSize: "clamp(24px, 4vw, 32px)",
-            letterSpacing: "0.02em",
+            letterSpacing: "normal",
             marginBottom: 8,
           }}
         >

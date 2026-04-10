@@ -111,19 +111,19 @@ const EvidenceLocker = ({
         </p>
         <h2
           style={{
-            fontFamily: "var(--wm-font-display)",
+            
             fontSize: "clamp(28px, 5vw, 40px)",
             color: "#FFFFFF",
-            fontWeight: 800,
+            fontWeight: 700,
             letterSpacing: "0.02em",
-            textTransform: "uppercase" as const,
+            textTransform: "none" as const,
           }}
         >
           Your Analysis is Saved. Here's What's Inside.
         </h2>
         <p
           style={{
-            fontFamily: "'DM Sans', sans-serif",
+            
             fontSize: 16,
             color: "#E5E7EB",
             marginTop: 8,
@@ -218,7 +218,7 @@ const EvidenceLocker = ({
                   border: "1px solid #C8952A",
                   borderRadius: 0,
                   padding: "3px 10px",
-                  fontFamily: "'DM Sans', sans-serif",
+                  
                   fontSize: 11,
                   fontWeight: 600,
                   color: "#C8952A",
@@ -239,7 +239,7 @@ const EvidenceLocker = ({
                   border: "1px solid #059669",
                   borderRadius: 0,
                   padding: "3px 10px",
-                  fontFamily: "'DM Sans', sans-serif",
+                  
                   fontSize: 11,
                   fontWeight: 600,
                   color: "#059669",
@@ -268,10 +268,10 @@ const EvidenceLocker = ({
                 <Plus size={10} color="#D1D5DB" />
               </div>
               <div>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#9CA3AF" }}>
+                <p style={{ fontSize: 15, color: "#9CA3AF" }}>
                   Second Opinion Scan
                 </p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#C4C9D4", fontStyle: "italic" }}>
+                <p style={{ fontSize: 12, color: "#C4C9D4", fontStyle: "italic" }}>
                   Scan another quote to compare
                 </p>
               </div>
@@ -285,7 +285,7 @@ const EvidenceLocker = ({
                 border: "1px solid rgba(255,255,255,0.1)",
                 borderRadius: 6,
                 padding: "4px 10px",
-                fontFamily: "'DM Sans', sans-serif",
+                
                 fontSize: 12,
                 color: "#E5E7EB",
                 background: "#0A0A0A",
@@ -301,7 +301,7 @@ const EvidenceLocker = ({
           className="flex flex-wrap justify-between items-center gap-3"
           style={{ padding: "20px 24px", background: "#111111", borderTop: "1px solid rgba(255,255,255,0.1)" }}
         >
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB" }}>
+          <span style={{ fontSize: 13, color: "#E5E7EB" }}>
             Last updated: Today
           </span>
           <div className="flex gap-3">
@@ -312,7 +312,7 @@ const EvidenceLocker = ({
                 background: "#0A0A0A",
                 borderRadius: 8,
                 padding: "8px 16px",
-                fontFamily: "'DM Sans', sans-serif",
+                
                 fontSize: 13,
                 fontWeight: 600,
                 color: "#E5E7EB",
@@ -328,7 +328,7 @@ const EvidenceLocker = ({
                 background: "#0A0A0A",
                 borderRadius: 8,
                 padding: "8px 16px",
-                fontFamily: "'DM Sans', sans-serif",
+                
                 fontSize: 13,
                 fontWeight: 600,
                 color: "#E5E7EB",
@@ -358,12 +358,12 @@ const EvidenceLocker = ({
           >
             WITHOUT WINDOWMAN
           </p>
-          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#FFFFFF" }}>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: "#FFFFFF" }}>
             You sign the original quote.
           </h3>
           <p
             style={{
-              fontFamily: "'DM Sans', sans-serif",
+              
               fontSize: 14,
               color: "#E5E7EB",
               lineHeight: 1.8,
@@ -402,12 +402,12 @@ const EvidenceLocker = ({
           >
             WITH YOUR WINDOWMAN VAULT
           </p>
-          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "#FFFFFF" }}>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: "#FFFFFF" }}>
             You call back with the script.
           </h3>
           <p
             style={{
-              fontFamily: "'DM Sans', sans-serif",
+              
               fontSize: 14,
               color: "#E5E7EB",
               lineHeight: 1.8,
@@ -433,24 +433,24 @@ const EvidenceLocker = ({
 
       {isFull ? (
         <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 48 }}>
-          <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 20, fontWeight: 700, color: "#FFFFFF", marginBottom: 8 }}>
+          <h3 style={{ fontSize: 20, fontWeight: 700, color: "#FFFFFF", marginBottom: 8 }}>
             Send a copy to your email.
           </h3>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#E5E7EB", marginBottom: 24 }}>
+          <p style={{ fontSize: 15, color: "#E5E7EB", marginBottom: 24 }}>
             We'll email you the full grade report, red flags, and negotiation script.<br />One link. No password.
           </p>
           <div className="flex flex-col md:flex-row gap-3 justify-center">
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com"
-              style={{ flex: 1, maxWidth: 320, height: 48, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "0 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 15, outline: "none", transition: "border-color 0.15s, box-shadow 0.15s" }}
+              style={{ flex: 1, maxWidth: 320, height: 48, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "0 16px", fontSize: 15, outline: "none", transition: "border-color 0.15s, box-shadow 0.15s" }}
               onFocus={(e) => { e.currentTarget.style.borderColor = "#C8952A"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(200,149,42,0.12)"; }}
               onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
             />
             <button onClick={() => console.log({ event: "wm_report_emailed", email })}
-              style={{ background: "#0A0A0A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, padding: "0 24px", height: 48, borderRadius: 8, border: "none", cursor: "pointer" }}>
+              style={{ background: "#0A0A0A", color: "white", fontSize: 15, fontWeight: 700, padding: "0 24px", height: 48, borderRadius: 8, border: "none", cursor: "pointer" }}>
               Email My Report →
             </button>
           </div>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9CA3AF", fontStyle: "italic", marginTop: 12 }}>
+          <p style={{ fontSize: 12, color: "#9CA3AF", fontStyle: "italic", marginTop: 12 }}>
             No marketing emails. One report email only. Unsubscribe with one click.
           </p>
         </div>
@@ -458,10 +458,10 @@ const EvidenceLocker = ({
         <div className="max-w-2xl mx-auto mt-12 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 48 }}>
           <div style={{ background: "#0A0A0A", borderRadius: 0, padding: "28px 24px", boxShadow: "0 8px 32px rgba(15,31,53,0.2)" }}>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 8 }}>🔒 FULL VAULT ACCESS LOCKED</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: "white", marginBottom: 4 }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 4 }}>
               Verify your phone to unlock downloads, sharing, and email delivery.
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#94A3B8" }}>Quick SMS verification — takes 15 seconds.</p>
+            <p style={{ fontSize: 13, color: "#94A3B8" }}>Quick SMS verification — takes 15 seconds.</p>
           </div>
         </div>
       )}
@@ -484,8 +484,8 @@ const VaultRow = ({
     <div className="flex items-center gap-3">
       {icon}
       <div>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: "#FFFFFF" }}>{title}</p>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#E5E7EB" }}>{sub}</p>
+        <p style={{ fontSize: 15, fontWeight: 600, color: "#FFFFFF" }}>{title}</p>
+        <p style={{ fontSize: 12, color: "#E5E7EB" }}>{sub}</p>
       </div>
     </div>
     {right}

@@ -66,7 +66,7 @@ export default function ArbitrageEngineSection() {
                 MECHANISM 01
               </span>
             </div>
-            <h3 className="mb-4 font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+            <h3 className="mb-4 font-heading text-2xl font-bold text-foreground md:text-3xl">
               How We Create Pricing Pressure
             </h3>
             <p className="text-base leading-relaxed text-foreground/75">
@@ -108,7 +108,7 @@ export default function ArbitrageEngineSection() {
                 MECHANISM 02
               </span>
             </div>
-            <h3 className="mb-4 font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+            <h3 className="mb-4 font-heading text-2xl font-bold text-foreground md:text-3xl">
               This Is the Arbitrage
             </h3>
             <p className="text-base leading-relaxed text-foreground/75">

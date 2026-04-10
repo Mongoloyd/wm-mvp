@@ -35,7 +35,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
 
           <div className="relative z-10 flex gap-4 items-start px-7 pt-7 pb-5 border-b border-border">
             <div>
-              <p className="font-display text-xl font-bold text-foreground uppercase">5 Questions Contractors Hope You Never Ask</p>
+              <p className="font-heading text-xl font-bold text-foreground ">5 Questions Contractors Hope You Never Ask</p>
               <p className="font-body text-sm text-muted-foreground leading-[1.75] mt-1.5">These questions expose the information asymmetry in every impact window sales pitch. Bring this checklist to your site visit.</p>
             </div>
           </div>
@@ -46,7 +46,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 flex-1">
                     <div className="shrink-0 flex items-center justify-center w-8 h-8" style={{ background: q.circleBg, border: `1.5px solid ${q.circleBorder}` }}>
-                      <span className="font-mono text-sm font-black" style={{ color: q.circleBorder }}>{q.id}</span>
+                      <span className="font-mono text-sm font-bold" style={{ color: q.circleBorder }}>{q.id}</span>
                     </div>
                     <p className="font-body text-base font-bold text-foreground leading-snug pt-1">{q.question}</p>
                   </div>
@@ -89,7 +89,7 @@ const ForensicChecklist = ({ onUploadQuote, onSetReminder }: ForensicChecklistPr
         </div>
 
         <div className="text-center card-raised mt-8" style={{ padding: "40px 28px" }}>
-          <h3 className="font-display text-[26px] font-extrabold tracking-[0.02em] text-foreground uppercase">Now set the reminder.</h3>
+          <h3 className="font-heading text-[26px] font-bold  text-foreground ">Now set the reminder.</h3>
           <p className="font-body text-[15px] text-muted-foreground mt-2">When is your contractor visiting? We'll text you 15 minutes after they leave.</p>
           <motion.button onClick={onSetReminder} className="btn-depth-primary mt-5 inline-block" style={{ fontSize: 15, padding: "14px 32px" }}>
             Set My Quote Reminder →

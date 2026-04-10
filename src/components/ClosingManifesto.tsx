@@ -49,7 +49,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, delay: 0.16, ease: "easeOut" }}
-          className="font-display text-primary font-black tracking-[0.005em] leading-[1.25]"
+          className="font-heading text-primary font-bold leading-[1.25]"
           style={{ fontSize: "clamp(32px, 5vw, 48px)" }}
         >
           We Built a System Where You Don't.

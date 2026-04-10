@@ -110,7 +110,7 @@ export default function InevitabilitySection() {
 
               {/* Standard name */}
               <h3
-                className="mb-4 font-display text-3xl font-extrabold tracking-tight"
+                className="mb-4 font-heading text-3xl font-extrabold"
                 style={
                   item.featured
                     ? { color: "#1E3A8A" }

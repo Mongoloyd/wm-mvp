@@ -25,7 +25,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
             <span className="text-primary text-sm">★</span>
             <span className="wm-eyebrow text-primary">YOU'RE EARLY — THAT'S THE BEST POSITION TO BE IN</span>
           </div>
-          <h1 className="font-display text-foreground uppercase leading-[1.15] mb-5" style={{ fontSize: "clamp(42px, 5.5vw, 58px)", fontWeight: 800, letterSpacing: "0.02em" }}>
+          <h1 className="font-heading text-foreground  leading-[1.15] mb-5" style={{ fontSize: "clamp(42px, 5.5vw, 58px)", fontWeight: 700, letterSpacing: "normal" }}>
             You Don't Have a Quote Yet.<br /><span className="text-primary">Perfect. You Still Have All The Power.</span>
           </h1>
           <p className="font-body text-foreground leading-[1.75] mb-3" style={{ fontSize: "clamp(19px, 2vw, 21px)", maxWidth: 640 }}>
@@ -84,7 +84,7 @@ const FlowBEntry = ({ onContinueToTool, onSwitchToFlowA }: FlowBEntryProps) => {
                     )}
                     {step.preview === "grade" && (
                       <div className="relative mt-3 md:mx-auto card-raised p-3" style={{ maxWidth: 280 }}>
-                        <p className="font-display text-[40px] font-extrabold text-center leading-none text-vivid-orange" style={{ filter: "blur(5px)", userSelect: "none" }}>C</p>
+                        <p className="font-heading text-[40px] font-bold text-center leading-none text-vivid-orange" style={{ filter: "blur(5px)", userSelect: "none" }}>C</p>
                         <p className="absolute inset-0 flex items-center justify-center wm-eyebrow text-muted-foreground italic" style={{ fontSize: 10 }}>Your Grade Waits Here</p>
                       </div>
                     )}

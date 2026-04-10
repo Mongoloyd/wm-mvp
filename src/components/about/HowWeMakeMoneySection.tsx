@@ -52,7 +52,7 @@ export default function HowWeMakeMoneySection() {
                   HOMEOWNER
                 </span>
               </div>
-              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
+              <h3 className="font-heading text-xl font-bold text-foreground">
                 Always Free for You
               </h3>
               <p className="text-sm leading-relaxed text-foreground/70">
@@ -73,7 +73,7 @@ export default function HowWeMakeMoneySection() {
                   CONTRACTOR REFERRAL
                 </span>
               </div>
-              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
+              <h3 className="font-heading text-xl font-bold text-foreground">
                 We Earn From Better Matches
               </h3>
               <p className="text-sm leading-relaxed text-foreground/70">

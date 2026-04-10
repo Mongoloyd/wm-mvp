@@ -98,7 +98,7 @@ export default function HowWindowManWorksSection() {
                     >
                       {step.number}
                     </span>
-                    <h3 className="font-display text-lg font-bold tracking-tight text-foreground">
+                    <h3 className="font-heading text-lg font-bold text-foreground">
                       {step.title}
                     </h3>
                   </div>

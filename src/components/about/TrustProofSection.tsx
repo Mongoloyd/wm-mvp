@@ -82,7 +82,7 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
               className="flex flex-1 flex-col items-center gap-1 px-4 py-6 text-center md:px-8 md:py-8"
             >
               <span
-                className="font-display text-2xl font-extrabold tracking-tight md:text-3xl"
+                className="font-heading text-2xl font-bold md:text-3xl"
                 style={{ color: "#06B6D4", textShadow: "0 0 20px rgba(6,182,212,0.3)" }}
               >
                 {stat.value}

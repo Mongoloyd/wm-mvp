@@ -42,7 +42,7 @@ export default function MarketProblemSection() {
         <div className="grid gap-8 md:grid-cols-3">
           {/* Card 1 */}
           <SkeuoCard>
-            <h3 className="mb-4 font-display text-2xl font-bold tracking-tight text-foreground">
+            <h3 className="mb-4 font-heading text-2xl font-bold text-foreground">
               Homeowner Buys Rarely
             </h3>
             <p className="text-base leading-relaxed text-foreground/70">
@@ -54,7 +54,7 @@ export default function MarketProblemSection() {
 
           {/* Card 2 */}
           <SkeuoCard>
-            <h3 className="mb-4 font-display text-2xl font-bold tracking-tight text-foreground">
+            <h3 className="mb-4 font-heading text-2xl font-bold text-foreground">
               Contractor Quotes Constantly
             </h3>
             <p className="text-base leading-relaxed text-foreground/70">
@@ -66,7 +66,7 @@ export default function MarketProblemSection() {
 
           {/* Card 3 */}
           <SkeuoCard>
-            <h3 className="mb-4 font-display text-2xl font-bold tracking-tight text-foreground">
+            <h3 className="mb-4 font-heading text-2xl font-bold text-foreground">
               Pricing Lacks a Standard
             </h3>
             <p className="text-base leading-relaxed text-foreground/70">

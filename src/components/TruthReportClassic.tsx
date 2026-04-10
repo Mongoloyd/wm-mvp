@@ -313,8 +313,8 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               </span>
             </div>
             <h1
-              className="font-display text-foreground"
-              style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.2 }}
+              className="font-heading text-foreground"
+              style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 700, letterSpacing: "normal", lineHeight: 1.2 }}
             >
               WindowMan Truth Report™
             </h1>
@@ -354,7 +354,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               }}
             >
               <span
-                className="font-display"
+                className="font-heading"
                 style={{ fontSize: 48, fontWeight: 900, color: config.color, lineHeight: 1 }}
               >
                 {grade}
@@ -535,11 +535,11 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   ESTIMATED MARKUP
                 </p>
                 <p
-                  className="font-display text-foreground"
+                  className="font-heading text-foreground"
                   style={{
                     fontSize: "clamp(28px, 5vw, 40px)",
-                    fontWeight: 800,
-                    letterSpacing: "-0.02em",
+                    fontWeight: 700,
+                    letterSpacing: "normal",
                     lineHeight: 1.1,
                   }}
                 >
@@ -912,11 +912,11 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                     NEXT STEP
                   </span>
                   <h2
-                    className="font-display text-foreground"
+                    className="font-heading text-foreground"
                     style={{
                       fontSize: "clamp(24px, 4vw, 32px)",
-                      fontWeight: 800,
-                      letterSpacing: "-0.02em",
+                      fontWeight: 700,
+                      letterSpacing: "normal",
                       marginTop: 8,
                       marginBottom: 8,
                     }}
@@ -1007,12 +1007,12 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   {suggestedMatch ? (
                     <div className="mx-auto text-left" style={{ maxWidth: 520, marginTop: 8 }}>
                       <h2
-                        className="font-display text-foreground"
+                        className="font-heading text-foreground"
                         style={{
                           fontSize: "clamp(26px, 4vw, 32px)",
-                          fontWeight: 800,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.02em",
+                          fontWeight: 700,
+                          textTransform: "none",
+                          letterSpacing: "normal",
                           textAlign: "center",
                           marginBottom: 20,
                         }}

@@ -179,7 +179,7 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
         >
           <div className="card-raised p-7 md:p-8">
             <span className="inline-block wm-eyebrow text-primary bg-primary/10 px-3 py-1 mb-5">UPLOAD YOUR QUOTE</span>
-            <h2 className="font-display text-[26px] text-foreground font-extrabold tracking-[0.02em] uppercase mb-2">
+            <h2 className="font-heading text-[26px] text-foreground font-bold   mb-2">
               Drop your quote to start the scan.
             </h2>
             <p className="wm-body mb-7">

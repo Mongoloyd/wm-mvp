@@ -14,11 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'Inter Fallback', 'system-ui', 'sans-serif'],
-        heading: ['Barlow', 'Barlow Fallback', 'sans-serif'],
-        display: ['Barlow', 'Barlow Fallback', 'sans-serif'],
-        body: ['Inter', 'Inter Fallback', 'system-ui', 'sans-serif'],
-        mono: ['DM Mono', 'IBM Plex Mono', 'monospace'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        heading: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        display: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        body: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        mono: ['ui-monospace', '"SF Mono"', '"Cascadia Code"', '"Segoe UI Mono"', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -114,12 +114,12 @@ const GradeReveal = ({
           <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15, ease: "easeInOut" as const }}
             style={{ width: 120, height: 120, borderRadius: "50%", border: `4px solid ${config.color}`, background: "#111111", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 6px ${config.color}1A` }}
             className="w-[120px] h-[120px] md:w-[160px] md:h-[160px]">
-            <span style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(80px, 10vw, 96px)", fontWeight: 900, color: config.color }}>{grade}</span>
+            <span style={{ fontSize: "clamp(80px, 10vw, 96px)", fontWeight: 900, color: config.color }}>{grade}</span>
           </motion.div>
           <motion.div {...stagger(2.5)} style={{ background: config.bg, border: `1px solid ${config.color}`, borderRadius: 0, padding: "6px 20px", marginTop: 20 }}>
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 700, color: config.color, letterSpacing: "0.1em" }}>GRADE {grade} — {config.label}</span>
           </motion.div>
-          <motion.p {...stagger(3.3)} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(17px, 2vw, 19px)", color: "#E5E7EB", marginTop: 12 }}>{config.message}</motion.p>
+          <motion.p {...stagger(3.3)} style={{ fontSize: "clamp(17px, 2vw, 19px)", color: "#E5E7EB", marginTop: 12 }}>{config.message}</motion.p>
         </div>
       </section>
 
@@ -131,7 +131,7 @@ const GradeReveal = ({
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "clamp(36px, 5vw, 44px)", fontWeight: 900, color: dollarDelta! > 0 ? "#DC2626" : "#059669" }}>
               {dollarDelta! > 0 ? "+" : dollarDelta! < 0 ? "-" : ""}${counter.toLocaleString()}
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9CA3AF" }}>
+            <p style={{ fontSize: 13, color: "#9CA3AF" }}>
               {dollarDelta! > 0 ? `above fair market for ${county} County` : dollarDelta! < 0 ? "below market — this quote is competitive" : "This quote is priced at the county benchmark"}
             </p>
           </motion.div>
@@ -145,14 +145,14 @@ const GradeReveal = ({
               <div style={{ position: "absolute", top: -3, left: "75%", width: 14, height: 14, borderRadius: "50%", background: config.color, border: "2px solid #0A0A0A", boxShadow: `0 0 0 1px ${config.color}` }} />
             </div>
             <div className="flex justify-between mt-1.5">
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#9CA3AF" }}>p25 — budget range</span>
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#9CA3AF" }}>p75 — premium range</span>
+              <span style={{ fontSize: 11, color: "#9CA3AF" }}>p25 — budget range</span>
+              <span style={{ fontSize: 11, color: "#9CA3AF" }}>p75 — premium range</span>
             </div>
           </motion.div>
           <motion.div {...stagger(4)}>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF", letterSpacing: "0.12em", marginBottom: 8 }}>SAMPLE SIZE</p>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 32, fontWeight: 700, color: "#FFFFFF" }}>847</p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9CA3AF" }}>real {county} County quotes in our database</p>
+            <p style={{ fontSize: 13, color: "#9CA3AF" }}>real {county} County quotes in our database</p>
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", margin: "12px 0" }} />
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#9CA3AF" }}>Data as of Q1 2025</p>
           </motion.div>
@@ -164,8 +164,8 @@ const GradeReveal = ({
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
             <div>
-              <h2 style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(24px, 4vw, 28px)", fontWeight: 800, letterSpacing: "0.02em", color: "#FFFFFF", textTransform: "uppercase" as const }}>What We Found</h2>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#9CA3AF" }}>{issueCount} issue{issueCount !== 1 ? "s" : ""} identified · {greenCount} item{greenCount !== 1 ? "s" : ""} confirmed correct</p>
+              <h2 style={{ fontSize: "clamp(24px, 4vw, 28px)", fontWeight: 700, letterSpacing: "normal", color: "#FFFFFF", textTransform: "none" as const }}>What We Found</h2>
+              <p style={{ fontSize: 14, color: "#9CA3AF" }}>{issueCount} issue{issueCount !== 1 ? "s" : ""} identified · {greenCount} item{greenCount !== 1 ? "s" : ""} confirmed correct</p>
             </div>
             <div className="hidden md:block" style={{ background: "rgba(37,99,235,0.12)", border: "1px solid #2563EB", borderRadius: 0, padding: "6px 12px" }}>
               <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#2563EB", letterSpacing: "0.08em" }}>BASED ON {county.toUpperCase()} COUNTY BENCHMARKS</span>
@@ -180,14 +180,14 @@ const GradeReveal = ({
                   <motion.div key={flag.id} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.3, duration: 0.35 }}
                     style={{ background: "#0A0A0A", border: s.border, borderLeft: s.borderLeft, borderRadius: 0, padding: "20px 20px 20px 24px", boxShadow: "none" }}>
                     <span style={{ display: "inline-block", background: s.badgeBg, borderRadius: 0, padding: "3px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700, color: s.badgeColor, letterSpacing: "0.06em" }}>{s.badgeText}</span>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: "#FFFFFF", marginTop: 8 }}>{flag.label}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", lineHeight: 1.7, marginTop: 6 }}>{flag.detail}</p>
+                    <p style={{ fontSize: 17, fontWeight: 700, color: "#FFFFFF", marginTop: 8 }}>{flag.label}</p>
+                    <p style={{ fontSize: 14, color: "#E5E7EB", lineHeight: 1.7, marginTop: 6 }}>{flag.detail}</p>
                     {flag.tip && (
                       <div style={{ background: s.tipBg, borderRadius: 0, padding: "12px 16px", marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
                         <span style={{ fontSize: 16, flexShrink: 0 }}>💬</span>
                         <div>
                           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#C8952A", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>NEGOTIATION TIP</p>
-                          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#E5E7EB", lineHeight: 1.6 }}>{flag.tip}</p>
+                          <p style={{ fontSize: 13, color: "#E5E7EB", lineHeight: 1.6 }}>{flag.tip}</p>
                         </div>
                       </div>
                     )}
@@ -203,8 +203,8 @@ const GradeReveal = ({
                   return (
                     <div key={flag.id} style={{ background: "#0A0A0A", border: s.border, borderLeft: s.borderLeft, borderRadius: 0, padding: "20px 20px 20px 24px" }}>
                       <span style={{ display: "inline-block", background: s.badgeBg, borderRadius: 0, padding: "3px 10px", fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700, color: s.badgeColor }}>{s.badgeText}</span>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: "#FFFFFF", marginTop: 8 }}>██████████ ██████</p>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#E5E7EB", marginTop: 6 }}>████████ ██████ ████████ ██████████ ██████.</p>
+                      <p style={{ fontSize: 17, fontWeight: 700, color: "#FFFFFF", marginTop: 8 }}>██████████ ██████</p>
+                      <p style={{ fontSize: 14, color: "#E5E7EB", marginTop: 6 }}>████████ ██████ ████████ ██████████ ██████.</p>
                     </div>
                   );
                 })}
@@ -212,17 +212,17 @@ const GradeReveal = ({
               <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: "rgba(10,10,10,0.85)", borderRadius: 0 }}>
                 <div style={{ background: "#0A0A0A", borderRadius: 0, padding: "24px 32px", textAlign: "center", boxShadow: "0 8px 32px rgba(15,31,53,0.2)" }}>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 8 }}>🔒 VERIFICATION REQUIRED</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: "white", marginBottom: 4 }}>
+                  <p style={{ fontSize: 18, fontWeight: 700, color: "white", marginBottom: 4 }}>
                     We found {issueCount} issue{issueCount !== 1 ? "s" : ""} in your quote.
                   </p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#94A3B8" }}>Verify your phone number to see the full details.</p>
+                  <p style={{ fontSize: 14, color: "#94A3B8" }}>Verify your phone number to see the full details.</p>
                 </div>
               </div>
             </div>
           )}
 
           <div style={{ background: "#0A0A0A", borderRadius: 0, padding: "16px 20px", marginTop: 20 }} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "white" }}>{redCount} critical issue{redCount !== 1 ? "s" : ""}, {amberCount} caution{amberCount !== 1 ? "s" : ""}, {greenCount} item{greenCount !== 1 ? "s" : ""} correct.</p>
+            <p style={{ fontSize: 14, color: "white" }}>{redCount} critical issue{redCount !== 1 ? "s" : ""}, {amberCount} caution{amberCount !== 1 ? "s" : ""}, {greenCount} item{greenCount !== 1 ? "s" : ""} correct.</p>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#94A3B8" }}>Grade: {grade} of 5 criteria reviewed</p>
           </div>
         </div>
@@ -232,41 +232,41 @@ const GradeReveal = ({
         <>
           <section style={{ background: "#0A0A0A", borderTop: "1px solid rgba(255,255,255,0.1)" }} className="py-12 md:py-16 px-4 md:px-8">
             <div className="max-w-4xl mx-auto">
-              <h2 style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(24px, 4vw, 28px)", fontWeight: 800, letterSpacing: "0.02em", color: "#FFFFFF", textTransform: "uppercase" as const }}>How to Handle This Quote</h2>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#9CA3AF", marginTop: 8, marginBottom: 28 }}>Use this exact language when you call your contractor back.</p>
+              <h2 style={{ fontSize: "clamp(24px, 4vw, 28px)", fontWeight: 700, letterSpacing: "normal", color: "#FFFFFF", textTransform: "none" as const }}>How to Handle This Quote</h2>
+              <p style={{ fontSize: 15, color: "#9CA3AF", marginTop: 8, marginBottom: 28 }}>Use this exact language when you call your contractor back.</p>
               <div style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.1)", borderLeft: "4px solid #2563EB", borderRadius: 0, padding: "24px 28px", position: "relative", boxShadow: "none" }}>
-                <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "#0A0A0A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 0, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}>
+                <button onClick={handleCopy} style={{ position: "absolute", top: 16, right: 16, background: "#0A0A0A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 0, padding: "6px 12px", fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}>
                   {copied ? "✓ Copied" : "Copy Script"}
                 </button>
                 <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#2563EB", letterSpacing: "0.1em", marginBottom: 16 }}>WORD-FOR-WORD SCRIPT</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#FFFFFF", lineHeight: 2.0, whiteSpace: "pre-line" }}>{scriptText}</p>
+                <p style={{ fontSize: 15, color: "#FFFFFF", lineHeight: 2.0, whiteSpace: "pre-line" }}>{scriptText}</p>
               </div>
             </div>
           </section>
 
           <section style={{ background: "#0A0A0A", borderTop: "1px solid rgba(255,255,255,0.1)" }} className="py-12 md:py-16 px-4 md:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(20px, 3vw, 24px)", fontWeight: 800, letterSpacing: "0.02em", color: "#FFFFFF", marginBottom: 8, textTransform: "uppercase" as const }}>What Do You Want to Do With This?</h2>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#9CA3AF", marginBottom: 32 }}>Your analysis is saved. You can come back to it anytime.</p>
+              <h2 style={{ fontSize: "clamp(20px, 3vw, 24px)", fontWeight: 700, letterSpacing: "normal", color: "#FFFFFF", marginBottom: 8, textTransform: "none" as const }}>What Do You Want to Do With This?</h2>
+              <p style={{ fontSize: 15, color: "#9CA3AF", marginBottom: 32 }}>Your analysis is saved. You can come back to it anytime.</p>
               <div className="flex flex-col md:flex-row justify-center gap-4">
                 <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                   onClick={() => { console.log({ event: "wm_contractor_match_clicked", grade, dollarDelta }); onContractorMatchClick?.(); }}
                   className="flex flex-col items-center"
-                  style={{ background: "#C8952A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, padding: "16px 36px", borderRadius: 0, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(200,149,42,0.35)" }}>
+                  style={{ background: "#C8952A", color: "white", fontSize: 17, fontWeight: 700, padding: "16px 36px", borderRadius: 0, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(200,149,42,0.35)" }}>
                   <span>Get a Counter-Quote From a Vetted Contractor</span>
                   <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 4 }}>We'll find contractors who quote fair in {county} County</span>
                 </motion.button>
                 <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                   onClick={() => { console.log({ event: "wm_report_downloaded" }); toast({ title: "Report saved to your downloads" }); }}
-                  style={{ background: "#0A0A0A", border: "1px solid rgba(255,255,255,0.1)", color: "#E5E7EB", fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 0, cursor: "pointer" }}>
+                  style={{ background: "#0A0A0A", border: "1px solid rgba(255,255,255,0.1)", color: "#E5E7EB", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 0, cursor: "pointer" }}>
                   ⬇ Download PDF Report
                 </motion.button>
               </div>
               <button onClick={() => { console.log({ event: "wm_report_shared" }); toast({ title: "Link copied to clipboard" }); }}
-                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#2563EB", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", marginTop: 12, display: "inline-block" }}>
+                style={{ fontSize: 13, color: "#2563EB", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", marginTop: 12, display: "inline-block" }}>
                 Share this report →
               </button>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9CA3AF", marginTop: 20 }}>Your contractor will never see this report unless you choose to share it.</p>
+              <p style={{ fontSize: 13, color: "#9CA3AF", marginTop: 20 }}>Your contractor will never see this report unless you choose to share it.</p>
             </div>
           </section>
         </>
@@ -275,13 +275,13 @@ const GradeReveal = ({
           <div className="max-w-4xl mx-auto text-center">
             <div style={{ background: "#0A0A0A", borderRadius: 0, padding: "32px 28px", boxShadow: "0 8px 32px rgba(15,31,53,0.2)" }}>
               <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C8952A", letterSpacing: "0.1em", marginBottom: 12 }}>🔒 FULL REPORT LOCKED</p>
-              <h3 style={{ fontFamily: "var(--wm-font-display)", fontSize: "clamp(20px, 3vw, 24px)", fontWeight: 800, color: "white", marginBottom: 8, textTransform: "uppercase" as const }}>
+              <h3 style={{ fontSize: "clamp(20px, 3vw, 24px)", fontWeight: 700, color: "white", marginBottom: 8, textTransform: "none" as const }}>
                 Your negotiation script and action tools are ready.
               </h3>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#94A3B8", marginBottom: 24, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+              <p style={{ fontSize: 15, color: "#94A3B8", marginBottom: 24, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
                 Verify your phone number to unlock the full Truth Report — including detailed flag breakdowns, negotiation scripts, and contractor matching.
               </p>
-              <button style={{ background: "#C8952A", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, padding: "14px 32px", borderRadius: 0, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(200,149,42,0.35)" }}>
+              <button style={{ background: "#C8952A", color: "white", fontSize: 16, fontWeight: 700, padding: "14px 32px", borderRadius: 0, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(200,149,42,0.35)" }}>
                 Verify Phone to Unlock →
               </button>
             </div>
