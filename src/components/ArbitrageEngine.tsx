@@ -123,39 +123,45 @@ export default function ArbitrageEngine({ onStartCertifiedAudit }: ArbitrageEngi
     setUiState("qualifying");
     setErrorMessage(null);
 
-    const result = await qualifyHomepageLead({
-      source: "arbitrage_engine",
-      name: payload.name,
-      email: payload.email,
-      phone: payload.phone,
-      context: {
-        quote_excerpt: summarizeQuote(quoteText),
-        quote_word_count: quoteWordCount,
-        module: "arbitrage_engine",
-      },
-    });
+    try {
+      const result = await qualifyHomepageLead({
+        source: "arbitrage_engine",
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        context: {
+          quote_excerpt: summarizeQuote(quoteText),
+          quote_word_count: quoteWordCount,
+          module: "arbitrage_engine",
+        },
+      });
 
-    if (!result.success) {
-      setUiState("capture");
-      setErrorMessage(result.reason || "We could not process this request. Please try again.");
-      return;
-    }
+      if (!result.success) {
+        setUiState("capture");
+        setErrorMessage(result.reason || "We could not process this request. Please try again.");
+        return;
+      }
 
-    if (!result.qualified || !result.can_run_ai) {
+      if (!result.qualified || !result.can_run_ai) {
+        setModalOpen(false);
+        setUiState("rejected");
+        setErrorMessage(null);
+        return;
+      }
+
       setModalOpen(false);
-      setUiState("rejected");
-      setErrorMessage(null);
-      return;
+      setUiState("processing");
+
+      // No real AI call in this sprint. We intentionally simulate processing before showing deterministic output.
+      window.setTimeout(() => {
+        setSnapshot(createDemoSnapshot(quoteText));
+        setUiState("revealed");
+      }, 1700);
+    } catch (error) {
+      console.error("[ArbitrageEngine] handleLeadSubmit error:", error);
+      setUiState("capture");
+      setErrorMessage("We could not process this request. Please try again.");
     }
-
-    setModalOpen(false);
-    setUiState("processing");
-
-    // No real AI call in this sprint. We intentionally simulate processing before showing deterministic output.
-    window.setTimeout(() => {
-      setSnapshot(createDemoSnapshot(quoteText));
-      setUiState("revealed");
-    }, 1700);
   };
 
   return (
