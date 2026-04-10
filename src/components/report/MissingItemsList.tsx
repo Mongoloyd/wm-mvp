@@ -1,3 +1,5 @@
+import { getFlagReasoning } from "@/utils/flagReasoningMap";
+
 interface MissingItem {
   id?: string;
   label?: string;
@@ -15,49 +17,66 @@ function renderLabel(item: MissingItemEntry): string {
   return item.label || item.id || "Unknown item";
 }
 
-function renderDetail(item: MissingItemEntry): string | null {
-  if (typeof item === "string") return null;
-  return item.why_it_matters || null;
-}
-
 export default function MissingItemsList({ missingItems }: MissingItemsListProps) {
   if (!missingItems.length) return null;
 
   return (
-    <section className="py-6 px-4 md:px-8 bg-background border-b border-border">
+    <section
+      className="py-8 px-4 md:px-8 border-b border-border"
+      style={{ backgroundColor: "#FAF9F6", fontFamily: "system-ui, -apple-system, sans-serif" }}
+    >
       <div className="max-w-4xl mx-auto">
         <p
-          className="font-mono"
           style={{
-            fontSize: 10,
+            fontSize: 11,
             color: "hsl(var(--color-caution))",
             letterSpacing: "0.1em",
             fontWeight: 700,
-            marginBottom: 12,
+            marginBottom: 16,
+            fontFamily: "system-ui, -apple-system, sans-serif",
           }}
         >
           MISSING FROM QUOTE
         </p>
-        {missingItems.map((item, i) => (
-          <div
-            key={typeof item === "string" ? i : item.id ?? i}
-            className="card-raised"
-            style={{
-              borderLeft: "4px solid hsl(var(--color-caution))",
-              padding: "14px 20px",
-              marginBottom: 8,
-            }}
-          >
-            <p className="font-body text-foreground font-semibold" style={{ fontSize: 14 }}>
-              {renderLabel(item)}
-            </p>
-            {renderDetail(item) && (
-              <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 13 }}>
-                {renderDetail(item)}
+
+        {missingItems.map((item, i) => {
+          const label = renderLabel(item);
+          const backendDetail = typeof item !== "string" ? item.why_it_matters : null;
+          const reasoning = backendDetail || getFlagReasoning(label);
+
+          return (
+            <div
+              key={typeof item === "string" ? i : item.id ?? i}
+              className={i > 0 ? "border-t border-slate-200" : ""}
+              style={{ padding: "16px 0" }}
+            >
+              <p
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: "hsl(215 25% 15%)",
+                  lineHeight: 1.4,
+                  margin: 0,
+                }}
+              >
+                {label}
               </p>
-            )}
-          </div>
-        ))}
+              {reasoning && (
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "hsl(215 15% 45%)",
+                    lineHeight: 1.55,
+                    marginTop: 6,
+                    marginBottom: 0,
+                  }}
+                >
+                  {reasoning}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
