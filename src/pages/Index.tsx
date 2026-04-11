@@ -20,7 +20,7 @@ import ClosingManifesto from "@/components/ClosingManifesto";
 import Testimonials from "@/components/Testimonials";
 import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
-import InteractiveDemoScan from "@/components/InteractiveDemoScan";
+import OrangeScanner from "@/components/OrangeScanner";
 import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
