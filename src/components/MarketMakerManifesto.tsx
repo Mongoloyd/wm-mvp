@@ -69,7 +69,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
         <motion.div {...fade(0)} className="text-center max-w-3xl mx-auto mb-20">
           <div className="inline-block relative mb-6">
             <div className="absolute inset-0 bg-primary rounded-full translate-y-1 translate-x-1 blur-[2px] opacity-40" />
-            <span className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 bg-primary/10 text-primary text-sm font-bold uppercase tracking-widest shadow-sm">
+            <span className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 text-primary text-sm font-bold uppercase tracking-widest shadow-sm bg-violet-50">
               <ShieldCheck className="w-4 h-4" />
               We Keep Both Sides Honest
             </span>
