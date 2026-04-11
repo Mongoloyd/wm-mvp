@@ -21,6 +21,7 @@ import Testimonials from "@/components/Testimonials";
 import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
 import OrangeScanner from "@/components/OrangeScanner";
+import ForensicShift from "@/components/Forensicshift";
 import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
@@ -156,7 +157,7 @@ const Index = () => {
 
   return (
     <ScanFunnelProvider>
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-x-hidden">
       <HomepageBackdrop />
       <div className="relative z-10">
       <LinearHeader onCtaClick={() => triggerTruthGate('header_cta')} />
@@ -264,6 +265,7 @@ const Index = () => {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               />
+              <ForensicShift />
               <div className="mt-24">
                 <SocialProofStrip />
               </div>
