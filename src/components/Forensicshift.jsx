@@ -220,6 +220,23 @@ Total: $12,000`);
         </button>
       </header>
 
+      {/* Scroll-stopping CTA banner */}
+      <div className="relative py-8 px-4 flex flex-col items-center gap-5 bg-gradient-to-b from-[#253245] to-[#1e293b]">
+        <p className="text-center text-white font-bold text-base sm:text-lg max-w-md leading-snug">
+          Don't Sign Until You've Got Your Free{' '}
+          <span className="text-cyan-400">WindowMan AI Truth Report</span> →
+        </p>
+        <button
+          onClick={() => setShowModal(true)}
+          className="w-32 h-32 rounded-full bg-red-600 hover:bg-red-500 flex flex-col items-center justify-center transition-colors animate-[red-glow_2s_ease-in-out_infinite]"
+          style={{ border: '6px solid #1a1a2e' }}
+        >
+          <Sparkles className="w-6 h-6 text-white mb-1" />
+          <span className="text-sm font-black uppercase text-white tracking-wider">Press</span>
+          <span className="text-sm font-black uppercase text-white tracking-wider">HERE</span>
+        </button>
+      </div>
+
       <main className="relative flex flex-col lg:flex-row w-full min-h-[600px] sm:min-h-[700px] lg:min-h-[720px]">
         {/* Left: Homeowner */}
         <div className="w-full lg:w-1/2 bg-[#f4f4f5] flex flex-col justify-center py-16 px-8 lg:pl-16 xl:pl-24 lg:pr-[280px] z-0 transition-colors duration-700">
