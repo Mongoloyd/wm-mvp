@@ -144,8 +144,8 @@ export default function App() {
   // Framer Motion Sliding Variants
   const slideVariants = {
     initial: { x: 50, opacity: 0 },
-    animate: { x: 0, opacity: 1, transition: { duration: 0.3, ease: "easeOut" } },
-    exit: { x: -50, opacity: 0, transition: { duration: 0.2, ease: "easeIn" } }
+    animate: { x: 0, opacity: 1, transition: { duration: 0.3, ease: "easeOut" as const } },
+    exit: { x: -50, opacity: 0, transition: { duration: 0.2, ease: "easeIn" as const } }
   };
 
   // Option Card Component for reusability
