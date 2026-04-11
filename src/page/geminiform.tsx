@@ -205,7 +205,7 @@ export default function QuoteAuditFunnel() {
                     <motion.div key="exit" {...slideVariants} className="text-center">
                       <h2 className="text-3xl font-bold text-amber-400 mb-4">Before you go...</h2>
                       <p className="mb-8">Can I let you in on a little <span className="text-amber-300 italic">secret</span> on how we get you the lowest priced install?</p>
-                      <OptionCard text="Yes, tell me the secret" icon={Key} onClick={() => { setIsExitIntent(false); advance('secret_capture'); }} />
+                      <OptionCard text="Yes, tell me the secret" subtext="" icon={Key} onClick={() => { setIsExitIntent(false); advance('secret_capture'); }} />
                       <button onClick={() => setFlowState('revealed')} className="mt-4 text-xs text-gray-500">No thanks, I'll pay retail.</button>
                     </motion.div>
                   )}
