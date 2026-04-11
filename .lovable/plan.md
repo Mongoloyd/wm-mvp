@@ -1,69 +1,38 @@
 
 
-## Plan: Align Homepage Typography to Match About Page
+## Plan: Add Mobile FAB "Start Scan" to Forensic Shift Document
 
-### Problem
-The homepage sections use inconsistent typography: `wm-eyebrow`/`wm-title-section` CSS classes with inline `style={{ color: "hsl(210 50% 8%)" }}`, `clamp()` font sizes, and mixed heading patterns. The About page uses a clean, consistent system with `SectionEyebrow` and `SectionHeading` components plus Tailwind semantic classes (`text-foreground`, `text-foreground/80`, `text-muted-foreground`).
+### What
+Add a floating action button (bright cyan circle with "Start Scan" text) positioned at the top-right corner of the paper/analog document view. Visible only on viewports below `lg` (1024px). Clicking it opens the analysis modal (`setShowModal(true)`).
 
-### Target System (from About page)
-- **Eyebrows**: `font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground`
-- **Section headings**: `font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight text-foreground`
-- **Body text**: `text-base md:text-lg leading-relaxed text-foreground/80`
-- **Card headings**: `font-display text-2xl font-bold tracking-tight text-foreground`
+### File Modified
+`src/components/Forensicshift.jsx`
 
-### Components to Update
+### Changes
 
-**1. AuditHero.tsx** (hero section)
-- H1: Replace inline `style={{ fontSize: "clamp(...)", color: "hsl(210 50% 8%)" }}` with Tailwind classes matching About hero (`text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-foreground`)
-- Subtitle: Replace inline color/size styles with `text-base md:text-lg leading-relaxed text-foreground/80`
-- Stats strip: Replace `style={{ color: "hsl(210 50% 8%)" }}` with `text-foreground`
-- Eyebrow pill: Already uses `wm-eyebrow text-primary` -- keep `text-primary` but align font properties
+**1. Add FAB inside the paper-side document container (line ~253-256 area)**
 
-**2. IndustryTruth.tsx**
-- Eyebrow: Replace `wm-eyebrow text-primary` with About-style eyebrow classes
-- H2: Already uses Tailwind classes; ensure `font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight text-foreground` pattern
-- Body: Replace `wm-body` with `text-base md:text-lg leading-relaxed text-foreground/80`
-- Card headings: Use `font-display text-xl font-bold text-foreground uppercase tracking-tight`
+Inside the left-half (paper view) container, after the `<DocumentContent isDigital={false} .../>`, add a button:
 
-**3. ProcessSteps.tsx**
-- Eyebrow: Replace `font-mono text-[11px] tracking-[0.18em] text-primary` with consistent eyebrow pattern using `text-muted-foreground` (or keep `text-primary` if accent is desired)
-- H2: Replace `text-3xl sm:text-4xl lg:text-5xl font-bold` with `font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight text-foreground`
-- Body: Use `text-base md:text-lg leading-relaxed text-foreground/80`
+```jsx
+{/* Mobile FAB - visible below lg only */}
+<button
+  onClick={() => setShowModal(true)}
+  className="lg:hidden absolute top-3 right-3 z-20 w-14 h-14 rounded-full bg-cyan-500 hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.6)] flex flex-col items-center justify-center transition-colors"
+>
+  <span className="text-[9px] font-black uppercase leading-tight text-white tracking-wide">Start</span>
+  <span className="text-[9px] font-black uppercase leading-tight text-white tracking-wide">Scan</span>
+</button>
+```
 
-**4. NarrativeProof.tsx**
-- Eyebrow: Replace `wm-eyebrow text-primary` with consistent pattern
-- H2: Replace `wm-title-section` + inline `style={{ fontSize: "clamp(...)", color }}` with Tailwind heading classes
-- Subtitle: Replace inline approach with `text-base text-foreground/80`
+**Challenge**: The paper-side container currently has `overflow-hidden` on its parent. The FAB needs to sit inside a `relative` wrapper that is within the visible clipping area, so it won't be cut off. The button will be placed inside the existing paper-half `div` (line 253) which already clips to `w-1/2`, ensuring the FAB stays within the document bounds.
 
-**5. ClosingManifesto.tsx**
-- Eyebrow: Replace `wm-eyebrow text-muted-foreground` classes
-- Heading: Replace `wm-title-section` + inline color with Tailwind heading classes
-- Accent line: Keep `text-primary` but use `font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight`
+**2. Pass `setShowModal` context** -- The FAB is inside the main `App` component's render, so `setShowModal` is already in scope. No prop threading needed.
 
-**6. Testimonials.tsx**
-- Eyebrow: Replace `wm-eyebrow text-primary`
-- H2: Replace `wm-title-section text-lg md:text-4xl` with proper heading classes
-- Body text in cards: Replace `wm-body` with semantic classes
-
-**7. MarketMakerManifesto.tsx**
-- H2: Replace inline `style={{ fontSize: "clamp(...)" }}` with Tailwind responsive classes
-- Already uses `font-display font-extrabold text-foreground` which is close; just remove inline styles
-
-**8. QuoteSpreadShowcase.tsx**
-- H2 footer text: Already uses `text-3xl font-extrabold text-white` which works for its dark context; align tracking/font-display
-
-### Approach
-- Remove all inline `style={{ color: "hsl(210 50% 8%)" }}` and `style={{ fontSize: "clamp(...)" }}` in headings
-- Replace `wm-eyebrow`, `wm-title-section`, and `wm-body` CSS class usage with Tailwind utility classes matching the About page patterns
-- Use `font-display` for headings, standard Tailwind text sizing (`text-4xl md:text-5xl`), and semantic color tokens (`text-foreground`, `text-foreground/80`, `text-muted-foreground`)
-
-### Files Modified
-1. `src/components/AuditHero.tsx`
-2. `src/components/IndustryTruth.tsx`
-3. `src/components/ProcessSteps.tsx`
-4. `src/components/NarrativeProof.tsx`
-5. `src/components/ClosingManifesto.tsx`
-6. `src/components/Testimonials.tsx`
-7. `src/components/MarketMakerManifesto.tsx`
-8. `src/components/QuoteSpreadShowcase.tsx`
+### Visual Result
+- Bright cyan circle (w-14 h-14) with cyan glow shadow
+- Stacked "Start / Scan" text in bold white, ~9px
+- Top-right of the paper document
+- Hidden on desktop (`lg:hidden`)
+- Opens the analysis modal on tap
 
