@@ -226,6 +226,12 @@ Total: $12,000`);
           Don't Sign Until You've Got Your Free{' '}
           <span className="text-cyan-400">WindowMan AI Truth Report</span> →
         </p>
+        <p
+          onClick={() => setShowModal(true)}
+          className="text-center text-red-500 font-black text-2xl sm:text-3xl lg:text-4xl uppercase tracking-wide cursor-pointer hover:text-red-400 transition-colors leading-tight max-w-lg"
+        >
+          Watch A Forensic Contract Audit Live
+        </p>
         <button
           onClick={() => setShowModal(true)}
           className="w-32 h-32 rounded-full bg-red-600 hover:bg-red-500 flex flex-col items-center justify-center transition-colors animate-[red-glow_2s_ease-in-out_infinite]"
