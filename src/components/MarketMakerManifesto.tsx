@@ -76,8 +76,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
           </div>
 
           <h2
-            className="font-display font-extrabold text-foreground tracking-tight mb-6 drop-shadow-sm"
-            style={{ fontSize: "clamp(32px, 5vw, 60px)", lineHeight: 1.1 }}
+            className="font-display text-4xl md:text-5xl font-extrabold text-foreground tracking-tight mb-6 drop-shadow-sm leading-[1.1]"
           >
             HOW WINDOWMAN <br />
             <span className="text-primary">ACTUALLY WORKS</span>

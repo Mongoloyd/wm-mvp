@@ -26,8 +26,8 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="text-center mb-12"
         >
-          <p className="wm-eyebrow text-primary mb-3">Real Homeowner Results</p>
-          <h2 className="wm-title-section text-lg md:text-4xl text-foreground">What Homeowners Are Saying</h2>
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">Real Homeowner Results</p>
+          <h2 className="font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight text-foreground">What Homeowners Are Saying</h2>
         </motion.div>
 
         {/* Narrative Story Cards */}
@@ -54,7 +54,7 @@ const Testimonials = ({ onScanClick }: TestimonialsProps) => {
                 </div>
               </div>
               <div className="mt-5">
-                {story.narrative.map((p, j) => <p key={j} className="wm-body" style={{ marginTop: j > 0 ? 12 : 0 }}>{p}</p>)}
+                {story.narrative.map((p, j) => <p key={j} className="text-sm leading-relaxed text-foreground/80" style={{ marginTop: j > 0 ? 12 : 0 }}>{p}</p>)}
               </div>
               <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 p-4 mt-5" style={{ borderRadius: 'var(--radius-btn)' }}>
                 <span className="text-primary text-xl">✓</span>
