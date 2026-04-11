@@ -1,61 +1,34 @@
 
 
-## Plan: Relocate & Restyle Mobile FAB in ForensicShift.jsx
+## Assessment: Already Implemented
 
-### Problem
-The FAB currently sits inside the `overflow-hidden` div (line 252), which clips it. It's also too small (`w-14 h-14`) and lacks an icon.
+The current `ForensicShift.jsx` already matches every requirement in the task:
 
-### Changes — Single file: `src/components/Forensicshift.jsx`
+| Requirement | Current State |
+|---|---|
+| FAB is direct child of `order-first` wrapper, before `overflow-hidden` | Line 254 -- already correct |
+| Position: `absolute top-[-40px] left-1/2 -translate-x-1/2 z-50 lg:hidden` | Line 256 -- already correct |
+| Size: `w-24 h-24` circular | Line 256 -- already correct |
+| Style: `bg-cyan-500`, cyan glow shadow | Line 256 -- already correct |
+| Content: `Sparkles` icon + stacked "Start Scan" | Lines 258-260 -- already correct |
+| `scan-glow` keyframe with scale oscillation | Lines 315-324 -- already correct |
+| onClick opens modal | Line 255 -- calls `setShowModal(true)` (correct setter name) |
 
-**1. Add import** at top of file:
-```jsx
-import { Sparkles } from 'lucide-react';
-```
+### Only Issue: Visibility on Current Viewport
 
-**2. Move FAB outside `overflow-hidden`** — Remove lines 253-261 (the button inside the overflow div). Place it as a direct child of the outer wrapper (line 251), before the `overflow-hidden` div:
+The button may not be visible because:
+1. The user is on a **768px wide viewport** which is below `lg` (1024px), so `lg:hidden` should make it visible
+2. The `top-[-40px]` positions it above the document -- if the parent section has `overflow-hidden`, it could still clip
 
-```jsx
-{/* Center: Document */}
-<div className="order-first lg:order-none relative ...">
-  
-  {/* FAB — direct child, NOT inside overflow-hidden */}
-  <button
-    onClick={() => setShowModal(true)}
-    className="lg:hidden absolute top-[-40px] left-1/2 -translate-x-1/2 z-50 w-24 h-24 rounded-full bg-cyan-500 hover:bg-cyan-400 flex flex-col items-center justify-center transition-colors animate-[scan-glow_2s_ease-in-out_infinite] shadow-[0_0_40px_rgba(34,211,238,0.7)]"
-  >
-    <Sparkles className="w-5 h-5 text-white mb-0.5" />
-    <span className="text-[10px] font-black uppercase leading-tight text-white tracking-wide">Start</span>
-    <span className="text-[10px] font-black uppercase leading-tight text-white tracking-wide">Scan</span>
-  </button>
+### Recommended Fix
 
-  <div className="relative w-full h-full rounded-sm overflow-hidden bg-black">
-    {/* ... existing content unchanged ... */}
-  </div>
-</div>
-```
+Check if `Index.tsx` or any ancestor wrapper has `overflow-hidden` that clips the FAB at the page level. If so, change it to `overflow-x-hidden` (keeps horizontal clipping without vertical clipping).
 
-**3. Replace CSS animation** (lines 314-317) — swap `pulse-glow` for `scan-glow` with scale:
+### Changes
 
-```css
-@keyframes scan-glow {
-  0%, 100% {
-    box-shadow: 0 0 25px rgba(34,211,238,0.5), 0 0 50px rgba(34,211,238,0.3);
-    transform: translateX(-50%) scale(1);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(34,211,238,0.8), 0 0 70px rgba(34,211,238,0.5);
-    transform: translateX(-50%) scale(1.05);
-  }
-}
-```
+**File: `src/pages/Index.tsx`**
+- Verify the wrapper around `<ForensicShift />` does not use `overflow-hidden`. If it does, change to `overflow-x-hidden`.
 
-### Why this fixes it
-- Button moves from inside `overflow-hidden` to its parent `relative` container — no clipping
-- `top-[-40px]` floats it above the document edge so it's unmissable
-- `w-24 h-24` makes it large enough to tap easily on mobile
-- `scan-glow` animation preserves `translateX(-50%)` centering while pulsing scale
-- `Sparkles` icon adds visual clarity alongside "START SCAN" text
-
-### Result
-A large, glowing cyan circle with sparkle icon and "START SCAN" text, floating above the document on mobile/tablet only, opening the analysis modal on tap.
+**File: `src/components/Forensicshift.jsx`**
+- No changes needed -- implementation is already correct per the spec.
 
