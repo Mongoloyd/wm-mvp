@@ -146,7 +146,12 @@ const MockEstimate = ({ data }) => {
   );
 };
 
-export default function App() {
+interface QuoteSpreadShowcaseProps {
+  onScanClick?: () => void;
+  onDemoClick?: () => void;
+}
+
+export default function QuoteSpreadShowcase({ onScanClick, onDemoClick }: QuoteSpreadShowcaseProps) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isScanning, setIsScanning] = useState(true);
   const containerRef = useRef(null);
