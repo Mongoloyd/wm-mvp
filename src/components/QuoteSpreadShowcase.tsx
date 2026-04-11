@@ -393,7 +393,7 @@ export default function QuoteSpreadShowcase({ onScanClick, onDemoClick }: QuoteS
 
           <div className="flex flex-col items-center space-y-4 w-full max-w-sm">
             <button
-              onClick={handleOpenModal}
+              onClick={onScanClick}
               className="btn-glossy-blue w-full py-3.5 px-6 rounded-lg font-bold text-white text-lg flex items-center justify-center group cursor-pointer"
             >
               Show Me My Grade
