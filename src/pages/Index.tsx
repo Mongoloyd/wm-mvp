@@ -14,13 +14,13 @@ import { PostScanReportSwitcher } from "@/components/post-scan/PostScanReportSwi
 // ContractorMatch removed — CTAs now native in TruthReportClassic
 import IndustryTruth from "@/components/IndustryTruth";
 import ProcessSteps from "@/components/ProcessSteps";
-import { XRayScannerBackground } from "@/components/XRayScannerBackground";
+
 import NarrativeProof from "@/components/NarrativeProof";
 import ClosingManifesto from "@/components/ClosingManifesto";
 import Testimonials from "@/components/Testimonials";
 import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
-import InteractiveDemoScan from "@/components/orangescanner";
+import OrangeScanner from "@/components/OrangeScanner";
 import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
@@ -243,9 +243,13 @@ const Index = () => {
             <>
               <SocialProofStrip />
               <ScamConcernImage />
-              <XRayScannerBackground>
-                <InteractiveDemoScan onScanClick={() => triggerTruthGate('demo_scan')} />
-              </XRayScannerBackground>
+              <OrangeScanner
+                onScanClick={() => triggerTruthGate('demo_scan')}
+                onDemoClick={() => {
+                  setPowerToolTriggered(true);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
               <TruthGateFlow
                 onLeadCaptured={(sid) => { setLeadCaptured(true); setSessionId(sid); }}
                 onStepChange={(step, county) => { setStepsCompleted(step); setSelectedCounty(county); }}

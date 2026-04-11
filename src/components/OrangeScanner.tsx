@@ -245,74 +245,12 @@ const VerdictHologram = ({ isOpen, score, anomalies }) => {
   );
 };
 
-// --- PHASE 5: THE TRUTH REPORT CTA ---
-const ScanCTA = () => {
-  return (
-    <div className="max-w-6xl mx-auto mt-20 mb-12 group w-full relative z-10">
-      <div className="relative bg-slate-900/50 border border-cyan-500/30 rounded-2xl p-1 overflow-hidden transition-all duration-500 hover:border-cyan-400 hover:shadow-[0_0_50px_rgba(34,211,238,0.15)]">
-        
-        {/* Animated Background Gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(34,211,238,0.1),transparent)]" />
-        
-        <div className="relative bg-slate-950 rounded-xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 border border-white/5">
-          
-          <div className="flex-1 space-y-4 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-widest">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-              </span>
-              Consumer Protection Active
-            </div>
-            
-            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter leading-tight">
-              Don't get ripped off by <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 uppercase">
-                Contractor Jargon.
-              </span>
-            </h2>
-            
-            <p className="text-slate-400 max-w-md mx-auto md:mx-0 text-sm md:text-base font-medium leading-relaxed">
-              Our AI exposes hidden surcharges, substandard hurricane ratings, and predatory deposit traps in seconds.
-            </p>
-          </div>
+interface WindowScannerProps {
+  onScanClick?: () => void;
+  onDemoClick?: () => void;
+}
 
-          <div className="flex-shrink-0 flex flex-col items-center">
-            <button 
-              onClick={() => {
-                console.log("Triggering Twilio OTP Route...");
-                // Alert used here for demo environment purposes
-                alert("Initiating Secure Twilio OTP Route to /scan-estimate");
-              }}
-              className="relative px-8 py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xl rounded-xl transition-all duration-300 transform group-hover:scale-105 shadow-[0_0_30px_rgba(8,145,178,0.4)] flex items-center gap-4 overflow-hidden"
-            >
-              {/* Button "Shimmer" Effect (Using arbitrary Tailwind values to access existing keyframes) */}
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-              
-              <span className="relative uppercase tracking-tight flex flex-col items-center md:items-start text-center md:text-left">
-                Scan Your Estimate 
-                <span className="opacity-60 block text-xs tracking-widest mt-1">Get the Truth</span>
-              </span>
-              <ArrowRight className="relative group-hover:translate-x-2 transition-transform hidden sm:block" size={24} />
-            </button>
-            
-            <div className="mt-4 flex items-center justify-center gap-6 opacity-40">
-               <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
-                 <ShieldCheck size={12} /> SECURE OTP
-               </div>
-               <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
-                 <Zap size={12} /> INSTANT SCAN
-               </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default function WindowScanner() {
+export default function WindowScanner({ onScanClick, onDemoClick }: WindowScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [activeAnomalies, setActiveAnomalies] = useState([]);
@@ -581,6 +519,7 @@ export default function WindowScanner() {
             {/* The Hologram Finale */}
             <VerdictHologram 
               isOpen={scanProgress === 100} 
+              score={Math.max(0, 95 - (activeAnomalies.length * 12))}
               anomalies={activeAnomalies} 
             />
           </div>
@@ -683,10 +622,6 @@ export default function WindowScanner() {
 
           </div>
         </div>
-
-        {/* THE TRUTH REPORT CTA */}
-        <ScanCTA />
-
       </div>
       
       {/* Global CSS for custom animations/scrollbars */}
