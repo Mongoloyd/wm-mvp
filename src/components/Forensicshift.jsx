@@ -311,6 +311,10 @@ Total: $12,000`);
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(148, 163, 184, 0.3); border-radius: 10px; }
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(6,182,212,0.8), 0 0 40px rgba(6,182,212,0.4); }
+          50% { box-shadow: 0 0 30px rgba(6,182,212,1), 0 0 60px rgba(6,182,212,0.6); }
+        }
       `}} />
     </div>
   );
