@@ -312,9 +312,15 @@ Total: $12,000`);
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(148, 163, 184, 0.3); border-radius: 10px; }
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(6,182,212,0.8), 0 0 40px rgba(6,182,212,0.4); }
-          50% { box-shadow: 0 0 30px rgba(6,182,212,1), 0 0 60px rgba(6,182,212,0.6); }
+        @keyframes scan-glow {
+          0%, 100% {
+            box-shadow: 0 0 25px rgba(34,211,238,0.5), 0 0 50px rgba(34,211,238,0.3);
+            transform: translateX(-50%) scale(1);
+          }
+          50% {
+            box-shadow: 0 0 40px rgba(34,211,238,0.8), 0 0 70px rgba(34,211,238,0.5);
+            transform: translateX(-50%) scale(1.05);
+          }
         }
       `}} />
     </div>
