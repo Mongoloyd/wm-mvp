@@ -206,7 +206,7 @@ Total: $12,000`);
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-[#1e293b] overflow-x-hidden selection:bg-cyan-500/30">
+    <div className="font-sans bg-[#1e293b] overflow-x-hidden selection:bg-cyan-500/30">
       <header className="py-5 px-8 lg:px-12 bg-[#253245] text-white flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700/50 shadow-md z-20 gap-4">
         <h1 className="text-xl lg:text-3xl font-medium tracking-tight">
           The Forensic Shift: <span className="text-slate-300">What You See vs. What the Machine Sees</span>
@@ -219,7 +219,7 @@ Total: $12,000`);
         </button>
       </header>
 
-      <main className="flex-1 relative flex flex-col lg:flex-row w-full">
+      <main className="relative flex flex-col lg:flex-row w-full min-h-[600px] sm:min-h-[700px] lg:min-h-[720px]">
         {/* Left: Homeowner */}
         <div className="w-full lg:w-1/2 bg-[#f4f4f5] flex flex-col justify-center py-16 px-8 lg:pl-16 xl:pl-24 lg:pr-[280px] z-0 transition-colors duration-700">
           <div className="max-w-md mx-auto lg:mx-0 lg:ml-auto w-full">
