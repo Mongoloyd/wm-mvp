@@ -20,6 +20,7 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const DemoClassic = lazy(() => import("./pages/DemoClassic.tsx"));
 const AdminDashboard = lazy(() => import("./components/AdminDashboard.tsx"));
 const DevReportPreview = lazy(() => import("./pages/DevReportPreview.tsx"));
+const DevTesting = lazy(() => import("./pages/DevTesting.tsx"));
 
 // ── Static content pages ─────────────────────────────────────────────────────
 const About = lazy(() => import("./pages/About.tsx"));
