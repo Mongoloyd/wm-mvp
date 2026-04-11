@@ -371,13 +371,6 @@ export default function App() {
             The first contractor paid for the discovery, measurements, and price anchoring. WindowMan captures the deal downstream. Our partners walk into the home knowing exactly what to beat.
           </p>
 
-          {/* Reset Demo Button */}
-          <button
-            onClick={handleResetDemo}
-            className="mt-12 text-gray-500 hover:text-cyan-400 text-xs tracking-wider font-semibold px-4 py-2 rounded-full border border-white/5 hover:border-cyan-500/30 bg-black/20 hover:bg-black/40 backdrop-blur-sm transition-all"
-          >
-            Reset Funnel
-          </button>
         </div>
       </div>
 
@@ -807,11 +800,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Watermark */}
-      <div className="absolute bottom-4 right-6 text-gray-500/50 text-xs font-semibold flex items-center gap-1 z-0">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-        NotebookLM
-      </div>
 
     </div>
   );
