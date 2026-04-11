@@ -485,7 +485,7 @@ export default function WindowScanner({ onScanClick, onDemoClick }: { onScanClic
 
                     {/* Document Header */}
                     <div className="p-8 md:p-10 pb-6 border-b-2 border-slate-300 relative">
-                      <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight mb-4 uppercase italic">Window Estimate</h1>
+                      <h1 className="text-3xl md:text-4xl font-extrabold text-red-600 tracking-tight mb-4 uppercase italic">Window Estimate Scan</h1>
                       
                       <div className="flex flex-col sm:flex-row justify-between text-slate-600 text-sm font-medium gap-4">
                         <div className="space-y-1">
