@@ -251,8 +251,15 @@ Total: $12,000`);
         <div className="order-first lg:order-none relative w-[340px] sm:w-[460px] xl:w-[540px] h-[480px] sm:h-[600px] xl:h-[720px] mx-auto lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 z-10 my-10 lg:my-0 shadow-2xl rounded-sm shrink-0">
           <div className="relative w-full h-full rounded-sm overflow-hidden bg-black">
             <div className="absolute top-0 left-0 w-1/2 h-full overflow-hidden border-r border-slate-300/50">
-              <div className="w-[340px] sm:w-[460px] xl:w-[540px] h-full origin-top-left">
+              <div className="w-[340px] sm:w-[460px] xl:w-[540px] h-full origin-top-left relative">
                 <DocumentContent isDigital={false} data={data} isAnalyzing={isAnalyzing} />
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="lg:hidden absolute top-3 right-3 z-20 w-14 h-14 rounded-full bg-cyan-500 hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.6)] flex flex-col items-center justify-center transition-colors"
+                >
+                  <span className="text-[9px] font-black uppercase leading-tight text-white tracking-wide">Start</span>
+                  <span className="text-[9px] font-black uppercase leading-tight text-white tracking-wide">Scan</span>
+                </button>
               </div>
             </div>
             <div className="absolute top-0 right-0 w-1/2 h-full overflow-hidden bg-[#0a192f]">
