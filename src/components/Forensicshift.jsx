@@ -220,6 +220,23 @@ Total: $12,000`);
         </button>
       </header>
 
+      {/* Scroll-stopping CTA banner */}
+      <div className="relative py-8 px-4 flex flex-col items-center gap-5 bg-gradient-to-b from-[#253245] to-[#1e293b]">
+        <p className="text-center text-white font-bold text-base sm:text-lg max-w-md leading-snug">
+          Don't Sign Until You've Got Your Free{' '}
+          <span className="text-cyan-400">WindowMan AI Truth Report</span> →
+        </p>
+        <button
+          onClick={() => setShowModal(true)}
+          className="w-32 h-32 rounded-full bg-red-600 hover:bg-red-500 flex flex-col items-center justify-center transition-colors animate-[red-glow_2s_ease-in-out_infinite]"
+          style={{ border: '6px solid #1a1a2e' }}
+        >
+          <Sparkles className="w-6 h-6 text-white mb-1" />
+          <span className="text-sm font-black uppercase text-white tracking-wider">Press</span>
+          <span className="text-sm font-black uppercase text-white tracking-wider">HERE</span>
+        </button>
+      </div>
+
       <main className="relative flex flex-col lg:flex-row w-full min-h-[600px] sm:min-h-[700px] lg:min-h-[720px]">
         {/* Left: Homeowner */}
         <div className="w-full lg:w-1/2 bg-[#f4f4f5] flex flex-col justify-center py-16 px-8 lg:pl-16 xl:pl-24 lg:pr-[280px] z-0 transition-colors duration-700">
@@ -250,15 +267,6 @@ Total: $12,000`);
 
         {/* Center: Document */}
       <div className="order-first lg:order-none relative w-[340px] sm:w-[460px] xl:w-[540px] h-[480px] sm:h-[600px] xl:h-[720px] mx-auto lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 z-10 my-10 lg:my-0 shadow-2xl rounded-sm shrink-0">
-          {/* Mobile FAB - OUTSIDE overflow-hidden */}
-          <button
-            onClick={() => setShowModal(true)}
-            className="lg:hidden absolute top-[-40px] left-1/2 -translate-x-1/2 z-50 w-24 h-24 rounded-full bg-cyan-500 hover:bg-cyan-400 flex flex-col items-center justify-center transition-colors animate-[scan-glow_2s_ease-in-out_infinite] shadow-[0_0_40px_rgba(34,211,238,0.7)]"
-          >
-            <Sparkles className="w-5 h-5 text-white mb-0.5" />
-            <span className="text-[10px] font-black uppercase leading-tight text-white tracking-wide">Start</span>
-            <span className="text-[10px] font-black uppercase leading-tight text-white tracking-wide">Scan</span>
-          </button>
 
           <div className="relative w-full h-full rounded-sm overflow-hidden bg-black">
             <div className="absolute top-0 left-0 w-1/2 h-full overflow-hidden border-r border-slate-300/50">
@@ -312,14 +320,14 @@ Total: $12,000`);
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(148, 163, 184, 0.3); border-radius: 10px; }
-        @keyframes scan-glow {
+        @keyframes red-glow {
           0%, 100% {
-            box-shadow: 0 0 25px rgba(34,211,238,0.5), 0 0 50px rgba(34,211,238,0.3);
-            transform: translateX(-50%) scale(1);
+            box-shadow: 0 0 20px rgba(220,38,38,0.4), 0 0 40px rgba(220,38,38,0.2);
+            transform: scale(1);
           }
           50% {
-            box-shadow: 0 0 40px rgba(34,211,238,0.8), 0 0 70px rgba(34,211,238,0.5);
-            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 0 35px rgba(220,38,38,0.7), 0 0 60px rgba(220,38,38,0.4);
+            transform: scale(1.08);
           }
         }
       `}} />
