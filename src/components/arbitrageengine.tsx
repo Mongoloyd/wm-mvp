@@ -580,7 +580,7 @@ export default function App() {
                   </h3>
                   <ul className="space-y-2" role="list">
                     {MOCK_ANALYSIS.redFlags.map((f, i) => (
-                      <li key={i} className="text-xs sm:text-sm text-gray-300 pl-5 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-red-500/80">
+                      <li key={i} className="text-xs sm:text-sm text-gray-300 pl-5 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-red-500/80 text-left">
                         {f}
                       </li>
                     ))}
