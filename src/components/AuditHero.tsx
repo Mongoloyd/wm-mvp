@@ -34,7 +34,7 @@ const AuditHero = ({
   const trustPillContent = (
     <>
       <span className="text-primary text-sm">🛡️</span>
-      <span className="wm-eyebrow text-primary">{variantBadgeText || "FORENSIC QUOTE INTELLIGENCE"}</span>
+      <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">{variantBadgeText || "FORENSIC QUOTE INTELLIGENCE"}</span>
     </>
   );
 
@@ -45,7 +45,7 @@ const AuditHero = ({
           <Shield className="w-4 h-4 text-primary" />
         </div>
         <div>
-          <p className="font-mono text-sm font-bold tabular-nums" style={{ color: "hsl(210 50% 8%)" }}>
+          <p className="font-mono text-sm font-bold tabular-nums text-foreground">
             {total.toLocaleString()}
           </p>
           <p className="text-[11px] text-muted-foreground leading-tight">Quotes Scanned</p>
@@ -59,7 +59,7 @@ const AuditHero = ({
           <TrendingDown className="w-4 h-4 text-destructive" />
         </div>
         <div>
-          <p className="font-mono text-sm font-bold tabular-nums" style={{ color: "hsl(210 50% 8%)" }}>
+          <p className="font-mono text-sm font-bold tabular-nums text-foreground">
             ${savingsFound}M+
           </p>
           <p className="text-[11px] text-muted-foreground leading-tight">Overcharges Found</p>
@@ -73,7 +73,7 @@ const AuditHero = ({
           <BarChart3 className="w-4 h-4 text-primary" />
         </div>
         <div>
-          <p className="font-mono text-sm font-bold tabular-nums" style={{ color: "hsl(210 50% 8%)" }}>
+          <p className="font-mono text-sm font-bold tabular-nums text-foreground">
             $3,100
           </p>
           <p className="text-[11px] text-muted-foreground leading-tight">Avg. Savings</p>
@@ -141,13 +141,7 @@ const AuditHero = ({
             </motion.div>
 
             <h1
-              className="font-display uppercase leading-[1.08] mb-5"
-              style={{
-                fontSize: "clamp(40px, 5vw, 58px)",
-                fontWeight: 900,
-                letterSpacing: "-0.005em",
-                color: "hsl(210 50% 8%)",
-              }}
+              className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold uppercase leading-[1.08] tracking-tight text-foreground mb-5"
             >
               {variantHeadline ? (
                 variantHeadline
@@ -164,8 +158,7 @@ const AuditHero = ({
             </h1>
 
             <p
-              className="font-body mb-8"
-              style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7, color: "hsl(215 20% 28%)" }}
+              className="font-body text-base md:text-lg leading-relaxed text-foreground/80 mb-8"
             >
               {variantSubheadline ? (
                 variantSubheadline
@@ -174,7 +167,7 @@ const AuditHero = ({
                   The Impact Window Industry Has No Pricing Transparency Standard.
                   <br />
                   WindowMan Built One — and It Audits Your Quote In{" "}
-                  <strong style={{ color: "hsl(210 50% 8%)" }}>under 60 seconds</strong>.
+                  <strong className="text-foreground">under 60 seconds</strong>.
                 </>
               )}
             </p>

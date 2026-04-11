@@ -68,11 +68,11 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
           >
             <ScanSearch className="w-8 h-8 text-primary" strokeWidth={1.8} />
           </div>
-          <div className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase mb-4">How it works</div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-[-0.02em] leading-[1.08]">
+          <div className="font-mono text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase mb-4">How it works</div>
+          <h2 className="font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight text-foreground leading-[1.08]">
             What Happens When You Scan
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-7">
+          <p className="mt-4 text-base md:text-lg leading-relaxed text-foreground/80">
             Upload Your Quote Details and Instantly Know the Truth About Your Estimate
           </p>
         </div>

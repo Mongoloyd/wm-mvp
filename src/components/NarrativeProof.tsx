@@ -67,9 +67,9 @@ const NarrativeProof = ({ onScanClick, onDemoClick }: NarrativeProofProps) => {
     <section className="bg-transparent">
       <div ref={ref} className="mx-auto max-w-5xl px-4 md:px-8 py-20 md:py-28">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4, ease: "easeOut" }} className="text-center">
-          <p className="wm-eyebrow text-primary mb-4">REAL RESULTS FROM FLORIDA HOMEOWNERS</p>
-          <h2 className="wm-title-section mb-3" style={{ fontSize: "clamp(32px, 5vw, 48px)", color: "hsl(210 50% 8%)" }}>WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
-          <p className="font-body text-base text-muted-foreground mb-12">These Are Outcomes Not Reviews</p>
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-4">REAL RESULTS FROM FLORIDA HOMEOWNERS</p>
+          <h2 className="font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight text-foreground mb-3">WHAT HAPPENS WHEN YOU KNOW THE TRUTH.</h2>
+          <p className="text-base text-foreground/80">These Are Outcomes Not Reviews</p>
         </motion.div>
 
         {/* Review Carousel */}

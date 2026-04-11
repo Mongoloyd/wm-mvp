@@ -384,7 +384,7 @@ export default function QuoteSpreadShowcase({ onScanClick, onDemoClick }: QuoteS
           className="mt-auto pointer-events-auto flex flex-col items-center z-20 w-full p-8 rounded-b-3xl bg-gradient-to-t from-[#020617] via-[#020617]/80 to-transparent"
           style={{ transform: "translateZ(40px)" }}
         >
-          <h2 className="text-3xl font-extrabold text-white tracking-tight mb-2 text-center drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
+          <h2 className="font-display text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-2 text-center drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
             YOUR QUOTE IS EITHER PRICED FAIRLY OR IT ISN'T.
           </h2>
           <p className="text-lg italic text-slate-300 mb-6 drop-shadow-md font-serif">
