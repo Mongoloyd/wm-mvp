@@ -547,7 +547,7 @@ export default function App() {
               role="region"
               aria-label="Sample Truth Report results"
             >
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative text-left">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent rounded-2xl pointer-events-none" />
 
                 {/* Grade Badge */}
@@ -562,20 +562,34 @@ export default function App() {
                 {/* 5 Pillar Bars */}
                 <div className="relative z-10 space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                   {MOCK_ANALYSIS.pillars.map((p) => (
-                    <div key={p.key} className="flex items-center gap-2 sm:gap-3" role="meter" aria-label={`${p.label}: ${p.score} out of 100`} aria-valuenow={p.score} aria-valuemin={0} aria-valuemax={100}>
-                      <p.icon className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 ${statusColor(p.status)}`} strokeWidth={1.5} />
-                      <span className="text-xs sm:text-sm text-gray-300 w-20 sm:w-28 shrink-0 text-left">{p.label}</span>
-                      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div key={p.key} role="meter" aria-label={`${p.label}: ${p.score} out of 100`} aria-valuenow={p.score} aria-valuemin={0} aria-valuemax={100}>
+                      {/* Mobile: stacked layout */}
+                      <div className="flex items-center justify-between mb-1 sm:hidden">
+                        <div className="flex items-center gap-2">
+                          <p.icon className={`w-4 h-4 shrink-0 ${statusColor(p.status)}`} strokeWidth={1.5} />
+                          <span className="text-xs text-gray-300 text-left">{p.label}</span>
+                        </div>
+                        <span className={`text-xs font-bold ${statusColor(p.status)}`}>{p.score}</span>
+                      </div>
+                      <div className="h-2 bg-gray-800 rounded-full overflow-hidden sm:hidden">
                         <div className={`h-full rounded-full ${barColor(p.status)}`} style={{ width: `${p.score}%` }} />
                       </div>
-                      <span className={`text-xs sm:text-sm font-bold w-8 sm:w-10 text-right ${statusColor(p.status)}`}>{p.score}</span>
+                      {/* sm+: inline row */}
+                      <div className="hidden sm:flex items-center gap-3">
+                        <p.icon className={`w-5 h-5 shrink-0 ${statusColor(p.status)}`} strokeWidth={1.5} />
+                        <span className="text-sm text-gray-300 w-28 shrink-0 text-left">{p.label}</span>
+                        <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${barColor(p.status)}`} style={{ width: `${p.score}%` }} />
+                        </div>
+                        <span className={`text-sm font-bold w-10 text-right ${statusColor(p.status)}`}>{p.score}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Red Flags */}
                 <div className="relative z-10 mb-5 sm:mb-6">
-                  <h3 className="text-xs sm:text-sm font-bold text-red-400 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-bold text-red-400 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2 text-left">
                     <AlertTriangle className="w-4 h-4" /> Red Flags ({MOCK_ANALYSIS.redFlags.length})
                   </h3>
                   <ul className="space-y-2" role="list">
@@ -589,12 +603,12 @@ export default function App() {
 
                 {/* Amber Flags */}
                 <div className="relative z-10 mb-6 sm:mb-8">
-                  <h3 className="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2 text-left">
                     <AlertTriangle className="w-4 h-4" /> Warnings ({MOCK_ANALYSIS.amberFlags.length})
                   </h3>
                   <ul className="space-y-2" role="list">
                     {MOCK_ANALYSIS.amberFlags.map((f, i) => (
-                      <li key={i} className="text-xs sm:text-sm text-gray-300 pl-5 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-amber-500/80">
+                      <li key={i} className="text-xs sm:text-sm text-gray-300 pl-5 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-amber-500/80 text-left">
                         {f}
                       </li>
                     ))}
