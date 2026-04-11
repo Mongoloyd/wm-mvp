@@ -1,15 +1,6 @@
 import React, { useState } from 'react';
-import { Sparkles } from 'lucide-react';
 
-/**
- * ForensicShift Component
- * Prepared for Lovable Import
- * * Features: 
- * - Split-view document visualization (Paper vs. Digital)
- * - Gemini AI Forensic Analysis integration
- * - Responsive Tailwind CSS design
- */
-
+// Default data matching the original design
 const defaultData = {
   homeownerBulletPoints: [
     "Total Price: $17,400",
@@ -51,6 +42,7 @@ const DocumentContent = ({ isDigital, data, isAnalyzing }) => {
         backgroundSize: '20px 20px'
       } : {}}
     >
+      {/* Header section */}
       <div className="flex justify-between items-start mb-8 border-b-2 pb-6 border-current opacity-80">
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -72,22 +64,25 @@ const DocumentContent = ({ isDigital, data, isAnalyzing }) => {
         </div>
       </div>
 
+      {/* Table Header */}
       <div className={`grid grid-cols-12 gap-2 pb-2 mb-4 text-xs font-bold tracking-wide border-b border-current opacity-80`}>
         <div className="col-span-2">QTY</div>
         <div className="col-span-7">DESCRIPTION</div>
         <div className="col-span-3 text-right">TOTAL</div>
       </div>
 
+      {/* Table Rows */}
       <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
         {data.invoiceRows.map((row, idx) => (
           <div key={idx} className={`grid grid-cols-12 gap-2 text-sm ${isDigital ? 'opacity-90' : 'opacity-80'}`}>
             <div className="col-span-2">{row.qty}</div>
-            <div className="col-span-7 line-clamp-1" title={row.desc}>{row.desc}</div>
+            <div className="col-span-7 break-words" title={row.desc}>{row.desc}</div>
             <div className="col-span-3 text-right">{row.price}</div>
           </div>
         ))}
       </div>
 
+      {/* Totals Section */}
       <div className="mt-auto pt-4 border-t-2 border-current opacity-80">
         <div className="flex justify-between items-center mb-2">
           <span className="font-bold">Subtotal</span>
@@ -103,10 +98,12 @@ const DocumentContent = ({ isDigital, data, isAnalyzing }) => {
         </div>
       </div>
       
+      {/* Footer Notes */}
       <div className={`mt-6 text-[10px] leading-tight ${isDigital ? 'opacity-60' : 'text-slate-500'} text-justify line-clamp-4`}>
         {data.footerNote}
       </div>
 
+      {/* Signature block */}
       <div className="mt-4 grid grid-cols-2 gap-8">
         <div className="border-b border-current pb-1 flex items-end h-8">
           <span className={`text-xs ${isDigital ? 'opacity-60' : 'text-slate-500'}`}>Signature</span>
@@ -118,8 +115,10 @@ const DocumentContent = ({ isDigital, data, isAnalyzing }) => {
         </div>
       </div>
       
+      {/* Digital Overlay Extras */}
       {isDigital && (
         <div className="absolute inset-0 pointer-events-none">
+           {/* Scan reticles */}
            <div className={`absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-cyan-400 ${isAnalyzing ? 'animate-ping' : 'opacity-50'}`} />
            <div className={`absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-cyan-400 ${isAnalyzing ? 'animate-ping' : 'opacity-50'}`} />
            <div className={`absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-cyan-400 ${isAnalyzing ? 'animate-ping' : 'opacity-50'}`} />
@@ -141,7 +140,8 @@ export default function App() {
 1x Labor - INCLUDED
 Taxes & Processing - $800
 Estimated Local Markup fee - $1,500
-Total: $12,000`);
+Total: $12,000
+Note: Labor included for standard pitch only. Steeper pitches require $2k surcharge. Warranty void if not inspected annually.`);
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleAnalyze = async () => {
@@ -149,10 +149,14 @@ Total: $12,000`);
     setShowModal(false);
     setErrorMsg("");
 
-    const apiKey = ""; // Set your API key here or via env variables
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const apiKey = ""; // Gemini API key provided by environment
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-    const prompt = `You are a forensic quote analyzer AI. Analyze the following construction quote text and return a strict JSON response.
+    const prompt = `You are a forensic quote analyzer AI. Analyze the following construction or home-improvement quote text.
+    Extract the line items and calculate totals.
+    More importantly, identify 3 positive, obvious things a homeowner would notice (e.g., "Total Price: $X", "Included Labor", "Premium Materials") for the homeowner summary.
+    Then, act like a machine/auditor and identify 3 hidden "gotchas", hidden fees, exclusions, or markups for the machine summary.
+    
     Quote text to analyze:
     ${quoteText}`;
 
@@ -163,133 +167,198 @@ Total: $12,000`);
         responseSchema: {
           type: "OBJECT",
           properties: {
-            homeownerBulletPoints: { type: "ARRAY", items: { type: "STRING" } },
-            machineBulletPoints: { type: "ARRAY", items: { type: "STRING" } },
+            homeownerBulletPoints: {
+              type: "ARRAY",
+              items: { type: "STRING" },
+              description: "Exactly 3 short, positive-sounding bullet points a homeowner would notice. Format with line breaks if needed."
+            },
+            machineBulletPoints: {
+              type: "ARRAY",
+              items: { type: "STRING" },
+              description: "Exactly 3 short, critical/forensic bullet points an auditor would catch (like markups, exclusions). Format with line breaks if needed."
+            },
             invoiceRows: {
               type: "ARRAY",
               items: {
                 type: "OBJECT",
                 properties: {
-                  qty: { type: "STRING" },
-                  desc: { type: "STRING" },
-                  price: { type: "STRING" }
+                  qty: { type: "STRING", description: "Quantity or '-'" },
+                  desc: { type: "STRING", description: "Description of item" },
+                  price: { type: "STRING", description: "Price formatted with $, or INCLUDED" }
                 }
               }
             },
             subtotal: { type: "STRING" },
             taxesAndFees: { type: "STRING" },
             totalPrice: { type: "STRING" },
-            footerNote: { type: "STRING" }
+            footerNote: { type: "STRING", description: "A summary of any fine print, exclusions, or warranty details found in the text." }
           },
           required: ["homeownerBulletPoints", "machineBulletPoints", "invoiceRows", "subtotal", "taxesAndFees", "totalPrice", "footerNote"]
         }
       }
     };
 
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+    const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
-      if (!response.ok) throw new Error(`API Error: ${response.status}`);
-      const result = await response.json();
-      
-      if (result.candidates && result.candidates[0].content.parts[0].text) {
-        setData(JSON.parse(result.candidates[0].content.parts[0].text));
+    let attempts = 0;
+    const maxRetries = 5;
+    let result = null;
+
+    while (attempts < maxRetries) {
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        
+        result = await response.json();
+        break; // Success
+      } catch (err) {
+        attempts++;
+        if (attempts >= maxRetries) {
+          setErrorMsg("Failed to connect to the Gemini API after multiple attempts. Please try again later.");
+          setIsAnalyzing(false);
+          return;
+        }
+        await delay(Math.pow(2, attempts) * 1000); // Exponential backoff
+      }
+    }
+
+    try {
+      if (result && result.candidates && result.candidates[0].content.parts[0].text) {
+        const parsedData = JSON.parse(result.candidates[0].content.parts[0].text);
+        setData(parsedData);
+      } else {
+        throw new Error("Invalid response format from Gemini.");
       }
     } catch (err) {
-      setErrorMsg("Forensic scan failed. Please check your API key or connection.");
+      setErrorMsg("Failed to parse the forensic analysis. Please try a different quote.");
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   return (
-    <div className="font-sans bg-[#1e293b] overflow-x-hidden selection:bg-cyan-500/30">
-      <header className="py-5 px-8 lg:px-12 bg-[#253245] text-white flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700/50 shadow-md z-20 gap-4">
+    <div className="min-h-screen flex flex-col font-sans bg-[#1e293b] overflow-x-hidden selection:bg-cyan-500/30">
+      
+      {/* Top Header Bar */}
+      <header className="py-5 px-8 lg:px-12 bg-[#253245] text-white flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700/50 shadow-md z-40 gap-4">
         <h1 className="text-xl lg:text-3xl font-medium tracking-tight">
           The Forensic Shift: <span className="text-slate-300">What You See vs. What the Machine Sees</span>
         </h1>
         <button 
           onClick={() => setShowModal(true)}
-          className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-2 whitespace-nowrap"
+          className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] flex items-center justify-center gap-2 whitespace-nowrap min-h-[44px] min-w-[44px]"
         >
           <span>✨ Analyze Quote</span>
         </button>
       </header>
 
-      {/* Scroll-stopping CTA banner */}
-      <div className="relative py-8 px-4 flex flex-col items-center gap-5 bg-gradient-to-b from-[#253245] to-[#1e293b]">
-        <p className="text-center text-white font-bold text-base sm:text-lg max-w-md leading-snug">
-          Don't Sign Until You've Got Your Free{' '}
-          <span className="text-cyan-400">WindowMan AI Truth Report</span> →
-        </p>
-        <p
-          onClick={() => setShowModal(true)}
-          className="text-center text-red-500 font-black text-2xl sm:text-3xl lg:text-4xl uppercase tracking-wide cursor-pointer hover:text-red-400 transition-colors leading-tight max-w-lg"
-        >
-          Watch A Forensic Contract Audit Live
-        </p>
-        <button
-          onClick={() => setShowModal(true)}
-          className="w-32 h-32 rounded-full bg-red-600 hover:bg-red-500 flex flex-col items-center justify-center transition-colors animate-[red-glow_2s_ease-in-out_infinite]"
-          style={{ border: '6px solid #1a1a2e' }}
-        >
-          <Sparkles className="w-6 h-6 text-white mb-1" />
-          <span className="text-sm font-black uppercase text-white tracking-wider">Press</span>
-          <span className="text-sm font-black uppercase text-white tracking-wider">HERE</span>
-        </button>
-      </div>
-
-      <main className="relative flex flex-col lg:flex-row w-full min-h-[600px] sm:min-h-[700px] lg:min-h-[720px]">
-        {/* Left: Homeowner */}
-        <div className="w-full lg:w-1/2 bg-[#f4f4f5] flex flex-col justify-center py-16 px-8 lg:pl-16 xl:pl-24 lg:pr-[280px] z-0 transition-colors duration-700">
+      {/* Main Content Area */}
+      <main className="flex-1 relative flex flex-col lg:flex-row w-full">
+        
+        {/* === LEFT COLUMN: Homeowner === */}
+        <div className="w-full lg:w-1/2 bg-[#f4f4f5] flex flex-col justify-center py-16 px-8 lg:pl-16 xl:pl-24 lg:pr-[280px] xl:pr-[300px] z-0 transition-colors duration-700">
           <div className="max-w-md mx-auto lg:mx-0 lg:ml-auto w-full">
-            <h2 className="text-2xl lg:text-3xl text-slate-600 font-semibold mb-12">Homeowner Sees:</h2>
-            <div className={`space-y-10 transition-opacity duration-500 ${isAnalyzing ? 'opacity-0' : 'opacity-100'}`}>
-              {data.homeownerBulletPoints.map((point, idx) => (
-                <div key={`ho-${idx}`} className="text-3xl lg:text-4xl text-slate-800 font-medium whitespace-pre-line leading-tight">{point}</div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Machine */}
-        <div className="w-full lg:w-1/2 bg-[#2a3c53] flex flex-col justify-center py-16 px-8 lg:pr-16 xl:pr-24 lg:pl-[280px] relative z-0">
-          <div className="max-w-md mx-auto lg:mx-0 lg:mr-auto w-full relative z-10">
-            <h2 className="text-2xl lg:text-3xl text-blue-300 font-semibold mb-12 flex items-center gap-3">
-              Machine Sees:
-              {isAnalyzing && <span className="w-4 h-4 border-2 border-t-cyan-400 rounded-full animate-spin" />}
+            <h2 className="text-2xl lg:text-3xl text-slate-600 font-semibold mb-12 lg:mb-16">
+              Homeowner Sees:
             </h2>
-            <div className={`space-y-10 transition-opacity duration-500 ${isAnalyzing ? 'opacity-0' : 'opacity-100'}`}>
-               {data.machineBulletPoints.map((point, idx) => (
-                <div key={`mc-${idx}`} className="text-3xl lg:text-4xl text-white font-medium whitespace-pre-line leading-tight">{point}</div>
+            
+            <div className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${isAnalyzing ? 'opacity-0' : 'opacity-100'}`}>
+              {data.homeownerBulletPoints.map((point, idx) => (
+                <div key={`ho-${idx}`} className="text-2xl sm:text-3xl lg:text-4xl text-slate-800 font-medium whitespace-pre-line leading-tight">
+                  {point}
+                </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Center: Document */}
-      <div className="order-first lg:order-none relative w-[340px] sm:w-[460px] xl:w-[540px] h-[480px] sm:h-[600px] xl:h-[720px] mx-auto lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 z-10 my-10 lg:my-0 shadow-2xl rounded-sm shrink-0">
+        {/* === RIGHT COLUMN: WindowMan === */}
+        <div className="w-full lg:w-1/2 bg-[#2a3c53] flex flex-col justify-center py-16 px-8 lg:pr-16 xl:pr-24 lg:pl-[280px] xl:pl-[300px] relative z-0 transition-colors duration-700">
+          
+          {/* Subtle background glow effect for the right side */}
+          <div className="absolute inset-0 bg-cyan-900/10 pointer-events-none" />
+          
+          <div className="max-w-md mx-auto lg:mx-0 lg:mr-auto w-full relative z-10">
+            <h2 className="text-2xl lg:text-3xl text-blue-300 font-semibold mb-12 lg:mb-16 flex items-center gap-3">
+              Machine Sees:
+              {isAnalyzing && <span className="inline-block w-4 h-4 border-2 border-t-cyan-400 border-r-cyan-400 border-b-transparent border-l-transparent rounded-full animate-spin" />}
+            </h2>
+            
+            <div className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${isAnalyzing ? 'opacity-0' : 'opacity-100'}`}>
+               {data.machineBulletPoints.map((point, idx) => (
+                <div key={`mc-${idx}`} className="text-2xl sm:text-3xl lg:text-4xl text-white font-medium whitespace-pre-line leading-tight">
+                  {point}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-          <div className="relative w-full h-full rounded-sm overflow-hidden bg-black">
+        {/* === CENTER DOCUMENT SPLIT VIEW === */}
+        {/* Optimized Center Document Container */}
+        <div className="order-first lg:order-none relative w-[95vw] max-w-[340px] sm:max-w-[460px] xl:max-w-[540px] h-[420px] sm:h-[600px] xl:h-[720px] mx-auto lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 z-30 my-8 lg:my-0 shadow-2xl rounded-sm shrink-0 scale-[0.9] sm:scale-100 transition-transform origin-top lg:origin-center">
+          
+          {/* Container for the two halves */}
+          <div className="relative w-full h-full group rounded-sm overflow-hidden bg-black">
+            
+            {/* 1. Left Half (Paper Document) */}
             <div className="absolute top-0 left-0 w-1/2 h-full overflow-hidden border-r border-slate-300/50">
-              <div className="w-[340px] sm:w-[460px] xl:w-[540px] h-full origin-top-left">
+              <div className="w-[95vw] max-w-[340px] sm:max-w-[460px] xl:max-w-[540px] h-full origin-top-left">
                 <DocumentContent isDigital={false} data={data} isAnalyzing={isAnalyzing} />
               </div>
             </div>
+
+            {/* 2. Right Half (Digital Machine View) */}
             <div className="absolute top-0 right-0 w-1/2 h-full overflow-hidden bg-[#0a192f]">
-              <div className="absolute right-0 top-0 w-[340px] sm:w-[460px] xl:w-[540px] h-full origin-top-right">
+              <div className="absolute right-0 top-0 w-[95vw] max-w-[340px] sm:max-w-[460px] xl:max-w-[540px] h-full origin-top-right">
                 <DocumentContent isDigital={true} data={data} isAnalyzing={isAnalyzing} />
               </div>
             </div>
-            {/* Scanning Line */}
-            <div className={`absolute left-1/2 top-0 bottom-0 w-[2px] bg-cyan-300 -translate-x-1/2 z-30 shadow-[0_0_15px_3px_rgba(34,211,238,1)] ${isAnalyzing ? 'animate-[pulse_0.2s_ease-in-out_infinite]' : ''}`} />
+
+            {/* 3. The Scanning Laser Line */}
+            <div className={`absolute left-1/2 top-0 bottom-0 w-[2px] bg-cyan-300 -translate-x-1/2 z-40
+              shadow-[0_0_15px_3px_rgba(34,211,238,1),0_0_30px_10px_rgba(6,182,212,0.8)] 
+              after:content-[''] after:absolute after:inset-0 after:bg-white motion-safe:transition-transform motion-reduce:transition-none
+              ${isAnalyzing ? 'motion-safe:animate-[pulse_0.2s_ease-in-out_infinite] scale-x-150' : 'motion-safe:after:animate-pulse motion-reduce:opacity-80'}`} 
+            />
+
+            {/* Floating Machine Annotations (Connected to the document) */}
+            <div className={`hidden lg:block absolute left-1/2 top-[15%] w-32 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? 'opacity-0' : 'opacity-100'}`}>
+               <div className="absolute right-[-100px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
+                 Data features
+               </div>
+               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300" />
+            </div>
+
+            <div className={`hidden lg:block absolute left-1/2 top-[35%] w-40 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? 'opacity-0' : 'opacity-100'}`}>
+               <div className="absolute right-[-80px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
+                 Data Points
+               </div>
+               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300" />
+            </div>
+
+            <div className={`hidden lg:block absolute left-[50%] top-[45%] w-24 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? 'opacity-0' : 'opacity-100'}`}>
+               <div className="absolute right-[-110px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
+                 Anomaly Dtc...
+               </div>
+               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,1)]" />
+            </div>
             
+            <div className={`hidden lg:block absolute left-[50%] top-[70%] w-48 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? 'opacity-0' : 'opacity-100'}`}>
+               <div className="absolute right-[-60px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
+                 Data Ref
+               </div>
+               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300" />
+            </div>
+            
+            {/* Loading Overlay */}
             {isAnalyzing && (
-              <div className="absolute inset-0 flex items-center justify-center z-40 bg-black/20 backdrop-blur-[2px]">
+              <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/20 backdrop-blur-[2px]">
                  <div className="text-cyan-300 font-mono text-xl tracking-widest animate-pulse font-bold bg-black/50 px-6 py-3 rounded-md border border-cyan-500/50">
                     ANALYZING DATA...
                  </div>
@@ -304,20 +373,45 @@ Total: $12,000`);
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#1e293b] border border-slate-600 rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-slate-700 flex justify-between items-center bg-[#253245]">
-              <h3 className="text-xl font-semibold text-white">✨ Forensic Scanner</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">✕</button>
+              <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                ✨ Gemini Forensic Scanner
+              </h3>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
             </div>
             <div className="p-6">
-              {errorMsg && <div className="mb-4 p-3 bg-red-500/20 text-red-200 rounded text-sm">{errorMsg}</div>}
+              <p className="text-slate-300 mb-4 text-sm">
+                Paste any construction estimate, invoice, or contract text below. The Gemini AI will extract the line items and automatically find the "Gotchas" (hidden markups, excluded warranties, etc.) that the machine sees.
+              </p>
+              
+              {errorMsg && (
+                <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 text-red-200 rounded text-sm">
+                  {errorMsg}
+                </div>
+              )}
+
               <textarea 
-                className="w-full h-48 bg-[#0f172a] text-slate-300 border border-slate-600 rounded-md p-4 font-mono text-sm focus:outline-none focus:border-cyan-500 custom-scrollbar"
+                className="w-full h-48 bg-[#0f172a] text-slate-300 border border-slate-600 rounded-md p-4 font-mono text-base focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 custom-scrollbar"
                 value={quoteText}
                 onChange={(e) => setQuoteText(e.target.value)}
+                placeholder="Paste quote text here..."
               />
             </div>
             <div className="px-6 py-4 border-t border-slate-700 bg-[#253245] flex justify-end gap-3">
-              <button onClick={() => setShowModal(false)} className="text-slate-300 hover:text-white">Cancel</button>
-              <button onClick={handleAnalyze} className="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded-md font-medium">Start AI Analysis</button>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-slate-300 hover:text-white transition-colors min-h-[44px]"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAnalyze}
+                disabled={!quoteText.trim()}
+                className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-md font-medium transition-colors shadow-[0_0_10px_rgba(6,182,212,0.2)] min-h-[44px]"
+              >
+                Start AI Analysis
+              </button>
             </div>
           </div>
         </div>
@@ -325,17 +419,9 @@ Total: $12,000`);
 
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(148, 163, 184, 0.3); border-radius: 10px; }
-        @keyframes red-glow {
-          0%, 100% {
-            box-shadow: 0 0 20px rgba(220,38,38,0.4), 0 0 40px rgba(220,38,38,0.2);
-            transform: scale(1);
-          }
-          50% {
-            box-shadow: 0 0 35px rgba(220,38,38,0.7), 0 0 60px rgba(220,38,38,0.4);
-            transform: scale(1.08);
-          }
-        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(148, 163, 184, 0.5); }
       `}} />
     </div>
   );
