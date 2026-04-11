@@ -21,6 +21,7 @@ import Testimonials from "@/components/Testimonials";
 import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
 import OrangeScanner from "@/components/OrangeScanner";
+import ForensicShift from "@/components/Forensicshift";
 import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
@@ -264,6 +265,7 @@ const Index = () => {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               />
+              <ForensicShift />
               <div className="mt-24">
                 <SocialProofStrip />
               </div>
