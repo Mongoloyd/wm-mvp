@@ -243,9 +243,13 @@ const Index = () => {
             <>
               <SocialProofStrip />
               <ScamConcernImage />
-              <XRayScannerBackground>
-                <InteractiveDemoScan onScanClick={() => triggerTruthGate('demo_scan')} />
-              </XRayScannerBackground>
+              <OrangeScanner
+                onScanClick={() => triggerTruthGate('demo_scan')}
+                onDemoClick={() => {
+                  setPowerToolTriggered(true);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
               <TruthGateFlow
                 onLeadCaptured={(sid) => { setLeadCaptured(true); setSessionId(sid); }}
                 onStepChange={(step, county) => { setStepsCompleted(step); setSelectedCounty(county); }}

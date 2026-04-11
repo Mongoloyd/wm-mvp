@@ -245,7 +245,12 @@ const VerdictHologram = ({ isOpen, score, anomalies }) => {
   );
 };
 
-export default function WindowScanner() {
+interface WindowScannerProps {
+  onScanClick?: () => void;
+  onDemoClick?: () => void;
+}
+
+export default function WindowScanner({ onScanClick, onDemoClick }: WindowScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [activeAnomalies, setActiveAnomalies] = useState([]);
@@ -514,6 +519,7 @@ export default function WindowScanner() {
             {/* The Hologram Finale */}
             <VerdictHologram 
               isOpen={scanProgress === 100} 
+              score={Math.max(0, 95 - (activeAnomalies.length * 12))}
               anomalies={activeAnomalies} 
             />
           </div>
