@@ -250,15 +250,15 @@ const Index = () => {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               />
-              <TruthGateFlow
-                onLeadCaptured={(sid) => { setLeadCaptured(true); setSessionId(sid); }}
-                onStepChange={(step, county) => { setStepsCompleted(step); setSelectedCounty(county); }}
-                highlight={truthGateHighlight}
-                onHighlightDone={() => setTruthGateHighlight(false)}
-              />
-              <div id="upload-zone">
-                <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={(_fileName, ssId) => { trackEvent({ event_name: "scan_started", session_id: ssId, metadata: { file_name: _fileName } }); setScanSessionId(ssId); setFileUploaded(true); }} />
+              <div id="truth-gate-section" className="scroll-mt-24">
+                <TruthGateFlow
+                  onLeadCaptured={(sid) => { setLeadCaptured(true); setSessionId(sid); }}
+                  onStepChange={(step, county) => { setStepsCompleted(step); setSelectedCounty(county); }}
+                  highlight={truthGateHighlight}
+                  onHighlightDone={() => setTruthGateHighlight(false)}
+                />
               </div>
+              <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={(_fileName, ssId) => { trackEvent({ event_name: "scan_started", session_id: ssId, metadata: { file_name: _fileName } }); setScanSessionId(ssId); setFileUploaded(true); }} />
               <ProcessSteps
                 onScanClick={() => triggerTruthGate('process_steps')}
                 onDemoClick={() => {
