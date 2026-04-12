@@ -1,19 +1,22 @@
 
 
-## Plan: Fix Build Errors + Add Mobile CTA Button
+## Plan: Wire "Scan Your Estimate" Button to Upload Zone
 
-### Build Error Fixes
+### What This Does (Plain English)
+When someone clicks the big "Scan Your Estimate" button at the bottom of the Orange Scanner section, instead of seeing a useless browser alert, the page will smoothly glide down to the upload area where they can drop their quote file. It connects the call-to-action to the actual next step.
 
-**Error 1 — `VerdictHologram` missing `score` prop (line 582)**
-Add the `score` prop calculated from `activeAnomalies`: `score={Math.max(0, 95 - (activeAnomalies.length * 12))}`.
+### Changes
 
-**Error 2 — `WindowScanner` doesn't accept props (line 315)**
-Update the function signature to accept `onScanClick?: () => void` and `onDemoClick?: () => void`. Update the Index.tsx import if needed (it's currently a default import which should work).
+**File 1: `src/pages/Index.tsx`**
+- Add `id="upload-zone"` to the `<UploadZone>` component's wrapper (or directly as a prop/wrapping div) so it can be targeted by scroll.
 
-### Mobile CTA Addition
-
-**Insert mobile-only button** immediately after line 412 (inside the grid, before the `lg:col-span-8` div). The button duplicates the sidebar scan button wrapped in `lg:hidden w-full mb-2 z-20 relative`.
+**File 2: `src/components/OrangeScanner.tsx`** (lines 282-286)
+- Replace the `console.log` + `alert()` inside the button's `onClick` with:
+  ```ts
+  document.getElementById('upload-zone')?.scrollIntoView({ behavior: 'smooth' });
+  ```
 
 ### Files Modified
-1. `src/components/OrangeScanner.tsx` — all three changes
+1. `src/components/OrangeScanner.tsx` — replace alert with smooth scroll
+2. `src/pages/Index.tsx` — add `id="upload-zone"` wrapper around UploadZone
 
