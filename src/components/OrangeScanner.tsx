@@ -312,7 +312,7 @@ const ScanCTA = () => {
   );
 };
 
-export default function WindowScanner({ onScanClick, onDemoClick }: { onScanClick?: () => void; onDemoClick?: () => void } = {}) {
+export default function WindowScanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [activeAnomalies, setActiveAnomalies] = useState([]);
@@ -581,8 +581,7 @@ export default function WindowScanner({ onScanClick, onDemoClick }: { onScanClic
             {/* The Hologram Finale */}
             <VerdictHologram 
               isOpen={scanProgress === 100} 
-              anomalies={activeAnomalies}
-              score={Math.max(0, 100 - activeAnomalies.length * 15)}
+              anomalies={activeAnomalies} 
             />
           </div>
 
