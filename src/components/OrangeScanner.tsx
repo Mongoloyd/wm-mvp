@@ -279,10 +279,8 @@ const ScanCTA = () => {
 
           <div className="flex-shrink-0 flex flex-col items-center">
             <button 
-              onClick={() => {
-                console.log("Triggering Twilio OTP Route...");
-                // Alert used here for demo environment purposes
-                alert("Initiating Secure Twilio OTP Route to /scan-estimate");
+            onClick={() => {
+                document.getElementById('upload-zone')?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="relative px-8 py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xl rounded-xl transition-all duration-300 transform group-hover:scale-105 shadow-[0_0_30px_rgba(8,145,178,0.4)] flex items-center gap-4 overflow-hidden"
             >
