@@ -312,7 +312,7 @@ const ScanCTA = () => {
   );
 };
 
-export default function WindowScanner() {
+export default function WindowScanner({ onScanClick, onDemoClick }: { onScanClick?: () => void; onDemoClick?: () => void } = {}) {
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [activeAnomalies, setActiveAnomalies] = useState([]);
@@ -410,6 +410,26 @@ export default function WindowScanner() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* MOBILE/TABLET TOP CTA */}
+          <div className="lg:hidden w-full mb-2 z-20 relative">
+            <button 
+              onClick={startScan}
+              disabled={isScanning}
+              className={`w-full flex items-center justify-center gap-2 px-6 py-5 rounded-lg font-bold text-sm tracking-widest uppercase transition-all duration-300 ${
+                isScanning 
+                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 shadow-inner'
+                  : 'bg-cyan-500 text-slate-950 hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+              }`}
+            >
+              {isScanning ? (
+                <><Scan className="animate-spin" size={18} /> Analyzing Contract...</>
+              ) : scanProgress === 100 ? (
+                <><Zap size={18} /> Re-run AI Audit</>
+              ) : (
+                <><Search size={18} /> Start Compliance Audit</>
+              )}
+            </button>
+          </div>
           
           {/* LEFT: Interactive Document Area (Scanner Bed) */}
           <div className="lg:col-span-8 relative" style={{ perspective: '1200px' }}>
@@ -581,7 +601,8 @@ export default function WindowScanner() {
             {/* The Hologram Finale */}
             <VerdictHologram 
               isOpen={scanProgress === 100} 
-              anomalies={activeAnomalies} 
+              anomalies={activeAnomalies}
+              score={Math.max(0, 95 - (activeAnomalies.length * 12))}
             />
           </div>
 
