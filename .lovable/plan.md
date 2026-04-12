@@ -1,22 +1,21 @@
 
 
-## Plan: Wire "Scan Your Estimate" Button to Upload Zone
+## Plan: Fix Scroll Anchor to Land on Step 1 Header
 
-### What This Does (Plain English)
-When someone clicks the big "Scan Your Estimate" button at the bottom of the Orange Scanner section, instead of seeing a useless browser alert, the page will smoothly glide down to the upload area where they can drop their quote file. It connects the call-to-action to the actual next step.
+### What This Fixes
+Currently clicking "Scan Your Estimate" scrolls to the upload box, skipping the "How many windows?" question. This moves the anchor up to the TruthGateFlow section so users see the full context.
 
 ### Changes
 
-**File 1: `src/pages/Index.tsx`**
-- Add `id="upload-zone"` to the `<UploadZone>` component's wrapper (or directly as a prop/wrapping div) so it can be targeted by scroll.
+**File 1: `src/components/OrangeScanner.tsx`** (line 283)
+- Change `getElementById('upload-zone')` to `getElementById('truth-gate-section')`
+- Add `block: 'start'` to the scrollIntoView options
 
-**File 2: `src/components/OrangeScanner.tsx`** (lines 282-286)
-- Replace the `console.log` + `alert()` inside the button's `onClick` with:
-  ```ts
-  document.getElementById('upload-zone')?.scrollIntoView({ behavior: 'smooth' });
-  ```
+**File 2: `src/pages/Index.tsx`**
+- Add `id="truth-gate-section"` and `className="scroll-mt-24"` wrapper around `<TruthGateFlow>` (line 253)
+- Remove the `id="upload-zone"` wrapper div around `<UploadZone>` (line 259), rendering `<UploadZone>` directly instead
 
 ### Files Modified
-1. `src/components/OrangeScanner.tsx` — replace alert with smooth scroll
-2. `src/pages/Index.tsx` — add `id="upload-zone"` wrapper around UploadZone
+1. `src/components/OrangeScanner.tsx`
+2. `src/pages/Index.tsx`
 
