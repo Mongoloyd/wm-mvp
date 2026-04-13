@@ -349,7 +349,7 @@ const ScanCTA = () => {
               <div className="text-[10px] uppercase font-bold flex items-center gap-1 text-slate-50">
                 <ShieldCheck size={12} /> SECURE OTP
               </div>
-              <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
+              <div className="text-[10px] uppercase font-bold text-slate-50 flex items-center gap-1">
                 <Zap size={12} /> INSTANT SCAN
               </div>
             </div>
