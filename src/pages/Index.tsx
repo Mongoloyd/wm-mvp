@@ -241,7 +241,6 @@ const Index = () => {
 
           {flowMode === 'A' && (
             <>
-              <SocialProofStrip />
               <ScamConcernImage />
               <OrangeScanner
                 onScanClick={() => triggerTruthGate('demo_scan')}

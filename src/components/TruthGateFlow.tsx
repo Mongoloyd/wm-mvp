@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { isValidEmail, isValidName } from "@/utils/formatPhone";
-import { Check } from "lucide-react";
+import { Check, Shield } from "lucide-react";
 import { useTickerStats } from "@/hooks/useTickerStats";
 import { supabase } from "@/integrations/supabase/client";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
@@ -234,7 +234,7 @@ const TruthGateFlow = ({
   onHighlightDone?: () => void;
 }) => {
   const [glowing, setGlowing] = useState(false);
-  const { today: tickerToday } = useTickerStats();
+  const { total, today: tickerToday } = useTickerStats();
 
   // Ref to track whether the component is still mounted (for timeout safety)
   const mountedRef = useRef(true);
@@ -783,6 +783,23 @@ const TruthGateFlow = ({
           }}
         >
           <AnimatePresence mode="wait">{renderStepContent()}</AnimatePresence>
+        </div>
+
+        {/* Social proof pill — presentation only, non-interactive */}
+        <div className="flex justify-center -mt-3 md:-mt-4 relative z-10 pointer-events-none select-none">
+          <div className="inline-flex items-center gap-3 rounded-full border border-slate-200/60 bg-white/80 backdrop-blur-sm px-4 py-1.5 shadow-sm">
+            <Shield className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+            <span className="text-xs font-semibold tabular-nums font-mono text-foreground">
+              {total.toLocaleString()}
+            </span>
+            <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+              Quotes Scanned
+            </span>
+            <div className="w-px h-3.5 bg-border" />
+            <span className="text-xs font-bold tabular-nums font-mono text-primary whitespace-nowrap">
+              +{tickerToday} Today
+            </span>
+          </div>
         </div>
       </div>
     </section>
