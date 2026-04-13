@@ -210,7 +210,7 @@ function Kicker({ children }) {
   return (
     <div
       style={{
-        fontSize: "10px",
+        fontSize: "12px",
         fontWeight: 700,
         letterSpacing: "2.5px",
         color: "rgba(6,182,212,0.8)",
@@ -612,8 +612,7 @@ function CalibrationGateModal({ onSubmit }) {
             margin: "0 0 24px",
           }}
         >
-          Enter your zip code to finalize the local data, and your mobile number to instantly and privately unlock your
-          report.
+          Enter Your Zip To Pull Your Local County Data, and Your Mobile to Instantly and Privately Unlock Your Report.
         </p>
 
         {/* Fields */}
@@ -692,7 +691,7 @@ function CalibrationGateModal({ onSubmit }) {
 
             {errors.phone && <div style={{ fontSize: "11px", color: "#ef4444", marginTop: "5px" }}>{errors.phone}</div>}
             <div style={{ fontSize: "11px", color: "rgb(100,116,139)", marginTop: "8px", lineHeight: 1.5 }}>
-              🔒 256-bit encrypted. Look for a secure link so you don't lose this
+              🔒 256-Bit Encrypted. Look For a Secure Link So You Don't Lose This
             </div>
           </div>
 
@@ -800,7 +799,7 @@ function ScanTerminal({ lines, progress, terminalRef, firstName }) {
               lineHeight: 1.2,
             }}
           >
-            {firstName ? `${firstName}, your` : "Your"} <span style={{ color: T.cyan }}>Truth Report</span> Is Being
+            {firstName ? `${firstName}, Your` : "Your"} <span style={{ color: T.cyan }}>Truth Report</span> Is Being
             Built
           </h1>
         </div>

@@ -32,7 +32,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           initial={{ opacity: 0, y: 12 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="wm-eyebrow text-muted-foreground mb-10 text-base"
+          className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-10"
         >
           WHY WINDOWMAN EXISTS
         </motion.p>
@@ -40,8 +40,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, delay: 0.08, ease: "easeOut" }}
-          className="wm-title-section leading-[1.25] mb-6 text-2xl"
-          style={{ color: "hsl(210 50% 8%)" }}
+          className="font-display text-3xl md:text-4xl font-extrabold uppercase tracking-tight text-foreground leading-[1.25] mb-6"
         >
           THE INDUSTRY BUILT A SYSTEM WHERE YOU NEED THEIR EXPERTISE TO UNDERSTAND THEIR QUOTE.
         </motion.p>
@@ -49,8 +48,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, delay: 0.16, ease: "easeOut" }}
-          className="font-display text-primary font-black tracking-[-0.005em] uppercase leading-[1.25]"
-          style={{ fontSize: "clamp(32px, 5vw, 48px)" }}
+          className="font-display text-4xl md:text-5xl font-extrabold text-primary tracking-tight uppercase leading-[1.25]"
         >
           WE BUILT A SYSTEM WHERE YOU DON'T.
         </motion.p>

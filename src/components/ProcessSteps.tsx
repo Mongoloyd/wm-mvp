@@ -4,47 +4,47 @@ import { ScanSearch, Target, Flag, Diamond, CheckCircle2, FileCheck } from "luci
 const steps = [
   {
     num: "01",
-    title: "Answer 4 quick questions",
-    desc: "County, scope, project type, and quote stage. No account required.",
+    title: "Answer 4 Quick Questions",
+    desc: "County, Scope, Project Type, and Quote Stage. No Account Required.",
   },
   {
     num: "02",
-    title: "Upload your quote",
-    desc: "PDF or image. Any format from any Florida contractor.",
+    title: "Upload Your Quote",
+    desc: "PDF or Image. Any Format From Any Contractor.",
   },
   {
     num: "03",
-    title: "AI scans every line",
-    desc: "Pricing, brands, warranties, permits, payment terms, and installation specs.",
+    title: "AI Scans Every Line",
+    desc: "Pricing, Brands, Warranties, Permits, Payment Terms, and Installation Specs.",
   },
   {
     num: "04",
-    title: "Your grade is calculated",
-    desc: "Compared against real contracts in your county and scope.",
+    title: "Your Grade is Calculated",
+    desc: "Compared Against Real Contracts In Your County and Scope.",
   },
   {
     num: "05",
-    title: "You decide what to do",
-    desc: "Use your negotiation script, request a better quote, or simply know you signed fairly.",
+    title: "You Decide What To Do",
+    desc: "Use Your Negotiation Script, Request a Better Quote, or Simply Know You Signed Fairly.",
   },
 ];
 
 const takeaways = [
   {
     icon: Target,
-    text: "Whether your price is above, below, or at fair market for your specific county",
+    text: "Whether Your Price is Above, Below, Or At Fair Market For Your Specific County",
   },
   {
     icon: Flag,
-    text: "Which line items are vague, missing, or potentially inflated",
+    text: "Which Line Items Are Vague, Missing, or Potentially Inflated",
   },
   {
     icon: Diamond,
-    text: "What window brand — if any — your contractor actually specified",
+    text: "What Window Brand — If Any — Your Contractor Actually Specified",
   },
   {
     icon: CheckCircle2,
-    text: "A letter grade: A through F",
+    text: "A Letter Grade: A Through F",
   },
 ];
 
@@ -68,11 +68,13 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
           >
             <ScanSearch className="w-8 h-8 text-primary" strokeWidth={1.8} />
           </div>
-          <div className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase mb-4">How it works</div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-[-0.02em] leading-[1.08]">
+          <div className="font-mono text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase mb-4">
+            How it works
+          </div>
+          <h2 className="font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight text-foreground leading-[1.08]">
             What Happens When You Scan
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-7">
+          <p className="mt-4 text-base md:text-lg leading-relaxed text-foreground/80">
             Upload Your Quote Details and Instantly Know the Truth About Your Estimate
           </p>
         </div>
@@ -85,7 +87,7 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
             <div className="space-y-5 sm:space-y-6">
               {steps.map((step) => (
                 <div key={step.num} className="relative z-10 flex items-start gap-4 sm:gap-5 group">
-                  {/* Convex step number circle */}
+                  {/* Convex Step Number Circle */}
                   <div
                     className="shrink-0 w-11 h-11 rounded-full bg-gradient-to-b from-white to-[#F8FAFC] border border-primary/40 text-primary flex items-center justify-center"
                     style={{
@@ -145,7 +147,7 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                       />
                       <div className="relative z-10">
                         <h3 className="text-2xl sm:text-[30px] leading-tight font-bold text-foreground pb-5 border-b border-border">
-                          You'll walk away <span className="text-primary">knowing:</span>
+                          You'll Walk Away <span className="text-primary">Knowing:</span>
                         </h3>
 
                         <ul className="mt-6 space-y-5 sm:space-y-6">
@@ -191,14 +193,14 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                             A–F
                           </div>
                           <div>
-                            <p className="font-semibold text-foreground">Clear action plan</p>
+                            <p className="font-semibold text-foreground">Clear Action Plan</p>
                             <p className="text-sm text-muted-foreground mt-1">
-                              Grade, flags, and negotiation direction in one report
+                              Grade, Flags, and Negotiation Direction In One Report
                             </p>
                           </div>
                         </div>
 
-                        {/* Includes chips — embossed */}
+                        {/* Includes Chips — Embossed */}
                         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div
                             className="rounded-[10px] bg-gradient-to-b from-white to-[#F8FAFC] border border-border px-4 py-3"
@@ -209,7 +211,7 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                             <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                               Includes
                             </div>
-                            <div className="mt-1 text-sm font-semibold text-foreground">Dollar delta vs market</div>
+                            <div className="mt-1 text-sm font-semibold text-foreground">Dollar Delta vs Market</div>
                           </div>
                           <div
                             className="rounded-[10px] bg-gradient-to-b from-white to-[#F8FAFC] border border-border px-4 py-3"
@@ -220,7 +222,7 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                             <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                               Includes
                             </div>
-                            <div className="mt-1 text-sm font-semibold text-foreground">Red flags explained</div>
+                            <div className="mt-1 text-sm font-semibold text-foreground">Red Flags Explained</div>
                           </div>
                         </div>
                       </div>

@@ -290,7 +290,7 @@ export default function ForensicPillarSection({ pillarScores, flags, county, isF
   const hasProblem = ranked.some((p) => p.status === "fail" || p.status === "warn");
 
   return (
-    <section className="py-10 md:py-14 px-4 md:px-8 bg-background border-b border-border">
+    <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
       <div className="max-w-4xl mx-auto">
         <motion.div {...stagger(1)}>
           <div className="flex items-center gap-2 mb-1">
@@ -301,7 +301,7 @@ export default function ForensicPillarSection({ pillarScores, flags, county, isF
           <h2 className="wm-title-section text-foreground" style={{ marginBottom: 6 }}>
             How Your Quote Scores Across 5 Key Areas
           </h2>
-          <p className="font-body text-muted-foreground" style={{ fontSize: 14, marginBottom: 20 }}>
+          <p className="font-body text-muted-foreground" style={{ fontSize: 13, marginBottom: 20 }}>
             Each Pillar is Scored Independently Against {county} County Standards.
           </p>
         </motion.div>

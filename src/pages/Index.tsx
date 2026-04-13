@@ -14,13 +14,13 @@ import { PostScanReportSwitcher } from "@/components/post-scan/PostScanReportSwi
 // ContractorMatch removed — CTAs now native in TruthReportClassic
 import IndustryTruth from "@/components/IndustryTruth";
 import ProcessSteps from "@/components/ProcessSteps";
-import { XRayScannerBackground } from "@/components/XRayScannerBackground";
+
 import NarrativeProof from "@/components/NarrativeProof";
 import ClosingManifesto from "@/components/ClosingManifesto";
 import Testimonials from "@/components/Testimonials";
 import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
-import InteractiveDemoScan from "@/components/InteractiveDemoScan";
+import OrangeScanner from "@/components/OrangeScanner";
 import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
 import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
@@ -241,17 +241,22 @@ const Index = () => {
 
           {flowMode === 'A' && (
             <>
-              <SocialProofStrip />
               <ScamConcernImage />
-              <XRayScannerBackground>
-                <InteractiveDemoScan onScanClick={() => triggerTruthGate('demo_scan')} />
-              </XRayScannerBackground>
-              <TruthGateFlow
-                onLeadCaptured={(sid) => { setLeadCaptured(true); setSessionId(sid); }}
-                onStepChange={(step, county) => { setStepsCompleted(step); setSelectedCounty(county); }}
-                highlight={truthGateHighlight}
-                onHighlightDone={() => setTruthGateHighlight(false)}
+              <OrangeScanner
+                onScanClick={() => triggerTruthGate('demo_scan')}
+                onDemoClick={() => {
+                  setPowerToolTriggered(true);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
               />
+              <div id="truth-gate-section" className="scroll-mt-24">
+                <TruthGateFlow
+                  onLeadCaptured={(sid) => { setLeadCaptured(true); setSessionId(sid); }}
+                  onStepChange={(step, county) => { setStepsCompleted(step); setSelectedCounty(county); }}
+                  highlight={truthGateHighlight}
+                  onHighlightDone={() => setTruthGateHighlight(false)}
+                />
+              </div>
               <UploadZone isVisible={leadCaptured} sessionId={sessionId || undefined} onScanStart={(_fileName, ssId) => { trackEvent({ event_name: "scan_started", session_id: ssId, metadata: { file_name: _fileName } }); setScanSessionId(ssId); setFileUploaded(true); }} />
               <ProcessSteps
                 onScanClick={() => triggerTruthGate('process_steps')}

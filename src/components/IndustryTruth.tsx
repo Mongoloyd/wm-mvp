@@ -67,14 +67,14 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           className="text-center"
         >
           <div className="mx-auto mb-6 w-10 h-px bg-primary" />
-          <p className="wm-eyebrow text-primary mb-5">HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.</p>
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-5">HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.</p>
           <h2
-            className="wm-title-section mx-auto mb-4"
-            style={{ fontSize: "clamp(34px, 5vw, 48px)", maxWidth: 700, lineHeight: 1.12, color: "hsl(210 50% 8%)" }}
+            className="font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight text-foreground mb-4 mx-auto"
+            style={{ maxWidth: 700 }}
           >
             THE IMPACT WINDOW INDUSTRY HAS NO PRICING STANDARD.
           </h2>
-          <p className="wm-body mx-auto mb-14" style={{ fontSize: 17, maxWidth: 640, lineHeight: 1.75 }}>
+          <p className="text-base md:text-lg leading-relaxed text-foreground/80 mx-auto mb-14" style={{ maxWidth: 640 }}>
             That means the contractor who wrote your quote decided what to include, how to describe it, and whether to
             specify the brand.
           </p>
@@ -100,10 +100,10 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
               <div className="flex items-center justify-center w-12 h-12 card-raised">
                 <span className="text-2xl leading-none">{block.icon}</span>
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground mt-4 uppercase tracking-[0.02em]">
+              <h3 className="font-display text-xl font-bold text-foreground mt-4 uppercase tracking-tight">
                 {block.heading}
               </h3>
-              <p className="wm-body mt-2">{block.copy}</p>
+              <p className="text-sm leading-relaxed text-foreground/80 mt-2">{block.copy}</p>
               <span
                 className={`inline-block mt-3 px-2.5 py-0.5 font-body text-[11px] font-semibold ${block.badgeColor === "#2563EB" ? "text-primary bg-primary/10 border border-primary/20" : "text-destructive bg-destructive/10 border border-destructive/20"}`}
                 style={{ borderRadius: "var(--radius-input)" }}
