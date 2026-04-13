@@ -172,7 +172,7 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <BenefitItem icon={Bot} title="Free Unbiased AI Analysis" description="Of your existing quote." color="bg-primary" />
+            <BenefitItem icon={Bot} title="Free Unbiased AI Analysis" description="Of your existing quote." color="bg-emerald-50" />
             <BenefitItem icon={Flag} title="Red Flags Explained" description="In plain, easy-to-understand English." color="bg-destructive" />
             <BenefitItem icon={DollarSign} title="Fair-Market Price" description="Accurate pricing specific to your local area." color="bg-[hsl(var(--color-emerald))]" />
             <BenefitItem icon={MessageSquare} title="A Negotiation Script" description="Tailored specifically for your situation." color="bg-[hsl(var(--gold))]" />
