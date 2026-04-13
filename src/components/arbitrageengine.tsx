@@ -283,12 +283,19 @@ export default function App() {
       setIsExitIntent(true);
       return;
     }
+    const wasCompleted = funnelStep === "done" || hasCompletedFunnel;
     setHasCompletedFunnel(true);
     setFlowState("revealed");
     setTimeout(() => {
       setFunnelStep("scope");
       setStepHistory([]);
       setIsExitIntent(false);
+      if (wasCompleted) {
+        toast.success("You're matched! Let's scan your quote.");
+        setTimeout(() => {
+          window.location.href = "/#truth-gate";
+        }, 1200);
+      }
     }, 300);
   };
 
@@ -360,7 +367,7 @@ export default function App() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans overflow-hidden relative flex flex-col items-center justify-center px-4 py-6 sm:p-4 selection:bg-cyan-500/30">
+    <div className="min-h-[600px] bg-slate-950 text-white font-sans overflow-hidden relative flex flex-col items-center justify-center py-6 selection:bg-cyan-500/30">
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -784,7 +791,7 @@ export default function App() {
       {/* ── Breadcrumb Lead Funnel Modal ───────────────────────────────────── */}
       {flowState === "modal_open" && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Quote audit qualification"
@@ -806,7 +813,7 @@ export default function App() {
                 <button
                   onClick={handleBack}
                   aria-label="Go back to previous step"
-                  className="absolute top-4 left-4 z-50 p-2 text-gray-400 hover:text-white hover:scale-110 transition-all cursor-pointer bg-black/20 hover:bg-black/40 rounded-full active:scale-95 min-w-[40px] min-h-[40px] flex items-center justify-center"
+                  className="absolute top-4 left-4 z-[110] p-2 text-gray-400 hover:text-white hover:scale-110 transition-all cursor-pointer bg-black/20 hover:bg-black/40 rounded-full active:scale-95 min-w-[40px] min-h-[40px] flex items-center justify-center"
                 >
                   <ArrowLeft className="w-5 h-5 drop-shadow-md" />
                 </button>
@@ -815,7 +822,7 @@ export default function App() {
             <button
               onClick={handleClose}
               aria-label="Close qualification modal"
-              className="absolute top-4 right-4 z-50 p-2 text-gray-400 hover:text-white hover:scale-110 transition-all cursor-pointer bg-black/20 hover:bg-black/40 rounded-full active:scale-95 min-w-[40px] min-h-[40px] flex items-center justify-center"
+              className="absolute top-4 right-4 z-[110] p-2 text-gray-400 hover:text-white hover:scale-110 transition-all cursor-pointer bg-black/20 hover:bg-black/40 rounded-full active:scale-95 min-w-[40px] min-h-[40px] flex items-center justify-center"
             >
               <X className="w-5 h-5 drop-shadow-md" />
             </button>
