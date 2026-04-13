@@ -235,11 +235,11 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               <h3 className="text-2xl font-black text-foreground">So How Do I Make Money?</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed text-lg font-medium flex-1">
-              WindowMan earns a percentage of the sale —{" "}
+              WindowMan Earns a Percentage Of The Sale —{" "}
               <span className="text-foreground font-bold bg-[hsl(var(--gold))]/20 px-1 rounded">
-                only when you choose to work with one of our contractors
+                Only When You Choose To Work With One Of Our Contractors
               </span>{" "}
-              and your project is completed.
+              and Your Project is Completed.
             </p>
             <div className="mt-8 p-4 bg-foreground rounded-xl flex items-center justify-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-[hsl(var(--color-emerald))]" />
@@ -255,13 +255,13 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               <h3 className="text-2xl font-black text-foreground">Why Work With Me?</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed text-lg">
-              <strong className="text-primary">We Level The Playing Field.</strong> When our vetted partners walk in,
-              they know you've already been educated.
+              <strong className="text-primary">We Level The Playing Field.</strong> When our Vetted Partners Walk In,
+              They Know You've Already Been Educated.
             </p>
             <div className="mt-6 pl-4 border-l-4 border-primary/30">
               <p className="text-foreground italic font-medium">
-                "Everyone is on the same page from minute one, turning a stressful sales pitch into a mutually
-                beneficial agreement."
+                "Everyone Is On The Same Page From Minute One, Turning a Stressful Sales Pitch Into a Mutually
+                Beneficial Agreement."
               </p>
             </div>
           </LayeredCard>
