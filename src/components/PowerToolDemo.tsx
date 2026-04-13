@@ -612,8 +612,7 @@ function CalibrationGateModal({ onSubmit }) {
             margin: "0 0 24px",
           }}
         >
-          Enter your zip code to finalize the local data, and your mobile number to instantly and privately unlock your
-          report.
+          Enter Your Zip To Pull Your Local County Data, and Your Mobile to Instantly and Privately Unlock Your Report.
         </p>
 
         {/* Fields */}
