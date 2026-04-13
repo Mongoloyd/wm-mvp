@@ -1,18 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  ShieldCheck,
-  BarChart3,
-  Layers,
-  ScanLine,
-  ArrowRight,
-  Activity,
-  CheckCircle,
-  AlertTriangle,
-  Sparkles,
-  X,
-  Loader2,
-  ClipboardCheck,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 // --- MOCK DATA: The 5 confusing, disparate quotes ---
 const quoteData = [
@@ -156,16 +143,9 @@ export default function QuoteSpreadShowcase({ onScanClick, onDemoClick }: QuoteS
   const [isScanning, setIsScanning] = useState(true);
   const containerRef = useRef(null);
 
-  // Modal & AI State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [inputText, setInputText] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  // 3D Tilt effect based on mouse movement (paused when modal is open)
+  // 3D Tilt effect based on mouse movement
   const handleMouseMove = (e) => {
-    if (!containerRef.current || isModalOpen) return;
+    if (!containerRef.current) return;
     const { left, top, width, height } = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - left) / width - 0.5;
     const y = (e.clientY - top) / height - 0.5;
@@ -178,71 +158,6 @@ export default function QuoteSpreadShowcase({ onScanClick, onDemoClick }: QuoteS
     }, 4000);
     return () => clearInterval(scanInterval);
   }, []);
-
-  // Gemini API Integration
-  const callGemini = async (promptText) => {
-    setIsLoading(true);
-    setError("");
-    setAiResponse("");
-
-    const apiKey = ""; // API Key provided by execution environment
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-    const systemInstruction =
-      "You are an expert construction estimator and consumer advocate. The user will provide a contractor quote. Analyze it for missing details, potential hidden costs, and overall clarity. Give it a letter grade (A-F). Highlight any major red flags. Keep the response concise, formatted with clear line breaks and bullet points, and use a professional but helpful tone.";
-
-    const payload = {
-      contents: [{ parts: [{ text: promptText }] }],
-      systemInstruction: { parts: [{ text: systemInstruction }] },
-    };
-
-    // Exponential backoff retry logic
-    const retries = 5;
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error?.message || "Failed to analyze text.");
-        }
-
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        setAiResponse(text);
-        setIsLoading(false);
-        return;
-      } catch (err) {
-        if (i === retries - 1) {
-          setError(err.message || "An error occurred while connecting to the AI. Please try again.");
-          setIsLoading(false);
-        }
-        // Wait before retrying (1s, 2s, 4s, 8s...)
-        await new Promise((res) => setTimeout(res, Math.pow(2, i) * 1000));
-      }
-    }
-  };
-
-  const handleOpenModal = () => {
-    setInputText("");
-    setAiResponse("");
-    setError("");
-    setIsModalOpen(true);
-    // Reset tilt so modal is flat
-    setMousePos({ x: 0, y: 0 });
-  };
-
-  const handleAnalyze = () => {
-    if (!inputText.trim()) {
-      setError("Please enter some text to analyze.");
-      return;
-    }
-    callGemini(inputText);
-  };
 
   return (
     <div
@@ -333,22 +248,13 @@ export default function QuoteSpreadShowcase({ onScanClick, onDemoClick }: QuoteS
           mix-blend-mode: overlay;
           pointer-events: none;
         }
-
-        /* Glassmorphic Modal */
-        .glass-modal {
-          background: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-        }
       `,
         }}
       />
 
       {/* The 3D Scene Container */}
       <div
-        className={`relative w-full max-w-6xl h-full max-h-[800px] preserve-3d transition-all duration-300 ease-out flex flex-col items-center justify-center p-8 ${isModalOpen ? "scale-[0.98] opacity-50 blur-sm" : ""}`}
+        className="relative w-full max-w-6xl h-full max-h-[800px] preserve-3d transition-all duration-300 ease-out flex flex-col items-center justify-center p-8"
         style={{
           transform: `rotateX(${-mousePos.y * 10}deg) rotateY(${mousePos.x * 10}deg)`,
         }}
@@ -402,82 +308,6 @@ export default function QuoteSpreadShowcase({ onScanClick, onDemoClick }: QuoteS
           </div>
         </div>
       </div>
-
-      {/* AI Features Modal Overlay */}
-      {isModalOpen && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="glass-modal w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Header */}
-            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-blue-900/30">
-              <div className="flex items-center space-x-3">
-                <ClipboardCheck className="w-6 h-6 text-blue-400" />
-                <h3 className="text-xl font-bold text-white">AI Quote Grader</h3>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
-              <p className="text-slate-300 mb-4 text-sm">
-                Paste your messy quote below. The AI will hunt for red flags, missing details, and grade its fairness.
-              </p>
-
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Paste quote details here..."
-                className="w-full h-40 bg-slate-900/50 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none mb-4 font-mono text-sm"
-              />
-
-              {error && (
-                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start">
-                  <AlertTriangle className="w-5 h-5 mr-2 shrink-0 mt-0.5" />
-                  <p>{error}</p>
-                </div>
-              )}
-
-              {aiResponse && (
-                <div className="mb-4 p-5 rounded-xl bg-slate-800/80 border border-slate-600 shadow-inner">
-                  <div className="flex items-center space-x-2 mb-3 border-b border-slate-700 pb-2">
-                    <Sparkles className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">
-                      AI Analysis Complete
-                    </span>
-                  </div>
-                  <div className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">{aiResponse}</div>
-                </div>
-              )}
-
-              <button
-                onClick={handleAnalyze}
-                disabled={isLoading}
-                className={`w-full py-3 rounded-xl font-bold text-white transition-all flex items-center justify-center ${
-                  isLoading
-                    ? "bg-slate-700 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/20"
-                }`}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    Grade This Quote
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
