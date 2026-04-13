@@ -1,5 +1,6 @@
 import SectionEyebrow from "./SectionEyebrow";
 import SectionHeading from "./SectionHeading";
+import ArbitrageEngine from "@/components/arbitrageengine";
 
 export default function ArbitrageEngineSection() {
   return (
@@ -41,7 +42,7 @@ export default function ArbitrageEngineSection() {
           </SectionHeading>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-foreground/80 md:text-lg">
             Because We Process Thousands of Quotes, We Know Exactly Where The Fat is Hidden. When Contractors Know
-            They"re Quoting Against the WindowMan Engine, They Stop Playing Games. They Give You Their Best, Cleanest
+            They're Quoting Against the WindowMan Engine, They Stop Playing Games. They Give You Their Best, Cleanest
             Price Because They Know They Can't Hide Bloated Margins in the Fine Print.
           </p>
         </div>
@@ -129,6 +130,11 @@ export default function ArbitrageEngineSection() {
           <p className="text-base font-semibold leading-relaxed text-foreground/80 md:text-lg">
             This Is Not Wall Street Arbitrage. Its Market Arbitrage: Turning Quote Confusion Into Pricing Pressure.
           </p>
+        </div>
+
+        {/* Interactive Arbitrage Engine showcase */}
+        <div className="mt-16 md:mt-24 rounded-2xl overflow-hidden">
+          <ArbitrageEngine />
         </div>
       </div>
     </section>
