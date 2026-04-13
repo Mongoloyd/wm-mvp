@@ -738,18 +738,6 @@ const TruthGateFlow = ({
           We Just Help You Understand It Better
         </p>
 
-        <div
-          className="flex items-center gap-2 mt-3 px-3 py-2.5 bg-card border border-border"
-          style={{ borderRadius: 0 }}
-        >
-          <span
-            className="animate-pulse-dot shrink-0"
-            style={{ width: 8, height: 8, backgroundColor: "#2563EB", borderRadius: "50%", display: "inline-block" }}
-          />
-          <span className="font-mono text-[11px] text-muted-foreground">
-            {tickerToday} People in {selectedCounty} Saw Red Flags Today
-          </span>
-        </div>
       </motion.div>
     );
   };
