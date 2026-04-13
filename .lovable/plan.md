@@ -1,21 +1,27 @@
 
 
-## Plan: Fix Scroll Anchor to Land on Step 1 Header
+## Plan: Fix HUD Accessibility Contrast in OrangeScanner
 
 ### What This Fixes
-Currently clicking "Scan Your Estimate" scrolls to the upload box, skipping the "How many windows?" question. This moves the anchor up to the TruthGateFlow section so users see the full context.
+The holographic HUD labels ("DATA EXTRACTION", "CONTEXTUAL INJECTION", "COMPLIANCE DETECTION") are nearly invisible against the dark `bg-cyan-950/40` background due to low-contrast colors (`text-slate-600`, `text-cyan-600`) and `opacity-50` on binary text.
 
-### Changes
+### Changes (single file: `src/components/OrangeScanner.tsx`, lines 389-402)
 
-**File 1: `src/components/OrangeScanner.tsx`** (line 283)
-- Change `getElementById('upload-zone')` to `getElementById('truth-gate-section')`
-- Add `block: 'start'` to the scrollIntoView options
+**Line 389 — Phase label container classes:**
+- Active: add `font-black`, strengthen glow to `drop-shadow-[0_0_12px_rgba(34,211,238,0.8)]`
+- Past: change `text-cyan-600` → `text-cyan-500 font-bold`
+- Inactive: change `text-slate-600` → `text-slate-400 font-medium`
 
-**File 2: `src/pages/Index.tsx`**
-- Add `id="truth-gate-section"` and `className="scroll-mt-24"` wrapper around `<TruthGateFlow>` (line 253)
-- Remove the `id="upload-zone"` wrapper div around `<UploadZone>` (line 259), rendering `<UploadZone>` directly instead
+**Line 390 — Inner label div:**
+- Remove hardcoded `font-bold` (now conditionally applied per state above)
+
+**Line 394 — Binary subtext:**
+- Remove `opacity-50`
+- Add conditional color: `text-cyan-100` when active, `text-slate-500` when inactive
+
+**Line 401 — Chevrons:**
+- Change inactive from `text-slate-700` → `text-slate-500`
 
 ### Files Modified
-1. `src/components/OrangeScanner.tsx`
-2. `src/pages/Index.tsx`
+1. `src/components/OrangeScanner.tsx` (lines 389-402)
 
