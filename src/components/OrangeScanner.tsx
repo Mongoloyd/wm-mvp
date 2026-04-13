@@ -96,14 +96,14 @@ const TrustScoreWidget = ({ isScanning, activeAnomalies }) => {
       {/* Header with Fluctuating Gauge */}
       <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
         <div>
-          <h4 className="text-[10px] uppercase tracking-tighter text-slate-500 mb-1">Contractor Integrity Score</h4>
+          <h4 className="text-[10px] uppercase tracking-tighter text-slate-200 mb-1">Contractor Integrity Score</h4>
           <div className="text-3xl font-black font-mono flex items-baseline">
             <span
               className={`transition-colors duration-500 ${score < 70 ? "text-red-500" : score < 85 ? "text-orange-400" : "text-cyan-400"}`}
             >
               {score}
             </span>
-            <span className="text-xs text-slate-600 ml-1">/100</span>
+            <span className="text-xs text-slate-400 ml-1">/100</span>
           </div>
         </div>
         <div className="relative h-12 w-12 flex items-center justify-center">
@@ -120,7 +120,7 @@ const TrustScoreWidget = ({ isScanning, activeAnomalies }) => {
 
       {/* Live "Scrape" Ticker */}
       <div className="p-4 space-y-3 bg-black/20">
-        <div className="flex items-center gap-2 text-[10px] text-cyan-500/70 font-bold uppercase mb-2">
+        <div className="flex items-center gap-2 text-[10px] text-slate-200 font-bold uppercase mb-2">
           <Search size={12} className={isScanning ? "animate-spin" : ""} />
           Deep Web Background Audit
         </div>
@@ -128,12 +128,12 @@ const TrustScoreWidget = ({ isScanning, activeAnomalies }) => {
         {backgroundChecks.map((check, index) => (
           <div
             key={index}
-            className={`flex justify-between items-center text-xs p-2 rounded transition-all duration-300 ${currentCheck === index ? "bg-cyan-500/10 border border-cyan-500/30 scale-[1.02]" : "opacity-40 border border-transparent"}`}
+            className={`flex justify-between items-center text-xs p-2 rounded transition-all duration-300 ${currentCheck === index ? "bg-cyan-500/10 border border-cyan-500/30 scale-[1.02] text-cyan-400" : "border border-transparent text-slate-200"}`}
           >
             <span className="text-slate-300 font-medium">{check.label}</span>
             <div className="text-right">
               <div className="font-bold text-cyan-400 tracking-wider">{check.status}</div>
-              <div className="text-[8px] text-slate-500 uppercase">{check.detail}</div>
+              <div className="text-[9px] text-slate-400 uppercase">{check.detail}</div>
             </div>
           </div>
         ))}
@@ -145,9 +145,9 @@ const TrustScoreWidget = ({ isScanning, activeAnomalies }) => {
           {logs.map((log, idx) => (
             <div
               key={log.id}
-              className={`text-slate-500 leading-tight transition-opacity duration-300 ${idx === 0 ? "text-cyan-400" : "opacity-60"}`}
+              className={`leading-tight transition-opacity duration-300 ${idx === 0 ? "text-cyan-400" : "text-slate-300"}`}
             >
-              <span className="text-cyan-900 mr-2">[{new Date().toLocaleTimeString([], { hour12: false })}]</span>
+              <span className="text-slate-400 mr-2">[{new Date().toLocaleTimeString([], { hour12: false })}]</span>
               {log.text}
             </div>
           ))}
@@ -755,7 +755,7 @@ export default function WindowScanner({
             {/* Audit Log Panel */}
             <div className="bg-slate-900/60 backdrop-blur-sm border border-slate-700/50 rounded-lg p-5 flex flex-col min-h-[250px] flex-1 shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-200 flex items-center gap-2">
                   <Shield size={16} className={isScanning ? "text-cyan-400 animate-pulse" : "text-cyan-600"} />
                   Live Audit Log
                 </h3>
@@ -766,7 +766,7 @@ export default function WindowScanner({
 
               <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
                 {!isScanning && activeAnomalies.length === 0 && scanProgress === 0 && (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-600 text-xs italic space-y-2 opacity-50 py-4">
+                  <div className="h-full flex flex-col items-center justify-center text-slate-300 text-xs italic space-y-2 py-4">
                     <Search size={32} />
                     <p>Awaiting scan initialization...</p>
                   </div>
@@ -818,10 +818,10 @@ export default function WindowScanner({
             {/* Metadata Footer Box */}
             <div className="bg-cyan-950/20 border border-cyan-900/30 rounded-lg p-4 backdrop-blur-sm relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></div>
-              <h4 className="text-[10px] uppercase tracking-widest text-cyan-600 mb-3 font-bold">
+              <h4 className="text-[10px] uppercase tracking-widest text-slate-200 mb-3 font-bold">
                 Extracted Metadata Specs
               </h4>
-              <div className="grid grid-cols-2 gap-3 text-xs font-mono text-cyan-300/80">
+              <div className="grid grid-cols-2 gap-3 text-xs font-mono text-slate-300">
                 <div className="flex justify-between border-b border-cyan-900/30 pb-1">
                   <span>STC RATING:</span> <span className="text-white">32</span>
                 </div>
