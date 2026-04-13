@@ -1,27 +1,31 @@
 
 
-## Plan: Fix HUD Accessibility Contrast in OrangeScanner
+## Plan: Fix Sidebar Contrast — Strip Opacity Traps in OrangeScanner.tsx
 
 ### What This Fixes
-The holographic HUD labels ("DATA EXTRACTION", "CONTEXTUAL INJECTION", "COMPLIANCE DETECTION") are nearly invisible against the dark `bg-cyan-950/40` background due to low-contrast colors (`text-slate-600`, `text-cyan-600`) and `opacity-50` on binary text.
+Text in the TrustScoreWidget, Live Audit Log, terminal, and Metadata sections is nearly invisible due to dark colors combined with opacity fades on a dark background. We replace all low-contrast patterns with a clean white baseline (`slate-200`/`slate-300`), reserving `cyan-400` for active-only states.
 
-### Changes (single file: `src/components/OrangeScanner.tsx`, lines 389-402)
+### Changes (single file: `src/components/OrangeScanner.tsx`)
 
-**Line 389 — Phase label container classes:**
-- Active: add `font-black`, strengthen glow to `drop-shadow-[0_0_12px_rgba(34,211,238,0.8)]`
-- Past: change `text-cyan-600` → `text-cyan-500 font-bold`
-- Inactive: change `text-slate-600` → `text-slate-400 font-medium`
+**1. TrustScoreWidget Header & Scrape Ticker (lines 94-136)**
+- Line 99: `text-slate-500` → `text-slate-200` ("Contractor Integrity Score")
+- Line 106: `text-slate-600` → `text-slate-400` ("/100" suffix)
+- Line 123: `text-cyan-500/70` → `text-slate-200` ("Deep Web Background Audit")
+- Line 131: Remove `opacity-40` from inactive state, change to `border border-transparent text-slate-200`; active state stays as-is (already has `bg-cyan-500/10 border border-cyan-500/30 scale-[1.02]`), add `text-cyan-400` to active
+- Line 136: `text-slate-500` → `text-slate-400` (check detail text)
 
-**Line 390 — Inner label div:**
-- Remove hardcoded `font-bold` (now conditionally applied per state above)
+**2. Terminal Log (lines 143-155)**
+- Line 148: Remove base `text-slate-500`, change to: active (`idx === 0`) gets `text-cyan-400`, inactive gets `text-slate-300`; remove `opacity-60`
+- Line 150: `text-cyan-900` → `text-slate-400` (timestamps)
 
-**Line 394 — Binary subtext:**
-- Remove `opacity-50`
-- Add conditional color: `text-cyan-100` when active, `text-slate-500` when inactive
+**3. Live Audit Log (lines 756-772)**
+- Line 758: `text-slate-400` → `text-slate-200` ("Live Audit Log" header)
+- Line 769: `text-slate-600` → `text-slate-300`, remove `opacity-50` ("Awaiting scan initialization")
 
-**Line 401 — Chevrons:**
-- Change inactive from `text-slate-700` → `text-slate-500`
+**4. Metadata Footer Box (lines 821-824)**
+- Line 821: `text-cyan-600` → `text-slate-200` ("Extracted Metadata Specs")
+- Line 824: `text-cyan-300/80` → `text-slate-300` (grid text)
 
 ### Files Modified
-1. `src/components/OrangeScanner.tsx` (lines 389-402)
+1. `src/components/OrangeScanner.tsx`
 
