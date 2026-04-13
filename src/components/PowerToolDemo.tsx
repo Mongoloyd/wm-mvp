@@ -210,7 +210,7 @@ function Kicker({ children }) {
   return (
     <div
       style={{
-        fontSize: "10px",
+        fontSize: "12px",
         fontWeight: 700,
         letterSpacing: "2.5px",
         color: "rgba(6,182,212,0.8)",
