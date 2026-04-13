@@ -1,9 +1,20 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import {
-  User, FileText, Zap, ShieldCheck, HardHat, CheckCircle2,
-  Bot, Flag, DollarSign, MessageSquare, Handshake,
-  PieChart, Scale, ArrowRight
+  User,
+  FileText,
+  Zap,
+  ShieldCheck,
+  HardHat,
+  CheckCircle2,
+  Bot,
+  Flag,
+  DollarSign,
+  MessageSquare,
+  Handshake,
+  PieChart,
+  Scale,
+  ArrowRight,
 } from "lucide-react";
 
 interface LayeredCardProps {
@@ -14,7 +25,9 @@ interface LayeredCardProps {
 
 const LayeredCard = ({ children, shadowColor = "bg-primary", className = "" }: LayeredCardProps) => (
   <div className={`relative group w-full ${className}`}>
-    <div className={`absolute inset-0 rounded-3xl translate-y-3 translate-x-3 transition-transform duration-300 group-hover:translate-y-4 group-hover:translate-x-4 ${shadowColor}`} />
+    <div
+      className={`absolute inset-0 rounded-3xl translate-y-3 translate-x-3 transition-transform duration-300 group-hover:translate-y-4 group-hover:translate-x-4 ${shadowColor}`}
+    />
     <div className="relative h-full bg-card border-2 border-border rounded-3xl p-6 sm:p-8 transition-transform duration-300 group-hover:-translate-y-1 group-hover:-translate-x-1 flex flex-col z-10 shadow-xl">
       {children}
     </div>
@@ -31,7 +44,9 @@ interface BenefitItemProps {
 const BenefitItem = ({ icon: Icon, title, description, color }: BenefitItemProps) => (
   <div className="relative group flex items-start p-4 sm:p-5 bg-card rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-border hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1">
     <div className={`absolute left-0 top-0 bottom-0 w-2 rounded-l-2xl ${color} opacity-80`} />
-    <div className={`flex-shrink-0 p-3 rounded-xl ${color} bg-opacity-10 mr-4 group-hover:scale-110 transition-transform`}>
+    <div
+      className={`flex-shrink-0 p-3 rounded-xl ${color} bg-opacity-10 mr-4 group-hover:scale-110 transition-transform`}
+    >
       <Icon className={`w-6 h-6 ${color.replace("bg-", "text-")}`} />
     </div>
     <div>
@@ -75,16 +90,14 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
             </span>
           </div>
 
-          <h2
-            className="font-display text-4xl md:text-5xl font-extrabold text-foreground tracking-tight mb-6 drop-shadow-sm leading-[1.1]"
-          >
+          <h2 className="font-display text-4xl md:text-5xl font-extrabold text-foreground tracking-tight mb-6 drop-shadow-sm leading-[1.1]">
             HOW WINDOWMAN <br />
             <span className="text-primary">ACTUALLY WORKS</span>
           </h2>
 
           <p className="text-xl text-muted-foreground font-medium leading-relaxed bg-card/50 backdrop-blur-sm p-4 rounded-2xl border border-border/60 shadow-sm inline-block">
-            Most services profit from information asymmetry. <br className="hidden sm:block" />
-            <strong className="text-foreground">WindowMan profits from eliminating it.</strong>
+            Most Services Profit From Information Asymmetry. <br className="hidden sm:block" />
+            <strong className="text-foreground">WindowMan Profits From Eliminating It.</strong>
           </p>
         </motion.div>
 
@@ -155,7 +168,9 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
                 <div className="flex-1 flex items-center justify-center min-h-[100px]">
                   <div className="flex flex-col items-center gap-2">
                     <CheckCircle2 className="w-16 h-16 text-[hsl(var(--color-emerald))]" strokeWidth={3} />
-                    <span className="font-bold text-[hsl(var(--color-emerald))] uppercase tracking-widest text-sm">Ready to Work</span>
+                    <span className="font-bold text-[hsl(var(--color-emerald))] uppercase tracking-widest text-sm">
+                      Ready to Work
+                    </span>
                   </div>
                 </div>
               </LayeredCard>
@@ -172,13 +187,40 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <BenefitItem icon={Bot} title="Free Unbiased AI Analysis" description="Of your existing quote." color="bg-emerald-50" />
-            <BenefitItem icon={Flag} title="Red Flags Explained" description="In plain, easy-to-understand English." color="bg-destructive" />
-            <BenefitItem icon={DollarSign} title="Fair-Market Price" description="Accurate pricing specific to your local area." color="bg-[hsl(var(--color-emerald))]" />
-            <BenefitItem icon={MessageSquare} title="A Negotiation Script" description="Tailored specifically for your situation." color="bg-[hsl(var(--gold))]" />
-            <BenefitItem icon={Handshake} title="Qualified Introduction" description="To a vetted contractor who will improve your quote." color="bg-primary" />
+            <BenefitItem
+              icon={Bot}
+              title="Free Unbiased AI Analysis"
+              description="Of your existing quote."
+              color="bg-primary"
+            />
+            <BenefitItem
+              icon={Flag}
+              title="Red Flags Explained"
+              description="In plain, easy-to-understand English."
+              color="bg-destructive"
+            />
+            <BenefitItem
+              icon={DollarSign}
+              title="Fair-Market Price"
+              description="Accurate pricing specific to your local area."
+              color="bg-[hsl(var(--color-emerald))]"
+            />
+            <BenefitItem
+              icon={MessageSquare}
+              title="A Negotiation Script"
+              description="Tailored specifically for your situation."
+              color="bg-[hsl(var(--gold))]"
+            />
+            <BenefitItem
+              icon={Handshake}
+              title="Qualified Introduction"
+              description="To a vetted contractor who will improve your quote."
+              color="bg-primary"
+            />
             <div className="hidden lg:flex items-center justify-center p-6 border-2 border-dashed border-border rounded-2xl bg-card/30 backdrop-blur-sm">
-              <span className="text-muted-foreground font-semibold tracking-widest uppercase text-sm">100% Free For Homeowners</span>
+              <span className="text-muted-foreground font-semibold tracking-widest uppercase text-sm">
+                100% Free For Homeowners
+              </span>
             </div>
           </div>
         </motion.div>
@@ -213,11 +255,13 @@ const MarketMakerManifesto = ({ onDemoClick }: MarketMakerManifestoProps) => {
               <h3 className="text-2xl font-black text-foreground">Why Work With Me?</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed text-lg">
-              <strong className="text-primary">We Level The Playing Field.</strong> When our vetted partners walk in, they know you've already been educated.
+              <strong className="text-primary">We Level The Playing Field.</strong> When our vetted partners walk in,
+              they know you've already been educated.
             </p>
             <div className="mt-6 pl-4 border-l-4 border-primary/30">
               <p className="text-foreground italic font-medium">
-                "Everyone is on the same page from minute one, turning a stressful sales pitch into a mutually beneficial agreement."
+                "Everyone is on the same page from minute one, turning a stressful sales pitch into a mutually
+                beneficial agreement."
               </p>
             </div>
           </LayeredCard>
