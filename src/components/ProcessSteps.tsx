@@ -95,7 +95,7 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                         "inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.1)",
                     }}
                   >
-                    <span className="font-mono text-sm font-bold tracking-wide">{Step.num}</span>
+                    <span className="font-mono text-sm font-bold tracking-wide">{step.num}</span>
                   </div>
 
                   {/* 3D raised card */}
