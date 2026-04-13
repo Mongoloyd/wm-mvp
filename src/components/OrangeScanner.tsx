@@ -386,19 +386,27 @@ export default function WindowScanner({ onScanClick, onDemoClick }: { onScanClic
                 
                 return (
                   <React.Fragment key={phase.label}>
-                    <div className={`flex flex-col items-center gap-1 md:gap-2 transition-all duration-500 ${isActive ? 'text-cyan-300 scale-105 drop-shadow-[0_0_8px_rgba(103,232,249,0.8)]' : isPast ? 'text-cyan-600' : 'text-slate-600'}`}>
-                      <div className="flex items-center gap-2 font-bold tracking-widest text-[10px] md:text-sm uppercase text-center">
+                    <div className={`flex flex-col items-center gap-1 md:gap-2 transition-all duration-500 ${
+                      isActive 
+                        ? 'text-cyan-300 scale-105 font-black drop-shadow-[0_0_12px_rgba(34,211,238,0.8)]' 
+                        : isPast 
+                          ? 'text-cyan-500 font-bold' 
+                          : 'text-slate-400 font-medium'
+                    }`}>
+                      <div className="flex items-center gap-2 tracking-widest text-[10px] md:text-sm uppercase text-center">
                         <span className="hidden md:block">{phase.icon}</span>
                         {phase.label}
                       </div>
-                      <div className="h-4 overflow-hidden text-[8px] md:text-[10px] font-mono opacity-50 hidden sm:block">
+                      <div className={`h-4 overflow-hidden text-[8px] md:text-[10px] font-mono hidden sm:block ${
+                        isActive ? 'text-cyan-100' : 'text-slate-500'
+                      }`}>
                         {isActive && isScanning ? (
                           <div className="animate-pulse">10101001 1101<br/>00111010 0110</div>
                         ) : '00000000 0000'}
                       </div>
                     </div>
                     {idx < 2 && (
-                      <ChevronRight className={`hidden sm:block transition-colors duration-500 ${isPast ? 'text-cyan-500' : 'text-slate-700'}`} size={20} />
+                      <ChevronRight className={`hidden sm:block transition-colors duration-500 ${isPast ? 'text-cyan-400' : 'text-slate-500'}`} size={20} />
                     )}
                   </React.Fragment>
                 );
