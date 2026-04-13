@@ -360,7 +360,7 @@ const ScanCTA = () => {
   );
 };
 
-export default function WindowScanner({
+export default function OrangeScanner({
   onScanClick,
   onDemoClick,
 }: { onScanClick?: () => void; onDemoClick?: () => void } = {}) {
