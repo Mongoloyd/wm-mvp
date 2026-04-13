@@ -800,7 +800,7 @@ function ScanTerminal({ lines, progress, terminalRef, firstName }) {
               lineHeight: 1.2,
             }}
           >
-            {firstName ? `${firstName}, your` : "Your"} <span style={{ color: T.cyan }}>Truth Report</span> Is Being
+            {firstName ? `${firstName}, Your` : "Your"} <span style={{ color: T.cyan }}>Truth Report</span> Is Being
             Built
           </h1>
         </div>
