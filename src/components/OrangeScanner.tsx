@@ -346,7 +346,7 @@ const ScanCTA = () => {
             </button>
 
             <div className="mt-4 flex items-center justify-center gap-6 opacity-40">
-              <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
+              <div className="text-[10px] uppercase font-bold flex items-center gap-1 text-slate-50">
                 <ShieldCheck size={12} /> SECURE OTP
               </div>
               <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
