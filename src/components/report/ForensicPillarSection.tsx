@@ -290,7 +290,7 @@ export default function ForensicPillarSection({ pillarScores, flags, county, isF
   const hasProblem = ranked.some((p) => p.status === "fail" || p.status === "warn");
 
   return (
-    <section className="py-10 md:py-14 px-4 md:px-8 bg-background border-b border-border">
+    <section className="py-10 md:py-14 px-4 md:px-10 bg-background border-b border-border">
       <div className="max-w-4xl mx-auto">
         <motion.div {...stagger(1)}>
           <div className="flex items-center gap-2 mb-1">
