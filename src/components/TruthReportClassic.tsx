@@ -318,7 +318,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             >
               WindowMan Truth Report™
             </h1>
-            <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 16 }}>
+            <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 14 }}>
               {county} County · {reportDate} · {documentType ? humanizeDocType(documentType) : "Quote Document"}
             </p>
           </div>
