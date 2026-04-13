@@ -4,18 +4,18 @@ import { ScanSearch, Target, Flag, Diamond, CheckCircle2, FileCheck } from "luci
 const steps = [
   {
     num: "01",
-    title: "Answer 4 quick questions",
-    desc: "County, scope, project type, and quote stage. No account required.",
+    title: "Answer 4 Quick Questions",
+    desc: "County, Scope, Project Type, and Quote Stage. No Account Required.",
   },
   {
     num: "02",
-    title: "Upload your quote",
-    desc: "PDF or image. Any format from any Florida contractor.",
+    title: "Upload Your Quote",
+    desc: "PDF or Image. Any Format From Any Contractor.",
   },
   {
     num: "03",
-    title: "AI scans every line",
-    desc: "Pricing, brands, warranties, permits, payment terms, and installation specs.",
+    title: "AI Scans Every Line",
+    desc: "Pricing, Brands, Warranties, Permits, Payment Terms, and Installation Specs.",
   },
   {
     num: "04",
@@ -95,7 +95,7 @@ export default function ProcessSteps({ onScanClick, onDemoClick }: ProcessStepsP
                         "inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.1)",
                     }}
                   >
-                    <span className="font-mono text-sm font-bold tracking-wide">{step.num}</span>
+                    <span className="font-mono text-sm font-bold tracking-wide">{Step.num}</span>
                   </div>
 
                   {/* 3D raised card */}
