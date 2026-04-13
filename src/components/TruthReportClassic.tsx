@@ -447,17 +447,17 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
             <span className="wm-eyebrow text-primary">DOCUMENT VERIFIED</span>
             {pageCount != null && pageCount > 1 && (
               <span className="font-mono text-muted-foreground" style={{ fontSize: 15 }}>
-                Multi-page document analyzed
+                Multi-Page Document Analyzed
               </span>
             )}
             {lineItemCount != null && lineItemCount > 0 && (
               <span className="font-mono text-muted-foreground" style={{ fontSize: 15 }}>
-                · Detailed line items detected
+                · Detailed Line Items Detected
               </span>
             )}
             {contractorName && (
               <span className="font-mono text-muted-foreground" style={{ fontSize: 15 }}>
-                · Contractor identified
+                · Contractor Identified
               </span>
             )}
             {confidenceScore != null && confidenceScore >= 55 && (
@@ -546,7 +546,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   {markupEstimate}
                 </p>
                 <p className="font-body text-muted-foreground" style={{ fontSize: 13, marginTop: 8 }}>
-                  Over standard Florida wholesale + labor baseline
+                  Over Standard Florida Wholesale + Labor Baseline
                 </p>
               </motion.div>
             )}
@@ -1306,11 +1306,20 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   <div key={i} className="flex items-start gap-2.5">
                     <span
                       className="font-body"
-                      style={{ fontSize: 16, fontWeight: 700, color: "hsl(var(--color-gold-accent))", flexShrink: 0, marginTop: 2 }}
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: "hsl(var(--color-gold-accent))",
+                        flexShrink: 0,
+                        marginTop: 2,
+                      }}
                     >
                       ✓
                     </span>
-                    <span className="font-body text-foreground/90" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.6 }}>
+                    <span
+                      className="font-body text-foreground/90"
+                      style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.6 }}
+                    >
                       {item}
                     </span>
                   </div>
