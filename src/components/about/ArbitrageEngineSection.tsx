@@ -13,7 +13,8 @@ export default function ArbitrageEngineSection() {
           left: "-8%",
           width: "55%",
           height: "90%",
-          background: "radial-gradient(ellipse at 30% 45%, rgba(6,182,212,0.09) 0%, rgba(30,80,180,0.07) 45%, transparent 70%)",
+          background:
+            "radial-gradient(ellipse at 30% 45%, rgba(6,182,212,0.09) 0%, rgba(30,80,180,0.07) 45%, transparent 70%)",
           filter: "blur(44px)",
         }}
       />
@@ -26,7 +27,8 @@ export default function ArbitrageEngineSection() {
           right: "-8%",
           width: "50%",
           height: "75%",
-          background: "radial-gradient(ellipse at 70% 65%, rgba(249,115,22,0.07) 0%, rgba(234,88,12,0.04) 45%, transparent 70%)",
+          background:
+            "radial-gradient(ellipse at 70% 65%, rgba(249,115,22,0.07) 0%, rgba(234,88,12,0.04) 45%, transparent 70%)",
           filter: "blur(50px)",
         }}
       />
@@ -38,11 +40,9 @@ export default function ArbitrageEngineSection() {
             We See Everyone's Homework. That's How We Force Better Prices.
           </SectionHeading>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-foreground/80 md:text-lg">
-            Because we process thousands of quotes, we know exactly where the
-            fat is hidden. When contractors know they are quoting against the
-            WindowMan engine, they stop playing games. They give you their best,
-            cleanest price because they know they can't hide bloated margins in
-            the fine print.
+            Because We Process Thousands of Quotes, We Know Exactly Where The Fat is Hidden. When Contractors Know
+            They"re Quoting Against the WindowMan Engine, They Stop Playing Games. They Give You Their Best, Cleanest
+            Price Because They Know They Can't Hide Bloated Margins in the Fine Print.
           </p>
         </div>
 
@@ -62,19 +62,15 @@ export default function ArbitrageEngineSection() {
                 style={{ background: "#06B6D4" }}
                 aria-hidden="true"
               />
-              <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">
-                MECHANISM 01
-              </span>
+              <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">MECHANISM 01</span>
             </div>
             <h3 className="mb-4 font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">
               How We Create Pricing Pressure
             </h3>
             <p className="text-base leading-relaxed text-foreground/75">
-              We use our data pulse to create leverage. Contractors in our orbit
-              know we verify scope, materials, exclusions, and pricing logic. If
-              the quote is bloated or weak, the engine flags it. To stay
-              competitive, they are pushed toward cleaner structure and sharper
-              pricing.
+              We Use Our Data Pulse To Create Leverage. Contractors In Our Orbit Know We Verify Scope, Materials,
+              Exclusions, and Pricing Logic. If The Quote is Bloated or Weak, The Engine Flags It. To Stay Competitive,
+              They're Pushed Toward Cleaner Structure and Sharper Pricing.
             </p>
             <div className="mt-auto pt-8">
               <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
@@ -104,25 +100,19 @@ export default function ArbitrageEngineSection() {
                 style={{ background: "#f97316" }}
                 aria-hidden="true"
               />
-              <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">
-                MECHANISM 02
-              </span>
+              <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">MECHANISM 02</span>
             </div>
             <h3 className="mb-4 font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-              This Is the Arbitrage
+              This is the Arbitrage
             </h3>
             <p className="text-base leading-relaxed text-foreground/75">
-              We identify the gap between what a homeowner is being offered and
-              what a cleaner, more competitive quote could look like. That gap is
-              where WindowMan creates pressure. We do not guess. We compare. Then
-              we make the market react.
+              We Identify The Gap Between What A Homeowner Is Being Offered And What A Cleaner, More Competitive Quote
+              Could Look Like. That Gap Is Where WindowMan Creates Pressure. We Do Not Guess. We Compare. Then We Make
+              The Market React.
             </p>
             <div className="mt-auto pt-8">
               <div className="flex items-center gap-3 rounded-lg border border-orange-100 bg-orange-50/60 px-4 py-3">
-                <span
-                  className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-orange-400"
-                  aria-hidden="true"
-                />
+                <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-orange-400" aria-hidden="true" />
                 <span className="font-mono text-[11px] tracking-[0.08em] text-foreground/60">
                   OFFERED PRICE vs. COMPETITIVE BASELINE → SPREAD EXPOSED
                 </span>
@@ -137,8 +127,7 @@ export default function ArbitrageEngineSection() {
           style={{ boxShadow: "0 2px 12px rgba(15,30,60,0.07)" }}
         >
           <p className="text-base font-semibold leading-relaxed text-foreground/80 md:text-lg">
-            This is not Wall Street arbitrage. It is market arbitrage: turning
-            quote confusion into pricing pressure.
+            This Is Not Wall Street Arbitrage. Its Market Arbitrage: Turning Quote Confusion Into Pricing Pressure.
           </p>
         </div>
       </div>
