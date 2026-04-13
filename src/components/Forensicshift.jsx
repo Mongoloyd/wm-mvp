@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
 
-/**
- * ForensicShift Component
- * Prepared for Lovable Import
- * * Features: 
- * - Split-view document visualization (Paper vs. Digital)
- * - Gemini AI Forensic Analysis integration
- * - Responsive Tailwind CSS design
- */
-
 const defaultData = {
   homeownerBulletPoints: [
     "Total Price: $17,400",
@@ -35,6 +26,31 @@ const defaultData = {
   taxesAndFees: "$2,400",
   totalPrice: "$17,400",
   footerNote: "Standard install with the services listed. Lifetime Warranty applies to hardware only. Excludes labor, service calls, and acts of nature. All measurements and figures are approximate and subject to final verification. NOA references are withheld until final contract signing."
+};
+
+const analyzedData = {
+  homeownerBulletPoints: [
+    "Total Price: $12,000",
+    "Premium Shingles",
+    "Labor Included"
+  ],
+  machineBulletPoints: [
+    "14% Markup Detected",
+    "No Permit\nDocumentation",
+    "Warranty Scope\nUndefined"
+  ],
+  invoiceRows: [
+    { qty: "1", desc: "Architectural Shingles Removal", price: "$2,500" },
+    { qty: "1", desc: "Roof Decking Repair", price: "$1,200" },
+    { qty: "30", desc: "Bundles Premium Shingles", price: "$6,000" },
+    { qty: "1", desc: "Labor", price: "INCLUDED" },
+    { qty: "-", desc: "Taxes & Processing", price: "$800" },
+    { qty: "-", desc: "Local Markup (Estimated)", price: "$1,500" },
+  ],
+  subtotal: "$10,500",
+  taxesAndFees: "$1,500",
+  totalPrice: "$12,000",
+  footerNote: "Estimate based on standard removal and replacement. Warranty terms not specified. Permit fees and inspections not addressed. All figures are approximate."
 };
 
 const DocumentContent = ({ isDigital, data, isAnalyzing }) => {
@@ -129,9 +145,10 @@ const DocumentContent = ({ isDigital, data, isAnalyzing }) => {
   );
 };
 
-export default function App() {
+export default function ForensicShift() {
   const [data, setData] = useState(defaultData);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [quoteText, setQuoteText] = useState(`ACME Roofers Estimate:
 1x Architectural Shingles Removal - $2,500
@@ -141,68 +158,23 @@ export default function App() {
 Taxes & Processing - $800
 Estimated Local Markup fee - $1,500
 Total: $12,000`);
-  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleAnalyze = async () => {
-    setIsAnalyzing(true);
+  const handleAnalyze = () => {
+    if (isAnalyzing) return;
     setShowModal(false);
-    setErrorMsg("");
-
-    const apiKey = ""; // Set your API key here or via env variables
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-    const prompt = `You are a forensic quote analyzer AI. Analyze the following construction quote text and return a strict JSON response.
-    Quote text to analyze:
-    ${quoteText}`;
-
-    const payload = {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            homeownerBulletPoints: { type: "ARRAY", items: { type: "STRING" } },
-            machineBulletPoints: { type: "ARRAY", items: { type: "STRING" } },
-            invoiceRows: {
-              type: "ARRAY",
-              items: {
-                type: "OBJECT",
-                properties: {
-                  qty: { type: "STRING" },
-                  desc: { type: "STRING" },
-                  price: { type: "STRING" }
-                }
-              }
-            },
-            subtotal: { type: "STRING" },
-            taxesAndFees: { type: "STRING" },
-            totalPrice: { type: "STRING" },
-            footerNote: { type: "STRING" }
-          },
-          required: ["homeownerBulletPoints", "machineBulletPoints", "invoiceRows", "subtotal", "taxesAndFees", "totalPrice", "footerNote"]
-        }
-      }
-    };
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error(`API Error: ${response.status}`);
-      const result = await response.json();
-      
-      if (result.candidates && result.candidates[0].content.parts[0].text) {
-        setData(JSON.parse(result.candidates[0].content.parts[0].text));
-      }
-    } catch (err) {
-      setErrorMsg("Forensic scan failed. Please check your API key or connection.");
-    } finally {
+    setIsAnalyzing(true);
+    const delay = 2500 + Math.random() * 1500;
+    setTimeout(() => {
+      setData(analyzedData);
       setIsAnalyzing(false);
-    }
+      setHasAnalyzed(true);
+    }, delay);
+  };
+
+  const handleReset = () => {
+    setData(defaultData);
+    setHasAnalyzed(false);
+    setIsAnalyzing(false);
   };
 
   return (
@@ -211,12 +183,23 @@ Total: $12,000`);
         <h1 className="text-xl lg:text-3xl font-medium tracking-tight">
           The Forensic Shift: <span className="text-slate-300">What You See vs. What the Machine Sees</span>
         </h1>
-        <button 
-          onClick={() => setShowModal(true)}
-          className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-2 whitespace-nowrap"
-        >
-          <span>✨ Analyze Quote</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {hasAnalyzed && (
+            <button
+              onClick={handleReset}
+              className="text-slate-300 hover:text-white px-4 py-2 rounded-md font-medium text-sm transition-colors border border-slate-500 hover:border-slate-400"
+            >
+              ↺ Reset Demo
+            </button>
+          )}
+          <button 
+            onClick={() => setShowModal(true)}
+            disabled={isAnalyzing}
+            className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md font-medium text-sm transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-2 whitespace-nowrap"
+          >
+            <span>✨ Analyze Quote</span>
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 relative flex flex-col lg:flex-row w-full">
@@ -279,11 +262,11 @@ Total: $12,000`);
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#1e293b] border border-slate-600 rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-slate-700 flex justify-between items-center bg-[#253245]">
-              <h3 className="text-xl font-semibold text-white">✨ Forensic Scanner</h3>
+              <h3 className="text-xl font-semibold text-white">✨ Forensic Scanner (Demo)</h3>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
             <div className="p-6">
-              {errorMsg && <div className="mb-4 p-3 bg-red-500/20 text-red-200 rounded text-sm">{errorMsg}</div>}
+              <p className="text-slate-400 text-sm mb-3">Paste any quote text below. This is a local simulation — no data leaves your browser.</p>
               <textarea 
                 className="w-full h-48 bg-[#0f172a] text-slate-300 border border-slate-600 rounded-md p-4 font-mono text-sm focus:outline-none focus:border-cyan-500 custom-scrollbar"
                 value={quoteText}
@@ -292,7 +275,13 @@ Total: $12,000`);
             </div>
             <div className="px-6 py-4 border-t border-slate-700 bg-[#253245] flex justify-end gap-3">
               <button onClick={() => setShowModal(false)} className="text-slate-300 hover:text-white">Cancel</button>
-              <button onClick={handleAnalyze} className="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded-md font-medium">Start AI Analysis</button>
+              <button
+                onClick={handleAnalyze}
+                disabled={isAnalyzing}
+                className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-md font-medium"
+              >
+                Start Demo Analysis
+              </button>
             </div>
           </div>
         </div>
