@@ -691,7 +691,7 @@ function CalibrationGateModal({ onSubmit }) {
 
             {errors.phone && <div style={{ fontSize: "11px", color: "#ef4444", marginTop: "5px" }}>{errors.phone}</div>}
             <div style={{ fontSize: "11px", color: "rgb(100,116,139)", marginTop: "8px", lineHeight: 1.5 }}>
-              🔒 256-bit encrypted. Look for a secure link so you don't lose this
+              🔒 256-Bit Encrypted. Look For a Secure Link So You Don't Lose This
             </div>
           </div>
 
