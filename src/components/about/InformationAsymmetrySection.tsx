@@ -120,7 +120,7 @@ export default function InformationAsymmetrySection({
                     {buyerItems.map((item) => (
                       <li
                         key={item}
-                        className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 shadow-sm"
+                        className="flex items-center gap-3 rounded-lg border bg-slate-50 px-4 py-3 shadow-sm border-solid border-black"
                       >
                         <span className="h-2 w-2 flex-shrink-0 rounded-full bg-slate-300" />
                         <span className="text-sm font-medium text-foreground/80">
