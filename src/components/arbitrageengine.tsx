@@ -27,7 +27,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { getUtmData } from "@/lib/useUtmCapture";
 import { toE164 } from "@/utils/formatPhone";
 
-// ── Mock 5-Pillar Analysis Data ──────────────────────────────────────────────
+type FunnelStep =
+  | "scope"
+  | "intent_filter"
+  | "status"
+  | "comp_a"
+  | "comp_b"
+  | "contact"
+  | "identity"
+  | "intent"
+  | "call"
+  | "timeframe"
+  | "done"
+  | "secret_capture"
+  | "secret_success";
+
+type ArbitrageEngineProps = {
+  autoOpen?: boolean;
+  initialStep?: FunnelStep;
+  hideBaseShell?: boolean;
+  source?: string;
+  onDirectEntryClose?: () => void;
+};
+
 const MOCK_ANALYSIS = {
   grade: "C+",
   gradeScore: 58,
@@ -51,8 +73,10 @@ const MOCK_ANALYSIS = {
 
 const statusColor = (s: "pass" | "fail" | "warn") =>
   s === "pass" ? "text-emerald-400" : s === "fail" ? "text-red-400" : "text-amber-400";
+
 const barColor = (s: "pass" | "fail" | "warn") =>
   s === "pass" ? "bg-emerald-400" : s === "fail" ? "bg-red-400" : "bg-amber-400";
+
 const gradeColor = (g: string) => {
   if (g.startsWith("A")) return "text-emerald-400 border-emerald-400/50 bg-emerald-500/10";
   if (g.startsWith("B")) return "text-cyan-400 border-cyan-400/50 bg-cyan-500/10";
@@ -60,7 +84,6 @@ const gradeColor = (g: string) => {
   return "text-red-400 border-red-400/50 bg-red-500/10";
 };
 
-// ── Pipeline step data ───────────────────────────────────────────────────────
 const PIPELINE_STEPS = [
   {
     id: "upload",
@@ -123,7 +146,6 @@ const PIPELINE_STEPS = [
   },
 ];
 
-// ── Focus trap hook ──────────────────────────────────────────────────────────
 function useFocusTrap(isActive: boolean) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -154,7 +176,6 @@ function useFocusTrap(isActive: boolean) {
   useEffect(() => {
     if (!isActive) return;
     document.addEventListener("keydown", handleKeyDown);
-    // Focus first focusable element on open
     const timer = setTimeout(() => {
       const el = containerRef.current?.querySelector<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
@@ -170,29 +191,6 @@ function useFocusTrap(isActive: boolean) {
   return containerRef;
 }
 
-type FunnelStep =
-  | "scope"
-  | "intent_filter"
-  | "status"
-  | "comp_a"
-  | "comp_b"
-  | "contact"
-  | "identity"
-  | "intent"
-  | "call"
-  | "timeframe"
-  | "done"
-  | "secret_capture"
-  | "secret_success";
-
-export type ArbitrageEngineProps = {
-  autoOpen?: boolean;
-  initialStep?: FunnelStep;
-  hideBaseShell?: boolean;
-  source?: string;
-  onDirectEntryClose?: () => void;
-};
-
 export default function ArbitrageEngine({
   autoOpen = false,
   initialStep = "scope",
@@ -200,12 +198,12 @@ export default function ArbitrageEngine({
   source = "unknown",
   onDirectEntryClose,
 }: ArbitrageEngineProps) {
-  const [flowState, setFlowState] = useState("idle");
+  const [flowState, setFlowState] = useState(autoOpen ? "modal_open" : "idle");
   const [hasCompletedFunnel, setHasCompletedFunnel] = useState(false);
   const [isExitIntent, setIsExitIntent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [funnelStep, setFunnelStep] = useState<FunnelStep>("scope");
+  const [funnelStep, setFunnelStep] = useState<FunnelStep>(initialStep);
   const [stepHistory, setStepHistory] = useState<FunnelStep[]>([]);
   const [formData, setFormData] = useState({
     scope: "",
@@ -224,9 +222,22 @@ export default function ArbitrageEngine({
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
   const isRevealed = flowState === "revealed" || flowState === "modal_open";
-
-  // Focus trap for modal
   const modalRef = useFocusTrap(flowState === "modal_open");
+
+  useEffect(() => {
+    if (!autoOpen) return;
+
+    setFlowState("modal_open");
+    setHasCompletedFunnel(false);
+    setIsExitIntent(false);
+    setFunnelStep(initialStep);
+    setStepHistory([]);
+
+    console.info("arbitrage_direct_entry_opened", {
+      source,
+      step: initialStep,
+    });
+  }, [autoOpen, initialStep, source]);
 
   useEffect(() => {
     if (flowState === "revealed" && !hasCompletedFunnel) {
@@ -235,27 +246,18 @@ export default function ArbitrageEngine({
     }
   }, [flowState, hasCompletedFunnel]);
 
-  // Direct-entry auto-open
-  useEffect(() => {
-    if (!autoOpen) return;
-    setFlowState("modal_open");
-    setHasCompletedFunnel(false);
-    setIsExitIntent(false);
-    setFunnelStep(initialStep);
-    setStepHistory([]);
-    console.info("arbitrage_direct_entry_opened", { source, step: initialStep });
-  }, [autoOpen, initialStep, source]);
-
-  // Lock body scroll when modal open (scrollbar-width-aware)
   useEffect(() => {
     if (flowState !== "modal_open") return;
+
     const originalOverflow = document.body.style.overflow;
     const originalPaddingRight = document.body.style.paddingRight;
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
     document.body.style.overflow = "hidden";
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
+
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.paddingRight = originalPaddingRight;
@@ -278,7 +280,6 @@ export default function ArbitrageEngine({
     setStepHistory((prev) => prev.slice(0, -1));
   };
 
-  // ── Supabase Lead Capture ──────────────────────────────────────────────────
   const handleLeadSubmit = async () => {
     setIsSubmitting(true);
     setSubmitError(null);
@@ -329,13 +330,10 @@ export default function ArbitrageEngine({
   }, [onDirectEntryClose]);
 
   const handleClose = () => {
-    const preCompletionStep =
-      funnelStep !== "done" &&
-      !["secret_capture", "secret_success"].includes(funnelStep);
+    const preCompletionStep = funnelStep !== "done" && !["secret_capture", "secret_success"].includes(funnelStep);
 
-    // Direct-entry bridge: close before completion reveals normal About page
     if (autoOpen && !hasCompletedFunnel && preCompletionStep && !isExitIntent) {
-      closeToAboutContent();
+      setIsExitIntent(true);
       return;
     }
 
@@ -362,9 +360,14 @@ export default function ArbitrageEngine({
       if (wasCompleted) {
         toast.success("You're matched! Let's scan your quote.");
         setTimeout(() => {
-          const safeUrl = new URL("/#truth-gate", window.location.origin);
+          const safeUrl = new URL("/#truth-gate-section", window.location.origin);
           window.location.assign(safeUrl.toString());
         }, 1200);
+        return;
+      }
+
+      if (autoOpen) {
+        closeToAboutContent();
       }
     }, 300);
   };
@@ -409,6 +412,7 @@ export default function ArbitrageEngine({
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) });
   };
+
   const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, zip: e.target.value.replace(/\D/g, "").slice(0, 5) });
   };
@@ -419,7 +423,6 @@ export default function ArbitrageEngine({
     exit: { x: -30, opacity: 0, transition: { duration: 0.2, ease: "easeIn" as const } },
   };
 
-  // Shared input class for 48px min touch target
   const inputClass =
     "w-full bg-slate-950/70 border border-white/10 rounded-xl px-4 min-h-[48px] py-3 text-white text-base focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 placeholder:text-gray-500";
 
@@ -435,9 +438,14 @@ export default function ArbitrageEngine({
     </button>
   );
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-[600px] bg-slate-950 text-white font-sans overflow-hidden relative flex flex-col items-center justify-center py-6 selection:bg-cyan-500/30">
+    <div
+      className={
+        hideBaseShell
+          ? "relative w-full"
+          : "min-h-[600px] bg-slate-950 text-white font-sans overflow-hidden relative flex flex-col items-center justify-center py-6 selection:bg-cyan-500/30"
+      }
+    >
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -445,86 +453,193 @@ export default function ArbitrageEngine({
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.4); }
       `}</style>
 
-      {!hideBaseShell && (<>
-      {/* Background Effects */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none opacity-20"
-        style={{
-          backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: "60px 60px",
-          maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%)",
-          WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%)",
-        }}
-      />
-      <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
+      {!hideBaseShell && (
+        <>
+          <div
+            className="absolute inset-0 z-0 pointer-events-none opacity-20"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)",
+              backgroundSize: "60px 60px",
+              maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%)",
+              WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%)",
+            }}
+          />
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
+          <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
-      {/* ── Main Content ──────────────────────────────────────────────────── */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center">
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-6 sm:mb-10 drop-shadow-lg text-center">
-          The Arbitrage Engine
-        </h1>
+          <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-6 sm:mb-10 drop-shadow-lg text-center">
+              The Arbitrage Engine
+            </h1>
 
-        {/* Glassmorphic pipeline card */}
-        <div
-          className="w-full bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative"
-          role="region"
-          aria-label="Transparency Flow pipeline"
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent rounded-2xl pointer-events-none" />
+            <div
+              className="w-full bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative"
+              role="region"
+              aria-label="Transparency Flow pipeline"
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent rounded-2xl pointer-events-none" />
 
-          <div className="text-center mb-6 sm:mb-12 relative z-10">
-            <h2 className="text-slate-400 text-base sm:text-xl font-semibold tracking-widest uppercase mb-1 drop-shadow-sm">
-              Transparency Flow:
-            </h2>
-            <p className="text-gray-400 text-xs sm:text-sm font-medium">How It Works</p>
-          </div>
+              <div className="text-center mb-6 sm:mb-12 relative z-10">
+                <h2 className="text-slate-400 text-base sm:text-xl font-semibold tracking-widest uppercase mb-1 drop-shadow-sm">
+                  Transparency Flow:
+                </h2>
+                <p className="text-gray-400 text-xs sm:text-sm font-medium">How It Works</p>
+              </div>
 
-          {/* ── Desktop horizontal pipeline (md+) ─────────────────────────── */}
-          <div className="hidden md:block w-full overflow-x-auto pb-6 hide-scrollbar relative z-10">
-            <div className="relative w-[800px] mx-auto pt-2">
-              {/* Horizontal connecting line */}
-              <div className="absolute top-[64px] left-[64px] right-[64px] h-[3px] z-0 flex rounded-full overflow-hidden">
-                <div className="w-[33.33%] bg-gradient-to-r from-amber-400 to-yellow-400" />
-                <div className="w-[66.66%] flex relative">
-                  <div className="absolute inset-0 flex opacity-20">
-                    <div className="w-1/2 bg-gradient-to-r from-yellow-400 to-red-500" />
-                    <div className="w-1/2 bg-gradient-to-r from-red-500 to-emerald-500" />
+              <div className="hidden md:block w-full overflow-x-auto pb-6 hide-scrollbar relative z-10">
+                <div className="relative w-[800px] mx-auto pt-2">
+                  <div className="absolute top-[64px] left-[64px] right-[64px] h-[3px] z-0 flex rounded-full overflow-hidden">
+                    <div className="w-[33.33%] bg-gradient-to-r from-amber-400 to-yellow-400" />
+                    <div className="w-[66.66%] flex relative">
+                      <div className="absolute inset-0 flex opacity-20">
+                        <div className="w-1/2 bg-gradient-to-r from-yellow-400 to-red-500" />
+                        <div className="w-1/2 bg-gradient-to-r from-red-500 to-emerald-500" />
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: isRevealed ? 1 : 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0 flex"
+                      >
+                        <div className="w-1/2 bg-gradient-to-r from-yellow-400 to-red-500 shadow-[0_0_8px_red]" />
+                        <div className="w-1/2 bg-gradient-to-r from-red-500 to-emerald-500 shadow-[0_0_8px_#10b981]" />
+                      </motion.div>
+                    </div>
                   </div>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: isRevealed ? 1 : 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="absolute inset-0 flex"
-                  >
-                    <div className="w-1/2 bg-gradient-to-r from-yellow-400 to-red-500 shadow-[0_0_8px_red]" />
-                    <div className="w-1/2 bg-gradient-to-r from-red-500 to-emerald-500 shadow-[0_0_8px_#10b981]" />
-                  </motion.div>
+
+                  {flowState === "animating" && (
+                    <svg
+                      className="absolute top-0 left-0 w-[800px] h-[128px] pointer-events-none z-30 overflow-visible"
+                      aria-hidden="true"
+                    >
+                      <motion.path
+                        d="M 352 64 L 448 64 L 448 12 A 12 12 0 0 1 460 0 L 564 0 A 12 12 0 0 1 576 12 L 576 116 A 12 12 0 0 1 564 128 L 460 128 A 12 12 0 0 1 448 116 L 448 64 L 576 64 L 672 64"
+                        fill="transparent"
+                        stroke="#06b6d4"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{ duration: 2.5, ease: "easeInOut" }}
+                        onAnimationComplete={() => setFlowState("revealed")}
+                        style={{ filter: "drop-shadow(0 0 8px #06b6d4)" }}
+                      />
+                    </svg>
+                  )}
+
+                  <div className="relative z-10 flex justify-between items-start w-[800px]">
+                    {PIPELINE_STEPS.map((step, idx) => {
+                      const active = step.alwaysVisible || isRevealed;
+                      const border = active ? step.borderColor : step.inactiveBorder || step.borderColor;
+                      const shadow = active ? step.shadow : "shadow-none";
+                      return (
+                        <div
+                          key={step.id}
+                          className="flex flex-col items-center w-32"
+                          role="listitem"
+                          aria-label={`Step ${idx + 1}: ${step.label.replace("\n", " ")}`}
+                        >
+                          <div
+                            className={`w-32 h-32 rounded-xl border-2 ${border} bg-slate-800 ${shadow} flex flex-col items-center justify-center p-4 transition-all duration-500 z-20 relative`}
+                          >
+                            {step.alwaysVisible ? (
+                              <>
+                                <step.Icon className={`w-10 h-10 ${step.iconColor} mb-3`} strokeWidth={1.5} />
+                                <span className="text-[13px] font-medium leading-tight text-gray-200 text-center whitespace-pre-line">
+                                  {step.label}
+                                </span>
+                              </>
+                            ) : (
+                              <motion.div
+                                className="flex flex-col items-center"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 10 }}
+                                transition={{ delay: idx * 0.1, duration: 0.5 }}
+                              >
+                                {step.hasMoneyIcon ? (
+                                  <div className="relative mb-2 mt-1">
+                                    <step.Icon className={`w-11 h-11 ${step.iconColor}`} strokeWidth={1.5} />
+                                    <div className="absolute -top-3 -right-2 bg-slate-800 rounded-full p-[1px]">
+                                      <CircleDollarSign className="w-5 h-5 text-emerald-400" strokeWidth={2} />
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <step.Icon className={`w-12 h-12 ${step.iconColor} mb-2`} strokeWidth={2} />
+                                )}
+                                <span className="text-[13px] font-medium leading-tight text-gray-200 text-center whitespace-pre-line">
+                                  {step.label}
+                                </span>
+                              </motion.div>
+                            )}
+                          </div>
+
+                          {step.percent > 0 && (
+                            <motion.div
+                              className="w-full mt-4 flex flex-col gap-1.5 px-1"
+                              initial={{ opacity: step.alwaysVisible ? 1 : 0 }}
+                              animate={{ opacity: step.alwaysVisible || isRevealed ? 1 : 0 }}
+                            >
+                              <div className="flex justify-end w-full">
+                                <span className={`text-[11px] font-bold ${step.percentColor}`}>{step.percent}%</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${step.barColor} ${step.barShadow}`}
+                                  style={{ width: `${step.percent}%` }}
+                                />
+                              </div>
+                              {step.subtitle && (
+                                <div className="flex items-center justify-center gap-1 mt-0.5 text-[9px] font-semibold text-red-500/90 whitespace-nowrap uppercase tracking-wider">
+                                  <AlertTriangle size={10} strokeWidth={2.5} />
+                                  <span>{step.subtitle}</span>
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
-              {flowState === "animating" && (
-                <svg
-                  className="absolute top-0 left-0 w-[800px] h-[128px] pointer-events-none z-30 overflow-visible"
-                  aria-hidden="true"
-                >
-                  <motion.path
-                    d="M 352 64 L 448 64 L 448 12 A 12 12 0 0 1 460 0 L 564 0 A 12 12 0 0 1 576 12 L 576 116 A 12 12 0 0 1 564 128 L 460 128 A 12 12 0 0 1 448 116 L 448 64 L 576 64 L 672 64"
-                    fill="transparent"
-                    stroke="#06b6d4"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
+              <div
+                className="md:hidden relative z-10 flex flex-col items-center gap-2"
+                role="list"
+                aria-label="Transparency Flow steps"
+              >
+                <div className="absolute left-1/2 -translate-x-[1.5px] top-0 bottom-0 w-[3px] z-0">
+                  <div className="h-[25%] bg-gradient-to-b from-amber-400 to-yellow-400" />
+                  <div className="h-[75%] relative">
+                    <div className="absolute inset-0 opacity-20">
+                      <div className="h-1/2 bg-gradient-to-b from-yellow-400 to-red-500" />
+                      <div className="h-1/2 bg-gradient-to-b from-red-500 to-emerald-500" />
+                    </div>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: isRevealed ? 1 : 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="absolute inset-0"
+                    >
+                      <div className="h-1/2 bg-gradient-to-b from-yellow-400 to-red-500 shadow-[0_0_8px_red]" />
+                      <div className="h-1/2 bg-gradient-to-b from-red-500 to-emerald-500 shadow-[0_0_8px_#10b981]" />
+                    </motion.div>
+                  </div>
+                </div>
+
+                {flowState === "animating" && (
+                  <motion.div
+                    className="absolute left-1/2 -translate-x-[1.5px] top-0 w-[3px] bg-cyan-400 z-30 rounded-full"
+                    initial={{ height: 0 }}
+                    animate={{ height: "100%" }}
                     transition={{ duration: 2.5, ease: "easeInOut" }}
                     onAnimationComplete={() => setFlowState("revealed")}
                     style={{ filter: "drop-shadow(0 0 8px #06b6d4)" }}
                   />
-                </svg>
-              )}
+                )}
 
-              <div className="relative z-10 flex justify-between items-start w-[800px]">
                 {PIPELINE_STEPS.map((step, idx) => {
                   const active = step.alwaysVisible || isRevealed;
                   const border = active ? step.borderColor : step.inactiveBorder || step.borderColor;
@@ -532,62 +647,62 @@ export default function ArbitrageEngine({
                   return (
                     <div
                       key={step.id}
-                      className="flex flex-col items-center w-32"
+                      className="relative z-10 flex flex-col items-center py-3"
                       role="listitem"
                       aria-label={`Step ${idx + 1}: ${step.label.replace("\n", " ")}`}
                     >
                       <div
-                        className={`w-32 h-32 rounded-xl border-2 ${border} bg-slate-800 ${shadow} flex flex-col items-center justify-center p-4 transition-all duration-500 z-20 relative`}
+                        className={`w-24 h-24 rounded-xl border-2 ${border} bg-slate-800 ${shadow} flex flex-col items-center justify-center p-3 transition-all duration-500`}
                       >
                         {step.alwaysVisible ? (
                           <>
-                            <step.Icon className={`w-10 h-10 ${step.iconColor} mb-3`} strokeWidth={1.5} />
-                            <span className="text-[13px] font-medium leading-tight text-gray-200 text-center whitespace-pre-line">
+                            <step.Icon className={`w-8 h-8 ${step.iconColor} mb-2`} strokeWidth={1.5} />
+                            <span className="text-[11px] font-medium leading-tight text-gray-200 text-center whitespace-pre-line">
                               {step.label}
                             </span>
                           </>
                         ) : (
                           <motion.div
                             className="flex flex-col items-center"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 10 }}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 8 }}
                             transition={{ delay: idx * 0.1, duration: 0.5 }}
                           >
                             {step.hasMoneyIcon ? (
-                              <div className="relative mb-2 mt-1">
-                                <step.Icon className={`w-11 h-11 ${step.iconColor}`} strokeWidth={1.5} />
-                                <div className="absolute -top-3 -right-2 bg-slate-800 rounded-full p-[1px]">
-                                  <CircleDollarSign className="w-5 h-5 text-emerald-400" strokeWidth={2} />
+                              <div className="relative mb-1">
+                                <step.Icon className={`w-8 h-8 ${step.iconColor}`} strokeWidth={1.5} />
+                                <div className="absolute -top-2 -right-2 bg-slate-800 rounded-full p-[1px]">
+                                  <CircleDollarSign className="w-4 h-4 text-emerald-400" strokeWidth={2} />
                                 </div>
                               </div>
                             ) : (
-                              <step.Icon className={`w-12 h-12 ${step.iconColor} mb-2`} strokeWidth={2} />
+                              <step.Icon className={`w-9 h-9 ${step.iconColor} mb-1`} strokeWidth={2} />
                             )}
-                            <span className="text-[13px] font-medium leading-tight text-gray-200 text-center whitespace-pre-line">
+                            <span className="text-[11px] font-medium leading-tight text-gray-200 text-center whitespace-pre-line">
                               {step.label}
                             </span>
                           </motion.div>
                         )}
                       </div>
-                      {/* Progress bar below node */}
+
                       {step.percent > 0 && (
                         <motion.div
-                          className="w-full mt-4 flex flex-col gap-1.5 px-1"
+                          className="w-24 mt-2 flex flex-col gap-1 px-1"
                           initial={{ opacity: step.alwaysVisible ? 1 : 0 }}
                           animate={{ opacity: step.alwaysVisible || isRevealed ? 1 : 0 }}
                         >
                           <div className="flex justify-end w-full">
-                            <span className={`text-[11px] font-bold ${step.percentColor}`}>{step.percent}%</span>
+                            <span className={`text-[10px] font-bold ${step.percentColor}`}>{step.percent}%</span>
                           </div>
-                          <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                          <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${step.barColor} ${step.barShadow}`}
                               style={{ width: `${step.percent}%` }}
                             />
                           </div>
                           {step.subtitle && (
-                            <div className="flex items-center justify-center gap-1 mt-0.5 text-[9px] font-semibold text-red-500/90 whitespace-nowrap uppercase tracking-wider">
-                              <AlertTriangle size={10} strokeWidth={2.5} />
+                            <div className="flex items-center justify-center gap-1 mt-0.5 text-[8px] font-semibold text-red-500/90 whitespace-nowrap uppercase tracking-wider">
+                              <AlertTriangle size={8} strokeWidth={2.5} />
                               <span>{step.subtitle}</span>
                             </div>
                           )}
@@ -598,272 +713,156 @@ export default function ArbitrageEngine({
                 })}
               </div>
             </div>
-          </div>
 
-          {/* ── Mobile vertical pipeline (< md) ───────────────────────────── */}
-          <div
-            className="md:hidden relative z-10 flex flex-col items-center gap-2"
-            role="list"
-            aria-label="Transparency Flow steps"
-          >
-            {/* Vertical connecting line */}
-            <div className="absolute left-1/2 -translate-x-[1.5px] top-0 bottom-0 w-[3px] z-0">
-              <div className="h-[25%] bg-gradient-to-b from-amber-400 to-yellow-400" />
-              <div className="h-[75%] relative">
-                <div className="absolute inset-0 opacity-20">
-                  <div className="h-1/2 bg-gradient-to-b from-yellow-400 to-red-500" />
-                  <div className="h-1/2 bg-gradient-to-b from-red-500 to-emerald-500" />
-                </div>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: isRevealed ? 1 : 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute inset-0"
-                >
-                  <div className="h-1/2 bg-gradient-to-b from-yellow-400 to-red-500 shadow-[0_0_8px_red]" />
-                  <div className="h-1/2 bg-gradient-to-b from-red-500 to-emerald-500 shadow-[0_0_8px_#10b981]" />
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Mobile animation on reveal */}
-            {flowState === "animating" && (
-              <motion.div
-                className="absolute left-1/2 -translate-x-[1.5px] top-0 w-[3px] bg-cyan-400 z-30 rounded-full"
-                initial={{ height: 0 }}
-                animate={{ height: "100%" }}
-                transition={{ duration: 2.5, ease: "easeInOut" }}
-                onAnimationComplete={() => setFlowState("revealed")}
-                style={{ filter: "drop-shadow(0 0 8px #06b6d4)" }}
-              />
-            )}
-
-            {PIPELINE_STEPS.map((step, idx) => {
-              const active = step.alwaysVisible || isRevealed;
-              const border = active ? step.borderColor : step.inactiveBorder || step.borderColor;
-              const shadow = active ? step.shadow : "shadow-none";
-              return (
-                <div
-                  key={step.id}
-                  className="relative z-10 flex flex-col items-center py-3"
-                  role="listitem"
-                  aria-label={`Step ${idx + 1}: ${step.label.replace("\n", " ")}`}
-                >
-                  <div
-                    className={`w-24 h-24 rounded-xl border-2 ${border} bg-slate-800 ${shadow} flex flex-col items-center justify-center p-3 transition-all duration-500`}
-                  >
-                    {step.alwaysVisible ? (
-                      <>
-                        <step.Icon className={`w-8 h-8 ${step.iconColor} mb-2`} strokeWidth={1.5} />
-                        <span className="text-[11px] font-medium leading-tight text-gray-200 text-center whitespace-pre-line">
-                          {step.label}
-                        </span>
-                      </>
-                    ) : (
-                      <motion.div
-                        className="flex flex-col items-center"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed ? 0 : 8 }}
-                        transition={{ delay: idx * 0.1, duration: 0.5 }}
-                      >
-                        {step.hasMoneyIcon ? (
-                          <div className="relative mb-1">
-                            <step.Icon className={`w-8 h-8 ${step.iconColor}`} strokeWidth={1.5} />
-                            <div className="absolute -top-2 -right-2 bg-slate-800 rounded-full p-[1px]">
-                              <CircleDollarSign className="w-4 h-4 text-emerald-400" strokeWidth={2} />
-                            </div>
-                          </div>
-                        ) : (
-                          <step.Icon className={`w-9 h-9 ${step.iconColor} mb-1`} strokeWidth={2} />
-                        )}
-                        <span className="text-[11px] font-medium leading-tight text-gray-200 text-center whitespace-pre-line">
-                          {step.label}
-                        </span>
-                      </motion.div>
-                    )}
-                  </div>
-                  {/* Mobile progress bar */}
-                  {step.percent > 0 && (
-                    <motion.div
-                      className="w-24 mt-2 flex flex-col gap-1 px-1"
-                      initial={{ opacity: step.alwaysVisible ? 1 : 0 }}
-                      animate={{ opacity: step.alwaysVisible || isRevealed ? 1 : 0 }}
-                    >
-                      <div className="flex justify-end w-full">
-                        <span className={`text-[10px] font-bold ${step.percentColor}`}>{step.percent}%</span>
-                      </div>
-                      <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${step.barColor} ${step.barShadow}`}
-                          style={{ width: `${step.percent}%` }}
-                        />
-                      </div>
-                      {step.subtitle && (
-                        <div className="flex items-center justify-center gap-1 mt-0.5 text-[8px] font-semibold text-red-500/90 whitespace-nowrap uppercase tracking-wider">
-                          <AlertTriangle size={8} strokeWidth={2.5} />
-                          <span>{step.subtitle}</span>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* CTA + Market Maker + Analysis Reveal */}
-        <div
-          id="audit-results"
-          className="mt-10 sm:mt-16 text-center max-w-3xl px-2 sm:px-4 flex flex-col items-center relative z-20 pb-10 sm:pb-16"
-        >
-          <button
-            onClick={handleStartSequence}
-            disabled={flowState !== "idle"}
-            aria-label={flowState === "idle" ? "Start the estimate analysis" : "Analysis in progress"}
-            className={`mb-8 sm:mb-10 px-6 sm:px-8 py-4 rounded-full font-bold text-base sm:text-lg transition-all duration-300 transform active:scale-95 min-h-[48px]
+            <div
+              id="audit-results"
+              className="mt-10 sm:mt-16 text-center max-w-3xl px-2 sm:px-4 flex flex-col items-center relative z-20 pb-10 sm:pb-16"
+            >
+              <button
+                onClick={handleStartSequence}
+                disabled={flowState !== "idle"}
+                aria-label={flowState === "idle" ? "Start the estimate analysis" : "Analysis in progress"}
+                className={`mb-8 sm:mb-10 px-6 sm:px-8 py-4 rounded-full font-bold text-base sm:text-lg transition-all duration-300 transform active:scale-95 min-h-[48px]
               ${
                 flowState === "idle"
                   ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] cursor-pointer hover:-translate-y-1"
                   : "bg-gray-800 border border-gray-700 text-gray-500 cursor-not-allowed opacity-50 shadow-none"
               }`}
-          >
-            {flowState === "animating"
-              ? "Analyzing Flow..."
-              : flowState === "idle"
-                ? "Click For a Better Estimate"
-                : "Estimate Unlocked"}
-          </button>
+              >
+                {flowState === "animating"
+                  ? "Analyzing Flow..."
+                  : flowState === "idle"
+                    ? "Click For a Better Estimate"
+                    : "Estimate Unlocked"}
+              </button>
 
-          <h2 className="text-xl sm:text-2xl md:text-[28px] font-semibold text-white mb-4 tracking-wide drop-shadow-md">
-            The Market Maker Model
-          </h2>
-          <p className="text-slate-400 text-base sm:text-lg leading-relaxed font-light">
-            The First Contractor Paid For The Discovery, Measurements, and Price Anchoring. WindowMan Captures The Deal
-            Downstream. Our Partners Walk Into The Home Knowing Exactly What to Overcome.
-          </p>
+              <h2 className="text-xl sm:text-2xl md:text-[28px] font-semibold text-white mb-4 tracking-wide drop-shadow-md">
+                The Market Maker Model
+              </h2>
+              <p className="text-slate-400 text-base sm:text-lg leading-relaxed font-light">
+                The First Contractor Paid For The Discovery, Measurements, and Price Anchoring. WindowMan Captures The
+                Deal Downstream. Our Partners Walk Into The Home Knowing Exactly What to Overcome.
+              </p>
 
-          {/* ── Mock 5-Pillar Analysis Reveal ──────────────────────────────── */}
-          {hasCompletedFunnel && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="w-full mt-8 sm:mt-12"
-              role="region"
-              aria-label="Sample Truth Report Results"
-            >
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative text-left">
-                <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent rounded-2xl pointer-events-none" />
+              {hasCompletedFunnel && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="w-full mt-8 sm:mt-12"
+                  role="region"
+                  aria-label="Sample Truth Report Results"
+                >
+                  <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative text-left">
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent rounded-2xl pointer-events-none" />
 
-                {/* Grade Badge */}
-                <div className="relative z-10 flex flex-col items-center mb-6 sm:mb-8">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
-                    Simplified Sample Truth Report™ Grade
-                  </span>
-                  <div
-                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 flex items-center justify-center text-2xl sm:text-3xl font-black ${gradeColor(MOCK_ANALYSIS.grade)}`}
-                    aria-label={`Grade: ${MOCK_ANALYSIS.grade}`}
-                  >
-                    {MOCK_ANALYSIS.grade}
-                  </div>
-                  <span className="text-slate-400 text-sm mt-2">Overall Score: {MOCK_ANALYSIS.gradeScore}/100</span>
-                </div>
-
-                {/* 5 Pillar Bars */}
-                <div className="relative z-10 space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                  {MOCK_ANALYSIS.pillars.map((p) => (
-                    <div
-                      key={p.key}
-                      role="meter"
-                      aria-label={`${p.label}: ${p.score} out of 100`}
-                      aria-valuenow={p.score}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    >
-                      {/* Mobile: stacked layout */}
-                      <div className="flex items-center justify-between mb-1 sm:hidden">
-                        <div className="flex items-center gap-2">
-                          <p.icon className={`w-4 h-4 shrink-0 ${statusColor(p.status)}`} strokeWidth={1.5} />
-                          <span className="text-xs text-gray-300 text-left">{p.label}</span>
-                        </div>
-                        <span className={`text-xs font-bold ${statusColor(p.status)}`}>{p.score}</span>
+                    <div className="relative z-10 flex flex-col items-center mb-6 sm:mb-8">
+                      <span className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
+                        Simplified Sample Truth Report™ Grade
+                      </span>
+                      <div
+                        className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 flex items-center justify-center text-2xl sm:text-3xl font-black ${gradeColor(MOCK_ANALYSIS.grade)}`}
+                        aria-label={`Grade: ${MOCK_ANALYSIS.grade}`}
+                      >
+                        {MOCK_ANALYSIS.grade}
                       </div>
-                      <div className="h-2 bg-gray-800 rounded-full overflow-hidden sm:hidden">
-                        <div className={`h-full rounded-full ${barColor(p.status)}`} style={{ width: `${p.score}%` }} />
-                      </div>
-                      {/* sm+: inline row */}
-                      <div className="hidden sm:flex items-center gap-3">
-                        <p.icon className={`w-5 h-5 shrink-0 ${statusColor(p.status)}`} strokeWidth={1.5} />
-                        <span className="text-sm text-gray-300 w-28 shrink-0 text-left">{p.label}</span>
-                        <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${barColor(p.status)}`}
-                            style={{ width: `${p.score}%` }}
-                          />
-                        </div>
-                        <span className={`text-sm font-bold w-10 text-right ${statusColor(p.status)}`}>{p.score}</span>
-                      </div>
+                      <span className="text-slate-400 text-sm mt-2">Overall Score: {MOCK_ANALYSIS.gradeScore}/100</span>
                     </div>
-                  ))}
-                </div>
 
-                {/* Red Flags */}
-                <div className="relative z-10 mb-5 sm:mb-6">
-                  <h3 className="text-xs sm:text-sm font-bold text-red-400 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2 text-left">
-                    <AlertTriangle className="w-4 h-4" /> Red Flags ({MOCK_ANALYSIS.redFlags.length})
-                  </h3>
-                  <ul className="space-y-2" role="list">
-                    {MOCK_ANALYSIS.redFlags.map((f, i) => (
-                      <li
-                        key={i}
-                        className="text-xs sm:text-sm text-gray-300 pl-5 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-red-500/80 text-left"
+                    <div className="relative z-10 space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+                      {MOCK_ANALYSIS.pillars.map((p) => (
+                        <div
+                          key={p.key}
+                          role="meter"
+                          aria-label={`${p.label}: ${p.score} out of 100`}
+                          aria-valuenow={p.score}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        >
+                          <div className="flex items-center justify-between mb-1 sm:hidden">
+                            <div className="flex items-center gap-2">
+                              <p.icon className={`w-4 h-4 shrink-0 ${statusColor(p.status)}`} strokeWidth={1.5} />
+                              <span className="text-xs text-gray-300 text-left">{p.label}</span>
+                            </div>
+                            <span className={`text-xs font-bold ${statusColor(p.status)}`}>{p.score}</span>
+                          </div>
+                          <div className="h-2 bg-gray-800 rounded-full overflow-hidden sm:hidden">
+                            <div
+                              className={`h-full rounded-full ${barColor(p.status)}`}
+                              style={{ width: `${p.score}%` }}
+                            />
+                          </div>
+
+                          <div className="hidden sm:flex items-center gap-3">
+                            <p.icon className={`w-5 h-5 shrink-0 ${statusColor(p.status)}`} strokeWidth={1.5} />
+                            <span className="text-sm text-gray-300 w-28 shrink-0 text-left">{p.label}</span>
+                            <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${barColor(p.status)}`}
+                                style={{ width: `${p.score}%` }}
+                              />
+                            </div>
+                            <span className={`text-sm font-bold w-10 text-right ${statusColor(p.status)}`}>
+                              {p.score}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="relative z-10 mb-5 sm:mb-6">
+                      <h3 className="text-xs sm:text-sm font-bold text-red-400 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2 text-left">
+                        <AlertTriangle className="w-4 h-4" /> Red Flags ({MOCK_ANALYSIS.redFlags.length})
+                      </h3>
+                      <ul className="space-y-2" role="list">
+                        {MOCK_ANALYSIS.redFlags.map((f, i) => (
+                          <li
+                            key={i}
+                            className="text-xs sm:text-sm text-gray-300 pl-5 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-red-500/80 text-left"
+                          >
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="relative z-10 mb-6 sm:mb-8">
+                      <h3 className="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2 text-left">
+                        <AlertTriangle className="w-4 h-4" /> Warnings ({MOCK_ANALYSIS.amberFlags.length})
+                      </h3>
+                      <ul className="space-y-2" role="list">
+                        {MOCK_ANALYSIS.amberFlags.map((f, i) => (
+                          <li
+                            key={i}
+                            className="text-xs sm:text-sm text-gray-300 pl-5 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-amber-500/80 text-left"
+                          >
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="relative z-10">
+                      <button
+                        onClick={() => {
+                          const safeUrl = new URL("/#truth-gate-section", window.location.origin);
+                          window.location.assign(safeUrl.toString());
+                        }}
+                        aria-label="Upload your real quote for a full audit"
+                        className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-base sm:text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2 min-h-[48px]"
                       >
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                        <Upload className="w-5 h-5" />
+                        Upload Your Real Quote
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
-                {/* Amber Flags */}
-                <div className="relative z-10 mb-6 sm:mb-8">
-                  <h3 className="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2 text-left">
-                    <AlertTriangle className="w-4 h-4" /> Warnings ({MOCK_ANALYSIS.amberFlags.length})
-                  </h3>
-                  <ul className="space-y-2" role="list">
-                    {MOCK_ANALYSIS.amberFlags.map((f, i) => (
-                      <li
-                        key={i}
-                        className="text-xs sm:text-sm text-gray-300 pl-5 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-amber-500/80 text-left"
-                      >
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* CTA */}
-                <div className="relative z-10">
-                  <button
-                    onClick={() => {
-                      const safeUrl = new URL("/", window.location.origin);
-                      window.location.assign(safeUrl.toString());
-                    }}
-                    aria-label="Upload your real quote for a full audit"
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-base sm:text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2 min-h-[48px]"
-                  >
-                    <Upload className="w-5 h-5" />
-                    Upload Your Real Quote
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </div>
-      </>)}
-
-      {/* ── Breadcrumb Lead Funnel Modal ───────────────────────────────────── */}
       {flowState === "modal_open" && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-4"
@@ -881,7 +880,6 @@ export default function ArbitrageEngine({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="bg-slate-900/95 border border-white/10 rounded-2xl max-w-md w-full shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden flex flex-col min-h-[380px] sm:min-h-[420px] max-h-[90vh] sm:max-h-[85vh]"
           >
-            {/* Back button */}
             {!isExitIntent &&
               stepHistory.length > 0 &&
               !["done", "secret_capture", "secret_success"].includes(funnelStep) && (
@@ -893,7 +891,7 @@ export default function ArbitrageEngine({
                   <ArrowLeft className="w-5 h-5 drop-shadow-md" />
                 </button>
               )}
-            {/* Close button */}
+
             <button
               onClick={handleClose}
               aria-label="Close qualification modal"
@@ -902,7 +900,6 @@ export default function ArbitrageEngine({
               <X className="w-5 h-5 drop-shadow-md" />
             </button>
 
-            {/* Progress Bar */}
             {!isExitIntent && !["secret_capture", "secret_success"].includes(funnelStep) && (
               <div
                 className="w-full h-1.5 bg-gray-800 absolute top-0 left-0 right-0 z-10 shrink-0"
@@ -919,10 +916,8 @@ export default function ArbitrageEngine({
               </div>
             )}
 
-            {/* Dynamic Content */}
             <div className="flex-1 flex flex-col relative overflow-hidden mt-1.5">
               <AnimatePresence mode="wait">
-                {/* EXIT INTENT */}
                 {isExitIntent && (
                   <motion.div
                     key="exit_intent"
@@ -956,8 +951,14 @@ export default function ArbitrageEngine({
                         </span>
                         <ChevronRight className="w-5 h-5 text-amber-500/50 group-hover:text-amber-400 transition-colors shrink-0 ml-1" />
                       </button>
+
                       <button
                         onClick={() => {
+                          if (autoOpen) {
+                            closeToAboutContent();
+                            return;
+                          }
+
                           setFlowState("revealed");
                           setHasCompletedFunnel(true);
                           setTimeout(() => {
@@ -977,7 +978,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* SECRET EMAIL CAPTURE */}
                 {!isExitIntent && funnelStep === "secret_capture" && (
                   <motion.div
                     key="secret_capture"
@@ -1012,7 +1012,11 @@ export default function ArbitrageEngine({
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           aria-label="Email address"
                           aria-invalid={formData.email && !isEmailValid ? "true" : undefined}
-                          className={`${inputClass} ${formData.email && !isEmailValid ? "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50" : "focus:border-amber-500/50 focus:ring-amber-500/50"}`}
+                          className={`${inputClass} ${
+                            formData.email && !isEmailValid
+                              ? "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50"
+                              : "focus:border-amber-500/50 focus:ring-amber-500/50"
+                          }`}
                         />
                         {formData.email && !isEmailValid && (
                           <span className="text-red-400 text-xs ml-1 font-medium" role="alert">
@@ -1031,7 +1035,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* SECRET SUCCESS */}
                 {!isExitIntent && funnelStep === "secret_success" && (
                   <motion.div
                     key="secret_success"
@@ -1075,7 +1078,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Step 1: Scope */}
                 {!isExitIntent && funnelStep === "scope" && (
                   <motion.div
                     key="scope"
@@ -1101,7 +1103,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Step 2: Intent Filter */}
                 {!isExitIntent && funnelStep === "intent_filter" && (
                   <motion.div
                     key="intent_filter"
@@ -1134,6 +1135,7 @@ export default function ArbitrageEngine({
                         </div>
                         <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 transition-colors shrink-0" />
                       </button>
+
                       <button
                         type="button"
                         onClick={() => advance("status", "installerPreference", "value")}
@@ -1157,7 +1159,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Step 3: Status */}
                 {!isExitIntent && funnelStep === "status" && (
                   <motion.div
                     key="status"
@@ -1183,7 +1184,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Step 3A */}
                 {!isExitIntent && funnelStep === "comp_a" && (
                   <motion.div
                     key="comp_a"
@@ -1203,7 +1203,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Step 3B */}
                 {!isExitIntent && funnelStep === "comp_b" && (
                   <motion.div
                     key="comp_b"
@@ -1224,7 +1223,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Step 4: Contact Gate */}
                 {!isExitIntent && funnelStep === "contact" && (
                   <motion.div
                     key="contact"
@@ -1279,7 +1277,11 @@ export default function ArbitrageEngine({
                           aria-checked={formData.hasConsent}
                           aria-label="Consent to receive automated texts and calls"
                           onClick={() => setFormData({ ...formData, hasConsent: !formData.hasConsent })}
-                          className={`mt-0.5 w-5 h-5 sm:w-4 sm:h-4 rounded flex items-center justify-center border transition-all shrink-0 active:scale-90 ${formData.hasConsent ? "bg-cyan-500 border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]" : "bg-slate-950/70 border-white/20"}`}
+                          className={`mt-0.5 w-5 h-5 sm:w-4 sm:h-4 rounded flex items-center justify-center border transition-all shrink-0 active:scale-90 ${
+                            formData.hasConsent
+                              ? "bg-cyan-500 border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                              : "bg-slate-950/70 border-white/20"
+                          }`}
                         >
                           {formData.hasConsent && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                         </button>
@@ -1303,7 +1305,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Step 5: Identity (Supabase insert) */}
                 {!isExitIntent && funnelStep === "identity" && (
                   <motion.div
                     key="identity"
@@ -1345,7 +1346,11 @@ export default function ArbitrageEngine({
                           autoComplete="email"
                           aria-invalid={formData.email && !isEmailValid ? "true" : undefined}
                           aria-describedby={formData.email && !isEmailValid ? "email-error" : undefined}
-                          className={`${inputClass} ${formData.email && !isEmailValid ? "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50" : "focus:border-cyan-500/50 focus:ring-cyan-500/50"}`}
+                          className={`${inputClass} ${
+                            formData.email && !isEmailValid
+                              ? "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50"
+                              : "focus:border-cyan-500/50 focus:ring-cyan-500/50"
+                          }`}
                         />
                         {formData.email && !isEmailValid && (
                           <span id="email-error" className="text-red-400 text-xs ml-1 font-medium" role="alert">
@@ -1353,7 +1358,6 @@ export default function ArbitrageEngine({
                           </span>
                         )}
                       </div>
-                      {/* Error announcement for screen readers */}
                       <div aria-live="polite" aria-atomic="true">
                         {submitError && (
                           <p className="text-red-400 text-sm text-center font-medium" role="alert">
@@ -1372,7 +1376,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Step 6: Call Intent */}
                 {!isExitIntent && funnelStep === "intent" && (
                   <motion.div
                     key="intent"
@@ -1398,7 +1401,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Path A: Call */}
                 {!isExitIntent && funnelStep === "call" && (
                   <motion.div
                     key="call"
@@ -1428,7 +1430,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Path B: Timeframe */}
                 {!isExitIntent && funnelStep === "timeframe" && (
                   <motion.div
                     key="timeframe"
@@ -1457,7 +1458,6 @@ export default function ArbitrageEngine({
                   </motion.div>
                 )}
 
-                {/* Done */}
                 {!isExitIntent && funnelStep === "done" && (
                   <motion.div
                     key="done"
