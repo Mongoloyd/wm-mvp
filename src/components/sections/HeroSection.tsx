@@ -2,11 +2,13 @@ import { motion } from "framer-motion";
 import { PAGE_CONFIG } from "@/config/page.config";
 import { AlertTriangle, DollarSign, ShieldAlert } from "lucide-react";
 
+const ease: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true },
-  transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.5, ease },
 };
 
 const HeroSection = () => (
