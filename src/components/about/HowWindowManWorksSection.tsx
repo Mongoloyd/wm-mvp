@@ -35,7 +35,8 @@ export default function HowWindowManWorksSection() {
           transform: "translateX(-50%)",
           width: "80%",
           height: "85%",
-          background: "radial-gradient(ellipse at 50% 40%, rgba(6,182,212,0.09) 0%, rgba(30,80,180,0.08) 40%, transparent 70%)",
+          background:
+            "radial-gradient(ellipse at 50% 40%, rgba(6,182,212,0.09) 0%, rgba(30,80,180,0.08) 40%, transparent 70%)",
           filter: "blur(48px)",
         }}
       />
@@ -56,13 +57,10 @@ export default function HowWindowManWorksSection() {
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">THE MECHANISM</SectionEyebrow>
-          <SectionHeading className="mb-6">
-            We Read the Fine Print So You Don't Have To.
-          </SectionHeading>
+          <SectionHeading className="mb-6">We Read the Fine Print So You Don't Have To.</SectionHeading>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-foreground/80 md:text-lg">
-            You drop your messy quote into the slot. Our engine rips out the raw
-            data—scope, materials, warranty, and hidden exclusions—and lines it
-            up against the actual market baseline.
+            You Drop Your Confusing Quote Into The Slot. Our Engine Rips Out The Raw Data—Scope, Materials, Warranties,
+            Fine Print, and Hidden Exclusions—And Lines it up Against Our Actual Independent Market Baseline.
           </p>
         </div>
 
@@ -71,7 +69,8 @@ export default function HowWindowManWorksSection() {
           className="mb-10 overflow-hidden rounded-2xl border border-slate-200"
           style={{
             background: "#f8fafc",
-            boxShadow: "inset 0 4px 18px rgba(15,30,60,0.08), 0 4px 20px rgba(10,30,100,0.10), 0 16px 48px rgba(6,182,212,0.06)",
+            boxShadow:
+              "inset 0 4px 18px rgba(15,30,60,0.08), 0 4px 20px rgba(10,30,100,0.10), 0 16px 48px rgba(6,182,212,0.06)",
           }}
         >
           {/* Machine Header Bar */}
@@ -98,13 +97,9 @@ export default function HowWindowManWorksSection() {
                     >
                       {step.number}
                     </span>
-                    <h3 className="font-display text-lg font-bold tracking-tight text-foreground">
-                      {step.title}
-                    </h3>
+                    <h3 className="font-display text-lg font-bold tracking-tight text-foreground">{step.title}</h3>
                   </div>
-                  <p className="text-sm leading-relaxed text-foreground/70">
-                    {step.body}
-                  </p>
+                  <p className="text-sm leading-relaxed text-foreground/70">{step.body}</p>
                 </div>
 
                 {/* Connector — only between steps */}
@@ -127,10 +122,7 @@ export default function HowWindowManWorksSection() {
                     {/* Mobile: horizontal divider */}
                     <div className="flex items-center justify-center md:hidden">
                       <div className="relative flex w-full flex-row items-center justify-center py-2">
-                        <div
-                          className="w-full border-t"
-                          style={{ borderColor: "#06B6D4", opacity: 0.5 }}
-                        />
+                        <div className="w-full border-t" style={{ borderColor: "#06B6D4", opacity: 0.5 }} />
                         <div
                           className="absolute h-3 w-3 rotate-[135deg] border-b-2 border-r-2"
                           style={{ borderColor: "#06B6D4" }}
@@ -139,8 +131,6 @@ export default function HowWindowManWorksSection() {
                     </div>
                   </>
                 )}
-
-
               </div>
             ))}
           </div>
@@ -166,8 +156,7 @@ export default function HowWindowManWorksSection() {
 
         {/* Supporting micro-line */}
         <p className="text-center text-sm italic text-foreground/60">
-          The quote starts as a sales document. We turn it into something you
-          can actually evaluate.
+          The Quote Starts As A Sales Document. We Turn It Into Something You Can Actually Understand and Evaluate.
         </p>
       </div>
     </section>
