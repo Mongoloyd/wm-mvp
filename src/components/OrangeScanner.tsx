@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   AlertTriangle,
   BrainCircuit,
@@ -15,49 +15,234 @@ import {
   ZoomIn,
   AlertOctagon,
   ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 
-const ESTIMATE_DATA = {
-  client: "Nexus Residential Holdings",
-  date: "October 24, 2026",
-  ref: "#WIN-9928-EXT",
-  contractor: "Elite Panes & Glass",
-  license: "LIC# ABC-99120", // ANOMALY: Letters in license
-  items: [
-    { id: 1, label: "Lead-Safe Work Practices (EPA RRP)", cost: 450.0, status: "ok" },
-    { id: 2, label: "Series 8000 Vinyl Double-Hung (Qty: 12)", cost: 9600.0, status: "ok" },
-    { id: 3, label: "Low-E Argon High-Altitude Glazing", cost: 2100.0, status: "ok" },
-    {
-      id: 4,
-      label: "Structural DP-15 Performance Rating",
-      cost: 1200.0,
-      status: "warning",
-      note: "Substandard DP rating for Coastal Zone. Minimum DP-40 required by local code.",
-    },
-    {
-      id: 5,
-      label: "Custom Aluminum Exterior Capping",
-      cost: 14200.0,
-      status: "warning",
-      note: "Price variance 450% above regional labor average.",
-    },
-    {
-      id: 6,
-      label: "Pre-Installation Deposit (75%)",
-      cost: 20662.5,
-      status: "warning",
-      note: "Excessive deposit flag. Industry standard is 10-33%.",
-    },
-    { id: 7, label: "Full-Frame Debris Disposal & Tax", cost: 840.75, status: "ok" },
-  ],
-  subtotal: 28390.75,
-  total: 30804.0,
+// ═══════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════
+
+type LineItemStatus = "critical" | "caution" | "verified" | "neutral";
+
+type LineItem = {
+  id: string | number;
+  label: string;
+  cost: string;
+  status: LineItemStatus;
+  note?: string;
 };
 
-// --- PHASE 2: TRUST SCORE WIDGET ---
-const TrustScoreWidget = ({ isScanning, activeAnomalies }) => {
-  // Score is calculated dynamically. Starts at 95, drops 12 points per anomaly.
-  const score = Math.max(0, 95 - activeAnomalies.length * 12);
+type ScenarioSpecs = {
+  stc: string;
+  uFactor: string;
+  shgc: string;
+  frame: string;
+};
+
+type AlertLevel = "critical" | "caution" | "verified";
+
+type QuoteScenario = {
+  id: "predatory" | "vague" | "fair";
+  label: string;
+  client: string;
+  contractor: string;
+  license: string;
+  date: string;
+  quoteRef: string;
+  specifiedBrand: string;
+  noaCode: string;
+  licenseAnomaly: boolean;
+  alertLevel: AlertLevel;
+  summaryTitle: string;
+  summaryText: string;
+  integrityScore: number;
+  finePrintTrap: boolean;
+  subtotal: string;
+  total: string;
+  specs: ScenarioSpecs;
+  lineItems: LineItem[];
+};
+
+// ═══════════════════════════════════════════════════════════════
+// SCENARIO DATA
+// ═══════════════════════════════════════════════════════════════
+
+const quoteScenarios: QuoteScenario[] = [
+  {
+    id: "predatory",
+    label: "Predatory Trap",
+    client: "Nexus Residential Holdings",
+    contractor: "Elite Panes & Glass",
+    license: "LIC# ABC-99120",
+    date: "October 24, 2026",
+    quoteRef: "#WIN-9928-EXT",
+    specifiedBrand: "Custom Vinyl Series (Unspecified)",
+    noaCode: "Missing",
+    licenseAnomaly: true,
+    alertLevel: "critical",
+    summaryTitle: "CRITICAL RISK: DO NOT SIGN.",
+    summaryText:
+      "This quote contains a predatory 75% upfront deposit requirement, flags for an invalid license format, and specifies materials (DP-15) that fail local coastal building codes.",
+    integrityScore: 35,
+    finePrintTrap: true,
+    subtotal: "$28,390.75",
+    total: "$30,804.00",
+    specs: { stc: "32", uFactor: "0.27", shgc: "0.21", frame: "VINYL" },
+    lineItems: [
+      { id: 1, label: "Series 8000 Vinyl Double-Hung (Qty: 12)", cost: "$9,600.00", status: "neutral" },
+      {
+        id: 2,
+        label: "Structural DP-15 Performance Rating",
+        cost: "$1,200.00",
+        status: "critical",
+        note: "Substandard DP rating for Coastal Zone. Minimum DP-40 required by local code.",
+      },
+      {
+        id: 3,
+        label: "Custom Aluminum Exterior Capping",
+        cost: "$14,200.00",
+        status: "critical",
+        note: "Price variance 450% above regional labor average.",
+      },
+      {
+        id: 4,
+        label: "Pre-Installation Deposit (75%)",
+        cost: "$20,662.50",
+        status: "critical",
+        note: "Excessive deposit flag. Industry standard is 10-33%.",
+      },
+    ],
+  },
+  {
+    id: "vague",
+    label: "Vague & Undefined",
+    client: "Nexus Residential Holdings",
+    contractor: "Coastal Breeze Installs",
+    license: "CGC1529981",
+    date: "October 24, 2026",
+    quoteRef: "#WIN-1004-CBI",
+    specifiedBrand: "Not Specified",
+    noaCode: "Missing",
+    licenseAnomaly: false,
+    alertLevel: "caution",
+    summaryTitle: "CAUTION REQUIRED: REQUEST REVISIONS.",
+    summaryText:
+      'Do not sign this agreement as written. This quote lacks specific manufacturer brands, omits NOA approval codes, and uses vague "allowances," which legally permits the contractor to install cheaper, substandard materials at a premium price.',
+    integrityScore: 62,
+    finePrintTrap: false,
+    subtotal: "$20,000.00",
+    total: "$20,000.00",
+    specs: { stc: "NOT SPECIFIED", uFactor: "NOT SPECIFIED", shgc: "NOT SPECIFIED", frame: "NOT SPECIFIED" },
+    lineItems: [
+      {
+        id: 1,
+        label: "Impact Window Package - Whole House (Qty: 10)",
+        cost: "$14,500.00",
+        status: "caution",
+        note: '"Package" pricing hides individual unit costs and manufacturer details. Demands an itemized breakdown.',
+      },
+      {
+        id: 2,
+        label: "Permit & Engineering Allowance",
+        cost: "$1,500.00",
+        status: "caution",
+        note: '"Allowance" means this is an estimate, not a fixed cost. You are liable for any overages.',
+      },
+      { id: 3, label: "Standard Installation & Haul Away", cost: "$4,000.00", status: "neutral" },
+      {
+        id: 4,
+        label: "Pre-Installation Deposit (40%)",
+        cost: "$8,000.00",
+        status: "caution",
+        note: "Slightly elevated deposit. Recommend negotiating down to 30%.",
+      },
+    ],
+  },
+  {
+    id: "fair",
+    label: "Fair Market Standard",
+    client: "Nexus Residential Holdings",
+    contractor: "Precision Impact Windows",
+    license: "CGC1530092",
+    date: "October 24, 2026",
+    quoteRef: "#WIN-7731-PIW",
+    specifiedBrand: "PGT Winguard Aluminum Series",
+    noaCode: "NOA-230114.05 (Verified Active)",
+    licenseAnomaly: false,
+    alertLevel: "verified",
+    summaryTitle: "VERIFIED & FAIR: PROCEED WITH CONFIDENCE.",
+    summaryText:
+      "This quote is fully transparent. It specifies premium verifiable brands (PGT), meets all stringent South Florida hurricane codes (DP-70), and requests an industry-standard 25% deposit. Pricing is within 4% of the regional fair market average.",
+    integrityScore: 98,
+    finePrintTrap: false,
+    subtotal: "$12,050.00",
+    total: "$12,050.00",
+    specs: { stc: "34", uFactor: "0.24", shgc: "0.19", frame: "ALUMINUM" },
+    lineItems: [
+      {
+        id: 1,
+        label: "PGT Winguard Aluminum Single Hung (Qty: 10)",
+        cost: "$11,200.00",
+        status: "verified",
+        note: "Brand and NOA code match active state registry.",
+      },
+      {
+        id: 2,
+        label: "Structural DP-70 Performance Upgrade",
+        cost: "Included",
+        status: "verified",
+        note: "Exceeds local coastal code requirements.",
+      },
+      {
+        id: 3,
+        label: "Permits, Engineering, & Notice of Commencement",
+        cost: "$850.00",
+        status: "verified",
+        note: "Fixed cost. No hidden allowances.",
+      },
+      {
+        id: 4,
+        label: "Pre-Installation Deposit (25%)",
+        cost: "$3,012.50",
+        status: "verified",
+        note: "Industry standard deposit structure.",
+      },
+    ],
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+
+const INITIAL_SCANNER_STATE = {
+  scanProgress: 0,
+  activeAnomalies: [] as Array<string | number>,
+  isScanning: false,
+  isComplete: false,
+};
+
+const SCAN_STEP = 2;
+const SCAN_DELAY = 40;
+const ITEM_START = 24;
+const ITEM_RANGE = 56;
+const LICENSE_TRIGGER = 14;
+const FINEPRINT_TRIGGER = 84;
+
+// ═══════════════════════════════════════════════════════════════
+// TRUST SCORE WIDGET
+// ═══════════════════════════════════════════════════════════════
+
+const TrustScoreWidget = ({
+  isScanning,
+  integrityScore,
+  alertLevel,
+}: {
+  isScanning: boolean;
+  integrityScore: number;
+  alertLevel: AlertLevel;
+}) => {
+  const score = integrityScore;
 
   const [currentCheck, setCurrentCheck] = useState(0);
   const [logs, setLogs] = useState([{ id: 1, text: "DBPR Database Connection: ESTABLISHED", type: "success" }]);
@@ -74,26 +259,24 @@ const TrustScoreWidget = ({ isScanning, activeAnomalies }) => {
       const interval = setInterval(() => {
         setCurrentCheck((prev) => {
           const next = (prev + 1) % backgroundChecks.length;
-
           const newLog = {
             id: Date.now(),
             text: `Querying ${backgroundChecks[next].label}... MATCH FOUND`,
             type: "info",
           };
-
-          // Keep last 5 logs for the terminal effect
           setLogs((currentLogs) => [newLog, ...currentLogs].slice(0, 5));
           return next;
         });
       }, 1200);
-
       return () => clearInterval(interval);
     }
-  }, [isScanning]); // No longer depends on closure variables unnecessarily
+  }, [isScanning]);
 
   return (
-    <div className="bg-slate-900/60 backdrop-blur-sm border border-slate-700/50 rounded-lg overflow-hidden shadow-xl flex flex-col">
-      {/* Header with Fluctuating Gauge */}
+    <div
+      className="bg-slate-900/60 backdrop-blur-sm border border-slate-700/50 rounded-lg overflow-hidden shadow-xl flex flex-col"
+      data-testid="orange-scanner-trust-score"
+    >
       <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
         <div>
           <h4 className="text-[10px] uppercase tracking-tighter text-slate-200 mb-1">Contractor Integrity Score</h4>
@@ -118,13 +301,11 @@ const TrustScoreWidget = ({ isScanning, activeAnomalies }) => {
         </div>
       </div>
 
-      {/* Live "Scrape" Ticker */}
       <div className="p-4 space-y-3 bg-black/20">
         <div className="flex items-center gap-2 text-[10px] text-slate-200 font-bold uppercase mb-2">
           <Search size={12} className={isScanning ? "animate-spin" : ""} />
           Deep Web Background Audit
         </div>
-
         {backgroundChecks.map((check, index) => (
           <div
             key={index}
@@ -139,7 +320,6 @@ const TrustScoreWidget = ({ isScanning, activeAnomalies }) => {
         ))}
       </div>
 
-      {/* Terminal Log */}
       <div className="p-3 bg-slate-950 font-mono text-[9px] md:text-[10px] h-24 flex flex-col justify-end border-t border-slate-800/80 shadow-inner">
         <div className="flex flex-col-reverse gap-1">
           {logs.map((log, idx) => (
@@ -157,11 +337,13 @@ const TrustScoreWidget = ({ isScanning, activeAnomalies }) => {
   );
 };
 
-// --- PHASE 3: FINE PRINT SCANNER ---
-const FinePrintScanner = ({ scanProgress, isScanning }) => {
+// ═══════════════════════════════════════════════════════════════
+// FINE PRINT SCANNER
+// ═══════════════════════════════════════════════════════════════
+
+const FinePrintScanner = ({ scanProgress, isScanning }: { scanProgress: number; isScanning: boolean }) => {
   const [zoomActive, setZoomActive] = useState(false);
 
-  // Trigger zoom when scan reaches the bottom section (e.g., 82%)
   useEffect(() => {
     if (scanProgress > 82) setZoomActive(true);
     else setZoomActive(false);
@@ -174,12 +356,10 @@ const FinePrintScanner = ({ scanProgress, isScanning }) => {
   ];
 
   return (
-    <div className="mt-8 pt-6 border-t border-slate-200 relative pb-10">
+    <div className="mt-8 pt-6 border-t border-slate-200 relative pb-10" data-testid="orange-scanner-fineprint">
       <h5 className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
         <ZoomIn size={10} /> Standard Terms & Conditions (v2.04)
       </h5>
-
-      {/* The "Tiny" Text */}
       <div className="text-[6px] leading-[8px] text-slate-400 font-serif select-none">
         {traps.map((text, i) => (
           <p key={i} className="mb-1 opacity-60 italic">
@@ -192,29 +372,22 @@ const FinePrintScanner = ({ scanProgress, isScanning }) => {
         </p>
       </div>
 
-      {/* The Magnifier Lens */}
       {zoomActive && isScanning && (
         <div
           className="absolute left-1/2 -translate-x-1/2 z-40 flex items-center justify-center pointer-events-none w-[110%]"
-          style={{ top: `${Math.min(50, (scanProgress - 82) * 4)}px` }} // Moves with the scan line but caps to stay in bounds
+          style={{ top: `${Math.min(50, (scanProgress - 82) * 4)}px` }}
         >
-          {/* Lens Body */}
           <div className="w-full h-24 bg-white/95 shadow-[0_20px_50px_rgba(239,68,68,0.3)] border-y-2 border-red-500 backdrop-blur-md relative overflow-hidden flex flex-col justify-center px-8 animate-in zoom-in duration-300">
-            {/* Scanned/Enlarged Text */}
             <div className="text-red-600 font-bold text-xs uppercase mb-1 flex items-center gap-2">
               <ShieldAlert size={14} className="animate-pulse" /> Hidden Liability Detected
             </div>
-
             <div className="text-slate-900 font-bold text-lg leading-tight tracking-tight">
-              {/* Highlight the specific trap being scanned */}
               {scanProgress > 88 ? (
                 <span className="bg-red-200 px-1 italic">"...responsible for ALL structural rot costs"</span>
               ) : (
                 <span className="bg-red-200 px-1">"Subject to 15% price increase..."</span>
               )}
             </div>
-
-            {/* Corner Brackets for that 'Tech' look */}
             <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-red-500" />
             <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-red-500" />
             <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-red-500" />
@@ -226,83 +399,163 @@ const FinePrintScanner = ({ scanProgress, isScanning }) => {
   );
 };
 
-// --- PHASE 4: VERDICT HOLOGRAM ---
-const VerdictHologram = ({ isOpen, score, anomalies }) => {
+// ═══════════════════════════════════════════════════════════════
+// VERDICT HOLOGRAM
+// ═══════════════════════════════════════════════════════════════
+
+const VerdictHologram = React.forwardRef<
+  HTMLDivElement,
+  {
+    isOpen: boolean;
+    alertLevel: AlertLevel;
+    summaryTitle: string;
+    summaryText: string;
+    integrityScore: number;
+    activeAnomalies: Array<string | number>;
+    onScanClick: () => void;
+    onDemoClick: () => void;
+  }
+>(({ isOpen, alertLevel, summaryTitle, summaryText, integrityScore, activeAnomalies, onScanClick, onDemoClick }, ref) => {
+  const auditIdRef = useRef(Date.now().toString(36).toUpperCase().slice(-9));
+
   if (!isOpen) return null;
+
+  const themeMap = {
+    critical: {
+      border: "border-red-500/50",
+      glow: "shadow-[0_0_50px_rgba(239,68,68,0.4)]",
+      overlay: "from-red-500/10",
+      iconColor: "text-red-500",
+      accentBg: "bg-red-500/20",
+      headline: "DO NOT SIGN",
+      headlineColor: "text-red-500",
+      riskCards: [
+        { title: "Structural Safety", text: "Substandard DP-15 rating in a Coastal Zone." },
+        { title: "Financial Risk", text: "Excessive 75% deposit is 3x the industry standard." },
+        { title: "Legal Trap", text: "Hidden 15% surcharge found in fine print." },
+      ],
+    },
+    caution: {
+      border: "border-amber-500/50",
+      glow: "shadow-[0_0_50px_rgba(245,158,11,0.4)]",
+      overlay: "from-amber-500/10",
+      iconColor: "text-amber-500",
+      accentBg: "bg-amber-500/20",
+      headline: "REQUEST REVISIONS",
+      headlineColor: "text-amber-500",
+      riskCards: [
+        { title: "Missing Specifications", text: "No manufacturer brand or NOA code specified." },
+        { title: "Vague Pricing", text: '"Allowance" terms expose you to unlimited cost overages.' },
+        { title: "Elevated Deposit", text: "40% deposit exceeds recommended 30% threshold." },
+      ],
+    },
+    verified: {
+      border: "border-emerald-500/50",
+      glow: "shadow-[0_0_50px_rgba(16,185,129,0.4)]",
+      overlay: "from-emerald-500/10",
+      iconColor: "text-emerald-500",
+      accentBg: "bg-emerald-500/20",
+      headline: "PROCEED WITH CONFIDENCE",
+      headlineColor: "text-emerald-500",
+      riskCards: [
+        { title: "Brand Verified", text: "PGT Winguard with active NOA confirmation." },
+        { title: "Code Compliant", text: "DP-70 exceeds all coastal zone requirements." },
+        { title: "Fair Pricing", text: "Within 4% of regional fair market average." },
+      ],
+    },
+  };
+
+  const theme = themeMap[alertLevel];
+  const VerdictIcon = alertLevel === "verified" ? CheckCircle2 : AlertOctagon;
 
   return (
     <div
       className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
       style={{ perspective: "1000px" }}
     >
-      {/* Floating Hologram Card */}
-      <div className="relative pointer-events-auto bg-slate-900/60 backdrop-blur-xl border-2 border-red-500/50 p-8 rounded-xl shadow-[0_0_50px_rgba(239,68,68,0.4)] w-[85%] max-w-md animate-in zoom-in-95 fade-in duration-700 delay-300 flex flex-col items-center text-center ring-1 ring-white/20">
-        {/* Holographic "Flicker" Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-red-500/10 to-transparent pointer-events-none animate-pulse rounded-xl" />
+      <div
+        ref={ref}
+        tabIndex={-1}
+        aria-live="polite"
+        className={`relative pointer-events-auto bg-slate-900/60 backdrop-blur-xl border-2 ${theme.border} p-8 rounded-xl ${theme.glow} w-[85%] max-w-md animate-in zoom-in-95 fade-in duration-700 delay-300 flex flex-col items-center text-center ring-1 ring-white/20 outline-none`}
+        data-testid="orange-scanner-verdict-cta"
+      >
+        <div className={`absolute inset-0 bg-gradient-to-t ${theme.overlay} to-transparent pointer-events-none animate-pulse rounded-xl`} />
 
-        {/* Verdict Header */}
         <div className="relative mb-6">
-          <AlertOctagon size={64} className="text-red-500 mb-2 animate-bounce" />
-          <div className="absolute -inset-4 bg-red-500/20 blur-xl rounded-full" />
+          <VerdictIcon size={64} className={`${theme.iconColor} mb-2 animate-bounce`} />
+          <div className={`absolute -inset-4 ${theme.accentBg} blur-xl rounded-full`} />
         </div>
 
-        <h2 className="text-4xl font-black text-white tracking-tighter mb-2 italic">
-          VERDICT: <span className="text-red-500">DO NOT SIGN</span>
+        <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter mb-2 italic">
+          VERDICT: <span className={theme.headlineColor}>{theme.headline}</span>
         </h2>
 
         <p className="text-slate-300 text-sm mb-8 max-w-md">
-          This contract contains <span className="text-white font-bold">{anomalies.length} Critical Risks</span> that
-          exceed safety and financial benchmarks for the Florida market.
+          {summaryText}
         </p>
 
-        {/* Top 3 Risk Summary */}
         <div className="w-full space-y-3 mb-8">
-          <div className="bg-red-500/10 border border-red-500/20 p-3 rounded flex items-center gap-3 text-left">
-            <ShieldAlert size={20} className="text-red-500 shrink-0" />
-            <div>
-              <div className="text-[10px] uppercase font-bold text-red-400">Structural Safety</div>
-              <div className="text-xs text-white">Substandard DP-15 rating in a Coastal Zone.</div>
+          {theme.riskCards.map((card, i) => (
+            <div key={i} className={`${alertLevel === "verified" ? "bg-emerald-500/10 border-emerald-500/20" : alertLevel === "caution" ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20"} border p-3 rounded flex items-center gap-3 text-left`}>
+              {alertLevel === "verified" ? (
+                <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+              ) : (
+                <ShieldAlert size={20} className={`${theme.iconColor} shrink-0`} />
+              )}
+              <div>
+                <div className={`text-[10px] uppercase font-bold tracking-wider ${alertLevel === "verified" ? "text-emerald-400" : alertLevel === "caution" ? "text-amber-400" : "text-red-400"}`}>
+                  {card.title}
+                </div>
+                <div className="text-xs text-white">{card.text}</div>
+              </div>
             </div>
-          </div>
-          <div className="bg-red-500/10 border border-red-500/20 p-3 rounded flex items-center gap-3 text-left">
-            <ShieldAlert size={20} className="text-red-500 shrink-0" />
-            <div>
-              <div className="text-[10px] uppercase font-bold text-red-400">Financial Risk</div>
-              <div className="text-xs text-white">Excessive 75% deposit is 3x the industry standard.</div>
-            </div>
-          </div>
-          <div className="bg-red-500/10 border border-red-500/20 p-3 rounded flex items-center gap-3 text-left">
-            <ShieldAlert size={20} className="text-red-500 shrink-0" />
-            <div>
-              <div className="text-[10px] uppercase font-bold text-red-400">Legal Trap</div>
-              <div className="text-xs text-white">Hidden 15% surcharge found in fine print.</div>
-            </div>
+          ))}
+        </div>
+
+        {/* Decision Gate */}
+        <div className="w-full mt-8">
+          <p className="text-slate-300 text-sm mb-4 text-center">
+            This was a demo estimate. Choose your next step.
+          </p>
+          <div className="flex flex-col md:flex-row gap-4 w-full">
+            <button
+              onClick={onScanClick}
+              aria-label="I have a quote"
+              data-testid="orange-scanner-have-quote"
+              className="w-full md:flex-1 h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-cyan-500 text-slate-950 border-cyan-300/40 hover:bg-cyan-400 shadow-[0_0_24px_rgba(34,211,238,0.25)]"
+            >
+              I Have a Quote
+            </button>
+            <button
+              onClick={onDemoClick}
+              aria-label="I want a quote"
+              data-testid="orange-scanner-want-quote"
+              className="w-full md:flex-1 h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-white/10 text-white border-white/20 hover:bg-white/15 shadow-[0_0_24px_rgba(255,255,255,0.08)]"
+            >
+              I Want a Quote
+            </button>
           </div>
         </div>
 
-        {/* Action Button */}
-        <button className="group relative bg-red-600 hover:bg-red-500 text-white font-black py-4 px-8 rounded flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(220,38,38,0.5)] active:scale-95">
-          GENERATE REBUTTAL REPORT
-          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-        </button>
-
-        {/* Scan Metadata */}
         <div className="mt-6 text-[10px] font-mono text-slate-500 uppercase tracking-widest opacity-80">
-          AI Audit ID: {Math.random().toString(36).substr(2, 9).toUpperCase()} // v4.2 Compliance Engine
+          AI Audit ID: {auditIdRef.current} // v4.2 Compliance Engine
         </div>
       </div>
     </div>
   );
-};
+});
+VerdictHologram.displayName = "VerdictHologram";
 
-// --- PHASE 5: THE TRUTH REPORT CTA ---
+// ═══════════════════════════════════════════════════════════════
+// SCAN CTA
+// ═══════════════════════════════════════════════════════════════
+
 const ScanCTA = () => {
   return (
     <div className="max-w-6xl mx-auto mt-20 mb-12 group w-full relative z-10">
       <div className="relative bg-slate-900/50 border border-cyan-500/30 rounded-2xl p-1 overflow-hidden transition-all duration-500 hover:border-cyan-400 hover:shadow-[0_0_50px_rgba(34,211,238,0.15)]">
-        {/* Animated Background Gradient */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(34,211,238,0.1),transparent)]" />
-
         <div className="relative bg-slate-950 rounded-xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 border border-white/5">
           <div className="flex-1 space-y-4 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-widest">
@@ -312,19 +565,16 @@ const ScanCTA = () => {
               </span>
               Consumer Protection Active
             </div>
-
             <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter leading-tight">
               Don't Get Ripped Off By <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 uppercase">
                 Contractor Jargon.
               </span>
             </h2>
-
             <p className="text-slate-400 max-w-md mx-auto md:mx-0 text-sm md:text-base font-medium leading-relaxed">
               Our AI Exposes Hidden Surcharges, Substandard Hurricane Ratings, and Predatory Deposit Traps in Seconds.
             </p>
           </div>
-
           <div className="flex-shrink-0 flex flex-col items-center">
             <button
               onClick={() => {
@@ -332,19 +582,13 @@ const ScanCTA = () => {
               }}
               className="relative px-8 py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xl rounded-xl transition-all duration-300 transform group-hover:scale-105 shadow-[0_0_30px_rgba(8,145,178,0.4)] flex items-center gap-4 overflow-hidden"
             >
-              {/* Button "Shimmer" Effect (Using arbitrary Tailwind values to access existing keyframes) */}
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-
               <span className="relative uppercase tracking-tight flex flex-col items-center md:items-start text-center md:text-left">
                 Scan Your Estimate
                 <span className="opacity-60 block text-xs tracking-widest mt-1">Get the Truth</span>
               </span>
-              <ArrowRight
-                className="relative group-hover:translate-x-2 transition-transform hidden sm:block"
-                size={24}
-              />
+              <ArrowRight className="relative group-hover:translate-x-2 transition-transform hidden sm:block" size={24} />
             </button>
-
             <div className="mt-4 flex items-center justify-center gap-6 opacity-40">
               <div className="text-[10px] uppercase font-bold flex items-center gap-1 text-slate-50">
                 <ShieldCheck size={12} /> SECURE OTP
@@ -360,55 +604,190 @@ const ScanCTA = () => {
   );
 };
 
+// ═══════════════════════════════════════════════════════════════
+// SAFE CALLBACK WRAPPERS
+// ═══════════════════════════════════════════════════════════════
+
+let warnedScanMissing = false;
+let warnedDemoMissing = false;
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN COMPONENT
+// ═══════════════════════════════════════════════════════════════
+
 export default function OrangeScanner({
   onScanClick,
   onDemoClick,
 }: { onScanClick?: () => void; onDemoClick?: () => void } = {}) {
+  // --- State ---
+  const [scenarioIndex, setScenarioIndex] = useState(0);
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
-  const [activeAnomalies, setActiveAnomalies] = useState([]);
+  const [activeAnomalies, setActiveAnomalies] = useState<Array<string | number>>([]);
+  const [isComplete, setIsComplete] = useState(false);
+  const verdictRef = useRef<HTMLDivElement | null>(null);
+  const hasRunOnce = useRef(false);
 
-  const startScan = () => {
-    if (isScanning) return;
-    setIsScanning(true);
+  // --- Derived scenario with fallbacks ---
+  if (quoteScenarios.length === 0) {
+    return (
+      <div className="min-h-[400px] bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
+        Demo scenarios unavailable.
+      </div>
+    );
+  }
+
+  const currentScenario = quoteScenarios[scenarioIndex % quoteScenarios.length];
+  const safeScenario = {
+    ...currentScenario,
+    lineItems: Array.isArray(currentScenario?.lineItems) ? currentScenario.lineItems : [],
+    integrityScore: typeof currentScenario?.integrityScore === "number" ? currentScenario.integrityScore : 50,
+    specs: {
+      stc: currentScenario?.specs?.stc ?? "NOT SPECIFIED",
+      uFactor: currentScenario?.specs?.uFactor ?? "NOT SPECIFIED",
+      shgc: currentScenario?.specs?.shgc ?? "NOT SPECIFIED",
+      frame: currentScenario?.specs?.frame ?? "NOT SPECIFIED",
+    },
+  };
+
+  // --- Reset helper ---
+  const resetScannerState = (nextIsScanning: boolean) => {
     setScanProgress(0);
     setActiveAnomalies([]);
+    setIsComplete(false);
+    setIsScanning(nextIsScanning);
+  };
 
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 0.4; // Slower, smoother scan
-      setScanProgress(progress);
+  // --- Safe callback wrappers ---
+  const safeInvokeScanClick = () => {
+    console.info("demo_cta_clicked", { scenarioId: safeScenario.id, button: "have_quote" });
+    if (typeof onScanClick === "function") {
+      onScanClick();
+      return;
+    }
+    if (!warnedScanMissing) {
+      console.warn("OrangeScanner: onScanClick callback is undefined.");
+      warnedScanMissing = true;
+    }
+  };
 
-      // 1. Check Header License Anomaly (Triggers around 15% progress)
-      if (progress > 15 && progress < 16) {
-        if (ESTIMATE_DATA.license.includes("ABC")) {
-          setActiveAnomalies((prev) => (prev.includes("license") ? prev : [...prev, "license"]));
-        }
+  const safeInvokeDemoClick = () => {
+    console.info("demo_cta_clicked", { scenarioId: safeScenario.id, button: "want_quote" });
+    if (typeof onDemoClick === "function") {
+      onDemoClick();
+      return;
+    }
+    if (!warnedDemoMissing) {
+      console.warn("OrangeScanner: onDemoClick callback is undefined.");
+      warnedDemoMissing = true;
+    }
+  };
+
+  // --- Start scan (no timer engine here) ---
+  const startScan = () => {
+    if (isScanning) return;
+
+    // Advance scenario on re-runs
+    if (hasRunOnce.current) {
+      setScenarioIndex((prev) => (prev + 1) % quoteScenarios.length);
+    }
+    hasRunOnce.current = true;
+
+    resetScannerState(true);
+    console.info("demo_run_started", { scenarioId: quoteScenarios[(hasRunOnce.current && scenarioIndex + 1 < quoteScenarios.length ? scenarioIndex + 1 : hasRunOnce.current ? 0 : scenarioIndex) % quoteScenarios.length].id });
+  };
+
+  // --- useEffect scan engine ---
+  useEffect(() => {
+    if (!isScanning || isComplete) return;
+
+    if (scanProgress >= 100) {
+      setScanProgress(100);
+      setIsScanning(false);
+      setIsComplete(true);
+      console.info("demo_scan_completed", {
+        scenarioId: safeScenario.id,
+        integrityScore: safeScenario.integrityScore,
+      });
+      // Focus verdict
+      setTimeout(() => verdictRef.current?.focus(), 100);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setScanProgress((prev) => Math.min(prev + SCAN_STEP, 100));
+
+      // Deterministic anomaly triggers
+      const itemCount = safeScenario.lineItems.length;
+      const stepSize = ITEM_RANGE / Math.max(itemCount, 1);
+
+      // License trigger
+      if (scanProgress >= LICENSE_TRIGGER && safeScenario.licenseAnomaly) {
+        setActiveAnomalies((prev) => (prev.includes("license") ? prev : [...prev, "license"]));
       }
 
-      // 2. Check Line Items (Mapped roughly from 30% to 80% of the document height)
-      ESTIMATE_DATA.items.forEach((item, index) => {
-        const triggerPoint = 30 + index * (50 / ESTIMATE_DATA.items.length);
-        if (progress > triggerPoint && progress < triggerPoint + 1) {
-          if (item.status === "warning") {
-            setActiveAnomalies((prev) => (prev.includes(item.id) ? prev : [...prev, item.id]));
-          }
+      // Line item triggers
+      safeScenario.lineItems.forEach((item, index) => {
+        const triggerPoint = ITEM_START + stepSize * (index + 1);
+        if (scanProgress >= triggerPoint && (item.status === "critical" || item.status === "caution")) {
+          setActiveAnomalies((prev) => (prev.includes(item.id) ? prev : [...prev, item.id]));
         }
       });
 
-      // 3. Check Fine Print (Triggers at 82% progress)
-      if (progress > 82 && progress < 83) {
+      // Fine print trigger
+      if (scanProgress >= FINEPRINT_TRIGGER && safeScenario.finePrintTrap) {
         setActiveAnomalies((prev) => (prev.includes("fineprint_trap") ? prev : [...prev, "fineprint_trap"]));
       }
+    }, SCAN_DELAY);
 
-      if (progress >= 100) {
-        clearInterval(interval);
-        setIsScanning(false);
-      }
-    }, 16); // roughly 60fps
-  };
+    return () => clearTimeout(timeout);
+  }, [isScanning, scanProgress, isComplete]);
 
   const activePhase = scanProgress === 0 ? -1 : scanProgress < 33 ? 0 : scanProgress < 66 ? 1 : 2;
+
+  // --- Alert level styling helpers ---
+  const alertColorMap = {
+    critical: {
+      bg: "bg-red-50/80",
+      border: "border-red-500",
+      text: "text-red-900",
+      flagBg: "bg-red-500/5",
+      flagBorder: "border-red-500",
+      flagTitle: "text-red-400",
+      flagIcon: "text-red-500",
+      itemBg: "bg-red-500/10",
+      itemBorder: "border-red-500",
+    },
+    caution: {
+      bg: "bg-amber-50/80",
+      border: "border-amber-500",
+      text: "text-amber-900",
+      flagBg: "bg-orange-500/5",
+      flagBorder: "border-orange-500",
+      flagTitle: "text-orange-400",
+      flagIcon: "text-orange-500",
+      itemBg: "bg-orange-500/10",
+      itemBorder: "border-orange-500",
+    },
+    verified: {
+      bg: "bg-emerald-50/80",
+      border: "border-emerald-500",
+      text: "text-emerald-900",
+      flagBg: "bg-emerald-500/5",
+      flagBorder: "border-emerald-500",
+      flagTitle: "text-emerald-400",
+      flagIcon: "text-emerald-500",
+      itemBg: "bg-emerald-500/10",
+      itemBorder: "border-emerald-500",
+    },
+  };
+
+  const statusColorMap: Record<LineItemStatus, { bg: string; border: string; label: string; labelColor: string }> = {
+    critical: { bg: "bg-red-500/10", border: "border-red-500", label: "AUDIT FLAG:", labelColor: "text-red-400" },
+    caution: { bg: "bg-orange-500/10", border: "border-orange-500", label: "AUDIT FLAG:", labelColor: "text-orange-400" },
+    verified: { bg: "bg-emerald-500/10", border: "border-emerald-500", label: "VERIFIED:", labelColor: "text-emerald-400" },
+    neutral: { bg: "", border: "", label: "", labelColor: "" },
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col items-center justify-start p-4 md:p-8 overflow-hidden font-sans relative selection:bg-cyan-500/30">
@@ -501,7 +880,7 @@ export default function OrangeScanner({
                 <>
                   <Scan className="animate-spin" size={18} /> Analyzing Contract...
                 </>
-              ) : scanProgress === 100 ? (
+              ) : isComplete ? (
                 <>
                   <Zap size={18} /> Re-run AI Audit
                 </>
@@ -515,18 +894,17 @@ export default function OrangeScanner({
 
           {/* LEFT: Interactive Document Area (Scanner Bed) */}
           <div className="lg:col-span-8 relative" style={{ perspective: "1200px" }}>
-            {/* The Physical Paper Document (3D Tilt Wrapper) */}
             <div
               className="w-full transition-all duration-1000 ease-in-out origin-center"
               style={{
                 transform:
-                  scanProgress === 100
+                  isComplete
                     ? "rotateX(20deg) scale(0.9) translateY(-2rem)"
                     : isScanning
                       ? "scale(1.01)"
                       : "scale(1)",
-                opacity: scanProgress === 100 ? 0.35 : 1,
-                filter: scanProgress === 100 ? "blur(2px)" : "none",
+                opacity: isComplete ? 0.35 : 1,
+                filter: isComplete ? "blur(2px)" : "none",
               }}
             >
               <div
@@ -537,7 +915,7 @@ export default function OrangeScanner({
                     : "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
                 }}
               >
-                {/* The Laser Scanner Line (Overlays the entire bed) */}
+                {/* The Laser Scanner Line */}
                 {scanProgress > 0 && scanProgress < 100 && (
                   <div
                     className="absolute left-0 right-0 z-50 pointer-events-none"
@@ -552,6 +930,7 @@ export default function OrangeScanner({
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-2 bg-yellow-300 shadow-[0_0_30px_10px_rgba(250,204,21,0.8)] rounded-full blur-[2px]"></div>
                   </div>
                 )}
+
                 {/* SVG Filter for Paper Grain */}
                 <svg className="hidden">
                   <filter id="paperGrain">
@@ -559,24 +938,25 @@ export default function OrangeScanner({
                     <feColorMatrix type="matrix" values="0 0 0 0 0, 0 0 0 0 0, 0 0 0 0 0, 0 0 0 -1 1" />
                   </filter>
                 </svg>
-                {/* Physical Paper Sheet (Slightly misaligned) */}
+
+                {/* Physical Paper Sheet */}
                 <div
                   className="relative bg-[#f9f7f2] text-slate-800 w-full h-full min-h-[750px] origin-center font-sans shadow-xl"
                   style={{ transform: "rotate(0.3deg) scale(0.98)", top: "10px" }}
                 >
-                  {/* Layer 1: The Grain Overlay */}
+                  {/* Layer 1: Grain */}
                   <div
                     className="absolute inset-0 pointer-events-none opacity-[0.06] contrast-150 mix-blend-multiply"
                     style={{ filter: "url(#paperGrain)" }}
                   ></div>
-                  {/* Layer 2: The Coffee Ring (Top Right) */}
+                  {/* Layer 2: Coffee Ring */}
                   <div className="absolute top-10 right-10 opacity-[0.15] pointer-events-none rotate-[25deg] scale-150">
                     <svg width="100" height="100" viewBox="0 0 100 100" fill="none" stroke="#634832" strokeWidth="2">
                       <circle cx="50" cy="50" r="45" strokeDasharray="10 5 20 2" />
                       <circle cx="50" cy="50" r="42" opacity="0.5" />
                     </svg>
                   </div>
-                  {/* Layer 3: The Fold Line */}
+                  {/* Layer 3: Fold Line */}
                   <div className="absolute top-[55%] left-0 w-full h-[2px] pointer-events-none z-10">
                     <div className="h-[1px] bg-black/10 w-full"></div>
                     <div className="h-[1px] bg-white/50 w-full"></div>
@@ -589,7 +969,8 @@ export default function OrangeScanner({
                       <span className="text-xs tracking-normal font-sans">Compliance Dept</span>
                     </div>
                   </div>
-                  {/* Content Container (Ensures content stays above paper textures) */}
+
+                  {/* Content Container */}
                   <div className="relative z-10">
                     {/* Document Header */}
                     <div className="p-8 md:p-10 pb-6 border-b-2 border-slate-300 relative">
@@ -600,18 +981,18 @@ export default function OrangeScanner({
                       <div className="flex flex-col sm:flex-row justify-between text-slate-600 text-sm font-medium gap-4">
                         <div className="space-y-1">
                           <p>
-                            <span className="text-slate-400 uppercase text-xs">Client:</span> {ESTIMATE_DATA.client}
+                            <span className="text-slate-400 uppercase text-xs">Client:</span> {safeScenario.client}
                           </p>
                           <p>
                             <span className="text-slate-400 uppercase text-xs">Contractor:</span>{" "}
-                            {ESTIMATE_DATA.contractor}
+                            {safeScenario.contractor}
                           </p>
                           <div className="relative inline-block">
                             <span className="text-slate-400 uppercase text-xs">License:</span>
                             <span
                               className={`ml-1 px-1 rounded transition-colors duration-500 ${activeAnomalies.includes("license") ? "bg-red-200 text-red-800 font-bold" : ""}`}
                             >
-                              {ESTIMATE_DATA.license}
+                              {safeScenario.license}
                             </span>
                             {activeAnomalies.includes("license") && (
                               <div className="absolute top-full left-0 mt-1 w-64 bg-slate-900 border border-red-500 rounded p-2 text-red-400 text-xs shadow-lg z-20 animate-in fade-in slide-in-from-top-2">
@@ -620,17 +1001,37 @@ export default function OrangeScanner({
                               </div>
                             )}
                           </div>
+                          <p>
+                            <span className="text-slate-400 uppercase text-xs">Specified Brand:</span>{" "}
+                            {safeScenario.specifiedBrand}
+                          </p>
+                          <p>
+                            <span className="text-slate-400 uppercase text-xs">NOA Code:</span>{" "}
+                            {safeScenario.noaCode}
+                          </p>
                         </div>
                         <div className="sm:text-right space-y-1">
                           <p>
-                            <span className="text-slate-400 uppercase text-xs">Date:</span> {ESTIMATE_DATA.date}
+                            <span className="text-slate-400 uppercase text-xs">Date:</span> {safeScenario.date}
                           </p>
                           <p>
-                            <span className="text-slate-400 uppercase text-xs">Quote Ref:</span> {ESTIMATE_DATA.ref}
+                            <span className="text-slate-400 uppercase text-xs">Quote Ref:</span> {safeScenario.quoteRef}
                           </p>
                         </div>
                       </div>
                     </div>
+
+                    {/* Executive Summary Alert Box */}
+                    {(isScanning || isComplete) && (
+                      <div className={`mx-8 md:mx-10 mt-4 p-4 rounded-lg border-l-4 ${alertColorMap[safeScenario.alertLevel].border} ${alertColorMap[safeScenario.alertLevel].bg}`}>
+                        <h3 className={`font-bold text-sm mb-1 ${alertColorMap[safeScenario.alertLevel].text}`}>
+                          {safeScenario.summaryTitle}
+                        </h3>
+                        <p className={`text-xs ${alertColorMap[safeScenario.alertLevel].text} opacity-90`}>
+                          {safeScenario.summaryText}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Document Table */}
                     <div className="p-8 md:p-10 pt-4 relative">
@@ -640,44 +1041,65 @@ export default function OrangeScanner({
                       </div>
 
                       <div className="flex flex-col gap-1 relative">
-                        {ESTIMATE_DATA.items.map((item) => {
+                        {safeScenario.lineItems.map((item) => {
                           const isRevealedAnomaly = activeAnomalies.includes(item.id);
+                          const colors = statusColorMap[item.status];
+                          const isAnomalyStatus = item.status === "critical" || item.status === "caution";
 
                           return (
-                            <div
-                              key={item.id}
-                              className="relative grid grid-cols-12 gap-4 py-4 border-b border-slate-200/50 text-slate-700 items-center transition-colors hover:bg-slate-100/50"
-                            >
-                              <div className="col-span-8 md:col-span-9 font-medium text-sm md:text-base leading-snug">
-                                {item.label}
-                              </div>
-                              <div className="col-span-4 md:col-span-3 text-right font-mono font-semibold">
-                                ${item.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                              </div>
+                            <div key={`${safeScenario.id}-${item.id}`}>
+                              <div
+                                className="relative grid grid-cols-12 gap-4 py-4 border-b border-slate-200/50 text-slate-700 items-center transition-colors hover:bg-slate-100/50"
+                              >
+                                <div className="col-span-8 md:col-span-9 font-medium text-sm md:text-base leading-snug">
+                                  {item.label}
+                                </div>
+                                <div className="col-span-4 md:col-span-3 text-right font-mono font-semibold">
+                                  {item.cost}
+                                </div>
 
-                              {/* Red Highlight Background */}
-                              {item.status === "warning" && (
-                                <div
-                                  className={`absolute inset-0 pointer-events-none transition-all duration-500 ${isRevealedAnomaly ? "bg-red-500/10 border-l-4 border-red-500" : "bg-transparent border-l-4 border-transparent"}`}
-                                >
-                                  {/* Floating Holographic Flag */}
+                                {/* Anomaly highlight background */}
+                                {isAnomalyStatus && (
                                   <div
-                                    className={`absolute left-4 md:left-auto md:-right-8 top-full md:top-1/2 mt-2 md:mt-0 md:-translate-y-1/2 transition-all duration-700 ease-out transform z-30 ${isRevealedAnomaly ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0 hidden md:block"}`}
+                                    className={`absolute inset-0 pointer-events-none transition-all duration-500 ${isRevealedAnomaly ? `${colors.bg} border-l-4 ${colors.border}` : "bg-transparent border-l-4 border-transparent"}`}
                                   >
-                                    <div className="relative">
-                                      <div className="bg-slate-950 border border-red-500 backdrop-blur-xl rounded px-3 py-2 flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.4)] w-max max-w-[200px] md:max-w-xs">
-                                        <AlertTriangle className="text-red-500 animate-pulse shrink-0" size={16} />
-                                        <div className="flex flex-col">
-                                          <span className="text-red-400 font-bold text-[10px] tracking-wider uppercase">
-                                            Audit Flag
-                                          </span>
-                                          <span className="text-slate-300 text-[10px] leading-tight">{item.note}</span>
+                                    <div
+                                      className={`absolute left-4 md:left-auto md:-right-8 top-full md:top-1/2 mt-2 md:mt-0 md:-translate-y-1/2 transition-all duration-700 ease-out transform z-30 ${isRevealedAnomaly ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0 hidden md:block"}`}
+                                    >
+                                      <div className="relative">
+                                        <div className={`bg-slate-950 border ${colors.border} backdrop-blur-xl rounded px-3 py-2 flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.4)] w-max max-w-[200px] md:max-w-xs`}>
+                                          <AlertTriangle className={`${colors.labelColor} animate-pulse shrink-0`} size={16} />
+                                          <div className="flex flex-col">
+                                            <span className={`${colors.labelColor} font-bold text-[10px] tracking-wider uppercase`}>
+                                              {colors.label}
+                                            </span>
+                                            <span className="text-slate-300 text-[10px] leading-tight">{item.note}</span>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
+
+                                {/* Verified item inline flag */}
+                                {item.status === "verified" && isRevealedAnomaly && item.note && (
+                                  <div className="absolute inset-0 pointer-events-none bg-emerald-500/5 border-l-4 border-emerald-500 transition-all duration-500">
+                                    <div className="absolute left-4 md:left-auto md:-right-8 top-full md:top-1/2 mt-2 md:mt-0 md:-translate-y-1/2 z-30 translate-x-0 opacity-100">
+                                      <div className="relative">
+                                        <div className="bg-slate-950 border border-emerald-500 backdrop-blur-xl rounded px-3 py-2 flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.4)] w-max max-w-[200px] md:max-w-xs">
+                                          <CheckCircle2 className="text-emerald-400 shrink-0" size={16} />
+                                          <div className="flex flex-col">
+                                            <span className="text-emerald-400 font-bold text-[10px] tracking-wider uppercase">
+                                              VERIFIED:
+                                            </span>
+                                            <span className="text-slate-300 text-[10px] leading-tight">{item.note}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           );
                         })}
@@ -688,28 +1110,25 @@ export default function OrangeScanner({
                         <div className="w-full md:w-1/2">
                           <div className="flex justify-between py-2 text-slate-500 text-sm border-b border-slate-200">
                             <span>Subtotal</span>
-                            <span className="font-mono">
-                              ${ESTIMATE_DATA.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </span>
+                            <span className="font-mono">{safeScenario.subtotal}</span>
                           </div>
                           <div className="flex justify-between py-4 text-slate-800 font-black text-xl border-t-4 border-slate-900 mt-1">
                             <span>TOTAL ESTIMATE</span>
-                            <span className="font-mono">
-                              ${ESTIMATE_DATA.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </span>
+                            <span className="font-mono">{safeScenario.total}</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* NEW: FINE PRINT SCANNER */}
-                      <FinePrintScanner scanProgress={scanProgress} isScanning={isScanning} />
+                      {/* Fine Print Scanner — only for predatory */}
+                      {safeScenario.finePrintTrap && (
+                        <FinePrintScanner scanProgress={scanProgress} isScanning={isScanning} />
+                      )}
                     </div>
-                  </div>{" "}
-                  {/* End Content Container */}
-                </div>{" "}
-                {/* End Physical Paper Sheet */}
+                  </div>
+                </div>
+
                 {/* Post-scan overlay */}
-                {scanProgress === 100 && (
+                {isComplete && (
                   <div className="absolute inset-0 bg-cyan-900/5 pointer-events-none transition-opacity duration-1000 border-[3px] border-cyan-500/20 z-40"></div>
                 )}
               </div>
@@ -717,9 +1136,15 @@ export default function OrangeScanner({
 
             {/* The Hologram Finale */}
             <VerdictHologram
-              isOpen={scanProgress === 100}
-              anomalies={activeAnomalies}
-              score={Math.max(0, 95 - activeAnomalies.length * 12)}
+              ref={verdictRef}
+              isOpen={isComplete}
+              alertLevel={safeScenario.alertLevel}
+              summaryTitle={safeScenario.summaryTitle}
+              summaryText={safeScenario.summaryText}
+              integrityScore={safeScenario.integrityScore}
+              activeAnomalies={activeAnomalies}
+              onScanClick={safeInvokeScanClick}
+              onDemoClick={safeInvokeDemoClick}
             />
           </div>
 
@@ -738,7 +1163,7 @@ export default function OrangeScanner({
                 <>
                   <Scan className="animate-spin" size={18} /> Analyzing Contract...
                 </>
-              ) : scanProgress === 100 ? (
+              ) : isComplete ? (
                 <>
                   <Zap size={18} /> Re-run AI Audit
                 </>
@@ -749,8 +1174,12 @@ export default function OrangeScanner({
               )}
             </button>
 
-            {/* NEW: Trust Score Widget */}
-            <TrustScoreWidget isScanning={isScanning} activeAnomalies={activeAnomalies} />
+            {/* Trust Score Widget */}
+            <TrustScoreWidget
+              isScanning={isScanning}
+              integrityScore={safeScenario.integrityScore}
+              alertLevel={safeScenario.alertLevel}
+            />
 
             {/* Audit Log Panel */}
             <div className="bg-slate-900/60 backdrop-blur-sm border border-slate-700/50 rounded-lg p-5 flex flex-col min-h-[250px] flex-1 shadow-xl">
@@ -772,7 +1201,8 @@ export default function OrangeScanner({
                   </div>
                 )}
 
-                {activeAnomalies.includes("license") && (
+                {/* License mismatch — gated by scenario */}
+                {activeAnomalies.includes("license") && safeScenario.licenseAnomaly && (
                   <div className="border-l-2 border-red-500 pl-3 py-1 bg-red-500/5 rounded-r p-2 animate-in slide-in-from-right-4 duration-300">
                     <div className="text-[10px] text-red-400 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
                       <AlertTriangle size={12} /> License Mismatch
@@ -784,7 +1214,8 @@ export default function OrangeScanner({
                   </div>
                 )}
 
-                {activeAnomalies.includes("fineprint_trap") && (
+                {/* Fine print — gated by scenario */}
+                {activeAnomalies.includes("fineprint_trap") && safeScenario.finePrintTrap && (
                   <div className="border-l-2 border-red-500 pl-3 py-1 bg-red-500/5 rounded-r p-2 animate-in slide-in-from-right-4 duration-300">
                     <div className="text-[10px] text-red-400 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
                       <ShieldAlert size={12} /> Predatory Clause Detected
@@ -796,21 +1227,25 @@ export default function OrangeScanner({
                   </div>
                 )}
 
-                {ESTIMATE_DATA.items.map((item) => {
-                  if (activeAnomalies.includes(item.id)) {
-                    return (
-                      <div
-                        key={item.id}
-                        className="border-l-2 border-orange-500 pl-3 py-1 bg-orange-500/5 rounded-r p-2 animate-in slide-in-from-right-4 duration-300"
-                      >
-                        <div className="text-[10px] text-orange-400 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
-                          <AlertTriangle size={12} /> Item Variance: #{item.id}
-                        </div>
-                        <div className="text-xs text-slate-300 leading-relaxed font-mono">{item.note}</div>
+                {/* Line item findings — scenario-driven */}
+                {safeScenario.lineItems.map((item) => {
+                  if (!activeAnomalies.includes(item.id) || !item.note) return null;
+                  const isAnomaly = item.status === "critical" || item.status === "caution";
+                  const isVerified = item.status === "verified";
+                  if (!isAnomaly && !isVerified) return null;
+
+                  return (
+                    <div
+                      key={`log-${safeScenario.id}-${item.id}`}
+                      className={`border-l-2 ${isAnomaly ? (item.status === "critical" ? "border-red-500 bg-red-500/5" : "border-orange-500 bg-orange-500/5") : "border-emerald-500 bg-emerald-500/5"} pl-3 py-1 rounded-r p-2 animate-in slide-in-from-right-4 duration-300`}
+                    >
+                      <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1 ${isAnomaly ? (item.status === "critical" ? "text-red-400" : "text-orange-400") : "text-emerald-400"}`}>
+                        {isAnomaly ? <AlertTriangle size={12} /> : <CheckCircle2 size={12} />}
+                        {isAnomaly ? `Item Variance: #${item.id}` : `Verified: #${item.id}`}
                       </div>
-                    );
-                  }
-                  return null;
+                      <div className="text-xs text-slate-300 leading-relaxed font-mono">{item.note}</div>
+                    </div>
+                  );
                 })}
               </div>
             </div>
@@ -823,16 +1258,16 @@ export default function OrangeScanner({
               </h4>
               <div className="grid grid-cols-2 gap-3 text-xs font-mono text-slate-300">
                 <div className="flex justify-between border-b border-cyan-900/30 pb-1">
-                  <span>STC RATING:</span> <span className="text-white">32</span>
+                  <span>STC RATING:</span> <span className="text-white">{safeScenario.specs.stc}</span>
                 </div>
                 <div className="flex justify-between border-b border-cyan-900/30 pb-1">
-                  <span>U-FACTOR:</span> <span className="text-white">0.27</span>
+                  <span>U-FACTOR:</span> <span className="text-white">{safeScenario.specs.uFactor}</span>
                 </div>
                 <div className="flex justify-between border-b border-cyan-900/30 pb-1">
-                  <span>SHGC:</span> <span className="text-white">0.21</span>
+                  <span>SHGC:</span> <span className="text-white">{safeScenario.specs.shgc}</span>
                 </div>
                 <div className="flex justify-between border-b border-cyan-900/30 pb-1">
-                  <span>FRAME:</span> <span className="text-white">VINYL</span>
+                  <span>FRAME:</span> <span className="text-white">{safeScenario.specs.frame}</span>
                 </div>
               </div>
             </div>
