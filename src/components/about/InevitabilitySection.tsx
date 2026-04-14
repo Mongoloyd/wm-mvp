@@ -137,8 +137,8 @@ export default function InevitabilitySection() {
 
         {/* Concluding line */}
         <p className="text-center text-base font-semibold italic text-foreground/60 md:text-lg">
-          Markets that lack standards eventually produce them. The only question is who builds the reference layer
-          first.
+          Markets That Lack Standards Eventually Produce Them. The Only Question Is Who Builds The Reference Layer
+          First.
         </p>
       </div>
     </section>
