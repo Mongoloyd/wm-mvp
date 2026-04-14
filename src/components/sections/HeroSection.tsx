@@ -13,7 +13,18 @@ const fadeUp = {
 
 const HeroSection = () => (
   <section className="min-h-screen flex items-center py-24">
-    <div className="max-w-6xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <div className="max-w-7xl mx-auto px-6 w-full flex flex-col items-center">
+      {/* Apex — character image */}
+      <motion.img
+        src="/images/flywheel-wman.avif"
+        alt="WindowMan character"
+        loading="lazy"
+        {...fadeUp}
+        className="w-48 md:w-64 lg:w-72 h-auto mb-12 lg:mb-16 mx-auto drop-shadow-2xl"
+      />
+
+      {/* Base — two columns spread wide */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-20 lg:gap-24 items-center">
       {/* LEFT */}
       <div>
         <motion.p
@@ -144,6 +155,7 @@ const HeroSection = () => (
           </div>
         </div>
       </motion.div>
+      </div>
     </div>
   </section>
 );
