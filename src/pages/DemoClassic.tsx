@@ -220,7 +220,7 @@ const DemoClassic = () => {
           flexWrap: "wrap",
         }}
       >
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF", letterSpacing: "0.06em" }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#D1D5DB", letterSpacing: "0.06em", fontWeight: 600 }}>
           SCENARIO:
         </span>
         {([
@@ -233,15 +233,16 @@ const DemoClassic = () => {
             onClick={() => setScenario(key)}
             style={{
               fontFamily: "'DM Mono', monospace",
-              fontSize: 11,
+              fontSize: 13,
               letterSpacing: "0.04em",
-              padding: "4px 10px",
+              padding: "5px 12px",
               borderRadius: 4,
-              border: scenario === key ? "1px solid #2563EB" : "1px solid rgba(255,255,255,0.15)",
-              background: scenario === key ? "rgba(37,99,235,0.25)" : "transparent",
-              color: scenario === key ? "#93C5FD" : "#9CA3AF",
+              border: scenario === key ? "1px solid #60A5FA" : "1px solid rgba(255,255,255,0.2)",
+              background: scenario === key ? "rgba(37,99,235,0.3)" : "transparent",
+              color: scenario === key ? "#BFDBFE" : "#D1D5DB",
               cursor: "pointer",
               transition: "all 0.15s",
+              fontWeight: 500,
             }}
           >
             {label}
@@ -249,10 +250,10 @@ const DemoClassic = () => {
         ))}
 
         {/* Status indicators */}
-        <div style={{ display: "flex", gap: 12, marginLeft: 8, fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#64748B" }}>
-          <span>MODE: <span style={{ color: "#C8952A" }}>{accessLevel === "full" ? "UNLOCKED" : gateMode}</span></span>
-          <span>PHONE: <span style={{ color: activePhone ? "#059669" : "#DC2626" }}>{activePhone || "none"}</span></span>
-          <span>ACCESS: <span style={{ color: accessLevel === "full" ? "#059669" : "#F97316" }}>{accessLevel}</span></span>
+        <div style={{ display: "flex", gap: 12, marginLeft: 8, fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#94A3B8", fontWeight: 500 }}>
+          <span>MODE: <span style={{ color: "#FBBF24", fontWeight: 700 }}>{accessLevel === "full" ? "UNLOCKED" : gateMode}</span></span>
+          <span>PHONE: <span style={{ color: activePhone ? "#34D399" : "#F87171", fontWeight: 700 }}>{activePhone || "none"}</span></span>
+          <span>ACCESS: <span style={{ color: accessLevel === "full" ? "#34D399" : "#FB923C", fontWeight: 700 }}>{accessLevel}</span></span>
         </div>
       </div>
 
