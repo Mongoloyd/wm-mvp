@@ -266,7 +266,7 @@ export default function ArbitrageEngine({
     if (flowState === "idle") setFlowState("animating");
   };
 
-  const advance = (nextStep: string, field: string | null = null, value: string | null = null) => {
+  const advance = (nextStep: FunnelStep, field: string | null = null, value: string | null = null) => {
     if (field) setFormData((prev) => ({ ...prev, [field]: value }));
     setStepHistory((prev) => [...prev, funnelStep]);
     setFunnelStep(nextStep);
