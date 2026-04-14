@@ -1,0 +1,304 @@
+import { WM_QUOTE_TRUST_MIN_FOR_DISPATCH } from "./constants";
+import { normalizeAndHashIdentity, computeIdentityQuality } from "./identity";
+import { evaluateQuoteTrust } from "./trustScore";
+import { buildOptimizationPayload } from "./valueModel";
+import type { CreateCanonicalEventInput, WMCanonicalEvent, WMDispatchStatus, WMPlatformName } from "./types";
+
+interface DBLike {
+  from(table: string): {
+    insert(payload: Record<string, unknown> | Record<string, unknown>[]): Promise<{ data?: unknown; error?: { message?: string } | null }>;
+    upsert(payload: Record<string, unknown>, options?: { onConflict?: string }): Promise<{ data?: unknown; error?: { message?: string } | null }>;
+    select(columns: string): {
+      eq(column: string, value: string): {
+        maybeSingle(): Promise<{ data?: Record<string, unknown> | null; error?: { message?: string } | null }>;
+      };
+    };
+  };
+}
+
+function isDuplicateEventIdInsertError(error: { message?: string } | null | undefined): boolean {
+  const message = error?.message?.toLowerCase() ?? "";
+  return (
+    message.includes("duplicate key") ||
+    message.includes("unique constraint") ||
+    message.includes("wm_event_log_event_id") ||
+    (message.includes("event_id") && message.includes("already exists"))
+  );
+}
+
+interface CreateCanonicalEventDeps {
+  db: DBLike;
+  now?: () => Date;
+  createId?: () => string;
+}
+
+interface CreateCanonicalEventResult {
+  canonicalEvent: WMCanonicalEvent;
+  eventLogId: string | null;
+  dispatchPlatforms: WMPlatformName[];
+}
+
+const QUOTE_EVENTS = new Set(["quote_validation_passed", "quote_upload_completed"]);
+
+function sanitizeEventIdSegment(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "unknown";
+  }
+
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "unknown";
+}
+
+function getInputStringValue(input: CreateCanonicalEventInput, key: string): string | null {
+  const value = (input as Record<string, unknown>)[key];
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function getDefaultEventTimestampBucket(input: CreateCanonicalEventInput, now: Date): string {
+  const timestampKeys = ["eventTimestamp", "occurredAt", "timestamp", "createdAt"];
+
+  for (const key of timestampKeys) {
+    const rawValue = getInputStringValue(input, key);
+    if (!rawValue) {
+      continue;
+    }
+
+    const parsed = Date.parse(rawValue);
+    if (!Number.isNaN(parsed)) {
+      return new Date(Math.floor(parsed / 60000) * 60000).toISOString();
+    }
+  }
+
+  return new Date(Math.floor(now.getTime() / 60000) * 60000).toISOString();
+}
+
+function defaultCreateId(input: CreateCanonicalEventInput, now: Date): string {
+  const eventName = sanitizeEventIdSegment((input as Record<string, unknown>).eventName);
+  const entityKeys = ["leadId", "scanSessionId", "analysisId"];
+  const entitySegments = entityKeys
+    .map((key) => {
+      const value = getInputStringValue(input, key);
+      return value ? `${key}-${sanitizeEventIdSegment(value)}` : null;
+    })
+    .filter((value): value is string => value !== null);
+  const entityPart = entitySegments.length > 0 ? entitySegments.join("__") : "no-entity";
+  const bucket = sanitizeEventIdSegment(getDefaultEventTimestampBucket(input, now));
+
+  return `wmc_${eventName}_${entityPart}_${bucket}`;
+}
+
+function resolveDispatchStatus(shouldDispatch: boolean): WMDispatchStatus {
+  return shouldDispatch ? "pending" : "not_applicable";
+}
+
+export async function createCanonicalEvent(
+  input: CreateCanonicalEventInput,
+  deps: CreateCanonicalEventDeps,
+): Promise<CreateCanonicalEventResult> {
+  const now = deps.now?.() ?? new Date();
+  const eventId = input.eventId ?? deps.createId?.() ?? defaultCreateId(input, now);
+  const eventTimestamp = input.eventTimestamp ?? now.toISOString();
+
+  const normalizedIdentity = await normalizeAndHashIdentity(input.payload.identity);
+  const identityQuality = computeIdentityQuality(normalizedIdentity);
+
+  const basePayload = {
+    ...input.payload,
+    identity: {
+      ...input.payload.identity,
+      ...normalizedIdentity,
+    },
+  };
+
+  let analytics = input.payload.analytics;
+
+  if (input.payload.quote && input.payload.analytics) {
+    const trust = evaluateQuoteTrust({
+      documentType: input.payload.quote.documentType,
+      isQuoteDocument: input.payload.quote.isQuoteDocument,
+      duplicateSuspected: input.payload.quote.duplicateSuspected,
+      impossibleValuesDetected: input.payload.quote.impossibleValuesDetected,
+      ocrConfidence: input.payload.analytics.ocrConfidence,
+      completeness: input.payload.analytics.completeness,
+      mathConsistency: input.payload.analytics.mathConsistency,
+      cohortFit: input.payload.analytics.cohortFit,
+      scopeConsistency: input.payload.analytics.scopeConsistency,
+      documentValidity: input.payload.analytics.documentValidity,
+      identityStrength: input.payload.analytics.identityStrength,
+      anomalyInput: {
+        quoteAmount: input.payload.quote.quoteAmount,
+        pricePerOpening: input.payload.quote.pricePerOpening,
+        depositPercent: input.payload.quote.depositPercent,
+        impossibleValuesDetected: input.payload.quote.impossibleValuesDetected,
+      },
+    });
+
+    analytics = {
+      ...input.payload.analytics,
+      trustScore: trust.trustScore,
+      anomalyScore: trust.anomalyScore,
+      anomalyStatus: trust.anomalyStatus,
+      reasons: trust.reasons,
+    };
+  }
+
+  const trustScore = analytics?.trustScore ?? 0;
+  const anomalyStatus = analytics?.anomalyStatus ?? "safe";
+  const isQuoteEvent = QUOTE_EVENTS.has(input.eventName);
+  const quoteSafe = !isQuoteEvent || (analytics ? (anomalyStatus === "safe" && trustScore >= WM_QUOTE_TRUST_MIN_FOR_DISPATCH) : true);
+
+  const shouldSendMeta = identityQuality !== "low" && identityQuality !== "unknown" && quoteSafe;
+  const shouldSendGoogle = quoteSafe;
+
+  const optimization = buildOptimizationPayload({
+    eventName: input.eventName,
+    marginUsd: input.marginUsd,
+    approvedForAds: shouldSendMeta,
+    approvedForIndex: shouldSendGoogle,
+    manualReviewRequired: anomalyStatus !== "safe",
+  });
+
+  const dispatchStatus = resolveDispatchStatus(shouldSendMeta || shouldSendGoogle);
+
+  const canonicalEvent: WMCanonicalEvent = {
+    eventId,
+    eventName: input.eventName,
+    eventTimestamp,
+    schemaVersion: input.schemaVersion ?? "1.0.0",
+    modelVersion: input.modelVersion,
+    rubricVersion: input.rubricVersion,
+    identityQuality,
+    shouldSendMeta,
+    shouldSendGoogle,
+    dispatchStatus,
+    payload: {
+      ...basePayload,
+      analytics,
+      optimization,
+    },
+    rawPayload: input.rawPayload,
+  };
+
+  const analysisId = input.analysisId ?? input.payload.quote?.analysisId ?? null;
+  const wmEventInsert = {
+    event_id: canonicalEvent.eventId,
+    event_name: canonicalEvent.eventName,
+    event_timestamp: canonicalEvent.eventTimestamp,
+    lead_id: input.leadId ?? normalizedIdentity.leadId ?? null,
+    account_user_id: input.userId ?? normalizedIdentity.userId ?? null,
+    scan_session_id: input.scanSessionId ?? input.payload.journey.scanSessionId ?? null,
+    analysis_id: analysisId,
+    quote_file_id: input.quoteFileId ?? input.payload.quote?.quoteFileId ?? null,
+    schema_version: canonicalEvent.schemaVersion,
+    model_version: canonicalEvent.modelVersion ?? null,
+    rubric_version: canonicalEvent.rubricVersion ?? null,
+    trust_score: canonicalEvent.payload.analytics?.trustScore ?? null,
+    anomaly_score: canonicalEvent.payload.analytics?.anomalyScore ?? null,
+    anomaly_status: canonicalEvent.payload.analytics?.anomalyStatus ?? null,
+    manual_review_required: canonicalEvent.payload.optimization?.manualReviewRequired ?? false,
+    approved_for_index: canonicalEvent.payload.optimization?.approvedForIndex ?? false,
+    approved_for_ads: canonicalEvent.payload.optimization?.approvedForAds ?? false,
+    optimization_value_usd: canonicalEvent.payload.optimization?.valueUsd ?? null,
+    optimization_priority: canonicalEvent.payload.optimization?.priority ?? null,
+    dispatch_status: canonicalEvent.dispatchStatus,
+    payload: canonicalEvent.payload as unknown as Record<string, unknown>,
+    raw_payload: canonicalEvent.rawPayload ?? {},
+  };
+
+  const eventInsertResult = await deps.db.from("wm_event_log").insert(wmEventInsert);
+  const shouldRecoverFromDuplicateInsert = isDuplicateEventIdInsertError(eventInsertResult.error);
+  if (eventInsertResult.error && !shouldRecoverFromDuplicateInsert) {
+    throw new Error(`wm_event_log insert failed: ${eventInsertResult.error.message ?? "unknown"}`);
+  }
+
+  let eventLogId: string | null = null;
+  const lookupResult = await deps.db
+    .from("wm_event_log")
+    .select("id")
+    .eq("event_id", canonicalEvent.eventId)
+    .maybeSingle();
+  if (lookupResult.error) {
+    throw new Error(`wm_event_log lookup failed: ${lookupResult.error.message ?? "unknown"}`);
+  }
+  if (lookupResult.data && typeof lookupResult.data.id === "string") {
+    eventLogId = lookupResult.data.id;
+  }
+  if (shouldRecoverFromDuplicateInsert && !eventLogId) {
+    throw new Error(`wm_event_log duplicate insert recovery failed for event_id ${canonicalEvent.eventId}`);
+  }
+
+  if (analysisId && canonicalEvent.payload.quote) {
+    const quoteUpsert = await deps.db.from("wm_quote_facts").upsert(
+      {
+        analysis_id: analysisId,
+        lead_id: wmEventInsert.lead_id,
+        scan_session_id: wmEventInsert.scan_session_id,
+        quote_file_id: wmEventInsert.quote_file_id,
+        document_type: canonicalEvent.payload.quote.documentType ?? null,
+        is_quote_document: canonicalEvent.payload.quote.isQuoteDocument,
+        ocr_confidence: canonicalEvent.payload.analytics?.ocrConfidence ?? null,
+        completeness_score: canonicalEvent.payload.analytics?.completeness ?? null,
+        math_consistency_score: canonicalEvent.payload.analytics?.mathConsistency ?? null,
+        cohort_fit_score: canonicalEvent.payload.analytics?.cohortFit ?? null,
+        scope_consistency_score: canonicalEvent.payload.analytics?.scopeConsistency ?? null,
+        document_validity_score: canonicalEvent.payload.analytics?.documentValidity ?? null,
+        identity_strength_score: canonicalEvent.payload.analytics?.identityStrength ?? null,
+        trust_score: canonicalEvent.payload.analytics?.trustScore ?? 0,
+        anomaly_score: canonicalEvent.payload.analytics?.anomalyScore ?? 0,
+        anomaly_status: canonicalEvent.payload.analytics?.anomalyStatus ?? "safe",
+        duplicate_suspected: canonicalEvent.payload.quote.duplicateSuspected ?? false,
+        impossible_values_detected: canonicalEvent.payload.quote.impossibleValuesDetected ?? false,
+        manual_review_required: canonicalEvent.payload.optimization?.manualReviewRequired ?? false,
+        approved_for_index: canonicalEvent.payload.optimization?.approvedForIndex ?? false,
+        approved_for_ads: canonicalEvent.payload.optimization?.approvedForAds ?? false,
+        reasons: canonicalEvent.payload.analytics?.reasons ?? [],
+        opening_count: canonicalEvent.payload.quote.openingCount ?? null,
+        quote_amount: canonicalEvent.payload.quote.quoteAmount ?? null,
+        price_per_opening: canonicalEvent.payload.quote.pricePerOpening ?? null,
+        deposit_percent: canonicalEvent.payload.quote.depositPercent ?? null,
+        normalized_facts: canonicalEvent.payload.quote as unknown as Record<string, unknown>,
+        trust_inputs: {
+          identity_quality: canonicalEvent.identityQuality,
+        },
+      },
+      { onConflict: "analysis_id" },
+    );
+
+    if (quoteUpsert.error) {
+      throw new Error(`wm_quote_facts upsert failed: ${quoteUpsert.error.message ?? "unknown"}`);
+    }
+  }
+
+  const dispatchPlatforms: WMPlatformName[] = [];
+  if (eventLogId) {
+    if (canonicalEvent.shouldSendMeta) dispatchPlatforms.push("meta");
+    if (canonicalEvent.shouldSendGoogle) dispatchPlatforms.push("google_ads");
+
+    if (dispatchPlatforms.length > 0) {
+      const rows = dispatchPlatforms.map((platform) => ({
+        event_log_id: eventLogId,
+        platform_name: platform,
+        dispatch_status: "pending",
+      }));
+
+      const dispatchInsert = await deps.db.from("wm_platform_dispatch_log").insert(rows);
+      if (dispatchInsert.error) {
+        throw new Error(`wm_platform_dispatch_log insert failed: ${dispatchInsert.error.message ?? "unknown"}`);
+      }
+    }
+  }
+
+  return {
+    canonicalEvent,
+    eventLogId,
+    dispatchPlatforms,
+  };
+}

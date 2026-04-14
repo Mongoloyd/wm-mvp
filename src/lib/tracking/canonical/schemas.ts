@@ -16,11 +16,21 @@ export const wmIdentityQualitySchema = z.enum(WM_IDENTITY_QUALITIES);
 export const wmIdentityPayloadSchema = z.object({
   leadId: z.string().uuid().optional(),
   userId: z.string().uuid().optional(),
-  emailPresent: z.boolean().optional(),
-  phonePresent: z.boolean().optional(),
+  email: z.string().optional(),
+  emailHash: z.string().optional(),
+  phone: z.string().optional(),
+  phoneHash: z.string().optional(),
   phoneVerifiedAt: z.string().datetime().optional(),
+  clickId: z.string().optional(),
+  fbc: z.string().optional(),
+  fbp: z.string().optional(),
+  gclid: z.string().optional(),
+  gbraid: z.string().optional(),
+  wbraid: z.string().optional(),
   sameDeviceAsUpload: z.boolean().optional(),
   ipRiskLevel: z.enum(["low", "medium", "high"]).optional(),
+  userAgent: z.string().optional(),
+  clientIp: z.string().optional(),
 });
 
 export const wmJourneyPayloadSchema = z.object({
@@ -91,6 +101,9 @@ export const wmCanonicalEventSchema = z.object({
   modelVersion: z.string().optional(),
   rubricVersion: z.string().optional(),
   dispatchStatus: wmDispatchStatusSchema,
+  identityQuality: wmIdentityQualitySchema,
+  shouldSendMeta: z.boolean(),
+  shouldSendGoogle: z.boolean(),
   payload: wmCanonicalEventPayloadSchema,
   rawPayload: z.record(z.unknown()).optional(),
 });

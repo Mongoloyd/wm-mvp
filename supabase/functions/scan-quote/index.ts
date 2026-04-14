@@ -7,6 +7,7 @@
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getCountyBenchmark } from "../_shared/countyBenchmarks.ts";
+import { persistCanonicalEvent } from "../_shared/tracking/canonicalBridge.ts";
 import {
   type LineItem,
   type ExtractionResult,
@@ -605,6 +606,33 @@ Deno.serve(async (req: Request) => {
     if (!processingUpdate.success) return processingUpdate.response;
 
     try {
+      try {
+        await persistCanonicalEvent(supabase, {
+          eventName: "quote_upload_completed",
+          leadId: session.lead_id ?? undefined,
+          scanSessionId: scan_session_id,
+          quoteFileId: session.quote_file_id ?? undefined,
+          payload: {
+            identity: {
+              leadId: session.lead_id ?? undefined,
+            },
+            journey: {
+              route: "/vault/upload",
+              flow: "vault",
+              scanSessionId: scan_session_id,
+            },
+            quote: {
+              quoteFileId: session.quote_file_id ?? undefined,
+              isQuoteDocument: true,
+            },
+            source: {
+              sourceSystem: "edge_function",
+            },
+          },
+        });
+      } catch (canonicalErr) {
+        console.error("quote_upload_completed canonical event failed (non-fatal):", canonicalErr);
+      }
       // ── DEV BYPASS: skip file download + Gemini when override provided ──
       const _devBypassSecret = Deno.env.get("DEV_BYPASS_SECRET");
       const _useBypass = dev_extraction_override && dev_secret && _devBypassSecret && dev_secret === _devBypassSecret;
@@ -707,11 +735,15 @@ Deno.serve(async (req: Request) => {
         },
       };
 
+      const geminiController = new AbortController();
+      const geminiTimeout = setTimeout(() => geminiController.abort("gemini_timeout"), 15000);
+
       const geminiResp = await fetch(geminiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(geminiPayload),
-      });
+        signal: geminiController.signal,
+      }).finally(() => clearTimeout(geminiTimeout));
 
       if (!geminiResp.ok) {
         const errText = await geminiResp.text();
@@ -1127,6 +1159,59 @@ Deno.serve(async (req: Request) => {
         } catch (eventInsertErr) {
           console.error("Lead event insert unexpected error (non-fatal):", eventInsertErr);
         }
+      }
+
+      try {
+        await persistCanonicalEvent(supabase, {
+          eventName: "quote_validation_passed",
+          leadId: session.lead_id ?? undefined,
+          analysisId: analysisId ?? undefined,
+          scanSessionId: scan_session_id,
+          quoteFileId: session.quote_file_id ?? undefined,
+          payload: {
+            identity: {
+              leadId: session.lead_id ?? undefined,
+            },
+            journey: {
+              route: "/vault/reports",
+              flow: "vault",
+              scanSessionId: scan_session_id,
+            },
+            quote: {
+              analysisId: analysisId ?? undefined,
+              quoteFileId: session.quote_file_id ?? undefined,
+              documentType: extraction.document_type,
+              isQuoteDocument: true,
+              openingCount: typeof extraction.opening_count === "number" ? extraction.opening_count : undefined,
+              quoteAmount: typeof extraction.total_quoted_price === "number" ? extraction.total_quoted_price : undefined,
+              pricePerOpening: typeof compiledReport.price_per_opening === "number" ? compiledReport.price_per_opening : undefined,
+              depositPercent: typeof extraction.deposit_percent === "number" ? extraction.deposit_percent : undefined,
+              impossibleValuesDetected: flags.some((f) => /impossible/i.test(f.title)),
+            },
+            analytics: {
+              ocrConfidence: Math.max(0, Math.min(1, extraction.confidence ?? 0)),
+              completeness: Math.max(0, Math.min(1, gradeResult.pillarScores.safety / 100)),
+              mathConsistency: Math.max(0, Math.min(1, gradeResult.pillarScores.price / 100)),
+              cohortFit: Math.max(0, Math.min(1, gradeResult.pillarScores.price / 100)),
+              scopeConsistency: Math.max(0, Math.min(1, gradeResult.pillarScores.install / 100)),
+              documentValidity: Math.max(0, Math.min(1, gradeResult.pillarScores.finePrint / 100)),
+              identityStrength: 0.4,
+              anomalyScore: 0,
+              trustScore: 0,
+              anomalyStatus: "review",
+              reasons: [],
+            },
+            source: {
+              sourceSystem: "edge_function",
+            },
+            metadata: {
+              grade: gradeResult.letterGrade,
+              flag_count: flags.length,
+            },
+          },
+        });
+      } catch (canonicalErr) {
+        console.error("quote_validation_passed canonical event failed (non-fatal):", canonicalErr);
       }
 
       // 14. Update session to preview_ready

@@ -1,39 +1,51 @@
-import type { WMOptimizationPayload, WMTrustScoreResult } from "./types";
+import type { WMEventName, WMOptimizationPayload } from "./types";
 
-interface WMValueModelInput {
-  quoteAmount?: number;
-  openingCount?: number;
-  trustResult: WMTrustScoreResult;
+const VALUE_LADDER: Record<string, number> = {
+  lead_identified: 10,
+  lead_qualified: 100,
+  quote_upload_completed: 250,
+  quote_validation_passed: 500,
+  appointment_booked: 1000,
+};
+
+export interface WMValueModelInput {
+  eventName: WMEventName;
+  marginUsd?: number;
+  approvedForIndex?: boolean;
+  approvedForAds?: boolean;
+  manualReviewRequired?: boolean;
 }
 
-function clampPriority(value: number): number {
-  return Math.max(0, Math.min(100, Math.round(value)));
+export function getOptimizationValueUsd(input: WMValueModelInput): number {
+  if (input.eventName === "sale_confirmed" || input.eventName === "sold") {
+    return typeof input.marginUsd === "number" && Number.isFinite(input.marginUsd) && input.marginUsd > 0
+      ? Math.round(input.marginUsd * 100) / 100
+      : 1500;
+  }
+
+  return VALUE_LADDER[input.eventName] ?? 0;
+}
+
+function derivePriority(valueUsd: number): number {
+  if (valueUsd >= 1000) return 90;
+  if (valueUsd >= 500) return 70;
+  if (valueUsd >= 250) return 55;
+  if (valueUsd >= 100) return 40;
+  if (valueUsd > 0) return 20;
+  return 0;
 }
 
 export function buildOptimizationPayload(input: WMValueModelInput): WMOptimizationPayload {
-  const { trustResult, quoteAmount = 0, openingCount = 0 } = input;
-
-  const baseValue = quoteAmount > 0 ? quoteAmount * 0.02 : 0;
-  const openingBonus = openingCount > 0 ? Math.min(250, openingCount * 12) : 0;
-  const trustMultiplier = trustResult.trustScore;
-
-  const isApprovedForOptimization = trustResult.approvedForIndex || trustResult.approvedForAds;
-
-  const rawValueUsd = Number((baseValue * trustMultiplier + openingBonus).toFixed(2));
-  const valueUsd = isApprovedForOptimization ? rawValueUsd : 0;
-
-  const rawPriority = clampPriority(
-    trustResult.trustScore * 65 +
-      (trustResult.anomalyStatus === "safe" ? 20 : 0) +
-      (trustResult.manualReviewRequired ? -20 : 15),
-  );
-  const priority = isApprovedForOptimization ? rawPriority : 0;
+  const valueUsd = getOptimizationValueUsd(input);
+  const approvedForIndex = input.approvedForIndex ?? false;
+  const approvedForAds = input.approvedForAds ?? false;
+  const manualReviewRequired = input.manualReviewRequired ?? false;
 
   return {
-    approvedForIndex: trustResult.approvedForIndex,
-    approvedForAds: trustResult.approvedForAds,
-    manualReviewRequired: trustResult.manualReviewRequired,
+    approvedForIndex,
+    approvedForAds,
+    manualReviewRequired,
     valueUsd,
-    priority,
+    priority: derivePriority(valueUsd),
   };
 }
