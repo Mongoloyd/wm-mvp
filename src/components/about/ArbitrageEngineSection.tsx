@@ -51,7 +51,7 @@ export default function ArbitrageEngineSection() {
         <div className="mb-8 grid gap-6 md:grid-cols-2">
           {/* Card 1 */}
           <div
-            className="flex flex-col rounded-2xl bg-white p-8 md:p-10"
+            className="flex flex-col rounded-2xl bg-white p-8 md:p-10 border-double border-4 border-[#07b6d5] shadow-2xl"
             style={{
               boxShadow:
                 "0 4px 8px rgba(10,25,60,0.09), 0 16px 48px rgba(10,25,60,0.14), 0 0 0 1px rgba(6,182,212,0.08), inset 0 1px 0 rgba(255,255,255,0.95)",
