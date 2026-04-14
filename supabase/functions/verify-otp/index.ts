@@ -106,8 +106,10 @@ Deno.serve(async (req) => {
         .eq("id", scan_session_id)
         .maybeSingle();
       resolvedLeadId = session?.lead_id || null;
-      leadEmail = session?.leads?.email || null;
-      leadFirstName = session?.leads?.first_name || null;
+      // PostgREST returns joined leads as a single object for FK relationships
+      const leads = session?.leads as { email?: string | null; first_name?: string | null } | null;
+      leadEmail = leads?.email || null;
+      leadFirstName = leads?.first_name || null;
 
       // ── Defensive integrity guard ──
       // If scan_session_id was provided but has no lead_id, we cannot bind

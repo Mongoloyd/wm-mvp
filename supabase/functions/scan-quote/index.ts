@@ -572,6 +572,10 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Session not found" }, 404);
     }
 
+    // PostgREST returns joined leads as a single object for FK relationships
+    type JoinedLeadData = { county?: string | null; email?: string | null; phone_e164?: string | null; first_name?: string | null } | null;
+    const joinedLead = session?.leads as JoinedLeadData;
+
     // ── Idempotency guard: reject if session is already terminal ──
     if (TERMINAL_STATUSES.includes(session.status as ScanSessionStatus) && !_isDevBypass) {
       console.log(`Idempotency guard: session ${scan_session_id} already in status '${session.status}'`);
@@ -977,7 +981,7 @@ Deno.serve(async (req: Request) => {
       const flags = detectFlags(extraction);
 
       // 11b. County from pre-fetched lead data (no additional round-trip)
-      const countyName: string | null = session?.leads?.county ?? null;
+      const countyName: string | null = joinedLead?.county ?? null;
 
       // 11c. Derive financial metrics (inline — deterministic math, no HTTP call)
       let derivedMetrics: Record<string, unknown> | null = null;
@@ -1148,9 +1152,9 @@ Deno.serve(async (req: Request) => {
             eventName: "quote_validation_passed",
             identity: {
               leadId: session.lead_id,
-              email: session.leads?.email || null,
-              phoneE164: session.leads?.phone_e164 || null,
-              firstName: session.leads?.first_name || null,
+              email: joinedLead?.email || null,
+              phoneE164: joinedLead?.phone_e164 || null,
+              firstName: joinedLead?.first_name || null,
               clientIp,
               userAgent: req.headers.get("user-agent") || null,
             },

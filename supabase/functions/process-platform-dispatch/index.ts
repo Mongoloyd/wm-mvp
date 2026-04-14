@@ -43,7 +43,8 @@ async function sendMeta(payload: Record<string, unknown>) {
     return { ok: res.ok, status: res.status, response, retryable: isRetryableStatus(res.status) };
   } catch (err) {
     clearTimeout(timeoutId);
-    if (err instanceof Error && err.name === "AbortError") {
+    // AbortController throws DOMException in Deno, Error in some Node environments
+    if ((err instanceof DOMException || err instanceof Error) && err.name === "AbortError") {
       return { ok: false, status: 408, response: { error: "request_timeout" }, retryable: true };
     }
     throw err;
@@ -76,7 +77,8 @@ async function sendGoogle(payload: Record<string, unknown>) {
     return { ok: res.ok, status: res.status, response, retryable: isRetryableStatus(res.status) };
   } catch (err) {
     clearTimeout(timeoutId);
-    if (err instanceof Error && err.name === "AbortError") {
+    // AbortController throws DOMException in Deno, Error in some Node environments
+    if ((err instanceof DOMException || err instanceof Error) && err.name === "AbortError") {
       return { ok: false, status: 408, response: { error: "request_timeout" }, retryable: true };
     }
     throw err;
