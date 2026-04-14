@@ -32,6 +32,7 @@ const Terms = lazy(() => import("./pages/Terms.tsx"));
 const Disclaimer = lazy(() => import("./pages/Disclaimer.tsx"));
 const HowWeBeatWindowQuotes = lazy(() => import("./pages/HowWeBeatWindowQuotes.tsx"));
 const Contractors = lazy(() => import("./pages/Contractors.tsx"));
+const Contractors2 = lazy(() => import("./pages/Contractors2.tsx"));
 const PartnerDossier = lazy(() => import("./pages/PartnerDossier.tsx"));
 const ContractorLogin = lazy(() => import("./pages/ContractorLogin.tsx"));
 const ContractorOpportunitiesPage = lazy(() => import("./pages/ContractorOpportunitiesPage.tsx"));
@@ -129,6 +130,7 @@ const App = () => (
                   <Route path="/disclaimer" element={<Disclaimer />} />
                   <Route path="/how-we-beat-window-quotes" element={<HowWeBeatWindowQuotes />} />
                   <Route path="/contractors" element={<Contractors />} />
+                  <Route path="/contractors2" element={<Contractors2 />} />
                 </Route>
                 <Route path="/partner/login" element={<ContractorLogin />} />
                 <Route path="/partner/reset-password" element={<PartnerResetPassword />} />
