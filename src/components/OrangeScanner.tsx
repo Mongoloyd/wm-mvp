@@ -629,15 +629,9 @@ export default function OrangeScanner({
   const hasRunOnce = useRef(false);
 
   // --- Derived scenario with fallbacks ---
-  if (quoteScenarios.length === 0) {
-    return (
-      <div className="min-h-[400px] bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
-        Demo scenarios unavailable.
-      </div>
-    );
-  }
-
-  const currentScenario = quoteScenarios[scenarioIndex % quoteScenarios.length];
+  const currentScenario = quoteScenarios.length > 0
+    ? quoteScenarios[scenarioIndex % quoteScenarios.length]
+    : null;
   const safeScenario = {
     ...currentScenario,
     lineItems: Array.isArray(currentScenario?.lineItems) ? currentScenario.lineItems : [],
