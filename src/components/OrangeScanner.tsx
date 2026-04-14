@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   BrainCircuit,
@@ -617,8 +618,10 @@ let warnedDemoMissing = false;
 
 export default function OrangeScanner({
   onScanClick,
-  onDemoClick,
+  onDemoClick: _onDemoClick,
 }: { onScanClick?: () => void; onDemoClick?: () => void } = {}) {
+  const navigate = useNavigate();
+
   // --- State ---
   const [scenarioIndex, setScenarioIndex] = useState(0);
   const [isScanning, setIsScanning] = useState(false);
@@ -666,15 +669,11 @@ export default function OrangeScanner({
   };
 
   const safeInvokeDemoClick = () => {
-    console.info("demo_cta_clicked", { scenarioId: safeScenario.id, button: "want_quote" });
-    if (typeof onDemoClick === "function") {
-      onDemoClick();
-      return;
-    }
-    if (!warnedDemoMissing) {
-      console.warn("OrangeScanner: onDemoClick callback is undefined.");
-      warnedDemoMissing = true;
-    }
+    console.info("demo_cta_clicked", {
+      scenarioId: safeScenario.id,
+      button: "want_quote",
+    });
+    navigate("/about?startArb=1&step=scope&src=orange-scanner");
   };
 
   // --- Start scan (no timer engine here) ---
