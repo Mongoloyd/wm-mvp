@@ -71,8 +71,8 @@ export async function createCanonicalEvent(
     optimization_value: event.optimization.value,
     should_send_meta: event.optimization.shouldSendMeta,
     should_send_google: event.optimization.shouldSendGoogle,
-    meta_dispatch_status: event.optimization.shouldSendMeta ? "pending" : "suppressed",
-    google_dispatch_status: event.optimization.shouldSendGoogle ? "pending" : "suppressed",
+    meta_dispatch_status: event.optimization.shouldSendMeta && event.trust?.anomalyStatus === "safe" ? "pending" : "suppressed",
+    google_dispatch_status: event.optimization.shouldSendGoogle && event.trust?.anomalyStatus === "safe" ? "pending" : "suppressed",
     payload: event,
     raw_payload: event.rawPayload || null,
   });
@@ -111,12 +111,16 @@ export async function createCanonicalEvent(
     }
 
     if (trust.manualReviewRequired || trust.anomalyStatus === "quarantine") {
-      await supabase.from("wm_quote_reviews").upsert({
+      const { error: reviewErr } = await supabase.from("wm_quote_reviews").upsert({
         event_id: event.eventId,
         analysis_id: input.quote.analysisId,
         review_status: "queued",
         reason_codes: trust.reasons,
       }, { onConflict: "event_id" });
+
+      if (reviewErr) {
+        throw new Error(`wm_quote_reviews upsert failed: ${reviewErr.message}`);
+      }
     }
   }
 

@@ -557,10 +557,10 @@ Deno.serve(async (req: Request) => {
       req.headers.get("x-real-ip") ||
       "unknown";
 
-    // 1. Load scan session
+    // 1. Load scan session with joined lead data (single round-trip for county and identity)
     const { data: session, error: sessionErr } = await supabase
       .from("scan_sessions")
-      .select("id, quote_file_id, lead_id, status")
+      .select("id, quote_file_id, lead_id, status, leads:lead_id(county, email, phone_e164, first_name)")
       .eq("id", scan_session_id)
       .single();
 
@@ -569,6 +569,14 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Session not found" }, 404);
     }
 
+    // ── Idempotency guard: reject if session is already terminal ──
+    const TERMINAL_STATUSES = ["processing", "preview_ready", "complete", "invalid_document"];
+    if (TERMINAL_STATUSES.includes(session.status) && !_isDevBypass) {
+      console.log(`Idempotency guard: session ${scan_session_id} already in status '${session.status}'`);
+      return jsonResponse({ scan_session_id, status: session.status }, 200);
+    }
+
+    // Emit quote_upload_completed after idempotency guard to avoid inflating metrics for retried requests
     try {
       await createCanonicalEvent(supabase, {
         eventName: "quote_upload_completed",
@@ -590,13 +598,6 @@ Deno.serve(async (req: Request) => {
       });
     } catch (eventErr) {
       console.error("[scan-quote] quote_upload_completed canonical event failed (non-fatal):", eventErr);
-    }
-
-    // ── Idempotency guard: reject if session is already terminal ──
-    const TERMINAL_STATUSES = ["processing", "preview_ready", "complete", "invalid_document"];
-    if (TERMINAL_STATUSES.includes(session.status) && !_isDevBypass) {
-      console.log(`Idempotency guard: session ${scan_session_id} already in status '${session.status}'`);
-      return jsonResponse({ scan_session_id, status: session.status }, 200);
     }
 
     // ── Rate-limit check (by lead_id — one lead per visitor session) ──
@@ -973,20 +974,8 @@ Deno.serve(async (req: Request) => {
       const gradeResult = computeGrade(extraction);
       const flags = detectFlags(extraction);
 
-      // 11b. Non-blocking county lookup for benchmark comparison
-      let countyName: string | null = null;
-      if (session?.lead_id) {
-        try {
-          const { data: leadRow } = await supabase
-            .from("leads")
-            .select("county")
-            .eq("id", session.lead_id)
-            .maybeSingle();
-          countyName = leadRow?.county ?? null;
-        } catch (countyErr) {
-          console.warn("County lookup failed (non-fatal, using fallback):", countyErr);
-        }
-      }
+      // 11b. County from pre-fetched lead data (no additional round-trip)
+      const countyName: string | null = session?.leads?.county ?? null;
 
       // 11c. Derive financial metrics (inline — deterministic math, no HTTP call)
       let derivedMetrics: Record<string, unknown> | null = null;
@@ -1153,19 +1142,13 @@ Deno.serve(async (req: Request) => {
         }
 
         try {
-          const identitySource = await supabase
-            .from("leads")
-            .select("email, phone_e164, first_name")
-            .eq("id", session.lead_id)
-            .maybeSingle();
-
           await createCanonicalEvent(supabase, {
             eventName: "quote_validation_passed",
             identity: {
               leadId: session.lead_id,
-              email: identitySource.data?.email || null,
-              phoneE164: identitySource.data?.phone_e164 || null,
-              firstName: identitySource.data?.first_name || null,
+              email: session.leads?.email || null,
+              phoneE164: session.leads?.phone_e164 || null,
+              firstName: session.leads?.first_name || null,
               clientIp,
               userAgent: req.headers.get("user-agent") || null,
             },

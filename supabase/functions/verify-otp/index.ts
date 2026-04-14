@@ -95,15 +95,19 @@ Deno.serve(async (req) => {
     // ── 4. Twilio approved — update DB ──────────────────────────────────
     const now = new Date().toISOString();
 
-    // Resolve lead_id from scan_sessions (if provided)
+    // Resolve lead_id and lead identity from scan_sessions with joined leads table (single round-trip)
     let resolvedLeadId: string | null = null;
+    let leadEmail: string | null = null;
+    let leadFirstName: string | null = null;
     if (scan_session_id) {
       const { data: session } = await supabase
         .from("scan_sessions")
-        .select("lead_id")
+        .select("lead_id, leads:lead_id(email, first_name)")
         .eq("id", scan_session_id)
         .maybeSingle();
       resolvedLeadId = session?.lead_id || null;
+      leadEmail = session?.leads?.email || null;
+      leadFirstName = session?.leads?.first_name || null;
 
       // ── Defensive integrity guard ──
       // If scan_session_id was provided but has no lead_id, we cannot bind
@@ -184,19 +188,13 @@ Deno.serve(async (req) => {
 
     if (resolvedLeadId) {
       try {
-        const { data: leadIdentity } = await supabase
-          .from("leads")
-          .select("email, first_name")
-          .eq("id", resolvedLeadId)
-          .maybeSingle();
-
         await createCanonicalEvent(supabase, {
           eventName: "otp_verified",
           identity: {
             leadId: resolvedLeadId,
-            email: leadIdentity?.email || null,
+            email: leadEmail,
             phoneE164: twilioPhone,
-            firstName: leadIdentity?.first_name || null,
+            firstName: leadFirstName,
             clientIp: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
             userAgent: req.headers.get("user-agent") || null,
           },

@@ -18,6 +18,8 @@ function nextRetry(attemptCount: number): string | null {
   return new Date(Date.now() + RETRY_DELAYS_MS[attemptCount]).toISOString();
 }
 
+const EXTERNAL_FETCH_TIMEOUT_MS = 30000; // 30 second timeout for external API calls
+
 async function sendMeta(payload: Record<string, unknown>) {
   const pixelId = Deno.env.get("META_PIXEL_ID");
   const token = Deno.env.get("META_CAPI_TOKEN");
@@ -25,14 +27,27 @@ async function sendMeta(payload: Record<string, unknown>) {
     return { ok: false, status: 400, response: { error: "meta_not_configured" }, retryable: false };
   }
 
-  const res = await fetch(`https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${token}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data: [payload] }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), EXTERNAL_FETCH_TIMEOUT_MS);
 
-  const response = await res.json().catch(() => ({}));
-  return { ok: res.ok, status: res.status, response, retryable: isRetryableStatus(res.status) };
+  try {
+    const res = await fetch(`https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: [payload] }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    const response = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, response, retryable: isRetryableStatus(res.status) };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof Error && err.name === "AbortError") {
+      return { ok: false, status: 408, response: { error: "request_timeout" }, retryable: true };
+    }
+    throw err;
+  }
 }
 
 async function sendGoogle(payload: Record<string, unknown>) {
@@ -42,17 +57,30 @@ async function sendGoogle(payload: Record<string, unknown>) {
     return { ok: false, status: 400, response: { error: "google_endpoint_not_configured" }, retryable: false };
   }
 
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-    },
-    body: JSON.stringify(payload),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), EXTERNAL_FETCH_TIMEOUT_MS);
 
-  const response = await res.json().catch(() => ({}));
-  return { ok: res.ok, status: res.status, response, retryable: isRetryableStatus(res.status) };
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    const response = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, response, retryable: isRetryableStatus(res.status) };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof Error && err.name === "AbortError") {
+      return { ok: false, status: 408, response: { error: "request_timeout" }, retryable: true };
+    }
+    throw err;
+  }
 }
 
 async function markEventPlatformStatus(
