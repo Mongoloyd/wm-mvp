@@ -27,7 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getUtmData } from "@/lib/useUtmCapture";
 import { toE164 } from "@/utils/formatPhone";
 
-export type FunnelStep =
+type FunnelStep =
   | "scope"
   | "intent_filter"
   | "status"
@@ -41,12 +41,6 @@ export type FunnelStep =
   | "done"
   | "secret_capture"
   | "secret_success";
-
-export const FUNNEL_STEPS: FunnelStep[] = [
-  "scope", "intent_filter", "status", "comp_a", "comp_b",
-  "contact", "identity", "intent", "call", "timeframe",
-  "done", "secret_capture", "secret_success",
-];
 
 type ArbitrageEngineProps = {
   autoOpen?: boolean;
