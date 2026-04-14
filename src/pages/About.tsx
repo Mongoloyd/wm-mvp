@@ -16,7 +16,7 @@ import ContractorBenefitSection from "@/components/about/ContractorBenefitSectio
 import InevitabilitySection from "@/components/about/InevitabilitySection";
 import TrustProofSection from "@/components/about/TrustProofSection";
 import AboutCTASection from "@/components/about/AboutCTASection";
-import AboutFooter from "@/components/about/AboutFooter";
+
 
 
 export default function About() {
@@ -85,7 +85,7 @@ export default function About() {
       <InevitabilitySection />
       <TrustProofSection />
       <AboutCTASection onTrack={handleTrack} />
-      <AboutFooter />
+      
     </main>
   );
 }
