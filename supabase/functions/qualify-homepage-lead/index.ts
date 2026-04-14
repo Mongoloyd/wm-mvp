@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { normalizePhone } from "../_shared/normalizePhone.ts";
+import { persistCanonicalEvent } from "../_shared/tracking/canonicalBridge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -95,6 +96,9 @@ async function runTwilioLookup(phoneE164: string): Promise<LookupOutcome> {
 
   try {
     const encodedPhone = encodeURIComponent(phoneE164);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort("twilio_lookup_timeout"), 8000);
+
     const res = await fetch(
       `https://lookups.twilio.com/v2/PhoneNumbers/${encodedPhone}?Fields=line_type_intelligence,sms_pumping_risk`,
       {
@@ -102,8 +106,9 @@ async function runTwilioLookup(phoneE164: string): Promise<LookupOutcome> {
         headers: {
           Authorization: "Basic " + btoa(`${accountSid}:${authToken}`),
         },
+        signal: controller.signal,
       },
-    );
+    ).finally(() => clearTimeout(timeout));
 
     if (!res.ok) {
       const body = await res.text();
@@ -199,33 +204,23 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: existingLeadByPhoneRows, error: phoneQueryError } = await supabase
+    const { data: existingLeadRows, error: leadQueryError } = await supabase
       .from("leads")
-      .select("id")
-      .eq("phone_e164", phoneE164)
+      .select("id, phone_e164, email, created_at")
+      .or(`phone_e164.eq.${phoneE164},email.eq.${payload.email}`)
       .order("created_at", { ascending: false })
-      .limit(1);
+      .limit(5);
 
-    if (phoneQueryError) {
-      console.error("[qualify-homepage-lead] lead lookup by phone failed", phoneQueryError);
+    if (leadQueryError) {
+      console.error("[qualify-homepage-lead] lead lookup failed", leadQueryError);
     }
 
-    let leadId = existingLeadByPhoneRows?.[0]?.id ?? null;
+    const prioritizedLead =
+      existingLeadRows?.find((row) => row.phone_e164 === phoneE164) ??
+      existingLeadRows?.find((row) => row.email === payload.email) ??
+      null;
 
-    if (!leadId) {
-      const { data: existingLeadByEmailRows, error: emailQueryError } = await supabase
-        .from("leads")
-        .select("id")
-        .eq("email", payload.email)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (emailQueryError) {
-        console.error("[qualify-homepage-lead] lead lookup by email failed", emailQueryError);
-      }
-
-      leadId = existingLeadByEmailRows?.[0]?.id ?? null;
-    }
+    let leadId = prioritizedLead?.id ?? null;
 
     const trimmedName = payload.name?.trim() ?? "";
     const nameParts = trimmedName ? trimmedName.split(/\s+/) : [];
@@ -292,6 +287,43 @@ Deno.serve(async (req) => {
       phone_line_type: lookup.lineType,
       reason: lookup.reason,
     };
+
+    if (leadId) {
+      try {
+        await persistCanonicalEvent(supabase, {
+          eventName: "lead_identified",
+          leadId,
+          payload: {
+            identity: {
+              leadId,
+              email: payload.email,
+              phone: phoneE164,
+              clickId: typeof payload.context?.gclid === "string" ? payload.context.gclid : undefined,
+              gclid: typeof payload.context?.gclid === "string" ? payload.context.gclid : undefined,
+              fbc: typeof payload.context?.fbc === "string" ? payload.context.fbc : undefined,
+              fbp: typeof payload.context?.fbp === "string" ? payload.context.fbp : undefined,
+            },
+            journey: {
+              route: typeof payload.context?.route === "string" ? payload.context.route : "/",
+              flow: "public",
+              sessionId: typeof payload.context?.session_id === "string" ? payload.context.session_id : undefined,
+            },
+            source: {
+              sourceSystem: "edge_function",
+              utmSource: typeof payload.context?.utm_source === "string" ? payload.context.utm_source : undefined,
+              utmMedium: typeof payload.context?.utm_medium === "string" ? payload.context.utm_medium : undefined,
+              utmCampaign: typeof payload.context?.utm_campaign === "string" ? payload.context.utm_campaign : undefined,
+            },
+            metadata: {
+              qualification_status: qualificationStatus,
+              phone_line_type: lookup.lineType,
+            },
+          },
+        });
+      } catch (canonicalError) {
+        console.error("[qualify-homepage-lead] canonical event failed", canonicalError);
+      }
+    }
 
     return new Response(JSON.stringify(response), {
       status: 200,

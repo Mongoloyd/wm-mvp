@@ -15,11 +15,21 @@ export type WMIdentityQuality = (typeof WM_IDENTITY_QUALITIES)[number];
 export interface WMIdentityPayload {
   leadId?: string;
   userId?: string;
-  emailPresent?: boolean;
-  phonePresent?: boolean;
+  email?: string;
+  emailHash?: string;
+  phone?: string;
+  phoneHash?: string;
   phoneVerifiedAt?: string;
+  clickId?: string;
+  fbc?: string;
+  fbp?: string;
+  gclid?: string;
+  gbraid?: string;
+  wbraid?: string;
   sameDeviceAsUpload?: boolean;
   ipRiskLevel?: "low" | "medium" | "high";
+  userAgent?: string;
+  clientIp?: string;
 }
 
 export interface WMJourneyPayload {
@@ -90,12 +100,17 @@ export interface WMCanonicalEvent {
   modelVersion?: string;
   rubricVersion?: string;
   dispatchStatus: WMDispatchStatus;
+  identityQuality: WMIdentityQuality;
+  shouldSendMeta: boolean;
+  shouldSendGoogle: boolean;
   payload: WMCanonicalEventPayload;
   rawPayload?: Record<string, unknown>;
 }
 
 export interface CreateCanonicalEventInput {
+  eventId?: string;
   eventName: WMEventName;
+  eventTimestamp?: string;
   payload: WMCanonicalEventPayload;
   leadId?: string;
   userId?: string;
@@ -105,6 +120,8 @@ export interface CreateCanonicalEventInput {
   schemaVersion?: string;
   modelVersion?: string;
   rubricVersion?: string;
+  marginUsd?: number;
+  rawPayload?: Record<string, unknown>;
 }
 
 export interface WMAnomalyInput {
