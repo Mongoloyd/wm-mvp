@@ -57,7 +57,7 @@ const ClosingManifesto = ({ onScanClick, onDemoClick }: ClosingManifestoProps) =
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.15, delay: 0.15 }}
-          className="grid grid-cols-2 gap-4 mx-auto mt-12"
+          className="grid grid-cols-2 gap-4 mx-auto mt-12 py-[10px]"
           style={{ maxWidth: 560 }}
         >
           {dynamicChecks.map((text, i) => (
