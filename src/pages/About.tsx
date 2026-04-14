@@ -8,7 +8,7 @@ import WhyPricesVarySection from "@/components/about/WhyPricesVarySection";
 import NotAContractorSection from "@/components/about/NotAContractorSection";
 import HowWindowManWorksSection from "@/components/about/HowWindowManWorksSection";
 import ArbitrageEngineSection from "@/components/about/ArbitrageEngineSection";
-import ArbitrageEngine from "@/components/arbitrageengine";
+import ArbitrageEngine, { type FunnelStep, FUNNEL_STEPS } from "@/components/arbitrageengine";
 import HowWeMakeMoneySection from "@/components/about/HowWeMakeMoneySection";
 import BestPriceConditionsSection from "@/components/about/BestPriceConditionsSection";
 import TransparencyShiftSection from "@/components/about/TransparencyShiftSection";
@@ -45,7 +45,7 @@ export default function About() {
   const isDirectEntry = searchParams.get("startArb") === "1";
   const source = searchParams.get("src") || "unknown";
   const rawStep = searchParams.get("step") || "scope";
-  const initialStep: FunnelStep = ALLOWED_STEPS.includes(rawStep as FunnelStep)
+  const initialStep: FunnelStep = (FUNNEL_STEPS as string[]).includes(rawStep)
     ? (rawStep as FunnelStep)
     : "scope";
 

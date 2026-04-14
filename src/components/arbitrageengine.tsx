@@ -185,7 +185,7 @@ type FunnelStep =
   | "secret_capture"
   | "secret_success";
 
-type ArbitrageEngineProps = {
+export type ArbitrageEngineProps = {
   autoOpen?: boolean;
   initialStep?: FunnelStep;
   hideBaseShell?: boolean;

@@ -618,7 +618,7 @@ let warnedDemoMissing = false;
 
 export default function OrangeScanner({
   onScanClick,
-  onDemoClick: _onDemoClick,
+  onDemoClick,
 }: { onScanClick?: () => void; onDemoClick?: () => void } = {}) {
   const navigate = useNavigate();
 
