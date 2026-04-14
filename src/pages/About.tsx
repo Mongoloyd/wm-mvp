@@ -53,8 +53,7 @@ export default function About() {
     trackEvent({
       event_name: "about_page_opened",
       route: "/about",
-      direct_entry: isDirectEntry,
-      source,
+      metadata: { direct_entry: isDirectEntry, source },
     });
   }, [isDirectEntry, source]);
 
@@ -62,8 +61,7 @@ export default function About() {
     trackEvent({
       event_name: eventName,
       route: "/about",
-      direct_entry: isDirectEntry,
-      source,
+      metadata: { direct_entry: isDirectEntry, source },
     });
   };
 
