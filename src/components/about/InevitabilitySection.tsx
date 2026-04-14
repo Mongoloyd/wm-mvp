@@ -17,8 +17,7 @@ const standards = [
   {
     label: "Window Contracts",
     standard: "WindowMan",
-    caption:
-      "A vague, low-standard quoting market gets a contract intelligence layer.",
+    caption: "A vague, low-standard quoting market gets a contract intelligence layer.",
     featured: true,
   },
 ];
@@ -35,7 +34,8 @@ export default function InevitabilitySection() {
           right: "-5%",
           width: "65%",
           height: "90%",
-          background: "radial-gradient(ellipse at 65% 40%, rgba(14,50,140,0.12) 0%, rgba(30,80,180,0.08) 45%, transparent 70%)",
+          background:
+            "radial-gradient(ellipse at 65% 40%, rgba(14,50,140,0.12) 0%, rgba(30,80,180,0.08) 45%, transparent 70%)",
           filter: "blur(50px)",
         }}
       />
@@ -56,13 +56,10 @@ export default function InevitabilitySection() {
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">THE STANDARD</SectionEyebrow>
-          <SectionHeading className="mb-6">
-            Every Major Market Eventually Gets a Standard.
-          </SectionHeading>
+          <SectionHeading className="mb-6">Every Major Market Eventually Gets a Standard.</SectionHeading>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-foreground/80 md:text-lg">
-            Used cars got Carfax. Real estate got Zillow. Consumer credit got
-            FICO. Home improvement contracts are next. WindowMan is building that
-            standard.
+            Used Cars Got Carfax. Real Estate Got Zillow. Consumer Credit Got FICO. Home Improvement Contracts Are Next.
+            WindowMan Is Building That Standard Starting With The Most Asymetrical Information Vertical.
           </p>
         </div>
 
@@ -71,7 +68,7 @@ export default function InevitabilitySection() {
           {standards.map((item, index) => (
             <div
               key={item.label}
-              className="relative flex flex-col rounded-2xl bg-white p-8 border-double border-4 shadow-2xl"
+              className="relative flex flex-col rounded-2xl bg-white p-8"
               style={
                 item.featured
                   ? {
@@ -91,9 +88,7 @@ export default function InevitabilitySection() {
               <span
                 className="mb-4 inline-flex h-7 w-7 items-center justify-center rounded-full font-mono text-xs font-bold"
                 style={
-                  item.featured
-                    ? { background: "#06B6D4", color: "#fff" }
-                    : { background: "#e2e8f0", color: "#64748b" }
+                  item.featured ? { background: "#06B6D4", color: "#fff" } : { background: "#e2e8f0", color: "#64748b" }
                 }
                 aria-hidden="true"
               >
@@ -111,11 +106,7 @@ export default function InevitabilitySection() {
               {/* Standard name */}
               <h3
                 className="mb-4 font-display text-3xl font-extrabold tracking-tight"
-                style={
-                  item.featured
-                    ? { color: "#1E3A8A" }
-                    : { color: "hsl(var(--foreground))" }
-                }
+                style={item.featured ? { color: "#1E3A8A" } : { color: "hsl(var(--foreground))" }}
               >
                 {item.standard}
               </h3>
@@ -137,9 +128,7 @@ export default function InevitabilitySection() {
                     }}
                     aria-hidden="true"
                   />
-                  <span className="font-mono text-[10px] tracking-[0.08em] text-foreground/50">
-                    BUILDING NOW
-                  </span>
+                  <span className="font-mono text-[10px] tracking-[0.08em] text-foreground/50">BUILDING NOW</span>
                 </div>
               )}
             </div>
@@ -148,8 +137,8 @@ export default function InevitabilitySection() {
 
         {/* Concluding line */}
         <p className="text-center text-base font-semibold italic text-foreground/60 md:text-lg">
-          Markets that lack standards eventually produce them. The only question
-          is who builds the reference layer first.
+          Markets that lack standards eventually produce them. The only question is who builds the reference layer
+          first.
         </p>
       </div>
     </section>
