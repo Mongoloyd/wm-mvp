@@ -416,136 +416,144 @@ const VerdictHologram = React.forwardRef<
     onScanClick: () => void;
     onDemoClick: () => void;
   }
->(({ isOpen, alertLevel, summaryTitle, summaryText, integrityScore, activeAnomalies, onScanClick, onDemoClick }, ref) => {
-  const auditIdRef = useRef(Date.now().toString(36).toUpperCase().slice(-9));
+>(
+  (
+    { isOpen, alertLevel, summaryTitle, summaryText, integrityScore, activeAnomalies, onScanClick, onDemoClick },
+    ref,
+  ) => {
+    const auditIdRef = useRef(Date.now().toString(36).toUpperCase().slice(-9));
 
-  if (!isOpen) return null;
+    if (!isOpen) return null;
 
-  const themeMap = {
-    critical: {
-      border: "border-red-500/50",
-      glow: "shadow-[0_0_50px_rgba(239,68,68,0.4)]",
-      overlay: "from-red-500/10",
-      iconColor: "text-red-500",
-      accentBg: "bg-red-500/20",
-      headline: "DO NOT SIGN",
-      headlineColor: "text-red-500",
-      riskCards: [
-        { title: "Structural Safety", text: "Substandard DP-15 rating in a Coastal Zone." },
-        { title: "Financial Risk", text: "Excessive 75% deposit is 3x the industry standard." },
-        { title: "Legal Trap", text: "Hidden 15% surcharge found in fine print." },
-      ],
-    },
-    caution: {
-      border: "border-amber-500/50",
-      glow: "shadow-[0_0_50px_rgba(245,158,11,0.4)]",
-      overlay: "from-amber-500/10",
-      iconColor: "text-amber-500",
-      accentBg: "bg-amber-500/20",
-      headline: "REQUEST REVISIONS",
-      headlineColor: "text-amber-500",
-      riskCards: [
-        { title: "Missing Specifications", text: "No manufacturer brand or NOA code specified." },
-        { title: "Vague Pricing", text: '"Allowance" terms expose you to unlimited cost overages.' },
-        { title: "Elevated Deposit", text: "40% deposit exceeds recommended 30% threshold." },
-      ],
-    },
-    verified: {
-      border: "border-emerald-500/50",
-      glow: "shadow-[0_0_50px_rgba(16,185,129,0.4)]",
-      overlay: "from-emerald-500/10",
-      iconColor: "text-emerald-500",
-      accentBg: "bg-emerald-500/20",
-      headline: "PROCEED WITH CONFIDENCE",
-      headlineColor: "text-emerald-500",
-      riskCards: [
-        { title: "Brand Verified", text: "PGT Winguard with active NOA confirmation." },
-        { title: "Code Compliant", text: "DP-70 exceeds all coastal zone requirements." },
-        { title: "Fair Pricing", text: "Within 4% of regional fair market average." },
-      ],
-    },
-  };
+    const themeMap = {
+      critical: {
+        border: "border-red-500/50",
+        glow: "shadow-[0_0_50px_rgba(239,68,68,0.4)]",
+        overlay: "from-red-500/10",
+        iconColor: "text-red-500",
+        accentBg: "bg-red-500/20",
+        headline: "DO NOT SIGN",
+        headlineColor: "text-red-500",
+        riskCards: [
+          { title: "Structural Safety", text: "Substandard DP-15 rating in a Coastal Zone." },
+          { title: "Financial Risk", text: "Excessive 75% deposit is 3x the industry standard." },
+          { title: "Legal Trap", text: "Hidden 15% surcharge found in fine print." },
+        ],
+      },
+      caution: {
+        border: "border-amber-500/50",
+        glow: "shadow-[0_0_50px_rgba(245,158,11,0.4)]",
+        overlay: "from-amber-500/10",
+        iconColor: "text-amber-500",
+        accentBg: "bg-amber-500/20",
+        headline: "REQUEST REVISIONS",
+        headlineColor: "text-amber-500",
+        riskCards: [
+          { title: "Missing Specifications", text: "No manufacturer brand or NOA code specified." },
+          { title: "Vague Pricing", text: '"Allowance" terms expose you to unlimited cost overages.' },
+          { title: "Elevated Deposit", text: "40% deposit exceeds recommended 30% threshold." },
+        ],
+      },
+      verified: {
+        border: "border-emerald-500/50",
+        glow: "shadow-[0_0_50px_rgba(16,185,129,0.4)]",
+        overlay: "from-emerald-500/10",
+        iconColor: "text-emerald-500",
+        accentBg: "bg-emerald-500/20",
+        headline: "PROCEED WITH CONFIDENCE",
+        headlineColor: "text-emerald-500",
+        riskCards: [
+          { title: "Brand Verified", text: "PGT Winguard with active NOA confirmation." },
+          { title: "Code Compliant", text: "DP-70 exceeds all coastal zone requirements." },
+          { title: "Fair Pricing", text: "Within 4% of regional fair market average." },
+        ],
+      },
+    };
 
-  const theme = themeMap[alertLevel];
-  const VerdictIcon = alertLevel === "verified" ? CheckCircle2 : AlertOctagon;
+    const theme = themeMap[alertLevel];
+    const VerdictIcon = alertLevel === "verified" ? CheckCircle2 : AlertOctagon;
 
-  return (
-    <div
-      className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
-      style={{ perspective: "1000px" }}
-    >
+    return (
       <div
-        ref={ref}
-        tabIndex={-1}
-        aria-live="polite"
-        className={`relative pointer-events-auto bg-slate-900/60 backdrop-blur-xl border-2 ${theme.border} p-8 rounded-xl ${theme.glow} w-[85%] max-w-md animate-in zoom-in-95 fade-in duration-700 delay-300 flex flex-col items-center text-center ring-1 ring-white/20 outline-none`}
-        data-testid="orange-scanner-verdict-cta"
+        className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
+        style={{ perspective: "1000px" }}
       >
-        <div className={`absolute inset-0 bg-gradient-to-t ${theme.overlay} to-transparent pointer-events-none animate-pulse rounded-xl`} />
+        <div
+          ref={ref}
+          tabIndex={-1}
+          aria-live="polite"
+          className={`relative pointer-events-auto bg-slate-900/60 backdrop-blur-xl border-2 ${theme.border} p-8 rounded-xl ${theme.glow} w-[85%] max-w-md animate-in zoom-in-95 fade-in duration-700 delay-300 flex flex-col items-center text-center ring-1 ring-white/20 outline-none`}
+          data-testid="orange-scanner-verdict-cta"
+        >
+          <div
+            className={`absolute inset-0 bg-gradient-to-t ${theme.overlay} to-transparent pointer-events-none animate-pulse rounded-xl`}
+          />
 
-        <div className="relative mb-6">
-          <VerdictIcon size={64} className={`${theme.iconColor} mb-2 animate-bounce`} />
-          <div className={`absolute -inset-4 ${theme.accentBg} blur-xl rounded-full`} />
-        </div>
+          <div className="relative mb-6">
+            <VerdictIcon size={64} className={`${theme.iconColor} mb-2 animate-bounce`} />
+            <div className={`absolute -inset-4 ${theme.accentBg} blur-xl rounded-full`} />
+          </div>
 
-        <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter mb-2 italic">
-          VERDICT: <span className={theme.headlineColor}>{theme.headline}</span>
-        </h2>
+          <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter mb-2 italic">
+            VERDICT: <span className={theme.headlineColor}>{theme.headline}</span>
+          </h2>
 
-        <p className="text-slate-300 text-sm mb-8 max-w-md">
-          {summaryText}
-        </p>
+          <p className="text-slate-300 text-sm mb-8 max-w-md">{summaryText}</p>
 
-        <div className="w-full space-y-3 mb-8">
-          {theme.riskCards.map((card, i) => (
-            <div key={i} className={`${alertLevel === "verified" ? "bg-emerald-500/10 border-emerald-500/20" : alertLevel === "caution" ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20"} border p-3 rounded flex items-center gap-3 text-left`}>
-              {alertLevel === "verified" ? (
-                <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
-              ) : (
-                <ShieldAlert size={20} className={`${theme.iconColor} shrink-0`} />
-              )}
-              <div>
-                <div className={`text-[10px] uppercase font-bold tracking-wider ${alertLevel === "verified" ? "text-emerald-400" : alertLevel === "caution" ? "text-amber-400" : "text-red-400"}`}>
-                  {card.title}
+          <div className="w-full space-y-3 mb-8">
+            {theme.riskCards.map((card, i) => (
+              <div
+                key={i}
+                className={`${alertLevel === "verified" ? "bg-emerald-500/10 border-emerald-500/20" : alertLevel === "caution" ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20"} border p-3 rounded flex items-center gap-3 text-left`}
+              >
+                {alertLevel === "verified" ? (
+                  <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+                ) : (
+                  <ShieldAlert size={20} className={`${theme.iconColor} shrink-0`} />
+                )}
+                <div>
+                  <div
+                    className={`text-[10px] uppercase font-bold tracking-wider ${alertLevel === "verified" ? "text-emerald-400" : alertLevel === "caution" ? "text-amber-400" : "text-red-400"}`}
+                  >
+                    {card.title}
+                  </div>
+                  <div className="text-xs text-white">{card.text}</div>
                 </div>
-                <div className="text-xs text-white">{card.text}</div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* Decision Gate */}
-        <div className="w-full mt-8">
-          <p className="text-slate-300 text-sm mb-4 text-center">
-            This was a demo estimate. Choose your next step.
-          </p>
-          <div className="flex flex-col md:flex-row gap-4 w-full">
-            <button
-              onClick={onScanClick}
-              aria-label="I have a quote"
-              data-testid="orange-scanner-have-quote"
-              className="w-full md:flex-1 h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-cyan-500 text-slate-950 border-cyan-300/40 hover:bg-cyan-400 shadow-[0_0_24px_rgba(34,211,238,0.25)]"
-            >
-              I Have a Quote
-            </button>
-            <button
-              onClick={onDemoClick}
-              aria-label="I want a quote"
-              data-testid="orange-scanner-want-quote"
-              className="w-full md:flex-1 h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-white/10 text-white border-white/20 hover:bg-white/15 shadow-[0_0_24px_rgba(255,255,255,0.08)]"
-            >
-              I Want a Quote
-            </button>
+          {/* Decision Gate */}
+          <div className="w-full mt-8">
+            <p className="text-slate-300 text-sm mb-4 text-center">This was a demo estimate. Choose your next step.</p>
+            <div className="flex flex-col md:flex-row gap-4 w-full">
+              <button
+                onClick={onScanClick}
+                aria-label="I have a quote"
+                data-testid="orange-scanner-have-quote"
+                className="w-full md:flex-1 h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-cyan-500 text-slate-950 border-cyan-300/40 hover:bg-cyan-400 shadow-[0_0_24px_rgba(34,211,238,0.25)]"
+              >
+                I Have a Quote
+              </button>
+              <button
+                onClick={onDemoClick}
+                aria-label="I want a quote"
+                data-testid="orange-scanner-want-quote"
+                className="w-full md:flex-1 h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-white/10 text-white border-white/20 hover:bg-white/15 shadow-[0_0_24px_rgba(255,255,255,0.08)]"
+              >
+                I Want a Quote
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6 text-[10px] font-mono text-slate-500 uppercase tracking-widest opacity-80">
+            AI Audit ID: {auditIdRef.current} // v4.2 Compliance Engine
           </div>
         </div>
-
-        <div className="mt-6 text-[10px] font-mono text-slate-500 uppercase tracking-widest opacity-80">
-          AI Audit ID: {auditIdRef.current} // v4.2 Compliance Engine
-        </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 VerdictHologram.displayName = "VerdictHologram";
 
 // ═══════════════════════════════════════════════════════════════
@@ -588,7 +596,10 @@ const ScanCTA = () => {
                 Scan Your Estimate
                 <span className="opacity-60 block text-xs tracking-widest mt-1">Get the Truth</span>
               </span>
-              <ArrowRight className="relative group-hover:translate-x-2 transition-transform hidden sm:block" size={24} />
+              <ArrowRight
+                className="relative group-hover:translate-x-2 transition-transform hidden sm:block"
+                size={24}
+              />
             </button>
             <div className="mt-4 flex items-center justify-center gap-6 opacity-40">
               <div className="text-[10px] uppercase font-bold flex items-center gap-1 text-slate-50">
@@ -632,9 +643,7 @@ export default function OrangeScanner({
   const hasRunOnce = useRef(false);
 
   // --- Derived scenario with fallbacks ---
-  const currentScenario = quoteScenarios.length > 0
-    ? quoteScenarios[scenarioIndex % quoteScenarios.length]
-    : null;
+  const currentScenario = quoteScenarios.length > 0 ? quoteScenarios[scenarioIndex % quoteScenarios.length] : null;
   const safeScenario = {
     ...currentScenario,
     lineItems: Array.isArray(currentScenario?.lineItems) ? currentScenario.lineItems : [],
@@ -687,7 +696,16 @@ export default function OrangeScanner({
     hasRunOnce.current = true;
 
     resetScannerState(true);
-    console.info("demo_run_started", { scenarioId: quoteScenarios[(hasRunOnce.current && scenarioIndex + 1 < quoteScenarios.length ? scenarioIndex + 1 : hasRunOnce.current ? 0 : scenarioIndex) % quoteScenarios.length].id });
+    console.info("demo_run_started", {
+      scenarioId:
+        quoteScenarios[
+          (hasRunOnce.current && scenarioIndex + 1 < quoteScenarios.length
+            ? scenarioIndex + 1
+            : hasRunOnce.current
+              ? 0
+              : scenarioIndex) % quoteScenarios.length
+        ].id,
+    });
   };
 
   // --- useEffect scan engine ---
@@ -786,8 +804,18 @@ export default function OrangeScanner({
 
   const statusColorMap: Record<LineItemStatus, { bg: string; border: string; label: string; labelColor: string }> = {
     critical: { bg: "bg-red-500/10", border: "border-red-500", label: "AUDIT FLAG:", labelColor: "text-red-400" },
-    caution: { bg: "bg-orange-500/10", border: "border-orange-500", label: "AUDIT FLAG:", labelColor: "text-orange-400" },
-    verified: { bg: "bg-emerald-500/10", border: "border-emerald-500", label: "VERIFIED:", labelColor: "text-emerald-400" },
+    caution: {
+      bg: "bg-orange-500/10",
+      border: "border-orange-500",
+      label: "AUDIT FLAG:",
+      labelColor: "text-orange-400",
+    },
+    verified: {
+      bg: "bg-emerald-500/10",
+      border: "border-emerald-500",
+      label: "VERIFIED:",
+      labelColor: "text-emerald-400",
+    },
     neutral: { bg: "", border: "", label: "", labelColor: "" },
   };
 
@@ -829,8 +857,8 @@ export default function OrangeScanner({
                         isActive
                           ? "text-cyan-300 scale-105 font-black drop-shadow-[0_0_12px_rgba(34,211,238,0.8)]"
                           : isPast
-                            ? "text-cyan-500 font-bold"
-                            : "text-slate-400 font-medium"
+                            ? "text-cyan-400 font-bold"
+                            : "text-slate-300 font-medium"
                       }`}
                     >
                       <div className="flex items-center gap-2 tracking-widest text-[10px] md:text-sm uppercase text-center">
@@ -899,12 +927,11 @@ export default function OrangeScanner({
             <div
               className="w-full transition-all duration-1000 ease-in-out origin-center"
               style={{
-                transform:
-                  isComplete
-                    ? "rotateX(20deg) scale(0.9) translateY(-2rem)"
-                    : isScanning
-                      ? "scale(1.01)"
-                      : "scale(1)",
+                transform: isComplete
+                  ? "rotateX(20deg) scale(0.9) translateY(-2rem)"
+                  : isScanning
+                    ? "scale(1.01)"
+                    : "scale(1)",
                 opacity: isComplete ? 0.35 : 1,
                 filter: isComplete ? "blur(2px)" : "none",
               }}
@@ -1008,8 +1035,7 @@ export default function OrangeScanner({
                             {safeScenario.specifiedBrand}
                           </p>
                           <p>
-                            <span className="text-slate-400 uppercase text-xs">NOA Code:</span>{" "}
-                            {safeScenario.noaCode}
+                            <span className="text-slate-400 uppercase text-xs">NOA Code:</span> {safeScenario.noaCode}
                           </p>
                         </div>
                         <div className="sm:text-right space-y-1">
@@ -1025,7 +1051,9 @@ export default function OrangeScanner({
 
                     {/* Executive Summary Alert Box */}
                     {(isScanning || isComplete) && (
-                      <div className={`mx-8 md:mx-10 mt-4 p-4 rounded-lg border-l-4 ${alertColorMap[safeScenario.alertLevel].border} ${alertColorMap[safeScenario.alertLevel].bg}`}>
+                      <div
+                        className={`mx-8 md:mx-10 mt-4 p-4 rounded-lg border-l-4 ${alertColorMap[safeScenario.alertLevel].border} ${alertColorMap[safeScenario.alertLevel].bg}`}
+                      >
                         <h3 className={`font-bold text-sm mb-1 ${alertColorMap[safeScenario.alertLevel].text}`}>
                           {safeScenario.summaryTitle}
                         </h3>
@@ -1050,9 +1078,7 @@ export default function OrangeScanner({
 
                           return (
                             <div key={`${safeScenario.id}-${item.id}`}>
-                              <div
-                                className="relative grid grid-cols-12 gap-4 py-4 border-b border-slate-200/50 text-slate-700 items-center transition-colors hover:bg-slate-100/50"
-                              >
+                              <div className="relative grid grid-cols-12 gap-4 py-4 border-b border-slate-200/50 text-slate-700 items-center transition-colors hover:bg-slate-100/50">
                                 <div className="col-span-8 md:col-span-9 font-medium text-sm md:text-base leading-snug">
                                   {item.label}
                                 </div>
@@ -1069,13 +1095,22 @@ export default function OrangeScanner({
                                       className={`absolute left-4 md:left-auto md:-right-8 top-full md:top-1/2 mt-2 md:mt-0 md:-translate-y-1/2 transition-all duration-700 ease-out transform z-30 ${isRevealedAnomaly ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0 hidden md:block"}`}
                                     >
                                       <div className="relative">
-                                        <div className={`bg-slate-950 border ${colors.border} backdrop-blur-xl rounded px-3 py-2 flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.4)] w-max max-w-[200px] md:max-w-xs`}>
-                                          <AlertTriangle className={`${colors.labelColor} animate-pulse shrink-0`} size={16} />
+                                        <div
+                                          className={`bg-slate-950 border ${colors.border} backdrop-blur-xl rounded px-3 py-2 flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.4)] w-max max-w-[200px] md:max-w-xs`}
+                                        >
+                                          <AlertTriangle
+                                            className={`${colors.labelColor} animate-pulse shrink-0`}
+                                            size={16}
+                                          />
                                           <div className="flex flex-col">
-                                            <span className={`${colors.labelColor} font-bold text-[10px] tracking-wider uppercase`}>
+                                            <span
+                                              className={`${colors.labelColor} font-bold text-[10px] tracking-wider uppercase`}
+                                            >
                                               {colors.label}
                                             </span>
-                                            <span className="text-slate-300 text-[10px] leading-tight">{item.note}</span>
+                                            <span className="text-slate-300 text-[10px] leading-tight">
+                                              {item.note}
+                                            </span>
                                           </div>
                                         </div>
                                       </div>
@@ -1094,7 +1129,9 @@ export default function OrangeScanner({
                                             <span className="text-emerald-400 font-bold text-[10px] tracking-wider uppercase">
                                               VERIFIED:
                                             </span>
-                                            <span className="text-slate-300 text-[10px] leading-tight">{item.note}</span>
+                                            <span className="text-slate-300 text-[10px] leading-tight">
+                                              {item.note}
+                                            </span>
                                           </div>
                                         </div>
                                       </div>
@@ -1241,7 +1278,9 @@ export default function OrangeScanner({
                       key={`log-${safeScenario.id}-${item.id}`}
                       className={`border-l-2 ${isAnomaly ? (item.status === "critical" ? "border-red-500 bg-red-500/5" : "border-orange-500 bg-orange-500/5") : "border-emerald-500 bg-emerald-500/5"} pl-3 py-1 rounded-r p-2 animate-in slide-in-from-right-4 duration-300`}
                     >
-                      <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1 ${isAnomaly ? (item.status === "critical" ? "text-red-400" : "text-orange-400") : "text-emerald-400"}`}>
+                      <div
+                        className={`text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1 ${isAnomaly ? (item.status === "critical" ? "text-red-400" : "text-orange-400") : "text-emerald-400"}`}
+                      >
                         {isAnomaly ? <AlertTriangle size={12} /> : <CheckCircle2 size={12} />}
                         {isAnomaly ? `Item Variance: #${item.id}` : `Verified: #${item.id}`}
                       </div>
