@@ -293,7 +293,16 @@ export function deepMerge<T>(base: T, override: DeepPartial<T> = {}): T {
     if (!isObject(target) || !isObject(source)) return;
 
     for (const [key, value] of Object.entries(source)) {
-      if (value === undefined) continue;
+      // Guard against prototype pollution
+      if (key === "__proto__" || key === "prototype" || key === "constructor") {
+        continue;
+      }
+
+      // Allow explicit undefined to delete/clear base fields
+      if (value === undefined) {
+        delete (target as Record<string, unknown>)[key];
+        continue;
+      }
 
       if (Array.isArray(value)) {
         (target as Record<string, unknown>)[key] = structuredClone(value);
@@ -385,7 +394,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
       installation: {
         scope_detail: "Remove and replace all specified openings. Caulk and seal.",
         accessories_mentioned: true,
-        // Disposal intentionally omitted.
+        disposal_included: false, // Explicitly false to trigger disposal deduction
       },
       callback_process_text: "Call our service line — technician dispatched within 7 business days",
       leak_callback_sla_days: 7,
@@ -521,7 +530,12 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
       opening_count: 3,
       total_quoted_price: 14000,
       cancellation_policy: "No refunds after 48 hours.",
-      warranty: { details: "Contact manufacturer for warranty terms." },
+      warranty: {
+        details: "Contact manufacturer for warranty terms.",
+        labor_years: 1,
+        manufacturer_years: 10,
+        transferable: false,
+      },
       callback_process_text: "Call office for warranty service",
       leak_callback_sla_days: 7,
       labor_service_sla_days: 7,
