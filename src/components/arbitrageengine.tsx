@@ -170,7 +170,7 @@ function useFocusTrap(isActive: boolean) {
   return containerRef;
 }
 
-type FunnelStep =
+export type FunnelStep =
   | "scope"
   | "intent_filter"
   | "status"
@@ -184,6 +184,12 @@ type FunnelStep =
   | "done"
   | "secret_capture"
   | "secret_success";
+
+export const FUNNEL_STEPS: FunnelStep[] = [
+  "scope", "intent_filter", "status", "comp_a", "comp_b",
+  "contact", "identity", "intent", "call", "timeframe",
+  "done", "secret_capture", "secret_success",
+];
 
 export type ArbitrageEngineProps = {
   autoOpen?: boolean;
