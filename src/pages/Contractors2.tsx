@@ -21,6 +21,7 @@ import QualificationFlow from "@/components/qualification/QualificationFlow";
 
 const Contractors2 = () => {
   const [qualOpen, setQualOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <PageWrapper>
@@ -55,6 +56,14 @@ const Contractors2 = () => {
       <QualificationStripSection onOpenQualification={() => setQualOpen(true)} />
       <FAQSection />
       <QualificationFlow isOpen={qualOpen} onClose={() => setQualOpen(false)} />
+
+      <StickyCTAFooter
+        onScanClick={() => navigate('/')}
+        onDemoClick={() => navigate('/')}
+        onPostConversionClick={() => { window.location.href = 'tel:+15614685571'; }}
+        isVisible={true}
+        conversionType={null}
+      />
     </PageWrapper>
   );
 };
