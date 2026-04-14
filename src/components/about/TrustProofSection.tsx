@@ -40,7 +40,8 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
           transform: "translateX(-50%)",
           width: "85%",
           height: "50%",
-          background: "radial-gradient(ellipse at 50% 35%, rgba(6,182,212,0.10) 0%, rgba(30,80,180,0.07) 50%, transparent 72%)",
+          background:
+            "radial-gradient(ellipse at 50% 35%, rgba(6,182,212,0.10) 0%, rgba(30,80,180,0.07) 50%, transparent 72%)",
           filter: "blur(48px)",
         }}
       />
@@ -63,14 +64,14 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
           <SectionEyebrow className="mb-4">THE PROOF LAYER</SectionEyebrow>
           <SectionHeading className="mb-6">Data, Not Promises.</SectionHeading>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-foreground/80 md:text-lg">
-            We do not rely on vague claims or empty reassurance. We rely on
-            contract structure, county baselines, normalized quote comparison,
-            and repeatable detection of weak pricing and weak scope.
+            We do not rely on vague claims or empty reassurance. We rely on contract structure, county baselines,
+            normalized quote comparison, and repeatable detection of weak pricing and weak scope.
           </p>
         </div>
 
         {/* A) StatStrip — flex with automatic dividers, adapts to any stat count */}
-        <div className="mb-10 flex divide-x divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white"
+        <div
+          className="mb-10 flex divide-x divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white"
           style={{
             boxShadow:
               "0 4px 8px rgba(10,25,60,0.10), 0 16px 48px rgba(10,25,80,0.14), 0 0 0 1px rgba(6,182,212,0.07), inset 0 1px 0 rgba(255,255,255,0.95)",
@@ -98,8 +99,7 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
         <div
           className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8"
           style={{
-            boxShadow:
-              "inset 0 2px 6px rgba(10,25,55,0.04), inset 0 1px 2px rgba(10,25,55,0.03)",
+            boxShadow: "inset 0 2px 6px rgba(10,25,55,0.04), inset 0 1px 2px rgba(10,25,55,0.03)",
           }}
         >
           <p className="mb-6 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -113,9 +113,7 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
                   style={{ background: "#06B6D4" }}
                   aria-hidden="true"
                 />
-                <span className="text-sm font-medium text-foreground/80">
-                  {item}
-                </span>
+                <span className="text-sm font-medium text-foreground/80">{item}</span>
               </div>
             ))}
           </div>
@@ -144,13 +142,11 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
             </span>
           </div>
           <p className="mb-4 text-base leading-relaxed text-foreground/85 md:text-lg">
-            County baseline suggests this quote sits above expected range for
-            comparable scope. Three structural gaps increase the risk that the
-            homeowner is paying more while seeing less on paper.
+            County Baseline Suggests This Quote Sits Above Expected Range For Comparable Scope. Three Structural Gaps
+            Increase The Risk That The Homeowner Is Paying More While Seeing Less on Paper.
           </p>
           <p className="text-sm italic text-foreground/50">
-            This is the kind of signal WindowMan is designed to surface before
-            commitment.
+            This is the Kind of Signal WindowMan is Designed to Surface Before Commitment.
           </p>
         </div>
       </div>
