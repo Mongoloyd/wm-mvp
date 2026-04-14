@@ -39,32 +39,84 @@ const defaultData: QuoteViewData = {
     "Standard install with the services listed. Lifetime Warranty applies to hardware only. Excludes labor, service calls, and acts of nature. All measurements and figures are approximate and subject to final verification. NOA references are withheld until final contract signing.",
 };
 
-const analyzedData: QuoteViewData = {
-  homeownerBulletPoints: [
-    "Total Price: $17,400",
-    "Impact Glass Package",
-    "Lifetime Warranty",
-  ],
-  machineBulletPoints: [
-    "Permit Scope\nNot Confirmed",
-    "Markup Pattern\nDetected",
-    "Warranty Labor\nMay Be Excluded",
-  ],
-  invoiceRows: [
-    { qty: "10", desc: "Impact Window Units", price: "$10,200" },
-    { qty: "1", desc: "Installation Labor", price: "INCLUDED" },
-    { qty: "-", desc: "Permit Processing & Fees", price: "$450" },
-    { qty: "-", desc: "Debris Removal & Cleanup", price: "$250" },
-    { qty: "-", desc: "Structural Modification", price: "$1,800" },
-    { qty: "-", desc: "Markup Adjustment (Estimated)", price: "$2,400" },
-    { qty: "-", desc: "Warranty Fine Print Exposure", price: "REVIEW" },
-  ],
-  subtotal: "$15,000",
-  taxesAndFees: "$2,400",
-  totalPrice: "$17,400",
-  footerNote:
-    "Machine review detected likely markup concentration, unclear permit scope, and warranty language that may exclude labor or service-call coverage. Final contract and product approvals should be verified before signing.",
-};
+const demoVariants: QuoteViewData[] = [
+  {
+    homeownerBulletPoints: [
+      "Total Price: $17,400",
+      "Impact Glass Package",
+      "Lifetime Warranty",
+    ],
+    machineBulletPoints: [
+      "Permit Scope\nNot Confirmed",
+      "Markup Pattern\nDetected",
+      "Warranty Labor\nMay Be Excluded",
+    ],
+    invoiceRows: [
+      { qty: "10", desc: "Impact Window Units", price: "$10,200" },
+      { qty: "1", desc: "Installation Labor", price: "INCLUDED" },
+      { qty: "-", desc: "Permit Processing & Fees", price: "$450" },
+      { qty: "-", desc: "Debris Removal & Cleanup", price: "$250" },
+      { qty: "-", desc: "Structural Modification", price: "$1,800" },
+      { qty: "-", desc: "Markup Adjustment (Estimated)", price: "$2,400" },
+      { qty: "-", desc: "Warranty Fine Print Exposure", price: "REVIEW" },
+    ],
+    subtotal: "$15,000",
+    taxesAndFees: "$2,400",
+    totalPrice: "$17,400",
+    footerNote:
+      "Machine review detected likely markup concentration, unclear permit scope, and warranty language that may exclude labor or service-call coverage. Final contract and product approvals should be verified before signing.",
+  },
+  {
+    homeownerBulletPoints: [
+      "Total Price: $21,900",
+      "Custom Impact Doors",
+      "Premium Install Package",
+    ],
+    machineBulletPoints: [
+      "Deposit Amount\nHigher Than Expected",
+      "Glass Spec\nNot Fully Stated",
+      "Change Orders\nMay Increase Cost",
+    ],
+    invoiceRows: [
+      { qty: "6", desc: "Impact Window Units", price: "$8,900" },
+      { qty: "2", desc: "Impact Sliding Door Systems", price: "$7,800" },
+      { qty: "1", desc: "Installation Labor", price: "$2,400" },
+      { qty: "-", desc: "Permit Processing", price: "$600" },
+      { qty: "-", desc: "Disposal & Site Cleanup", price: "$350" },
+      { qty: "-", desc: "Premium Project Management", price: "$1,850" },
+    ],
+    subtotal: "$19,950",
+    taxesAndFees: "$1,950",
+    totalPrice: "$21,900",
+    footerNote:
+      "System flagged elevated deposit exposure, incomplete glazing/spec detail, and pricing language that may allow post-measurement increases or change-order upsells.",
+  },
+  {
+    homeownerBulletPoints: [
+      "Total Price: $13,600",
+      "Quick Install Timeline",
+      "Factory Warranty Included",
+    ],
+    machineBulletPoints: [
+      "NOA / Approval\nReference Missing",
+      "Labor Coverage\nLooks Limited",
+      "Low Price May Hide\nScope Gaps",
+    ],
+    invoiceRows: [
+      { qty: "8", desc: "Entry-Level Impact Windows", price: "$7,900" },
+      { qty: "1", desc: "Basic Installation Package", price: "$2,100" },
+      { qty: "-", desc: "Permit & Filing Fees", price: "$400" },
+      { qty: "-", desc: "Debris Removal", price: "$200" },
+      { qty: "-", desc: "Stucco / Finish Allowance", price: "$1,000" },
+      { qty: "-", desc: "Freight / Delivery", price: "$650" },
+    ],
+    subtotal: "$12,250",
+    taxesAndFees: "$1,350",
+    totalPrice: "$13,600",
+    footerNote:
+      "The machine sees missing product approval references, limited labor/warranty clarity, and a low-price structure that may exclude finish work or required scope items.",
+  },
+];
 
 type DocumentContentProps = {
   isDigital: boolean;
@@ -172,26 +224,10 @@ function DocumentContent({ isDigital, data, isAnalyzing }: DocumentContentProps)
 
       {isDigital && (
         <div className="absolute inset-0 pointer-events-none">
-          <div
-            className={`absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-cyan-400 ${
-              isAnalyzing ? "animate-ping" : "opacity-50"
-            }`}
-          />
-          <div
-            className={`absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-cyan-400 ${
-              isAnalyzing ? "animate-ping" : "opacity-50"
-            }`}
-          />
-          <div
-            className={`absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-cyan-400 ${
-              isAnalyzing ? "animate-ping" : "opacity-50"
-            }`}
-          />
-          <div
-            className={`absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-cyan-400 ${
-              isAnalyzing ? "animate-ping" : "opacity-50"
-            }`}
-          />
+          <div className={`absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`} />
+          <div className={`absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`} />
+          <div className={`absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`} />
+          <div className={`absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`} />
         </div>
       )}
     </div>
@@ -200,15 +236,19 @@ function DocumentContent({ isDigital, data, isAnalyzing }: DocumentContentProps)
 
 type ForensicShiftDemoSectionProps = {
   className?: string;
+  onUploadClick?: () => void;
 };
 
 export default function ForensicShiftDemoSection({
   className = "",
+  onUploadClick,
 }: ForensicShiftDemoSectionProps) {
   const [data, setData] = useState<QuoteViewData>(defaultData);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [showUploadCta, setShowUploadCta] = useState(false);
+  const [demoIndex, setDemoIndex] = useState(0);
   const [quoteText, setQuoteText] = useState(`ACME Windows Estimate:
 10x Impact Window Package - $10,200
 Installation Labor - INCLUDED
@@ -219,30 +259,47 @@ Estimated Local Markup - $2,400
 Total: $17,400
 Note: Lifetime warranty applies to parts. Service calls and some labor coverage may be excluded.`);
   const timerRef = useRef<number | null>(null);
+  const ctaTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
+      if (ctaTimerRef.current) window.clearTimeout(ctaTimerRef.current);
     };
   }, []);
 
   const handleAnalyze = () => {
     if (isAnalyzing || !quoteText.trim()) return;
 
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    if (ctaTimerRef.current) window.clearTimeout(ctaTimerRef.current);
+
     setShowModal(false);
     setIsAnalyzing(true);
+    setHasAnalyzed(false);
+    setShowUploadCta(false);
+
+    const nextVariant = demoVariants[demoIndex];
 
     timerRef.current = window.setTimeout(() => {
-      setData(analyzedData);
+      setData(nextVariant);
       setHasAnalyzed(true);
       setIsAnalyzing(false);
+      setDemoIndex((prev) => (prev + 1) % demoVariants.length);
+
+      ctaTimerRef.current = window.setTimeout(() => {
+        setShowUploadCta(true);
+      }, 250);
     }, 3000);
   };
 
   const handleReset = () => {
     if (timerRef.current) window.clearTimeout(timerRef.current);
+    if (ctaTimerRef.current) window.clearTimeout(ctaTimerRef.current);
+
     setData(defaultData);
     setHasAnalyzed(false);
+    setShowUploadCta(false);
     setIsAnalyzing(false);
     setShowModal(false);
   };
@@ -282,11 +339,7 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
               Homeowner Sees:
             </h2>
 
-            <div
-              className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${
-                isAnalyzing ? "opacity-0" : "opacity-100"
-              }`}
-            >
+            <div className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
               {data.homeownerBulletPoints.map((point, idx) => (
                 <div
                   key={`ho-${idx}`}
@@ -310,11 +363,7 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
               )}
             </h2>
 
-            <div
-              className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${
-                isAnalyzing ? "opacity-0" : "opacity-100"
-              }`}
-            >
+            <div className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
               {data.machineBulletPoints.map((point, idx) => (
                 <div
                   key={`mc-${idx}`}
@@ -347,44 +396,28 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
               }`}
             />
 
-            <div
-              className={`hidden lg:block absolute left-1/2 top-[15%] w-32 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${
-                isAnalyzing ? "opacity-0" : "opacity-100"
-              }`}
-            >
+            <div className={`hidden lg:block absolute left-1/2 top-[15%] w-32 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
               <div className="absolute right-[-100px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
                 Data features
               </div>
               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300" />
             </div>
 
-            <div
-              className={`hidden lg:block absolute left-1/2 top-[35%] w-40 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${
-                isAnalyzing ? "opacity-0" : "opacity-100"
-              }`}
-            >
+            <div className={`hidden lg:block absolute left-1/2 top-[35%] w-40 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
               <div className="absolute right-[-80px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
                 Data Points
               </div>
               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300" />
             </div>
 
-            <div
-              className={`hidden lg:block absolute left-[50%] top-[45%] w-24 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${
-                isAnalyzing ? "opacity-0" : "opacity-100"
-              }`}
-            >
+            <div className={`hidden lg:block absolute left-[50%] top-[45%] w-24 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
               <div className="absolute right-[-110px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
                 Anomaly Dtc...
               </div>
               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,1)]" />
             </div>
 
-            <div
-              className={`hidden lg:block absolute left-[50%] top-[70%] w-48 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${
-                isAnalyzing ? "opacity-0" : "opacity-100"
-              }`}
-            >
+            <div className={`hidden lg:block absolute left-[50%] top-[70%] w-48 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
               <div className="absolute right-[-60px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
                 Data Ref
               </div>
@@ -395,6 +428,31 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
               <div className="absolute inset-0 flex items-center justify-center z-40 bg-black/20 backdrop-blur-[2px]">
                 <div className="text-cyan-300 font-mono text-xl tracking-widest animate-pulse font-bold bg-black/50 px-6 py-3 rounded-md border border-cyan-500/50">
                   ANALYZING DATA...
+                </div>
+              </div>
+            )}
+
+            {hasAnalyzed && !isAnalyzing && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center p-6 pointer-events-none">
+                <div
+                  className={`pointer-events-auto flex flex-col items-center gap-3 rounded-2xl border border-cyan-400/30 bg-slate-950/85 backdrop-blur-md px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out ${
+                    showUploadCta
+                      ? "opacity-100 scale-100 translate-y-0"
+                      : "opacity-0 scale-95 translate-y-3"
+                  }`}
+                >
+                  <p className="text-center text-white text-lg md:text-xl font-semibold leading-tight">
+                    Now Upload Your Quote
+                  </p>
+                  <p className="text-center text-slate-300 text-sm max-w-[320px] leading-relaxed">
+                    See what the machine says about your actual estimate.
+                  </p>
+                  <button
+                    onClick={onUploadClick}
+                    className="mt-1 inline-flex items-center justify-center rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-6 py-3 text-sm md:text-base transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)]"
+                  >
+                    Upload Your Quote
+                  </button>
                 </div>
               </div>
             )}
@@ -433,7 +491,7 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
 
             <div className="p-6">
               <p className="text-slate-300 mb-4 text-sm">
-                Paste quote text below and run the local demo. This version does not call any API. It simply simulates the “machine read” experience.
+                Paste quote text below and run the local demo. This version does not call any API. It simply simulates the machine-read experience.
               </p>
 
               <textarea
