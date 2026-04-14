@@ -482,25 +482,25 @@ const VerdictHologram = React.forwardRef<
           ref={ref}
           tabIndex={-1}
           aria-live="polite"
-          className={`relative pointer-events-auto bg-slate-900/60 backdrop-blur-xl border-2 ${theme.border} p-8 rounded-xl ${theme.glow} w-[85%] max-w-md animate-in zoom-in-95 fade-in duration-700 delay-300 flex flex-col items-center text-center ring-1 ring-white/20 outline-none`}
+          className={`relative pointer-events-auto bg-slate-900/60 backdrop-blur-xl border-2 ${theme.border} p-4 md:p-8 rounded-xl ${theme.glow} w-[85%] max-w-md max-h-[85vh] overflow-y-auto animate-in zoom-in-95 fade-in duration-700 delay-300 flex flex-col items-center text-center ring-1 ring-white/20 outline-none`}
           data-testid="orange-scanner-verdict-cta"
         >
           <div
             className={`absolute inset-0 bg-gradient-to-t ${theme.overlay} to-transparent pointer-events-none animate-pulse rounded-xl`}
           />
 
-          <div className="relative mb-6">
-            <VerdictIcon size={64} className={`${theme.iconColor} mb-2 animate-bounce`} />
-            <div className={`absolute -inset-4 ${theme.accentBg} blur-xl rounded-full`} />
+          <div className="relative mb-3 md:mb-6">
+            <VerdictIcon className={`${theme.iconColor} mb-1 md:mb-2 w-9 h-9 md:w-16 md:h-16 animate-in fade-in duration-500`} />
+            <div className={`absolute -inset-2 md:-inset-4 ${theme.accentBg} blur-xl rounded-full`} />
           </div>
 
-          <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter mb-2 italic">
+          <h2 className="text-xl md:text-3xl font-black text-white tracking-tighter mb-2 italic">
             VERDICT: <span className={theme.headlineColor}>{theme.headline}</span>
           </h2>
 
-          <p className="text-slate-300 text-sm mb-8 max-w-md">{summaryText}</p>
+          <p className="text-slate-300 text-xs md:text-sm mb-4 md:mb-8 max-w-md">{summaryText}</p>
 
-          <div className="w-full space-y-3 mb-8">
+          <div className="w-full space-y-2 md:space-y-3 mb-4 md:mb-8">
             {theme.riskCards.map((card, i) => (
               <div
                 key={i}
@@ -524,14 +524,14 @@ const VerdictHologram = React.forwardRef<
           </div>
 
           {/* Decision Gate */}
-          <div className="w-full mt-8">
+          <div className="w-full mt-4 md:mt-8">
             <p className="text-slate-300 text-sm mb-4 text-center">This was a demo estimate. Choose your next step.</p>
             <div className="flex flex-col md:flex-row gap-4 w-full">
               <button
                 onClick={onScanClick}
                 aria-label="I have a quote"
                 data-testid="orange-scanner-have-quote"
-                className="w-full md:flex-1 h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-cyan-500 text-slate-950 border-cyan-300/40 hover:bg-cyan-400 shadow-[0_0_24px_rgba(34,211,238,0.25)]"
+                className="w-full md:flex-1 h-11 md:h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-cyan-500 text-slate-950 border-cyan-300/40 hover:bg-cyan-400 shadow-[0_0_24px_rgba(34,211,238,0.25)]"
               >
                 I Have a Quote
               </button>
@@ -539,7 +539,7 @@ const VerdictHologram = React.forwardRef<
                 onClick={onDemoClick}
                 aria-label="I want a quote"
                 data-testid="orange-scanner-want-quote"
-                className="w-full md:flex-1 h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-white/10 text-white border-white/20 hover:bg-white/15 shadow-[0_0_24px_rgba(255,255,255,0.08)]"
+                className="w-full md:flex-1 h-11 md:h-14 rounded-xl border backdrop-blur-md px-6 font-black text-sm md:text-base tracking-wide transition-all duration-300 active:scale-[0.98] bg-white/10 text-white border-white/20 hover:bg-white/15 shadow-[0_0_24px_rgba(255,255,255,0.08)]"
               >
                 I Want a Quote
               </button>
