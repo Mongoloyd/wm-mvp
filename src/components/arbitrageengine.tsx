@@ -445,6 +445,7 @@ export default function ArbitrageEngine({
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.4); }
       `}</style>
 
+      {!hideBaseShell && (<>
       {/* Background Effects */}
       <div
         className="absolute inset-0 z-0 pointer-events-none opacity-20"
@@ -860,6 +861,7 @@ export default function ArbitrageEngine({
           )}
         </div>
       </div>
+      </>)}
 
       {/* ── Breadcrumb Lead Funnel Modal ───────────────────────────────────── */}
       {flowState === "modal_open" && (
