@@ -35,6 +35,21 @@ const Contractors2 = () => {
       <ExclusivitySection />
       <VideoSection />
       <BookingSection />
+
+      {/* AI Training infographic – lazy-loaded, blended with background */}
+      <div className="relative w-full overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none z-10" />
+        <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
+        <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+        <img
+          src="/images/ai-training-learning.avif"
+          alt="WindowMan AI infrastructure — setup, learning, and growth stages"
+          loading="lazy"
+          decoding="async"
+          className="w-full max-w-5xl mx-auto object-contain opacity-80"
+        />
+      </div>
+
       <QualificationStripSection onOpenQualification={() => setQualOpen(true)} />
       <FAQSection />
       <QualificationFlow isOpen={qualOpen} onClose={() => setQualOpen(false)} />
