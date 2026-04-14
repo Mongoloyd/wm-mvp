@@ -18,26 +18,6 @@ import TrustProofSection from "@/components/about/TrustProofSection";
 import AboutCTASection from "@/components/about/AboutCTASection";
 import AboutFooter from "@/components/about/AboutFooter";
 
-type FunnelStep =
-  | "scope"
-  | "intent_filter"
-  | "status"
-  | "comp_a"
-  | "comp_b"
-  | "contact"
-  | "identity"
-  | "intent"
-  | "call"
-  | "timeframe"
-  | "done"
-  | "secret_capture"
-  | "secret_success";
-
-const ALLOWED_STEPS: FunnelStep[] = [
-  "scope", "intent_filter", "status", "comp_a", "comp_b",
-  "contact", "identity", "intent", "call", "timeframe",
-  "done", "secret_capture", "secret_success",
-];
 
 export default function About() {
   const [searchParams, setSearchParams] = useSearchParams();
