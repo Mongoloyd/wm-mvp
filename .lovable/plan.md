@@ -1,67 +1,61 @@
 
 
-## Scoring Engine Fixture Corrections — Implementation Plan
+## Fix: TypeScript errors in dispatchWorker.ts and dispatchWorker.test.ts
 
-### Confirmed Defects (3 from audit + 1 bonus)
+### Problem Summary
 
-| # | Scenario | File Line | Current Expected | Correct Grade | Defect Type |
-|---|----------|-----------|-----------------|---------------|-------------|
-| 1 | inspectionTrap | L573 | C | **D** | Stale expectation — `unilateral_price_adjustment` D-cap makes C unreachable |
-| 2 | vagueScope | L670 | D | **F** | Stale expectation — weighted avg = 33, below D threshold (37). D-caps are ceilings, not floors |
-| 3 | mixedPillars | L524-525 | B | **A** (currently) | Mock data defect — inherits perfect install/scope/finePrint from base. Must degrade install fields |
-| 4 | cornerCutting | L596 | D | **F** | Same pattern as vagueScope — hand-crafted, too sparse, weighted avg ~30 |
+Three type errors stem from the `DBLike` interface shape and a readonly tuple access pattern.
 
-### Changes to `src/test/createMockQuote.ts`
+---
 
-**Fix 1 — inspectionTrap (L573)**: Change `expectedGrade` from `"C"` to `"D"`.
+### Fix 1 — `dispatchWorker.ts` line 92: Arithmetic on readonly tuple value
 
-**Fix 2 — vagueScope (L670)**: Change `expectedGrade` from `"D"` to `"F"`. The data is intentionally sparse ("kept hand-crafted to preserve intentionally sparse scope language") — enriching it would defeat its purpose.
+`RETRY_DELAYS_MINUTES[retryIndex as keyof typeof RETRY_DELAYS_MINUTES]` resolves to `5 | 30 | 120 | 720 | undefined`. The `if (!minutes) return null` guard eliminates `undefined` at runtime but TS still sees the union as not purely `number`.
 
-**Fix 3 — mixedPillars (L526-542)**: Add extraction overrides using `undefined` (which `deepMerge` treats as "delete from base") to actually degrade the install pillar as the description claims:
+**Change**: Cast the accessed value to `number | undefined` explicitly:
+
 ```ts
-{
-  // ... existing overrides ...
-  // Degrade install pillar to match "sparse install" description
-  anchoring_method_text: undefined,
-  waterproofing_method_text: undefined,
-  buck_treatment_method_text: undefined,
-  sealant_specified: undefined,
-  opening_schedule_present: undefined,
-  opening_schedule_room_labels_present: undefined,
-  opening_schedule_dimensions_complete: undefined,
-  opening_schedule_product_assignments_present: undefined,
-  installation: {
-    scope_detail: "Install windows per specification",
-    disposal_included: false,
-    accessories_mentioned: false,
-  },
-}
+const minutes = RETRY_DELAYS_MINUTES[retryIndex] as number | undefined;
 ```
-This drops install from 100 to ~55, bringing weighted avg to ~82 → B. No hard caps fire because `manufacturer_install_compliance_stated` is still true (preventing `install_method_unverified` C-cap).
 
-**Fix 4 — cornerCutting (L596)**: Change `expectedGrade` from `"D"` to `"F"`. Same root cause as vagueScope — hand-crafted sparse data, weighted avg below 37.
+This lets the `!minutes` guard narrow to `number` cleanly.
 
-### Changes to `supabase/functions/scan-quote/scoring.test.ts`
+---
 
-Add 3 new test cases from Section 8 of the audit:
+### Fix 2 — `dispatchWorker.ts` line 130 & `DBLike` interface (lines 33-36)
 
-1. **Cumulative amber risk** — Minor weaknesses across all 5 pillars, no hard cap triggers, verify grade B
-2. **Perfect safety + empty scope** — Safety=100, no install/warranty/permits, verify C with hard caps
-3. **High-quality products + predatory payment** — Perfect specs but `unilateral_price_adjustment_allowed: true`, verify D-cap overrides B-level weighted average
+The `syncEventDispatchStatus` function chains `.select().eq().in().order()`, but the `DBLike` interface defines `.eq().in()` as returning `{ then?: never }` — no `.order()` method.
 
-These use the existing `makeQuote` helper from `fixtures.ts` and `BASE_GOOD_QUOTE`, not the client-side `createMockQuote.ts`.
+**Change**: Update the `DBLike` interface so `.eq().in()` returns an object with `.order()`:
 
-### Changes to `supabase/functions/scan-quote/fixtures.ts`
+```ts
+eq(column: string, value: string): {
+  in(column: string, value: string[]): {
+    order(column: string, options?: { ascending?: boolean }): Promise<{
+      data: Array<Record<string, unknown>> | null;
+      error: { message?: string } | null;
+    }>;
+  };
+  maybeSingle(): Promise<{ data: Record<string, unknown> | null; error: { message?: string } | null }>;
+};
+```
 
-No changes — this file serves the Deno scoring tests and is already correct.
+---
 
-### What is NOT changed
+### Fix 3 — `dispatchWorker.test.ts` MockDB (lines ~44-55)
 
-- `scoring.ts` — rubric logic is correct; all 16 existing tests pass
-- `DevQuoteGenerator.tsx` — UI component reads `expectedGrade` dynamically
-- No scenario keys, labels, or fixture structure changes
+The MockDB's `.select().eq().in()` chain returns `{ order: () => Promise<...> }`, but the old `DBLike` type expected `{ then?: never }`. With Fix 2 applied, the interface now expects `.order()`, so the MockDB already provides the right shape. However, the TS error persists because the MockDB's `order()` return type includes the concrete `WMDispatchStatus` union in `dispatch_status` rather than `Record<string, unknown>`.
 
-### Verification
+**Change**: Widen the MockDB's `order()` return type to use `Record<string, unknown>` for the data array items, or cast `db` as `DBLike` (via `as unknown as DBLike`) at each call site. The cleanest fix: keep the mock structure and cast `new MockDB([row]) as unknown as DBLike` when passing to `runDispatchWorker`.
 
-After implementation, run `supabase--test_edge_functions` for `scan-quote` to confirm existing + new scoring tests pass.
+Alternatively, change the `order()` return in MockDB to `Promise<{ data: any[]; error: any }>` which satisfies the interface.
+
+---
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `src/lib/tracking/canonical/dispatchWorker.ts` | Fix tuple access cast (line 90); update `DBLike.eq().in()` to include `.order()` (lines 33-36) |
+| `src/lib/tracking/canonical/__tests__/dispatchWorker.test.ts` | Cast `MockDB` instances via `as unknown as DBLike` or widen mock return types |
 
