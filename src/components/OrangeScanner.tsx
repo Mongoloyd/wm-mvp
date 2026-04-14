@@ -287,7 +287,7 @@ const TrustScoreWidget = ({
             >
               {score}
             </span>
-            <span className="text-xs text-slate-400 ml-1">/100</span>
+            <span className="text-xs text-slate-200 ml-1">/100</span>
           </div>
         </div>
         <div className="relative h-12 w-12 flex items-center justify-center">
