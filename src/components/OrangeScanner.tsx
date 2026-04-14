@@ -858,7 +858,7 @@ export default function OrangeScanner({
                           ? "text-cyan-300 scale-105 font-black drop-shadow-[0_0_12px_rgba(34,211,238,0.8)]"
                           : isPast
                             ? "text-cyan-400 font-bold"
-                            : "text-slate-300 font-medium"
+                            : "font-medium text-slate-200"
                       }`}
                     >
                       <div className="flex items-center gap-2 tracking-widest text-[10px] md:text-sm uppercase text-center">
