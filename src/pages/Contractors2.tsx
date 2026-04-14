@@ -6,6 +6,7 @@ import CompetitorQuoteSection from "@/components/sections/CompetitorQuoteSection
 import BuyerReadinessSection from "@/components/sections/BuyerReadinessSection";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
 import EconomicsSection from "@/components/sections/EconomicsSection";
+import FlywheelSection from "@/components/sections/FlywheelSection";
 import DifferentiationSection from "@/components/sections/DifferentiationSection";
 import ExclusivitySection from "@/components/sections/ExclusivitySection";
 import VideoSection from "@/components/sections/VideoSection";
