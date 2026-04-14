@@ -77,7 +77,7 @@ export default function WhyPricesVarySection() {
         </div>
 
         {/* Variance Strip */}
-        <div className="card-raised overflow-hidden rounded-2xl">
+        <div className="card-raised overflow-hidden rounded-2xl border-4 border-double border-emerald-500">
           <div className="grid md:grid-cols-3">
             {varianceMarkers.map((marker, i) => (
               <div
