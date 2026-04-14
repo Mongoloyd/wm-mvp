@@ -580,7 +580,7 @@ const ScanCTA = () => {
                 Contractor Jargon.
               </span>
             </h2>
-            <p className="text-slate-400 max-w-md mx-auto md:mx-0 text-sm md:text-base font-medium leading-relaxed">
+            <p className="text-slate-300 max-w-md mx-auto md:mx-0 text-sm md:text-base font-medium leading-relaxed">
               Our AI Exposes Hidden Surcharges, Substandard Hurricane Ratings, and Predatory Deposit Traps in Seconds.
             </p>
           </div>
