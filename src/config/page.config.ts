@@ -34,5 +34,12 @@ export const PAGE_CONFIG = {
   phone: {
     display: "(561) 468-5571",
     href: "tel:+15614685571",
+    sms: "sms:+15614685571",
+  },
+  video: {
+    url: "",
+    thumbnailUrl: "",
+    fallbackText:
+      "See how WindowMan intercepts mid-decision buyers and turns them into contractor opportunities.",
   },
 } as const;
