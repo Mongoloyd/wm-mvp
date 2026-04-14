@@ -12,10 +12,10 @@ export async function persistCanonicalEvent(
         const query = supabase.from(table);
         return {
           insert(payload: Record<string, unknown> | Record<string, unknown>[]) {
-            return query.insert(payload as never);
+            return query.insert(payload as never).select();
           },
           upsert(payload: Record<string, unknown>, options?: { onConflict?: string }) {
-            return query.upsert(payload as never, options as never);
+            return query.upsert(payload as never, options as never).select();
           },
           select(columns: string) {
             return {

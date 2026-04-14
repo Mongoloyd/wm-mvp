@@ -16,6 +16,16 @@ interface DBLike {
   };
 }
 
+function isDuplicateEventIdInsertError(error: { message?: string } | null | undefined): boolean {
+  const message = error?.message?.toLowerCase() ?? "";
+  return (
+    message.includes("duplicate key") ||
+    message.includes("unique constraint") ||
+    message.includes("wm_event_log_event_id") ||
+    (message.includes("event_id") && message.includes("already exists"))
+  );
+}
+
 interface CreateCanonicalEventDeps {
   db: DBLike;
   now?: () => Date;
@@ -28,10 +38,61 @@ interface CreateCanonicalEventResult {
   dispatchPlatforms: WMPlatformName[];
 }
 
-const QUOTE_EVENTS = new Set(["quote_validation_passed", "quote_upload_completed", "quote_uploaded"]);
+const QUOTE_EVENTS = new Set(["quote_validation_passed", "quote_uploaded"]);
 
-function defaultCreateId(): string {
-  return `wmc_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+function sanitizeEventIdSegment(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "unknown";
+  }
+
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "unknown";
+}
+
+function getInputStringValue(input: CreateCanonicalEventInput, key: string): string | null {
+  const value = (input as Record<string, unknown>)[key];
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function getDefaultEventTimestampBucket(input: CreateCanonicalEventInput, now: Date): string {
+  const timestampKeys = ["eventTimestamp", "occurredAt", "timestamp", "createdAt"];
+
+  for (const key of timestampKeys) {
+    const rawValue = getInputStringValue(input, key);
+    if (!rawValue) {
+      continue;
+    }
+
+    const parsed = Date.parse(rawValue);
+    if (!Number.isNaN(parsed)) {
+      return new Date(Math.floor(parsed / 60000) * 60000).toISOString();
+    }
+  }
+
+  return new Date(Math.floor(now.getTime() / 60000) * 60000).toISOString();
+}
+
+function defaultCreateId(input: CreateCanonicalEventInput, now: Date): string {
+  const eventName = sanitizeEventIdSegment((input as Record<string, unknown>).eventName);
+  const entityKeys = ["leadId", "scanSessionId", "analysisId"];
+  const entitySegments = entityKeys
+    .map((key) => {
+      const value = getInputStringValue(input, key);
+      return value ? `${key}-${sanitizeEventIdSegment(value)}` : null;
+    })
+    .filter((value): value is string => value !== null);
+  const entityPart = entitySegments.length > 0 ? entitySegments.join("__") : "no-entity";
+  const bucket = sanitizeEventIdSegment(getDefaultEventTimestampBucket(input, now));
+
+  return `wmc_${eventName}_${entityPart}_${bucket}`;
 }
 
 function resolveDispatchStatus(shouldDispatch: boolean): WMDispatchStatus {
@@ -43,7 +104,7 @@ export async function createCanonicalEvent(
   deps: CreateCanonicalEventDeps,
 ): Promise<CreateCanonicalEventResult> {
   const now = deps.now?.() ?? new Date();
-  const eventId = input.eventId ?? deps.createId?.() ?? defaultCreateId();
+  const eventId = input.eventId ?? deps.createId?.() ?? defaultCreateId(input, now);
   const eventTimestamp = input.eventTimestamp ?? now.toISOString();
 
   const normalizedIdentity = await normalizeAndHashIdentity(input.payload.identity);
@@ -92,7 +153,7 @@ export async function createCanonicalEvent(
   const trustScore = analytics?.trustScore ?? 0;
   const anomalyStatus = analytics?.anomalyStatus ?? "safe";
   const isQuoteEvent = QUOTE_EVENTS.has(input.eventName);
-  const quoteSafe = !isQuoteEvent || (anomalyStatus === "safe" && trustScore >= WM_QUOTE_TRUST_MIN_FOR_DISPATCH);
+  const quoteSafe = !isQuoteEvent || (analytics ? (anomalyStatus === "safe" && trustScore >= WM_QUOTE_TRUST_MIN_FOR_DISPATCH) : true);
 
   const shouldSendMeta = identityQuality !== "low" && identityQuality !== "unknown" && quoteSafe;
   const shouldSendGoogle = quoteSafe;
@@ -152,7 +213,8 @@ export async function createCanonicalEvent(
   };
 
   const eventInsertResult = await deps.db.from("wm_event_log").insert(wmEventInsert);
-  if (eventInsertResult.error) {
+  const shouldRecoverFromDuplicateInsert = isDuplicateEventIdInsertError(eventInsertResult.error);
+  if (eventInsertResult.error && !shouldRecoverFromDuplicateInsert) {
     throw new Error(`wm_event_log insert failed: ${eventInsertResult.error.message ?? "unknown"}`);
   }
 
@@ -167,6 +229,9 @@ export async function createCanonicalEvent(
   }
   if (lookupResult.data && typeof lookupResult.data.id === "string") {
     eventLogId = lookupResult.data.id;
+  }
+  if (shouldRecoverFromDuplicateInsert && !eventLogId) {
+    throw new Error(`wm_event_log duplicate insert recovery failed for event_id ${canonicalEvent.eventId}`);
   }
 
   if (canonicalEvent.payload.quote?.analysisId) {

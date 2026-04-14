@@ -13,11 +13,13 @@ Suppress when:
 - quote quality event is not safe
 - quote trust below threshold
 - identity quality is low/unknown
-- missing usable user_data (hashed PII/click id/external id)
+- missing usable user_data (hashed PII/`external_id`/`fbc`/`fbp`)
 
 Uses:
 - canonical `eventId` as Meta dedup `event_id`
 - normalized hashed identity fields from canonical payload
+- `external_id` when available
+- Meta attribution identifiers `fbc` and `fbp` when available
 
 ## Google mapper
 Pure function: canonical event in, Google conversion payload out.

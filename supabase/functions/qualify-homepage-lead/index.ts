@@ -204,10 +204,14 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    const escapedEmailForFilter = payload.email
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"');
+
     const { data: existingLeadRows, error: leadQueryError } = await supabase
       .from("leads")
       .select("id, phone_e164, email, created_at")
-      .or(`phone_e164.eq."${phoneE164}",email.eq."${payload.email.replace(/"/g, '\\"')}"`)
+      .or(`phone_e164.eq."${phoneE164}",email.eq."${escapedEmailForFilter}"`)
       .order("created_at", { ascending: false })
       .limit(5);
 
