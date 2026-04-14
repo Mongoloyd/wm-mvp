@@ -35,7 +35,7 @@ export default function Privacy() {
               <p className="text-sm leading-6 text-gray-600">
                 At WindowMan.PRO, your privacy is paramount.{" "}
                 <strong className="text-gray-900">
-                  All uploaded quotes are protected with 256-bit AES encryption
+                  All uploaded quotes are protected with industry-standard encryption
                 </strong>
                 , strictly confidential, and{" "}
                 <strong className="text-gray-900">
@@ -54,7 +54,7 @@ export default function Privacy() {
           <div className="flex items-center gap-3 rounded-xl border border-slate-200/60 bg-white/70 p-4 shadow-sm backdrop-blur-sm">
             <Lock className="h-5 w-5 text-green-600" />
             <span className="text-sm font-medium text-gray-700">
-              256-bit Encryption
+              Encrypted in Transit & at Rest
             </span>
           </div>
           <div className="flex items-center gap-3 rounded-xl border border-slate-200/60 bg-white/70 p-4 shadow-sm backdrop-blur-sm">
@@ -110,10 +110,10 @@ export default function Privacy() {
             <p>
               <strong>
                 Your uploaded quotes are protected with industry-standard
-                256-bit AES encryption
+                security safeguards
               </strong>{" "}
-              both in transit (TLS 1.3) and at rest. Documents are stored in
-              secure, access-controlled infrastructure with strict data
+              including encryption in transit and at rest. Documents are stored
+              in secure, access-controlled infrastructure with strict data
               isolation.
             </p>
             <p className="mt-4 rounded-lg border-l-4 border-blue-500 bg-blue-50 py-3 pl-4 pr-3 text-sm font-medium text-gray-700">
@@ -141,8 +141,8 @@ export default function Privacy() {
               </li>
               <li>
                 <strong>We do not retain documents indefinitely</strong> —
-                uploaded files are automatically purged after your report is
-                generated unless you request otherwise.
+                uploaded files are kept only in accordance with our data
+                retention practices and can be deleted upon request.
               </li>
             </ul>
 
