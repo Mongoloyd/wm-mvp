@@ -748,7 +748,7 @@ export default function ArbitrageEngine({
               <h2 className="text-xl sm:text-2xl md:text-[28px] font-semibold text-white mb-4 tracking-wide drop-shadow-md">
                 The Market Maker Model
               </h2>
-              <p className="text-slate-400 text-base sm:text-lg leading-relaxed font-light">
+              <p className="text-slate-400 text-base sm:text-lg leading-relaxed font-semibold font-body">
                 The First Contractor Paid For The Discovery, Measurements, and Price Anchoring. WindowMan Captures The
                 Deal Downstream. Our Partners Walk Into The Home Knowing Exactly What to Overcome.
               </p>
