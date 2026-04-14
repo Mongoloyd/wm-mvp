@@ -89,7 +89,7 @@ export default function ArbitrageEngineSection() {
 
           {/* Card 2 */}
           <div
-            className="flex flex-col rounded-2xl bg-white p-8 md:p-10"
+            className="flex flex-col rounded-2xl bg-white p-8 md:p-10 border-double border-4 border-orange-400 shadow-2xl"
             style={{
               boxShadow:
                 "0 4px 8px rgba(10,25,60,0.09), 0 16px 48px rgba(10,25,60,0.14), 0 0 0 1px rgba(249,115,22,0.07), inset 0 1px 0 rgba(255,255,255,0.95)",
@@ -124,7 +124,7 @@ export default function ArbitrageEngineSection() {
 
         {/* Centered statement panel */}
         <div
-          className="mx-auto max-w-2xl rounded-xl border border-slate-200 bg-white px-8 py-6 text-center"
+          className="mx-auto max-w-2xl rounded-xl bg-white px-8 py-6 text-center shadow-2xl border-8 border-double border-slate-400"
           style={{ boxShadow: "0 2px 12px rgba(15,30,60,0.07)" }}
         >
           <p className="text-base font-semibold leading-relaxed text-foreground/80 md:text-lg">
