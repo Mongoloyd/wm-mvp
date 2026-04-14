@@ -1,33 +1,35 @@
 
 
-## Plan: Add Arbitrage Model Section
+## Plan: Cinematic Parallax Image Divider
 
 ### What
-Create `src/components/sections/ArbitrageModelSection.tsx` from the provided code and insert it between `<HowItWorksSection />` and `<EconomicsSection />` on the Contractors2 page.
+Create a full-width cinematic image divider between `MarketTruthSection` and `CompetitorQuoteSection` with parallax scrolling, lazy-load fade-in, and vertical gradient blending on all four edges.
 
 ### Changes
 
-**1. Create `src/components/sections/ArbitrageModelSection.tsx`**
-- Strip the outer `App` wrapper and `min-h-screen` container
-- Wrap in a `<section className="py-24 bg-zinc-950">` root to match page rhythm and alternate backgrounds (HowItWorksSection is `bg-zinc-950`, so this one will use `bg-black` to alternate)
-- Keep all internal components inline (Card, Badge, Connector) as local helpers — no shadcn imports to avoid conflicts
-- Preserve all styling: glow borders, grid background, branching lines, responsive stacking
-- Import Lucide icons directly from `lucide-react`
+**1. Copy uploaded image to project**
+- Copy `user-uploads://abcdf.avif` to `public/images/contractors-divider.avif`
 
-**2. Update `src/pages/Contractors2.tsx`**
-- Import `ArbitrageModelSection`
-- Insert `<ArbitrageModelSection />` between `<HowItWorksSection />` and `<EconomicsSection />`
+**2. Create `src/components/sections/CinematicDivider.tsx`**
+- Full-width `<section>` with `overflow-hidden`, no vertical padding — acts as a visual break
+- `<img>` with `loading="lazy"` for native lazy loading
+- Framer Motion `whileInView` animation: fades from `opacity: 0` to `opacity: 1` over ~1.2s
+- **Parallax**: Use Framer Motion's `useScroll` + `useTransform` to translate the image Y position at a slower rate than scroll (e.g., `translateY` mapped from `-15%` to `15%`), giving the depth effect. Image is slightly oversized (`scale-110` or `h-[120%]`) so parallax movement doesn't reveal edges
+- **Gradient overlays**: Four gradient divs layered on top:
+  - Top: `bg-gradient-to-b from-[hsl(216,43%,7%)] to-transparent` (matches page dark bg)
+  - Bottom: `bg-gradient-to-t from-[hsl(216,43%,7%)] to-transparent`
+  - Left: `bg-gradient-to-r from-[hsl(216,43%,7%)] to-transparent`
+  - Right: `bg-gradient-to-l from-[hsl(216,43%,7%)] to-transparent`
+- Image height: ~`h-[400px] md:h-[500px]` with `object-cover`
+
+**3. Update `src/pages/Contractors2.tsx`**
+- Import `CinematicDivider`
+- Insert `<CinematicDivider />` between `<MarketTruthSection />` and `<CompetitorQuoteSection />`
 
 ### Section order after change
 1. HeroSection
 2. MarketTruthSection
-3. CompetitorQuoteSection
-4. BuyerReadinessSection
-5. HowItWorksSection
-6. **ArbitrageModelSection** ← new
-7. EconomicsSection
-8. FlywheelSection
-9. DifferentiationSection
-10. ExclusivitySection
-11. ...rest
+3. **CinematicDivider** ← new
+4. CompetitorQuoteSection
+5. ...rest
 
