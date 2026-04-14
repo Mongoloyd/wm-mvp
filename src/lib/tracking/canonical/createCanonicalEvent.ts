@@ -162,7 +162,10 @@ export async function createCanonicalEvent(
     .select("id")
     .eq("event_id", canonicalEvent.eventId)
     .maybeSingle();
-  if (!lookupResult.error && lookupResult.data && typeof lookupResult.data.id === "string") {
+  if (lookupResult.error) {
+    throw new Error(`wm_event_log lookup failed: ${lookupResult.error.message ?? "unknown"}`);
+  }
+  if (lookupResult.data && typeof lookupResult.data.id === "string") {
     eventLogId = lookupResult.data.id;
   }
 

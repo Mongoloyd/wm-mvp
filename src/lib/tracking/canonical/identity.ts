@@ -57,7 +57,11 @@ export async function normalizeAndHashIdentity(identity: WMIdentityPayload): Pro
       : undefined;
 
   const phoneHash = identity.phoneHash
-    ? (isSha256Hex(identity.phoneHash) ? identity.phoneHash.toLowerCase() : await sha256Hex(identity.phoneHash.replace(/\D/g, "")))
+    ? (isSha256Hex(identity.phoneHash)
+        ? identity.phoneHash.toLowerCase()
+        : normalizedPhone
+          ? await sha256Hex(normalizedPhone.replace(/\D/g, ""))
+          : await sha256Hex(identity.phoneHash.replace(/\D/g, "")))
     : normalizedPhone
       ? await sha256Hex(normalizedPhone.replace(/\D/g, ""))
       : undefined;
@@ -89,19 +93,23 @@ function clamp01(value: number): number {
 
 export function computeIdentityStrength(payload: WMIdentityPayload): number {
   let score = 0;
-  const hasStrongPii = Boolean(payload.email || payload.phone || payload.emailHash || payload.phoneHash);
+  const hasRawPii = Boolean(payload.email || payload.phone);
+  const hasHashedPii = Boolean(payload.emailHash || payload.phoneHash);
   const hasClickId = Boolean(payload.clickId || payload.gclid || payload.gbraid || payload.wbraid || payload.fbc);
 
   if (payload.leadId) score += 0.1;
   if (payload.userId) score += 0.1;
-  if (payload.email || payload.phone) score += 0.35;
-  if (payload.emailHash || payload.phoneHash) score += 0.3;
+  if (hasRawPii) {
+    score += 0.35;
+  } else if (hasHashedPii) {
+    score += 0.3;
+  }
   if (payload.phoneVerifiedAt) score += 0.15;
   if (hasClickId) score += 0.25;
   if (payload.sameDeviceAsUpload) score += 0.05;
   if (payload.ipRiskLevel === "low") score += 0.05;
 
-  if (!hasStrongPii && hasClickId) score = Math.min(score, 0.45);
+  if (!hasRawPii && !hasHashedPii && hasClickId) score = Math.min(score, 0.45);
 
   return clamp01(score);
 }

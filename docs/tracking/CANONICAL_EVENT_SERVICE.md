@@ -21,7 +21,7 @@
 ## Enqueue vs suppress
 Dispatch rows are enqueued only when:
 - event is platform-eligible,
-- identity quality is not weak,
+- identity quality is not low,
 - quote quality event is safe and above trust threshold.
 
 Otherwise the event is still recorded in `wm_event_log`, with `dispatch_status = not_applicable`.

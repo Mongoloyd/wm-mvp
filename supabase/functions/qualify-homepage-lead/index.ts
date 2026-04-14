@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
     const { data: existingLeadRows, error: leadQueryError } = await supabase
       .from("leads")
       .select("id, phone_e164, email, created_at")
-      .or(`phone_e164.eq.${phoneE164},email.eq.${payload.email}`)
+      .or(`phone_e164.eq."${phoneE164}",email.eq."${payload.email.replace(/"/g, '\\"')}"`)
       .order("created_at", { ascending: false })
       .limit(5);
 

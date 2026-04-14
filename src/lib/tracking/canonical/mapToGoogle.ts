@@ -65,10 +65,10 @@ export function mapToGoogle(canonical: WMCanonicalEvent): GoogleMapperResult {
   if (identity.wbraid) payload.wbraid = identity.wbraid;
 
   if (hasHashedPii) {
-    payload.user_identifiers = {
-      hashed_email: identity.emailHash,
-      hashed_phone_number: identity.phoneHash,
-    };
+    const userIdentifiers: { hashed_email?: string; hashed_phone_number?: string } = {};
+    if (identity.emailHash) userIdentifiers.hashed_email = identity.emailHash;
+    if (identity.phoneHash) userIdentifiers.hashed_phone_number = identity.phoneHash;
+    payload.user_identifiers = userIdentifiers;
   }
 
   return { suppressed: false, payload };
