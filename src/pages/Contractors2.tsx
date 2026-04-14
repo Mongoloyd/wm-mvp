@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PageWrapper from "@/components/layout/PageWrapper";
+import StickyCTAFooter from "@/components/StickyCTAFooter";
 import HeroSection from "@/components/sections/HeroSection";
 import MarketTruthSection from "@/components/sections/MarketTruthSection";
 import CinematicDivider from "@/components/sections/CinematicDivider";
@@ -19,6 +21,7 @@ import QualificationFlow from "@/components/qualification/QualificationFlow";
 
 const Contractors2 = () => {
   const [qualOpen, setQualOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <PageWrapper>
@@ -53,6 +56,14 @@ const Contractors2 = () => {
       <QualificationStripSection onOpenQualification={() => setQualOpen(true)} />
       <FAQSection />
       <QualificationFlow isOpen={qualOpen} onClose={() => setQualOpen(false)} />
+
+      <StickyCTAFooter
+        onScanClick={() => navigate('/')}
+        onDemoClick={() => navigate('/')}
+        onPostConversionClick={() => { window.location.href = 'tel:+15614685571'; }}
+        isVisible={true}
+        conversionType={null}
+      />
     </PageWrapper>
   );
 };
