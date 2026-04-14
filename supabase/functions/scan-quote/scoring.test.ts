@@ -189,3 +189,94 @@ Deno.test("Harsher cap wins: unilateral (D) + ambiguous scope (C) → grade D", 
     `Expected hardCapApplied to include unilateral_price_adjustment, got ${result.hardCapApplied}`,
   );
 });
+
+// ── 9. Cumulative amber risk → B (minor weaknesses across all pillars) ──────
+
+Deno.test("Cumulative amber: minor weaknesses across all 5 pillars → grade B", () => {
+  const result = computeGrade(
+    makeQuote({
+      // Safety: missing HVHZ (-10), no opening glass specs (-20)
+      hvhz_zone: false,
+      opening_level_glass_specs_present: false,
+      // Install: no disposal (-10), no accessories (-5), no wall repair (-10)
+      installation: { scope_detail: "remove/replace/flash/seal", disposal_included: false, accessories_mentioned: false },
+      wall_repair_scope: undefined,
+      stucco_repair_included: false,
+      drywall_repair_included: false,
+      paint_touchup_included: false,
+      // Price: no payment schedule (-5)
+      payment_schedule_text: undefined,
+      // FinePrint: no cancellation (-25), no timeline (-5)
+      cancellation_policy: undefined,
+      completion_timeline_text: undefined,
+      // Warranty: short labor (1yr → -15), not transferable (-5)
+      warranty: { labor_years: 1, manufacturer_years: 20, transferable: false, details: "written warranty included" },
+    }),
+  );
+  assertEquals(result.letterGrade, "B");
+  assertEquals(result.hardCapApplied, null);
+});
+
+// ── 10. Perfect safety + empty scope → C with hard caps ─────────────────────
+
+Deno.test("Perfect safety but empty scope/install/warranty → C with hard caps", () => {
+  const result = computeGrade(
+    makeQuote({
+      // Keep safety perfect (all DP/NOA/HVHZ from base)
+      // Strip install
+      anchoring_method_text: undefined,
+      waterproofing_method_text: undefined,
+      manufacturer_install_compliance_stated: false,
+      code_compliance_install_statement_present: false,
+      // Strip warranty
+      warranty: undefined,
+      // Strip permits
+      permits: undefined,
+      // Strip scope schedule
+      opening_schedule_present: false,
+      opening_schedule_room_labels_present: false,
+      opening_schedule_dimensions_complete: false,
+      opening_schedule_product_assignments_present: false,
+      // Strip trust signals
+      wall_repair_scope: undefined,
+      stucco_repair_included: false,
+      drywall_repair_included: false,
+      paint_touchup_included: false,
+      debris_removal_included: false,
+      cancellation_policy: undefined,
+      completion_timeline_text: undefined,
+    }),
+  );
+  assertEquals(
+    GRADE_RANK[result.letterGrade] <= GRADE_RANK["C"],
+    true,
+    `Expected grade C or worse, got ${result.letterGrade}`,
+  );
+  assertEquals(
+    result.hardCapApplied != null && result.hardCapApplied.length > 0,
+    true,
+    `Expected at least one hard cap, got ${result.hardCapApplied}`,
+  );
+});
+
+// ── 11. Predatory payment terms override B-level weighted average → D ───────
+
+Deno.test("Predatory payment: perfect specs + unilateral price adjustment → D-cap overrides B", () => {
+  const result = computeGrade(
+    makeQuote({
+      // Keep all safety/install/warranty perfect from base
+      // Add predatory terms
+      unilateral_price_adjustment_allowed: true,
+      written_change_order_required: false,
+      homeowner_approval_required_for_change_orders: false,
+      cancellation_policy: undefined,
+      final_payment_before_inspection: true,
+    }),
+  );
+  assertEquals(result.letterGrade, "D");
+  assertEquals(
+    result.hardCapApplied?.includes("unilateral_price_adjustment"),
+    true,
+    `Expected unilateral_price_adjustment cap, got ${result.hardCapApplied}`,
+  );
+});
