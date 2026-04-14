@@ -26,3 +26,13 @@ export const QUESTIONS = [
   { id: "follow_up", mapping: { yes_consistently: "FOLLOW_UP_CONSISTENT", rarely: "FOLLOW_UP_WEAK" } },
   { id: "intent", mapping: { quality: "QUALITY_ALIGNMENT", volume: "BLOCK" } },
 ] as const;
+
+export const PAGE_CONFIG = {
+  calendly: {
+    url: "https://calendly.com/windowman/contractor-walkthrough",
+  },
+  phone: {
+    display: "(561) 468-5571",
+    href: "tel:+15614685571",
+  },
+} as const;
