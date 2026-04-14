@@ -21,13 +21,10 @@ export default function HowWeMakeMoneySection() {
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">HOW WE MAKE MONEY</SectionEyebrow>
-          <SectionHeading className="mb-6">
-            We Get Paid When the System Produces a Better Opportunity.
-          </SectionHeading>
+          <SectionHeading className="mb-6">We Get Paid When the System Produces a Better Opportunity.</SectionHeading>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-foreground/80 md:text-lg">
-            WindowMan is free for homeowners to use. We make money when our
-            intelligence layer produces qualified opportunities and contractor
-            introductions—not when homeowners stay confused.
+            WindowMan is Free For Homeowners To Use. We Make Money When Our Intelligence Layer Produces Qualified
+            Opportunities and Contractor Introductions—Not When Homeowners Stay Confused.
           </p>
         </div>
 
@@ -43,32 +40,20 @@ export default function HowWeMakeMoneySection() {
             {/* Left: Homeowner side */}
             <div className="flex flex-col gap-4 border-b border-slate-100 pb-8 md:border-b-0 md:border-r md:pb-0 md:pr-8">
               <div className="flex items-center gap-3">
-                <span
-                  className="h-1 w-8 rounded-full"
-                  style={{ background: "#06B6D4" }}
-                  aria-hidden="true"
-                />
-                <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">
-                  HOMEOWNER
-                </span>
+                <span className="h-1 w-8 rounded-full" style={{ background: "#06B6D4" }} aria-hidden="true" />
+                <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">HOMEOWNER</span>
               </div>
-              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
-                Always Free for You
-              </h3>
+              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">Always Free For You</h3>
               <p className="text-sm leading-relaxed text-foreground/70">
-                Upload your quote, get the analysis, see the Truth Report. We
-                do not charge homeowners. Our model only works if you trust the
-                output, and that trust requires us to stay on your side.
+                Upload Your Quote, Get The Analysis, View Your Truth Report. We Dont Charge Homeowners. Our Model Only
+                Works If You Trust The Output, and That Trust Requires Us To Stay On Your Side Til The End.
               </p>
             </div>
 
             {/* Right: Contractor/revenue side */}
             <div className="flex flex-col gap-4 md:pl-8">
               <div className="flex items-center gap-3">
-                <span
-                  className="h-1 w-8 rounded-full bg-orange-400"
-                  aria-hidden="true"
-                />
+                <span className="h-1 w-8 rounded-full bg-orange-400" aria-hidden="true" />
                 <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">
                   CONTRACTOR REFERRAL
                 </span>
@@ -77,11 +62,9 @@ export default function HowWeMakeMoneySection() {
                 We Earn From Better Matches
               </h3>
               <p className="text-sm leading-relaxed text-foreground/70">
-                If you use our data to move forward with one of our vetted
-                contractor partners, they may pay us a referral fee. But they
-                cannot simply hide that fee by bloating the quote, because the
-                same engine that created the opportunity is also what would
-                expose the markup.
+                If You Use Our Data To Move Forward With One Of Our Referred Contractor Partners, They May Pay Us a
+                Referral Fee. But They Cannot Simply Hide That Fee By Bloating The Quote, Because The Same Engine That
+                Created The Opportunity Is Also What Would Expose The Markup.
               </p>
             </div>
           </div>
@@ -104,13 +87,8 @@ export default function HowWeMakeMoneySection() {
                 },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-3">
-                  <span
-                    className={`h-2 w-2 flex-shrink-0 rounded-full ${item.accent}`}
-                    aria-hidden="true"
-                  />
-                  <span className="text-sm font-medium text-foreground/70">
-                    {item.label}
-                  </span>
+                  <span className={`h-2 w-2 flex-shrink-0 rounded-full ${item.accent}`} aria-hidden="true" />
+                  <span className="text-sm font-medium text-foreground/70">{item.label}</span>
                 </div>
               ))}
             </div>
@@ -119,8 +97,7 @@ export default function HowWeMakeMoneySection() {
 
         {/* Trust line */}
         <p className="text-center text-sm italic text-foreground/60">
-          We only get paid when the market gets cleaner and the opportunity gets
-          stronger.
+          We Only Get Paid When The Market Gets Clearer And The Opportunities Get Better.
         </p>
       </div>
     </section>
