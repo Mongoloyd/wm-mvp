@@ -1,7 +1,7 @@
 import { CANONICAL_MODEL_VERSION, CANONICAL_SCHEMA_VERSION } from "./constants.ts";
 import { computeAnomalyScore, routeQuoteTrust } from "./anomaly.ts";
 import { buildIdentityHashes, computeIdentityQuality, normalizeIdentity } from "./identity.ts";
-import type { CreateCanonicalEventInput, WMCanonicalEvent, WMPlatformName } from "./types.ts";
+import type { CreateCanonicalEventInput, WMAnomalyStatus, WMCanonicalEvent, WMPlatformName } from "./types.ts";
 import { computeOptimizationValue } from "./valueModel.ts";
 import { computeTrustScore } from "./trustScore.ts";
 
@@ -12,6 +12,10 @@ export interface CanonicalInsertResult {
 
 function isQuoteRelated(input: CreateCanonicalEventInput): boolean {
   return Boolean(input.quote?.analysisId || input.quote?.scanSessionId || input.eventName === "quote_validation_passed");
+}
+
+function shouldDispatchToPlatform(shouldSend: boolean, anomalyStatus: WMAnomalyStatus | undefined): boolean {
+  return shouldSend && anomalyStatus === "safe";
 }
 
 export async function createCanonicalEvent(
@@ -71,8 +75,8 @@ export async function createCanonicalEvent(
     optimization_value: event.optimization.value,
     should_send_meta: event.optimization.shouldSendMeta,
     should_send_google: event.optimization.shouldSendGoogle,
-    meta_dispatch_status: event.optimization.shouldSendMeta && event.trust?.anomalyStatus === "safe" ? "pending" : "suppressed",
-    google_dispatch_status: event.optimization.shouldSendGoogle && event.trust?.anomalyStatus === "safe" ? "pending" : "suppressed",
+    meta_dispatch_status: shouldDispatchToPlatform(event.optimization.shouldSendMeta, event.trust?.anomalyStatus) ? "pending" : "suppressed",
+    google_dispatch_status: shouldDispatchToPlatform(event.optimization.shouldSendGoogle, event.trust?.anomalyStatus) ? "pending" : "suppressed",
     payload: event,
     raw_payload: event.rawPayload || null,
   });
@@ -125,10 +129,10 @@ export async function createCanonicalEvent(
   }
 
   const enqueuedPlatforms: WMPlatformName[] = [];
-  if (event.optimization.shouldSendMeta && event.trust?.anomalyStatus === "safe") {
+  if (shouldDispatchToPlatform(event.optimization.shouldSendMeta, event.trust?.anomalyStatus)) {
     enqueuedPlatforms.push("meta");
   }
-  if (event.optimization.shouldSendGoogle && event.trust?.anomalyStatus === "safe") {
+  if (shouldDispatchToPlatform(event.optimization.shouldSendGoogle, event.trust?.anomalyStatus)) {
     enqueuedPlatforms.push("google");
   }
 

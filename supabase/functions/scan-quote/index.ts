@@ -293,6 +293,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Terminal statuses for idempotency guard (defined at module scope to avoid recreation on each request)
+const TERMINAL_STATUSES: readonly ScanSessionStatus[] = ["processing", "preview_ready", "complete", "invalid_document"];
+
 function jsonResponse(body: Record<string, unknown>, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -570,8 +573,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── Idempotency guard: reject if session is already terminal ──
-    const TERMINAL_STATUSES = ["processing", "preview_ready", "complete", "invalid_document"];
-    if (TERMINAL_STATUSES.includes(session.status) && !_isDevBypass) {
+    if (TERMINAL_STATUSES.includes(session.status as ScanSessionStatus) && !_isDevBypass) {
       console.log(`Idempotency guard: session ${scan_session_id} already in status '${session.status}'`);
       return jsonResponse({ scan_session_id, status: session.status }, 200);
     }
