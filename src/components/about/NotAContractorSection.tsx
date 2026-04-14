@@ -37,7 +37,8 @@ export default function NotAContractorSection() {
           left: "15%",
           width: "70%",
           height: "110%",
-          background: "radial-gradient(ellipse at 50% 45%, rgba(30,80,180,0.07) 0%, rgba(56,130,220,0.03) 55%, transparent 72%)",
+          background:
+            "radial-gradient(ellipse at 50% 45%, rgba(30,80,180,0.07) 0%, rgba(56,130,220,0.03) 55%, transparent 72%)",
           filter: "blur(50px)",
         }}
       />
@@ -45,14 +46,11 @@ export default function NotAContractorSection() {
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
           <SectionEyebrow className="mb-4">OUR ROLE</SectionEyebrow>
-          <SectionHeading className="mb-6">
-            WindowMan Is Not the Contractor. It's the Layer Between.
-          </SectionHeading>
+          <SectionHeading className="mb-6">WindowMan Is Not the Contractor. It's the Layer Between.</SectionHeading>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-foreground/80 md:text-lg">
-            We do not install windows. We do not operate as a generic lead
-            marketplace. We function as an independent intelligence layer
-            designed to bring more visibility to one of the least standardized
-            decisions in home improvement.
+            We do not install windows. We do not operate as a generic lead marketplace. We function as an independent
+            intelligence layer designed to bring more visibility to one of the least standardized decisions in home
+            improvement.
           </p>
         </div>
 
@@ -60,24 +58,16 @@ export default function NotAContractorSection() {
         <div className="mb-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {identityCards.map((card) => (
             <SkeuoCard key={card.label} className="flex flex-col">
-              <span
-                className={`mb-4 inline-block h-1.5 w-8 rounded-full ${card.accent}`}
-                aria-hidden="true"
-              />
-              <h3 className="mb-3 font-display text-lg font-bold tracking-tight text-foreground">
-                {card.label}
-              </h3>
-              <p className="text-sm leading-relaxed text-foreground/70">
-                {card.body}
-              </p>
+              <span className={`mb-4 inline-block h-1.5 w-8 rounded-full ${card.accent}`} aria-hidden="true" />
+              <h3 className="mb-3 font-display text-lg font-bold tracking-tight text-foreground">{card.label}</h3>
+              <p className="text-sm leading-relaxed text-foreground/70">{card.body}</p>
             </SkeuoCard>
           ))}
         </div>
 
         {/* Closing Statement */}
         <p className="text-center font-display text-lg font-semibold tracking-tight text-foreground/60 md:text-xl">
-          The goal is not more noise. The goal is better visibility before
-          commitment.
+          The Goal Is Not More Noise. The Goal Is Better Visibility Before Commitment.
         </p>
       </div>
     </section>
