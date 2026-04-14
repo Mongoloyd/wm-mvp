@@ -301,7 +301,7 @@ export default function ForensicPillarSection({ pillarScores, flags, county, isF
           <h2 className="wm-title-section text-foreground" style={{ marginBottom: 6 }}>
             How Your Quote Scores Across 5 Key Areas
           </h2>
-          <p className="font-body text-muted-foreground" style={{ fontSize: 13, marginBottom: 20 }}>
+          <p className="font-sans text-muted-foreground" style={{ fontSize: 14, fontWeight: 500, marginBottom: 20 }}>
             Each Pillar is Scored Independently Against {county} County Standards.
           </p>
         </motion.div>
