@@ -284,17 +284,21 @@ export default function App() {
       setIsExitIntent(true);
       return;
     }
+
     const wasCompleted = funnelStep === "done" || hasCompletedFunnel;
     setHasCompletedFunnel(true);
     setFlowState("revealed");
+
     setTimeout(() => {
       setFunnelStep("scope");
       setStepHistory([]);
       setIsExitIntent(false);
+
       if (wasCompleted) {
         toast.success("You're matched! Let's scan your quote.");
         setTimeout(() => {
-          window.location.href = "/#truth-gate";
+          const safeUrl = new URL("/#truth-gate", window.location.origin);
+          window.location.assign(safeUrl.toString());
         }, 1200);
       }
     }, 300);
@@ -775,7 +779,10 @@ export default function App() {
                 {/* CTA */}
                 <div className="relative z-10">
                   <button
-                    onClick={() => (window.location.href = "/")}
+                    onClick={() => {
+                      const safeUrl = new URL("/", window.location.origin);
+                      window.location.assign(safeUrl.toString());
+                    }}
                     aria-label="Upload your real quote for a full audit"
                     className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-base sm:text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2 min-h-[48px]"
                   >
