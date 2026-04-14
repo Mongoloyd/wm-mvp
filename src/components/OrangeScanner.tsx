@@ -737,6 +737,15 @@ export default function OrangeScanner({
     return () => clearTimeout(timeout);
   }, [isScanning, scanProgress, isComplete]);
 
+  // --- Fallback for empty scenarios (after all hooks) ---
+  if (!currentScenario) {
+    return (
+      <div className="min-h-[400px] bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
+        Demo scenarios unavailable.
+      </div>
+    );
+  }
+
   const activePhase = scanProgress === 0 ? -1 : scanProgress < 33 ? 0 : scanProgress < 66 ? 1 : 2;
 
   // --- Alert level styling helpers ---
