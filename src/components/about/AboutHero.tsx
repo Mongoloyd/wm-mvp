@@ -92,7 +92,7 @@ export default function AboutHero({ onTrack }: AboutHeroProps) {
 
           {/* Right Column: Forensic Visual Panel */}
           <div className="flex items-center justify-center">
-            <div className="card-raised-hero relative w-full max-w-md rounded-2xl bg-white p-8" style={{ boxShadow: "0 4px 8px rgba(10,30,80,0.12), 0 20px 60px rgba(10,30,80,0.18), 0 40px 80px rgba(10,30,80,0.08), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(30,80,180,0.07)" }}>
+            <div className="card-raised-hero relative w-full max-w-md rounded-2xl bg-white p-8 border-double border-8 border-emerald-100" style={{ boxShadow: "0 4px 8px rgba(10,30,80,0.12), 0 20px 60px rgba(10,30,80,0.18), 0 40px 80px rgba(10,30,80,0.08), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(30,80,180,0.07)" }}>
               {/* Subtle cyan ambient behind scanner card */}
               <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-2xl" style={{ background: "radial-gradient(ellipse at 60% 20%, rgba(6,182,212,0.07) 0%, transparent 65%)" }} />
               {/* Mock Scanner Interface */}
