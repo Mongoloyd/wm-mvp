@@ -1691,6 +1691,27 @@ export type Database = {
           },
         ]
       }
+      service_tickets: {
+        Row: {
+          created_at: string
+          customer_issue: string
+          id: number
+          technician_notes: string
+        }
+        Insert: {
+          created_at?: string
+          customer_issue: string
+          id?: number
+          technician_notes: string
+        }
+        Update: {
+          created_at?: string
+          customer_issue?: string
+          id?: number
+          technician_notes?: string
+        }
+        Relationships: []
+      }
       user_role_audit_log: {
         Row: {
           action: string
