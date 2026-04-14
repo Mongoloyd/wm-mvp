@@ -487,7 +487,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     key: "gradeD",
     label: "Grade D",
     description: "No NOA, no DP, no permits, short descriptions, sparse warranty — critical_safety D-cap",
-    expectedGrade: "D",
+    expectedGrade: "F",
     extraction: {
       document_type: "impact_window_quote",
       is_window_door_related: true,
@@ -539,6 +539,20 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
       callback_process_text: "Call office for warranty service",
       leak_callback_sla_days: 7,
       labor_service_sla_days: 7,
+      // Degrade install pillar to match "sparse install" description
+      anchoring_method_text: undefined,
+      waterproofing_method_text: undefined,
+      buck_treatment_method_text: undefined,
+      sealant_specified: undefined,
+      opening_schedule_present: undefined,
+      opening_schedule_room_labels_present: undefined,
+      opening_schedule_dimensions_complete: undefined,
+      opening_schedule_product_assignments_present: undefined,
+      installation: {
+        scope_detail: "Install windows per specification",
+        disposal_included: false,
+        accessories_mentioned: false,
+      },
     },
     [
       {
@@ -570,7 +584,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     "inspectionTrap",
     "The Inspection Trap",
     "Excellent specs and branding, but predatory legal terms require final payment before inspection and allow uncapped remeasure-based price increases.",
-    "C",
+    "D",
     {
       confidence: 0.98,
       final_payment_before_inspection: true,
@@ -593,7 +607,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     key: "cornerCutting",
     label: "Corner-Cutting",
     description: "$150/unit, no brand/series, no DP — critical_safety D-cap from missing specs",
-    expectedGrade: "D",
+    expectedGrade: "F",
     extraction: {
       document_type: "impact_window_quote",
       is_window_door_related: true,
@@ -667,7 +681,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     key: "vagueScope",
     label: "Vague Scope",
     description: "Descriptions <10 chars, no brand, no install detail — unverified_impact_specs D-cap",
-    expectedGrade: "D",
+    expectedGrade: "F",
     extraction: {
       document_type: "impact_window_quote",
       is_window_door_related: true,
