@@ -38,7 +38,7 @@ interface CreateCanonicalEventResult {
   dispatchPlatforms: WMPlatformName[];
 }
 
-const QUOTE_EVENTS = new Set(["quote_validation_passed", "quote_uploaded"]);
+const QUOTE_EVENTS = new Set(["quote_validation_passed", "quote_upload_completed"]);
 
 function sanitizeEventIdSegment(value: unknown): string {
   if (value === null || value === undefined) {
@@ -187,6 +187,7 @@ export async function createCanonicalEvent(
     rawPayload: input.rawPayload,
   };
 
+  const analysisId = input.analysisId ?? input.payload.quote?.analysisId ?? null;
   const wmEventInsert = {
     event_id: canonicalEvent.eventId,
     event_name: canonicalEvent.eventName,
@@ -194,7 +195,7 @@ export async function createCanonicalEvent(
     lead_id: input.leadId ?? normalizedIdentity.leadId ?? null,
     account_user_id: input.userId ?? normalizedIdentity.userId ?? null,
     scan_session_id: input.scanSessionId ?? input.payload.journey.scanSessionId ?? null,
-    analysis_id: input.analysisId ?? input.payload.quote?.analysisId ?? null,
+    analysis_id: analysisId,
     quote_file_id: input.quoteFileId ?? input.payload.quote?.quoteFileId ?? null,
     schema_version: canonicalEvent.schemaVersion,
     model_version: canonicalEvent.modelVersion ?? null,
@@ -234,10 +235,10 @@ export async function createCanonicalEvent(
     throw new Error(`wm_event_log duplicate insert recovery failed for event_id ${canonicalEvent.eventId}`);
   }
 
-  if (canonicalEvent.payload.quote?.analysisId) {
+  if (analysisId && canonicalEvent.payload.quote) {
     const quoteUpsert = await deps.db.from("wm_quote_facts").upsert(
       {
-        analysis_id: canonicalEvent.payload.quote.analysisId,
+        analysis_id: analysisId,
         lead_id: wmEventInsert.lead_id,
         scan_session_id: wmEventInsert.scan_session_id,
         quote_file_id: wmEventInsert.quote_file_id,
