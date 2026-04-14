@@ -1,80 +1,73 @@
 
 
-## Plan: OrangeScanner Three-Scenario Proof Engine Refactor
+## Plan: OrangeScanner → Arbitrage Engine Direct-Entry Bridge
 
-**Single file**: `src/components/OrangeScanner.tsx` — complete rewrite preserving visual shell.
-
----
-
-### What Changes
-
-**Delete entirely:**
-- `ESTIMATE_DATA` constant (lines 20-55)
-- Timer-driven scan engine inside `startScan` (lines 377-408)
-- `Math.random()` audit ID in VerdictHologram (line 291)
-- Single "GENERATE REBUTTAL REPORT" button in VerdictHologram (lines 283-287)
-- Hardcoded ESTIMATE_DATA bindings in header (lines 603-630), table (lines 643-683), totals (lines 691-698), sidebar log (lines 799-814), and footer specs (lines 826-836)
-- Old anomaly-count score formula in TrustScoreWidget (line 60)
-- Always-on FinePrintScanner render (line 705)
-
-**Add at top of file (~120 lines):**
-- `LineItemStatus`, `LineItem`, `ScenarioSpecs`, `AlertLevel`, `QuoteScenario` types
-- `quoteScenarios` array with all three scenarios (predatory, vague, fair) using the exact user-provided payload
-- `INITIAL_SCANNER_STATE` constant
-
-**Add to component state:**
-- `scenarioIndex` (number, default 0)
-- `isComplete` (boolean)
-- Derived `currentScenario` and `safeScenario` with fallbacks
-- `verdictRef` (useRef for focus management)
-
-**Add new `resetScannerState(nextIsScanning)` helper** — resets scanProgress, activeAnomalies, isComplete, isScanning in one call.
-
-**Refactor `startScan`** — guard, advance scenarioIndex (modulo 3) on re-runs, call resetScannerState(true). No timers.
-
-**Add `useEffect` scan engine** — dependency on `[isScanning, scanProgress, currentScenario, isComplete]`. Uses setTimeout with STEP=2/DELAY=40. Deterministic anomaly triggers using `itemStart=24, itemRange=56, stepSize` formula. License trigger at 14, fine print at 84. Lands exactly on 100. Focuses verdictRef on completion.
-
-**Refactor `TrustScoreWidget`** — accept `integrityScore` and `alertLevel` props, remove anomaly-count formula. Color thresholds: <70 red, <85 amber, else cyan.
-
-**Refactor `VerdictHologram`** — accept `alertLevel`, `summaryTitle`, `summaryText`, `integrityScore`, `onScanClick`, `onDemoClick`. Theme colors by alertLevel. Verdict headline locked per spec. Replace single CTA with two-button Decision Gate ("I Have a Quote" / "I Want a Quote") with exact classes, aria-labels, data-testids. Add `aria-live="polite"`, `tabIndex={-1}`, ref binding. Remove `Math.random()` audit ID (use `useRef` for stable ID).
-
-**Add safe callback wrappers** — `safeInvokeScanClick` and `safeInvokeDemoClick` with rate-limited console.warn for missing props.
-
-**Bind document header** to `safeScenario.client`, `.contractor`, `.license`, `.date`, `.quoteRef`. Add two new rows: Specified Brand, NOA Code. License anomaly highlight driven by `activeAnomalies.includes("license")`.
-
-**Insert Executive Summary Alert Box** between header and table — color-coded by alertLevel (red/amber/green), shows summaryTitle + summaryText, border-l-4 style.
-
-**Bind line items table** to `safeScenario.lineItems`. Cost as raw string. Sub-rows with "AUDIT FLAG:" or "VERIFIED:" text labels (no emoji). Color by status.
-
-**Bind totals** to `safeScenario.subtotal` and `safeScenario.total` as raw strings.
-
-**Conditionally render FinePrintScanner** only when `safeScenario.finePrintTrap === true`.
-
-**Bind sidebar audit log** to scenario data — license entry gated by `licenseAnomaly`, fine print gated by `finePrintTrap`, item flags from `lineItems`.
-
-**Bind footer specs** to `safeScenario.specs` (stc, uFactor, shgc, frame).
-
-**Add QA data-testids**: `orange-scanner-have-quote`, `orange-scanner-want-quote`, `orange-scanner-verdict-cta`, `orange-scanner-fineprint`, `orange-scanner-trust-score`.
+Three files changed. Zero routing changes. Zero changes to `ArbitrageEngineSection.tsx` or `Index.tsx`.
 
 ---
 
-### What Stays Untouched
-- All ambient lighting divs
-- Scanner bed layout and 3D tilt wrapper
-- HUD phase bar (DATA EXTRACTION / CONTEXTUAL INJECTION / COMPLIANCE DETECTION)
-- Laser scan line visuals
-- Paper texture (grain, coffee ring, fold line, blue stamp)
-- ScanCTA component
-- Mobile + desktop "Run Demo Audit" button placement and styling
-- `onScanClick` / `onDemoClick` prop signature
-- Global CSS keyframes and custom scrollbar styles
-- Overall dark forensic holographic aesthetic
+### File 1: `src/components/OrangeScanner.tsx`
 
-### Net Result
-- ~55 lines deleted (old static data + timer engine + single CTA)
-- ~180 lines added (types, scenarios, scan engine useEffect, alert box, Decision Gate, safe wrappers)
-- Net ~+125 lines
-- Zero files changed besides OrangeScanner.tsx
-- Zero visual regression in shell aesthetics
-- Three internally rotating scenarios with no visible selector
+**A. Add import** (line 1 area):
+```tsx
+import { useNavigate } from "react-router-dom";
+```
+
+**B. Update component signature** (line 618-621): Rename `onDemoClick` to `_onDemoClick` to suppress lint warnings while keeping the prop type stable.
+
+**C. Add `const navigate = useNavigate();`** after line 628 (with other hooks).
+
+**D. Replace `safeInvokeDemoClick` body** (lines 668-678): Remove callback delegation and warn logic. Replace with:
+```tsx
+const safeInvokeDemoClick = () => {
+  console.info("demo_cta_clicked", {
+    scenarioId: safeScenario.id,
+    button: "want_quote",
+  });
+  navigate("/about?startArb=1&step=scope&src=orange-scanner");
+};
+```
+
+Nothing else in OrangeScanner changes.
+
+---
+
+### File 2: `src/components/arbitrageengine.tsx`
+
+**A. Add types** before line 173: `FunnelStep` union type and `ArbitrageEngineProps` type with `autoOpen`, `initialStep`, `hideBaseShell`, `source`, `onDirectEntryClose`.
+
+**B. Replace signature** (line 173): `export default function App()` → `export default function ArbitrageEngine({...}: ArbitrageEngineProps)` with defaults.
+
+**C. Type state** (lines 179-180): Type `funnelStep` as `FunnelStep`, `stepHistory` as `FunnelStep[]`.
+
+**D. Add direct-entry `useEffect`** after line 200 (after `modalRef`): When `autoOpen` is true, set `flowState="modal_open"`, reset `funnelStep` to `initialStep`, clear `stepHistory`, set `hasCompletedFunnel=false`, `isExitIntent=false`. Log `arbitrage_direct_entry_opened`.
+
+**E. Add `closeToAboutContent` helper** before line 276: Resets `flowState` to `"idle"`, clears funnel state, calls `onDirectEntryClose?.()`.
+
+**F. Replace `handleClose`** (lines 276-305): Add early check — if `autoOpen && !hasCompletedFunnel && preCompletionStep && !isExitIntent`, call `closeToAboutContent()` and return. Otherwise keep all existing behavior unchanged.
+
+**G. Upgrade scroll lock** (lines 210-217): Replace with scrollbar-width-aware version that captures/restores `overflow` and `paddingRight`.
+
+**H. Wrap shell in `!hideBaseShell`** (lines 383-797): Wrap background effects, title, pipeline card, and audit reveal in `{!hideBaseShell && (<>...</>)}`. The modal block (line 799+) stays **outside** the wrapper.
+
+---
+
+### File 3: `src/pages/About.tsx`
+
+- Add `useSearchParams` from react-router-dom
+- Import `ArbitrageEngine` from `@/components/arbitrageengine`
+- Parse `startArb`, `step`, `src` query params; validate `step` against `FunnelStep` allowlist
+- Add `clearDirectEntryParams()` that deletes the three params with `replace: true`
+- When `isDirectEntry`: render `<ArbitrageEngine autoOpen hideBaseShell source={source} initialStep={initialStep} onDirectEntryClose={clearDirectEntryParams} />` in a `<section>` wrapper instead of `<ArbitrageEngineSection />`
+- When not direct entry: render `<ArbitrageEngineSection />` as before
+- Include `direct_entry` and `source` in tracking event
+
+---
+
+### What stays untouched
+- `ArbitrageEngineSection.tsx` — zero changes
+- `Index.tsx` — zero changes
+- OrangeScanner prop types, visual shell, scan engine, rotation, Decision Gate copy
+- Arbitrage Engine funnel steps, question copy, Supabase insert, completion redirect
+- All other About page sections
 
