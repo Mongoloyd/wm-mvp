@@ -1,97 +1,27 @@
 
+Audit findings:
 
-## Fix: ArbitrageEngine close behavior and Upload CTA target
+- `src/components/arbitrageengine.tsx:173-192` already contains the named exports:
+  - `export type FunnelStep = ...`
+  - `export const FUNNEL_STEPS: FunnelStep[] = [...]`
+- `src/pages/About.tsx:11` imports them from `@/components/arbitrageengine`, and that import path is correct for the current file structure.
+- `src/components/arbitrageengine.tsx:337-379` already has the corrected `handleClose` behavior:
+  - in direct-entry mode, first close sets `setIsExitIntent(true)` and returns
+  - completed flow redirects to `/#truth-gate-section`
+  - unfinished direct-entry flow falls back to `closeToAboutContent()`
+- `src/components/arbitrageengine.tsx:862-865` already has the corrected Upload CTA target:
+  - `new URL("/#truth-gate-section", window.location.origin)`
+- `src/components/arbitrageengine.tsx:976-988` already has the corrected exit-intent “No thanks, I’ll pay retail.” handler:
+  - when `autoOpen` is true, it calls `closeToAboutContent()` and returns
 
-Fix 1 (exports) is already applied — `export type FunnelStep` and `export const FUNNEL_STEPS` exist at lines 173 and 188. Three fixes remain:
+What this means:
 
----
+1. The current repo state does not match the stale pasted version you described.
+2. I do not see the four code mismatches in the current codebase snapshot.
+3. Based on the files I audited, `About.tsx` should be able to import `FunnelStep` and `FUNNEL_STEPS` from `@/components/arbitrageengine` without needing an import-path change.
+4. If you are still seeing TS2614 locally, the likely cause is a stale editor/build cache or a different unsaved local copy of `src/components/arbitrageengine.tsx` than the one currently in the repo.
 
-### Fix 2 — handleClose (lines 337-374)
-
-Replace the direct-entry branch so X shows exit-intent first instead of immediately closing to About content.
-
-**Line 341**: Change `closeToAboutContent()` to `setIsExitIntent(true)`.
-
-Also add a missing `return` + `closeToAboutContent()` call in the non-completed auto-open fallback at the end of the function (after the `wasCompleted` redirect block).
-
-Full replacement for lines 337-374:
-```tsx
-const handleClose = () => {
-  const preCompletionStep =
-    funnelStep !== "done" && !["secret_capture", "secret_success"].includes(funnelStep);
-
-  if (autoOpen && !hasCompletedFunnel && preCompletionStep && !isExitIntent) {
-    setIsExitIntent(true);
-    return;
-  }
-
-  if (
-    !hasCompletedFunnel &&
-    !isExitIntent &&
-    funnelStep !== "done" &&
-    !["secret_capture", "secret_success"].includes(funnelStep) &&
-    !isEmailValid
-  ) {
-    setIsExitIntent(true);
-    return;
-  }
-
-  const wasCompleted = funnelStep === "done" || hasCompletedFunnel;
-  setHasCompletedFunnel(true);
-  setFlowState("revealed");
-
-  setTimeout(() => {
-    setFunnelStep("scope");
-    setStepHistory([]);
-    setIsExitIntent(false);
-
-    if (wasCompleted) {
-      toast.success("You're matched! Let's scan your quote.");
-      setTimeout(() => {
-        const safeUrl = new URL("/#truth-gate-section", window.location.origin);
-        window.location.assign(safeUrl.toString());
-      }, 1200);
-      return;
-    }
-
-    if (autoOpen) {
-      closeToAboutContent();
-    }
-  }, 300);
-};
-```
-
-### Fix 3 — "No thanks" button handler (lines 970-979)
-
-Add an `autoOpen` check so direct-entry users close to About content instead of just resetting state.
-
-Replace lines 971-978:
-```tsx
-onClick={() => {
-  if (autoOpen) {
-    closeToAboutContent();
-    return;
-  }
-  setFlowState("revealed");
-  setHasCompletedFunnel(true);
-  setTimeout(() => {
-    setFunnelStep("scope");
-    setStepHistory([]);
-    setIsExitIntent(false);
-  }, 300);
-}}
-```
-
-### Fix 4 — Upload CTA target (line 859)
-
-Change `"/"` to `"/#truth-gate-section"` so the button goes to TruthGate.
-
-```tsx
-const safeUrl = new URL("/#truth-gate-section", window.location.origin);
-```
-
----
-
-### Summary
-One file changed (`src/components/arbitrageengine.tsx`), three edits. No changes to About.tsx. The export issue is already resolved.
-
+Recommended next step if you want an implementation pass after this audit:
+- verify your local editor copy of `src/components/arbitrageengine.tsx` matches the repo lines above
+- then restart the TypeScript/Vite process if the error persists
+- only change code if your local file truly differs from this audited version
