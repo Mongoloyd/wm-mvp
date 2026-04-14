@@ -48,9 +48,9 @@ export default function NotAContractorSection() {
           <SectionEyebrow className="mb-4">OUR ROLE</SectionEyebrow>
           <SectionHeading className="mb-6">WindowMan Is Not the Contractor. It's the Layer Between.</SectionHeading>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-foreground/80 md:text-lg">
-            We do not install windows. We do not operate as a generic lead marketplace. We function as an independent
-            intelligence layer designed to bring more visibility to one of the least standardized decisions in home
-            improvement.
+            We Do Not Install Windows. We Do Not Operate As A Generic Lead Marketplace. We Function As An Independent
+            Intelligence Layer Designed To Bring More Visibility To One Of The Least Standardized Decisions In Home
+            Improvement.
           </p>
         </div>
 
