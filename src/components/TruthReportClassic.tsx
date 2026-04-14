@@ -446,17 +446,17 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           <div className="max-w-4xl mx-auto flex flex-wrap items-center gap-x-4 gap-y-1">
             <span className="wm-eyebrow text-primary">DOCUMENT VERIFIED</span>
             {pageCount != null && pageCount > 1 && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
+              <span className="font-sans text-muted-foreground" style={{ fontSize: 13, fontWeight: 500 }}>
                 Multi-Page Document Analyzed
               </span>
             )}
             {lineItemCount != null && lineItemCount > 0 && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
+              <span className="font-sans text-muted-foreground" style={{ fontSize: 13, fontWeight: 500 }}>
                 · Detailed Line Items Detected
               </span>
             )}
             {contractorName && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 13 }}>
+              <span className="font-sans text-muted-foreground" style={{ fontSize: 13, fontWeight: 500 }}>
                 · Contractor Identified
               </span>
             )}
