@@ -2,10 +2,10 @@ import { Check } from "lucide-react";
 import { motion } from "framer-motion";
 
 const trustBullets = [
-  "No account or credit card required",
-  "256-bit encrypted & strictly confidential",
-  "Results generated in under 60 seconds",
-  "Your contractor is never notified",
+  "No Account or Credit Card Required",
+  "256-bit Encrypted & Strictly Confidential",
+  "Results Generated in Under 60 Seconds",
+  "Your Contractor is Never Notified",
 ];
 
 export const TrustBullets = () => (
@@ -19,7 +19,9 @@ export const TrustBullets = () => (
       {trustBullets.map((item) => (
         <div key={item} className="flex items-center gap-2">
           <Check size={16} className="shrink-0 text-primary" strokeWidth={2.5} />
-          <span className="whitespace-nowrap font-medium text-xs sm:text-[13px] lg:text-sm text-muted-foreground">{item}</span>
+          <span className="whitespace-nowrap font-medium text-xs sm:text-[13px] lg:text-sm text-muted-foreground">
+            {item}
+          </span>
         </div>
       ))}
     </div>
