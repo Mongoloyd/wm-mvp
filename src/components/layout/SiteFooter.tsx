@@ -125,7 +125,7 @@ export default function SiteFooter({ className = "" }: SiteFooterProps) {
         </div>
 
         <div className="mt-10 border-t border-slate-200 pt-6">
-          <p className="text-xs text-slate-500">© 2026 WindowMan. All rights reserved.</p>
+          <p className="text-xs text-slate-500"></p>
         </div>
       </div>
     </footer>
