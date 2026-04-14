@@ -170,14 +170,43 @@ function useFocusTrap(isActive: boolean) {
   return containerRef;
 }
 
-export default function App() {
+type FunnelStep =
+  | "scope"
+  | "intent_filter"
+  | "status"
+  | "comp_a"
+  | "comp_b"
+  | "contact"
+  | "identity"
+  | "intent"
+  | "call"
+  | "timeframe"
+  | "done"
+  | "secret_capture"
+  | "secret_success";
+
+type ArbitrageEngineProps = {
+  autoOpen?: boolean;
+  initialStep?: FunnelStep;
+  hideBaseShell?: boolean;
+  source?: string;
+  onDirectEntryClose?: () => void;
+};
+
+export default function ArbitrageEngine({
+  autoOpen = false,
+  initialStep = "scope",
+  hideBaseShell = false,
+  source = "unknown",
+  onDirectEntryClose,
+}: ArbitrageEngineProps) {
   const [flowState, setFlowState] = useState("idle");
   const [hasCompletedFunnel, setHasCompletedFunnel] = useState(false);
   const [isExitIntent, setIsExitIntent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [funnelStep, setFunnelStep] = useState("scope");
-  const [stepHistory, setStepHistory] = useState<string[]>([]);
+  const [funnelStep, setFunnelStep] = useState<FunnelStep>("scope");
+  const [stepHistory, setStepHistory] = useState<FunnelStep[]>([]);
   const [formData, setFormData] = useState({
     scope: "",
     installerPreference: "",
@@ -206,21 +235,38 @@ export default function App() {
     }
   }, [flowState, hasCompletedFunnel]);
 
-  // Lock body scroll when modal open
+  // Direct-entry auto-open
   useEffect(() => {
-    if (flowState === "modal_open") {
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = "";
-      };
+    if (!autoOpen) return;
+    setFlowState("modal_open");
+    setHasCompletedFunnel(false);
+    setIsExitIntent(false);
+    setFunnelStep(initialStep);
+    setStepHistory([]);
+    console.info("arbitrage_direct_entry_opened", { source, step: initialStep });
+  }, [autoOpen, initialStep, source]);
+
+  // Lock body scroll when modal open (scrollbar-width-aware)
+  useEffect(() => {
+    if (flowState !== "modal_open") return;
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
   }, [flowState]);
 
   const handleStartSequence = () => {
     if (flowState === "idle") setFlowState("animating");
   };
 
-  const advance = (nextStep: string, field: string | null = null, value: string | null = null) => {
+  const advance = (nextStep: FunnelStep, field: string | null = null, value: string | null = null) => {
     if (field) setFormData((prev) => ({ ...prev, [field]: value }));
     setStepHistory((prev) => [...prev, funnelStep]);
     setFunnelStep(nextStep);
@@ -273,7 +319,26 @@ export default function App() {
     }
   };
 
+  const closeToAboutContent = useCallback(() => {
+    setFlowState("idle");
+    setHasCompletedFunnel(false);
+    setIsExitIntent(false);
+    setFunnelStep("scope");
+    setStepHistory([]);
+    onDirectEntryClose?.();
+  }, [onDirectEntryClose]);
+
   const handleClose = () => {
+    const preCompletionStep =
+      funnelStep !== "done" &&
+      !["secret_capture", "secret_success"].includes(funnelStep);
+
+    // Direct-entry bridge: close before completion reveals normal About page
+    if (autoOpen && !hasCompletedFunnel && preCompletionStep && !isExitIntent) {
+      closeToAboutContent();
+      return;
+    }
+
     if (
       !hasCompletedFunnel &&
       !isExitIntent &&
@@ -380,6 +445,7 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.4); }
       `}</style>
 
+      {!hideBaseShell && (<>
       {/* Background Effects */}
       <div
         className="absolute inset-0 z-0 pointer-events-none opacity-20"
@@ -795,6 +861,7 @@ export default function App() {
           )}
         </div>
       </div>
+      </>)}
 
       {/* ── Breadcrumb Lead Funnel Modal ───────────────────────────────────── */}
       {flowState === "modal_open" && (
