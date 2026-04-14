@@ -200,9 +200,9 @@ Deno.test("Cumulative amber: minor weaknesses across all 5 pillars → grade B",
       // Install: no disposal (-10), no accessories (-5)
       installation: { scope_detail: "remove/replace/flash/seal", disposal_included: false, accessories_mentioned: false },
       // Price: no payment schedule (-5)
-      payment_schedule_text: null,
+      payment_schedule_text: undefined,
       // FinePrint: no cancellation (-25)
-      cancellation_policy: null,
+      cancellation_policy: undefined,
       // Warranty: short labor (1yr → -15), not transferable (-5)
       warranty: { labor_years: 1, manufacturer_years: 20, transferable: false, details: "written warranty included" },
     }),
@@ -218,8 +218,8 @@ Deno.test("Perfect safety but empty scope/install/warranty → C with hard caps"
     makeQuote({
       // Keep safety perfect (all DP/NOA/HVHZ from base)
       // Strip install
-      anchoring_method_text: null,
-      waterproofing_method_text: null,
+      anchoring_method_text: undefined,
+      waterproofing_method_text: undefined,
       manufacturer_install_compliance_stated: false,
       code_compliance_install_statement_present: false,
       // Strip warranty
@@ -232,13 +232,13 @@ Deno.test("Perfect safety but empty scope/install/warranty → C with hard caps"
       opening_schedule_dimensions_complete: false,
       opening_schedule_product_assignments_present: false,
       // Strip trust signals
-      wall_repair_scope: null,
+      wall_repair_scope: undefined,
       stucco_repair_included: false,
       drywall_repair_included: false,
       paint_touchup_included: false,
       debris_removal_included: false,
-      cancellation_policy: null,
-      completion_timeline_text: null,
+      cancellation_policy: undefined,
+      completion_timeline_text: undefined,
     }),
   );
   assertEquals(
@@ -263,7 +263,7 @@ Deno.test("Predatory payment: perfect specs + unilateral price adjustment → D-
       unilateral_price_adjustment_allowed: true,
       written_change_order_required: false,
       homeowner_approval_required_for_change_orders: false,
-      cancellation_policy: null,
+      cancellation_policy: undefined,
       final_payment_before_inspection: true,
     }),
   );
