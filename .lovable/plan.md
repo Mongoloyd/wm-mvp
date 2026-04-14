@@ -1,29 +1,97 @@
 
 
-## Fix: Export FunnelStep & FUNNEL_STEPS from arbitrageengine.tsx, clean up About.tsx
+## Fix: ArbitrageEngine close behavior and Upload CTA target
 
-### File 1: `src/components/arbitrageengine.tsx`
+Fix 1 (exports) is already applied — `export type FunnelStep` and `export const FUNNEL_STEPS` exist at lines 173 and 188. Three fixes remain:
 
-**A. Line 30** — Add `export` to the type:
+---
+
+### Fix 2 — handleClose (lines 337-374)
+
+Replace the direct-entry branch so X shows exit-intent first instead of immediately closing to About content.
+
+**Line 341**: Change `closeToAboutContent()` to `setIsExitIntent(true)`.
+
+Also add a missing `return` + `closeToAboutContent()` call in the non-completed auto-open fallback at the end of the function (after the `wasCompleted` redirect block).
+
+Full replacement for lines 337-374:
 ```tsx
-export type FunnelStep =
+const handleClose = () => {
+  const preCompletionStep =
+    funnelStep !== "done" && !["secret_capture", "secret_success"].includes(funnelStep);
+
+  if (autoOpen && !hasCompletedFunnel && preCompletionStep && !isExitIntent) {
+    setIsExitIntent(true);
+    return;
+  }
+
+  if (
+    !hasCompletedFunnel &&
+    !isExitIntent &&
+    funnelStep !== "done" &&
+    !["secret_capture", "secret_success"].includes(funnelStep) &&
+    !isEmailValid
+  ) {
+    setIsExitIntent(true);
+    return;
+  }
+
+  const wasCompleted = funnelStep === "done" || hasCompletedFunnel;
+  setHasCompletedFunnel(true);
+  setFlowState("revealed");
+
+  setTimeout(() => {
+    setFunnelStep("scope");
+    setStepHistory([]);
+    setIsExitIntent(false);
+
+    if (wasCompleted) {
+      toast.success("You're matched! Let's scan your quote.");
+      setTimeout(() => {
+        const safeUrl = new URL("/#truth-gate-section", window.location.origin);
+        window.location.assign(safeUrl.toString());
+      }, 1200);
+      return;
+    }
+
+    if (autoOpen) {
+      closeToAboutContent();
+    }
+  }, 300);
+};
 ```
 
-**B. After line 43** (after the type closing semicolon) — Add the exported constant:
+### Fix 3 — "No thanks" button handler (lines 970-979)
+
+Add an `autoOpen` check so direct-entry users close to About content instead of just resetting state.
+
+Replace lines 971-978:
 ```tsx
-export const FUNNEL_STEPS: FunnelStep[] = [
-  "scope", "intent_filter", "status", "comp_a", "comp_b",
-  "contact", "identity", "intent", "call", "timeframe",
-  "done", "secret_capture", "secret_success",
-];
+onClick={() => {
+  if (autoOpen) {
+    closeToAboutContent();
+    return;
+  }
+  setFlowState("revealed");
+  setHasCompletedFunnel(true);
+  setTimeout(() => {
+    setFunnelStep("scope");
+    setStepHistory([]);
+    setIsExitIntent(false);
+  }, 300);
+}}
 ```
 
-### File 2: `src/pages/About.tsx`
+### Fix 4 — Upload CTA target (line 859)
 
-**Delete lines 21-40** — Remove the duplicate local `FunnelStep` type and the `ALLOWED_STEPS` constant. The import on line 11 (`import ArbitrageEngine, { type FunnelStep, FUNNEL_STEPS } from "@/components/arbitrageengine"`) now resolves correctly and replaces both.
+Change `"/"` to `"/#truth-gate-section"` so the button goes to TruthGate.
 
-Line 48 already references `FUNNEL_STEPS` — no further changes needed.
+```tsx
+const safeUrl = new URL("/#truth-gate-section", window.location.origin);
+```
+
+---
 
 ### Summary
-Two files, three edits. No logic changes, no routing changes, no deletions of usage code.
+One file changed (`src/components/arbitrageengine.tsx`), three edits. No changes to About.tsx. The export issue is already resolved.
 
