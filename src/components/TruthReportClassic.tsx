@@ -464,7 +464,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               <span
                 className="font-mono"
                 style={{
-                  fontSize: 16,
+                  fontSize: 13,
                   fontWeight: 700,
                   marginLeft: "auto",
                   color: "hsl(var(--color-emerald))",
