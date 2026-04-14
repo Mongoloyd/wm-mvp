@@ -507,7 +507,7 @@ export default function OrangeScanner({
                 </>
               ) : (
                 <>
-                  <Search size={18} /> Start Compliance Audit
+                  <Search size={18} /> Run Demo Audit
                 </>
               )}
             </button>
@@ -744,7 +744,7 @@ export default function OrangeScanner({
                 </>
               ) : (
                 <>
-                  <Search size={18} /> Start Compliance Audit
+                  <Search size={18} /> Run Demo Audit
                 </>
               )}
             </button>
