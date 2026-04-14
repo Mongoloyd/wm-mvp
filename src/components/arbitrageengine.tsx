@@ -689,7 +689,7 @@ export default function App() {
                 {/* Grade Badge */}
                 <div className="relative z-10 flex flex-col items-center mb-6 sm:mb-8">
                   <span className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
-                    Sample Truth Report™ Grade
+                    Simplified Sample Truth Report™ Grade
                   </span>
                   <div
                     className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 flex items-center justify-center text-2xl sm:text-3xl font-black ${gradeColor(MOCK_ANALYSIS.grade)}`}
@@ -859,11 +859,11 @@ export default function App() {
                     className="flex flex-col h-full w-full absolute inset-0 p-6 sm:p-8 overflow-y-auto custom-scrollbar justify-center"
                   >
                     <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 text-center text-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] shrink-0">
-                      Before you go...
+                      Before You Go...
                     </h2>
                     <p className="text-lg sm:text-xl text-white font-medium text-center mb-6 sm:mb-8 leading-relaxed shrink-0 px-2">
-                      Can I let you in on a little <span className="text-amber-300 italic">secret</span> on how we get
-                      you the absolute lowest priced install?
+                      Can I Let You In On a Little <span className="text-amber-300 italic">Secret</span> on How We Get
+                      You The Absolute Lowest Priced Install?
                     </p>
                     <div className="flex flex-col gap-4 pb-4">
                       <button
@@ -914,11 +914,11 @@ export default function App() {
                     className="flex flex-col h-full w-full absolute inset-0 p-6 sm:p-8 overflow-y-auto custom-scrollbar justify-center"
                   >
                     <h2 className="text-2xl sm:text-[28px] font-extrabold mb-4 text-center bg-gradient-to-r from-amber-300 to-yellow-500 bg-clip-text text-transparent shrink-0 leading-tight">
-                      The 'Market for Lemons' Tactic
+                      The 'Market For Lemons' Tactic
                     </h2>
                     <p className="text-gray-300 text-sm sm:text-[15px] leading-relaxed mb-6 text-center shrink-0">
-                      Enter your best email below and I'll share our tactic to force contractors to start with their
-                      absolute best offers.
+                      Enter Your Email Below and I'll Show You Our Tactic to Force Contractors To Start With Their Very
+                      Best Offers.
                     </p>
                     <form
                       onSubmit={(e) => {
@@ -980,7 +980,7 @@ export default function App() {
                       </span>
                     </h2>
                     <p className="text-gray-300 text-sm sm:text-[15px] leading-relaxed mb-6 sm:mb-8 shrink-0 px-2">
-                      Click below for a quick peek at your audit findings and be sure to bookmark this page for later.
+                      Click Below For a Quick Peek at Your Audit Findings and Be Sure To Bookmark This Page For Later.
                     </p>
                     <button
                       onClick={() => {
@@ -1038,7 +1038,7 @@ export default function App() {
                     className="flex flex-col h-full w-full absolute inset-0 p-6 sm:p-8 overflow-y-auto custom-scrollbar"
                   >
                     <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-white shrink-0">
-                      What is your primary goal?
+                      Whats Your Primary Goal?
                     </h2>
                     <div className="flex flex-col gap-4 pb-4">
                       <button
@@ -1052,10 +1052,10 @@ export default function App() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-gray-200 group-hover:text-cyan-50 font-bold text-[15px] sm:text-[17px] leading-tight">
-                            Premium, high-end installer
+                            Premium, High-End Installer
                           </div>
                           <div className="text-xs sm:text-sm text-gray-400 group-hover:text-cyan-100/70 mt-1 leading-snug">
-                            Brand reputation and white-glove service.
+                            Brand Reputation and White-Glove Service.
                           </div>
                         </div>
                         <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 transition-colors shrink-0" />
@@ -1071,10 +1071,10 @@ export default function App() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-gray-200 group-hover:text-cyan-50 font-bold text-[15px] sm:text-[17px] leading-tight">
-                            Quality, honest local pro
+                            Quality, Honest Local Pro
                           </div>
                           <div className="text-xs sm:text-sm text-gray-400 group-hover:text-cyan-100/70 mt-1 leading-snug">
-                            Reliability and best fair price.
+                            Reliability and Best Fair Price.
                           </div>
                         </div>
                         <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 transition-colors shrink-0" />
@@ -1094,7 +1094,7 @@ export default function App() {
                     className="flex flex-col h-full w-full absolute inset-0 p-6 sm:p-8 overflow-y-auto custom-scrollbar"
                   >
                     <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-white shrink-0">
-                      Have you received a professional estimate yet?
+                      Have You Received a Professional Estimate Yet?
                     </h2>
                     <div className="flex flex-col gap-3 mt-4 pb-4">
                       <OptionCard
@@ -1120,7 +1120,7 @@ export default function App() {
                     className="flex flex-col h-full w-full absolute inset-0 p-6 sm:p-8 overflow-y-auto custom-scrollbar"
                   >
                     <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-white shrink-0">
-                      How many estimates have you seen?
+                      How Many Estimates Have You Seen?
                     </h2>
                     <div className="flex flex-col gap-3 mt-4 pb-4">
                       <OptionCard text="Just 1" onClick={() => advance("comp_b", "numEstimates", "1")} />
@@ -1140,7 +1140,7 @@ export default function App() {
                     className="flex flex-col h-full w-full absolute inset-0 p-6 sm:p-8 overflow-y-auto custom-scrollbar"
                   >
                     <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-white shrink-0">
-                      What was the biggest deal-breaker?
+                      What Was The Biggest Deal-Breaker?
                     </h2>
                     <div className="flex flex-col gap-2.5 pb-4">
                       {["Price", "Company Reputation", "Timing", "Financing", "Other"].map((opt) => (
@@ -1161,10 +1161,10 @@ export default function App() {
                     className="flex flex-col h-full w-full absolute inset-0 p-6 sm:p-8 overflow-y-auto custom-scrollbar"
                   >
                     <h2 className="text-xl sm:text-2xl font-bold mb-2 text-center text-white shrink-0">
-                      Almost there!
+                      Almost There!
                     </h2>
                     <p className="text-cyan-400 text-sm font-semibold text-center mb-6 shrink-0">
-                      We found 3 potential savings in your area.
+                      We Found 3 Potential Savings In Your Area.
                     </p>
                     <form
                       onSubmit={(e) => {
@@ -1309,11 +1309,11 @@ export default function App() {
                     className="flex flex-col h-full w-full absolute inset-0 p-6 sm:p-8 overflow-y-auto custom-scrollbar"
                   >
                     <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-white leading-snug shrink-0">
-                      Would you like a quick phone call to review these results?
+                      Would You Like a Quick Call to Review These Results?
                     </h2>
                     <div className="flex flex-col gap-3 mt-2 pb-4">
                       <OptionCard
-                        text="Yes, I want expert advice"
+                        text="Yes, I Want Expert Advice"
                         onClick={() => advance("call", "callIntent", "Yes")}
                       />
                       <OptionCard
@@ -1338,7 +1338,7 @@ export default function App() {
                       <PhoneCall className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400 animate-pulse" />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-bold mb-8 text-center text-white shrink-0">
-                      Your specialist is ready!
+                      Your Specialist Is Ready!
                     </h2>
                     <a
                       href="tel:18005550199"
@@ -1365,7 +1365,7 @@ export default function App() {
                     className="flex flex-col h-full w-full absolute inset-0 p-6 sm:p-8 overflow-y-auto custom-scrollbar"
                   >
                     <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-white shrink-0">
-                      What's your timeframe for this project?
+                      What's Your Timeframe For This Project?
                     </h2>
                     <div className="flex flex-col gap-3 pb-4">
                       {["1 Month", "2-3 Months", "Just Researching"].map((opt) => (
