@@ -2,6 +2,7 @@ import { useState } from "react";
 import PageWrapper from "@/components/layout/PageWrapper";
 import HeroSection from "@/components/sections/HeroSection";
 import MarketTruthSection from "@/components/sections/MarketTruthSection";
+import CinematicDivider from "@/components/sections/CinematicDivider";
 import CompetitorQuoteSection from "@/components/sections/CompetitorQuoteSection";
 import BuyerReadinessSection from "@/components/sections/BuyerReadinessSection";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
@@ -23,6 +24,7 @@ const Contractors2 = () => {
     <PageWrapper>
       <HeroSection />
       <MarketTruthSection />
+      <CinematicDivider />
       <CompetitorQuoteSection />
       <BuyerReadinessSection />
       <HowItWorksSection />
