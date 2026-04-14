@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { normalizePhone } from "../_shared/normalizePhone.ts";
+import { createCanonicalEvent } from "../_shared/canonical/createCanonicalEvent.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -292,6 +293,39 @@ Deno.serve(async (req) => {
       phone_line_type: lookup.lineType,
       reason: lookup.reason,
     };
+
+    if (leadId) {
+      try {
+        await createCanonicalEvent(supabase, {
+          eventName: "lead_identified",
+          identity: {
+            leadId,
+            email: payload.email,
+            phoneE164: phoneE164,
+            firstName,
+            clientIp: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+            userAgent: req.headers.get("user-agent") || null,
+          },
+          journey: {
+            route: "/",
+            source: payload.source,
+          },
+          analytics: {
+            eventSource: "qualify-homepage-lead",
+            metadata: {
+              qualified,
+              line_type: lookup.lineType,
+              risk_tier: lookup.riskTier,
+            },
+          },
+          shouldSendMeta: qualified,
+          shouldSendGoogle: qualified,
+          rawPayload: rawPayload as Record<string, unknown>,
+        });
+      } catch (eventErr) {
+        console.error("[qualify-homepage-lead] canonical event failed (non-fatal)", eventErr);
+      }
+    }
 
     return new Response(JSON.stringify(response), {
       status: 200,

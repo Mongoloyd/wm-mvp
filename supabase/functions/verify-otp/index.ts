@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { normalizePhone } from "../_shared/normalizePhone.ts";
+import { createCanonicalEvent } from "../_shared/canonical/createCanonicalEvent.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -178,6 +179,39 @@ Deno.serve(async (req) => {
           }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
+      }
+    }
+
+    if (resolvedLeadId) {
+      try {
+        const { data: leadIdentity } = await supabase
+          .from("leads")
+          .select("email, first_name")
+          .eq("id", resolvedLeadId)
+          .maybeSingle();
+
+        await createCanonicalEvent(supabase, {
+          eventName: "otp_verified",
+          identity: {
+            leadId: resolvedLeadId,
+            email: leadIdentity?.email || null,
+            phoneE164: twilioPhone,
+            firstName: leadIdentity?.first_name || null,
+            clientIp: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+            userAgent: req.headers.get("user-agent") || null,
+          },
+          quote: {
+            scanSessionId: scan_session_id || null,
+          },
+          analytics: {
+            eventSource: "verify-otp",
+            metadata: { verified: true },
+          },
+          shouldSendMeta: true,
+          shouldSendGoogle: true,
+        });
+      } catch (eventErr) {
+        console.error("[verify-otp] canonical event failed (non-fatal):", eventErr);
       }
     }
 

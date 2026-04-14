@@ -12,6 +12,7 @@
  */
 
 import { corsHeaders, validateAdminRequestWithRole } from "../_shared/adminAuth.ts";
+import { createCanonicalEvent } from "../_shared/canonical/createCanonicalEvent.ts";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -305,6 +306,47 @@ Deno.serve(async (req) => {
       // Log appropriate events
       if (appointment_status === "booked") {
         await logEvent(supabase, "appointment_booked", { billable_intro_id });
+        try {
+          const { data: intro } = await supabase
+            .from("billable_intros")
+            .select("lead_id, analysis_id")
+            .eq("id", billable_intro_id)
+            .maybeSingle();
+
+          const leadId = intro?.lead_id ?? null;
+          const analysisId = intro?.analysis_id ?? null;
+
+          let leadIdentity: { email?: string | null; phone_e164?: string | null; first_name?: string | null } | null = null;
+          if (leadId) {
+            const { data } = await supabase
+              .from("leads")
+              .select("email, phone_e164, first_name")
+              .eq("id", leadId)
+              .maybeSingle();
+            leadIdentity = data;
+          }
+
+          await createCanonicalEvent(supabase, {
+            eventName: "appointment_booked",
+            identity: {
+              leadId,
+              email: leadIdentity?.email || null,
+              phoneE164: leadIdentity?.phone_e164 || null,
+              firstName: leadIdentity?.first_name || null,
+            },
+            quote: {
+              analysisId,
+            },
+            analytics: {
+              eventSource: "contractor-actions",
+              metadata: { billable_intro_id },
+            },
+            shouldSendMeta: true,
+            shouldSendGoogle: true,
+          });
+        } catch (eventErr) {
+          console.error("[contractor-actions] canonical appointment event failed (non-fatal):", eventErr);
+        }
       }
       if (quote_status === "submitted") {
         await logEvent(supabase, "replacement_quote_submitted", { billable_intro_id });
@@ -313,6 +355,47 @@ Deno.serve(async (req) => {
         await logEvent(supabase, "deal_outcome_updated", {
           billable_intro_id, deal_status, deal_value,
         });
+        if (deal_status === "won") {
+          try {
+            const { data: intro } = await supabase
+              .from("billable_intros")
+              .select("lead_id, analysis_id")
+              .eq("id", billable_intro_id)
+              .maybeSingle();
+
+            const leadId = intro?.lead_id ?? null;
+            let leadIdentity: { email?: string | null; phone_e164?: string | null; first_name?: string | null } | null = null;
+            if (leadId) {
+              const { data } = await supabase
+                .from("leads")
+                .select("email, phone_e164, first_name")
+                .eq("id", leadId)
+                .maybeSingle();
+              leadIdentity = data;
+            }
+
+            await createCanonicalEvent(supabase, {
+              eventName: "sale_confirmed",
+              identity: {
+                leadId,
+                email: leadIdentity?.email || null,
+                phoneE164: leadIdentity?.phone_e164 || null,
+                firstName: leadIdentity?.first_name || null,
+              },
+              quote: {
+                analysisId: intro?.analysis_id ?? null,
+              },
+              analytics: {
+                eventSource: "contractor-actions",
+                metadata: { billable_intro_id, deal_value: deal_value ?? null },
+              },
+              shouldSendMeta: true,
+              shouldSendGoogle: true,
+            });
+          } catch (eventErr) {
+            console.error("[contractor-actions] canonical sale event failed (non-fatal):", eventErr);
+          }
+        }
       }
 
       return json({ success: true, billable_intro_id });

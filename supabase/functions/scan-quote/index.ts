@@ -7,6 +7,7 @@
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getCountyBenchmark } from "../_shared/countyBenchmarks.ts";
+import { createCanonicalEvent } from "../_shared/canonical/createCanonicalEvent.ts";
 import {
   type LineItem,
   type ExtractionResult,
@@ -568,6 +569,29 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Session not found" }, 404);
     }
 
+    try {
+      await createCanonicalEvent(supabase, {
+        eventName: "quote_upload_completed",
+        identity: {
+          leadId: session.lead_id || null,
+          clientIp,
+          userAgent: req.headers.get("user-agent") || null,
+        },
+        quote: {
+          scanSessionId: session.id,
+          quoteFileId: session.quote_file_id,
+        },
+        analytics: {
+          eventSource: "scan-quote",
+          metadata: { stage: "scan_invoked" },
+        },
+        shouldSendMeta: false,
+        shouldSendGoogle: false,
+      });
+    } catch (eventErr) {
+      console.error("[scan-quote] quote_upload_completed canonical event failed (non-fatal):", eventErr);
+    }
+
     // ── Idempotency guard: reject if session is already terminal ──
     const TERMINAL_STATUSES = ["processing", "preview_ready", "complete", "invalid_document"];
     if (TERMINAL_STATUSES.includes(session.status) && !_isDevBypass) {
@@ -1126,6 +1150,58 @@ Deno.serve(async (req: Request) => {
           }
         } catch (eventInsertErr) {
           console.error("Lead event insert unexpected error (non-fatal):", eventInsertErr);
+        }
+
+        try {
+          const identitySource = await supabase
+            .from("leads")
+            .select("email, phone_e164, first_name")
+            .eq("id", session.lead_id)
+            .maybeSingle();
+
+          await createCanonicalEvent(supabase, {
+            eventName: "quote_validation_passed",
+            identity: {
+              leadId: session.lead_id,
+              email: identitySource.data?.email || null,
+              phoneE164: identitySource.data?.phone_e164 || null,
+              firstName: identitySource.data?.first_name || null,
+              clientIp,
+              userAgent: req.headers.get("user-agent") || null,
+            },
+            quote: {
+              analysisId,
+              scanSessionId: scan_session_id,
+              quoteFileId: session.quote_file_id,
+              county: (fullJson?.derived_metrics as Record<string, unknown> | undefined)?.county as string | undefined,
+              openingCount: typeof extraction.opening_count === "number" ? extraction.opening_count : null,
+              quotedAmount: typeof extraction.total_quoted_price === "number" ? extraction.total_quoted_price : null,
+              ocrConfidence: extraction.confidence,
+              completeness: typeof derivedMetrics.completeness_score === "number" ? derivedMetrics.completeness_score : null,
+              mathConsistency: typeof derivedMetrics.math_consistency_score === "number" ? derivedMetrics.math_consistency_score : null,
+              cohortFit: typeof (derivedMetrics.county_comparison as Record<string, unknown> | undefined)?.delta_pct === "number"
+                ? 1 - Math.min(Math.abs(((derivedMetrics.county_comparison as Record<string, unknown>).delta_pct as number) / 100), 1)
+                : null,
+              scopeConsistency: flags.length === 0 ? 1 : Math.max(0, 1 - flags.length / 10),
+              documentValidity: extraction.is_window_door_related ? 1 : 0,
+              isWindowDoorQuote: extraction.is_window_door_related,
+              impossibleValueDetected: typeof extraction.total_quoted_price === "number" ? extraction.total_quoted_price <= 0 : false,
+              facts: {
+                rubric_version: RUBRIC_VERSION,
+                grade: gradeResult.letterGrade,
+                weighted_average: gradeResult.weightedAverage,
+                flag_count: flags.length,
+              },
+            },
+            analytics: {
+              eventSource: "scan-quote",
+              metadata: { grade: gradeResult.letterGrade, flag_count: flags.length },
+            },
+            shouldSendMeta: true,
+            shouldSendGoogle: true,
+          });
+        } catch (eventErr) {
+          console.error("[scan-quote] quote_validation_passed canonical event failed (non-fatal):", eventErr);
         }
       }
 
