@@ -26,6 +26,7 @@ const Contractors2 = () => {
       <BuyerReadinessSection />
       <HowItWorksSection />
       <EconomicsSection />
+      <FlywheelSection />
       <DifferentiationSection />
       <ExclusivitySection />
       <VideoSection />
