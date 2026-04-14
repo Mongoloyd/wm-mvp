@@ -116,6 +116,7 @@ const App = () => (
                 <Route path="/demo-classic" element={<DemoClassic />} />
                 <Route path="/dev/report-preview" element={<DevReportPreview />} />
                 <Route path="/devtesting" element={<DevTesting />} />
+                <Route path="/devtesting2" element={<DevTesting2 />} />
                 
 
                 {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
