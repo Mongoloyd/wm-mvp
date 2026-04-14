@@ -53,7 +53,7 @@ function sanitizeEventIdSegment(value: unknown): string {
 }
 
 function getInputStringValue(input: CreateCanonicalEventInput, key: string): string | null {
-  const value = (input as Record<string, unknown>)[key];
+  const value = (input as unknown as Record<string, unknown>)[key];
   if (typeof value !== "string") {
     return null;
   }
@@ -81,7 +81,7 @@ function getDefaultEventTimestampBucket(input: CreateCanonicalEventInput, now: D
 }
 
 function defaultCreateId(input: CreateCanonicalEventInput, now: Date): string {
-  const eventName = sanitizeEventIdSegment((input as Record<string, unknown>).eventName);
+  const eventName = sanitizeEventIdSegment((input as unknown as Record<string, unknown>).eventName);
   const entityKeys = ["leadId", "scanSessionId", "analysisId"];
   const entitySegments = entityKeys
     .map((key) => {
