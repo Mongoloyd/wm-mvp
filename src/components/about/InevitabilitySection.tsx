@@ -17,7 +17,7 @@ const standards = [
   {
     label: "Window Contracts",
     standard: "WindowMan",
-    caption: "A vague, low-standard quoting market gets a contract intelligence layer.",
+    caption: "A Vague, Low-Standard Quoting Market Gets a Contract Intelligence Layer.",
     featured: true,
   },
 ];
@@ -112,7 +112,7 @@ export default function InevitabilitySection() {
               </h3>
 
               <p
-                className="text-sm leading-relaxed"
+                className="text-sm leading-relaxed text-gray-950 font-normal"
                 style={{ color: item.featured ? "rgba(30,58,138,0.6)" : "#64748b" }}
               >
                 {item.caption}
