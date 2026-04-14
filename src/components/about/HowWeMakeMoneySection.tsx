@@ -74,15 +74,15 @@ export default function HowWeMakeMoneySection() {
             <div className="grid gap-4 sm:grid-cols-3">
               {[
                 {
-                  label: "Opacity pays us nothing",
+                  label: "Opacity Pays Us Nothing",
                   accent: "bg-slate-300",
                 },
                 {
-                  label: "Clarity creates the opportunity",
+                  label: "Clarity Creates Our Opportunity",
                   accent: "bg-cyan-400",
                 },
                 {
-                  label: "Better match = our revenue",
+                  label: "Better Match = Our Revenue",
                   accent: "bg-orange-400",
                 },
               ].map((item) => (
