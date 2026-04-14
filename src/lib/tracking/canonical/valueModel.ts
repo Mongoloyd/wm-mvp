@@ -17,13 +17,17 @@ export function buildOptimizationPayload(input: WMValueModelInput): WMOptimizati
   const openingBonus = openingCount > 0 ? Math.min(250, openingCount * 12) : 0;
   const trustMultiplier = trustResult.trustScore;
 
-  const valueUsd = Number((baseValue * trustMultiplier + openingBonus).toFixed(2));
+  const isApprovedForOptimization = trustResult.approvedForIndex || trustResult.approvedForAds;
 
-  const priority = clampPriority(
+  const rawValueUsd = Number((baseValue * trustMultiplier + openingBonus).toFixed(2));
+  const valueUsd = isApprovedForOptimization ? rawValueUsd : 0;
+
+  const rawPriority = clampPriority(
     trustResult.trustScore * 65 +
       (trustResult.anomalyStatus === "safe" ? 20 : 0) +
       (trustResult.manualReviewRequired ? -20 : 15),
   );
+  const priority = isApprovedForOptimization ? rawPriority : 0;
 
   return {
     approvedForIndex: trustResult.approvedForIndex,

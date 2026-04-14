@@ -31,7 +31,7 @@ export function evaluateQuoteTrust(input: WMTrustScoreInput): WMTrustScoreResult
   const reasons: string[] = [];
   let trustScore = weightedTrustScore(input);
 
-  if (!input.isQuoteDocument || /invoice|receipt|brochure|ad/i.test(input.documentType ?? "")) {
+  if (!input.isQuoteDocument || /\b(?:invoice|receipt|brochure|ad|advert|advertisement|advertising)\b/i.test(input.documentType ?? "")) {
     reasons.push("document_not_quote");
     return {
       trustScore: 0,
