@@ -106,7 +106,7 @@ function classifyFailure(result: VendorSendResult, attemptCount: number, now: Da
   const retryable = result.retryable ?? isRetryableStatus(result.statusCode);
 
   if (!retryable) {
-    return { nextStatus: "failed", nextRetryAt: null, errorMessage };
+    return { nextStatus: "dead_letter", nextRetryAt: null, errorMessage };
   }
 
   const delayMs = getRetryDelayMs(attemptCount);
@@ -168,7 +168,6 @@ async function syncEventDispatchStatus(db: DBLike, eventLogId: string, nowIso: s
 
 export async function runDispatchWorker(deps: WorkerDeps): Promise<{ processed: number }> {
   const batchSize = deps.batchSize ?? 25;
-  const now = deps.now?.() ?? new Date();
 
   const { data: claimedRows, error: claimError } = await deps.db.rpc<DispatchRowWithEvent[]>("wm_claim_dispatch_rows", {
     p_limit: batchSize,
@@ -180,6 +179,9 @@ export async function runDispatchWorker(deps: WorkerDeps): Promise<{ processed: 
   }
 
   const rows = claimedRows ?? [];
+
+  // Collect unique event_log_ids that need status sync at the end of the batch.
+  const dirtyEventLogIds = new Set<string>();
 
   for (const row of rows) {
     const currentNowIso = (deps.now?.() ?? new Date()).toISOString();
@@ -229,7 +231,7 @@ export async function runDispatchWorker(deps: WorkerDeps): Promise<{ processed: 
         throw new Error(`Failed to upsert suppressed dispatch row: ${upsertError.message ?? "unknown"}`);
       }
 
-      await syncEventDispatchStatus(deps.db, row.event_log_id, currentNowIso);
+      dirtyEventLogIds.add(row.event_log_id);
       continue;
     }
 
@@ -259,7 +261,7 @@ export async function runDispatchWorker(deps: WorkerDeps): Promise<{ processed: 
         throw new Error(`Failed to upsert sent dispatch row: ${upsertError.message ?? "unknown"}`);
       }
 
-      await syncEventDispatchStatus(deps.db, row.event_log_id, currentNowIso);
+      dirtyEventLogIds.add(row.event_log_id);
       continue;
     }
 
@@ -286,7 +288,13 @@ export async function runDispatchWorker(deps: WorkerDeps): Promise<{ processed: 
       throw new Error(`Failed to upsert failed dispatch row: ${failureUpsertError.message ?? "unknown"}`);
     }
 
-    await syncEventDispatchStatus(deps.db, row.event_log_id, currentNowIso);
+    dirtyEventLogIds.add(row.event_log_id);
+  }
+
+  // Sync parent event status once per unique event_log_id after the batch is done.
+  const syncNowIso = (deps.now?.() ?? new Date()).toISOString();
+  for (const eventLogId of dirtyEventLogIds) {
+    await syncEventDispatchStatus(deps.db, eventLogId, syncNowIso);
   }
 
   return { processed: rows.length };

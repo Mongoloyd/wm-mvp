@@ -37,18 +37,36 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  -- Dead-letter any stale processing rows that have exhausted all attempts to
+  -- prevent them from being permanently stuck when a worker crashes mid-flight.
+  UPDATE public.wm_platform_dispatch_log
+  SET
+    dispatch_status = 'dead_letter',
+    error_message   = 'Worker crashed after final attempt; row auto-dead-lettered',
+    updated_at      = now()
+  WHERE dispatch_status = 'processing'
+    AND last_attempt_at IS NOT NULL
+    AND last_attempt_at <= (now() - make_interval(mins => p_lock_stale_minutes))
+    AND COALESCE(attempt_count, 0) >= 5;
+
   RETURN QUERY
   WITH eligible AS (
     SELECT d.id
     FROM public.wm_platform_dispatch_log d
     JOIN public.wm_event_log e ON e.id = d.event_log_id
-    WHERE d.dispatch_status IN ('pending', 'failed', 'processing')
-      AND (
+    WHERE (
+        -- Stale locked rows (worker crashed before final attempt)
         d.dispatch_status = 'processing'
           AND d.last_attempt_at IS NOT NULL
           AND d.last_attempt_at <= (now() - make_interval(mins => p_lock_stale_minutes))
-        OR d.dispatch_status IN ('pending', 'failed')
+          AND COALESCE(d.attempt_count, 0) < 5
+        -- New/unscheduled pending rows
+        OR d.dispatch_status = 'pending'
           AND (d.next_attempt_at IS NULL OR d.next_attempt_at <= now())
+        -- Retryable failed rows with a scheduled retry time that has arrived
+        OR d.dispatch_status = 'failed'
+          AND d.next_attempt_at IS NOT NULL
+          AND d.next_attempt_at <= now()
       )
       AND COALESCE(d.attempt_count, 0) < 5
     ORDER BY COALESCE(d.next_attempt_at, d.created_at) ASC

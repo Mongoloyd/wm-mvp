@@ -186,6 +186,27 @@ describe("runDispatchWorker", () => {
     expect(failureUpsert?.next_attempt_at).toBe(null);
   });
 
+  it("dead-letters immediately for non-retryable errors without scheduling a retry", async () => {
+    const row = makeRow({ attempt_count: 1 });
+    const db = new MockDB([row]);
+
+    await runDispatchWorker({
+      db,
+      metaEventSourceUrl: "https://windowman.pro",
+      sendToMeta: async () => ({
+        ok: false,
+        retryable: false,
+        statusCode: 400,
+        errorMessage: "Bad Request: invalid payload",
+      }),
+      sendToGoogle: async () => ({ ok: true }),
+    });
+
+    const failureUpsert = db.upserts.wm_platform_dispatch_log?.[0];
+    expect(failureUpsert?.dispatch_status).toBe("dead_letter");
+    expect(failureUpsert?.next_attempt_at).toBe(null);
+  });
+
   it("does not resend already sent rows", async () => {
     const row = makeRow({ dispatch_status: "sent" });
     const db = new MockDB([row]);

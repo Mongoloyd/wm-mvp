@@ -39,6 +39,18 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Require a pre-shared secret so only the scheduler/cron caller can trigger
+  // dispatch.  Set DISPATCH_WORKER_SECRET in the edge-function environment and
+  // pass it as the `x-dispatch-secret` header from the caller.
+  const expectedSecret = Deno.env.get("DISPATCH_WORKER_SECRET");
+  const providedSecret = req.headers.get("x-dispatch-secret");
+  if (!expectedSecret || providedSecret !== expectedSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -48,6 +60,7 @@ Deno.serve(async (req) => {
     const capiUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/capi-event`;
     const googleDispatchUrl = Deno.env.get("GOOGLE_ADS_DISPATCH_URL") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const googleDispatchAuthToken = Deno.env.get("GOOGLE_ADS_DISPATCH_AUTH_TOKEN");
     const eventSourceUrl = Deno.env.get("WM_EVENT_SOURCE_URL") ?? "https://windowman.pro";
 
     const workerResult = await runDispatchWorker({
@@ -96,14 +109,19 @@ Deno.serve(async (req) => {
         }
 
         try {
+          const googleHeaders: Record<string, string> = {
+            "Content-Type": "application/json",
+          };
+
+          if (googleDispatchAuthToken) {
+            googleHeaders.Authorization = `Bearer ${googleDispatchAuthToken}`;
+          }
+
           const response = await fetchWithTimeout(
             googleDispatchUrl,
             {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${serviceRoleKey}`,
-              },
+              headers: googleHeaders,
               body: JSON.stringify(payload),
             },
             DEFAULT_TIMEOUT_MS,
