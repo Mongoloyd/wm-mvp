@@ -197,6 +197,7 @@ export function generateUUID(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
   }
+
   // Fallback for older browsers: use crypto.getRandomValues for a v4 UUID
   if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     const bytes = new Uint8Array(16);
@@ -237,12 +238,8 @@ export function generateUUID(): string {
     );
   }
 
-  // Ultimate fallback: non-cryptographic random UUID (should rarely be used)
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  // If no crypto is available, throw an error rather than using insecure Math.random
+  throw new Error("Cryptographic random is unavailable in this environment");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
