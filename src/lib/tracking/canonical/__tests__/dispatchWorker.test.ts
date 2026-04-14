@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { runDispatchWorker } from "../dispatchWorker";
+import { runDispatchWorker, type DBLike } from "../dispatchWorker";
 import type { WMDispatchStatus, WMPlatformName } from "../types";
 
 interface MockDispatchRow {
@@ -114,41 +114,41 @@ describe("runDispatchWorker", () => {
       },
     });
 
-    const db = new MockDB([row]);
+    const mock = new MockDB([row]);
 
     await runDispatchWorker({
-      db,
+      db: mock as unknown as DBLike,
       metaEventSourceUrl: "https://windowman.pro",
       sendToMeta: async () => ({ ok: true }),
       sendToGoogle: async () => ({ ok: true }),
     });
 
-    const platformUpsert = db.upserts.wm_platform_dispatch_log?.[0];
+    const platformUpsert = mock.upserts.wm_platform_dispatch_log?.[0];
     expect(platformUpsert?.dispatch_status).toBe("suppressed");
   });
 
   it("marks successful send as sent", async () => {
     const row = makeRow();
-    const db = new MockDB([row]);
+    const mock = new MockDB([row]);
 
     await runDispatchWorker({
-      db,
+      db: mock as unknown as DBLike,
       metaEventSourceUrl: "https://windowman.pro",
       sendToMeta: async () => ({ ok: true, statusCode: 200, responseBody: { success: true } }),
       sendToGoogle: async () => ({ ok: true }),
     });
 
-    const platformUpsert = db.upserts.wm_platform_dispatch_log?.[0];
+    const platformUpsert = mock.upserts.wm_platform_dispatch_log?.[0];
     expect(platformUpsert?.dispatch_status).toBe("sent");
   });
 
   it("schedules retry for retryable errors", async () => {
     const row = makeRow({ attempt_count: 2 });
-    const db = new MockDB([row]);
+    const mock = new MockDB([row]);
     const now = new Date("2026-04-14T12:00:00.000Z");
 
     await runDispatchWorker({
-      db,
+      db: mock as unknown as DBLike,
       now: () => now,
       metaEventSourceUrl: "https://windowman.pro",
       sendToMeta: async () => ({
@@ -160,17 +160,17 @@ describe("runDispatchWorker", () => {
       sendToGoogle: async () => ({ ok: true }),
     });
 
-    const failureUpsert = db.upserts.wm_platform_dispatch_log?.[0];
+    const failureUpsert = mock.upserts.wm_platform_dispatch_log?.[0];
     expect(failureUpsert?.dispatch_status).toBe("failed");
     expect(String(failureUpsert?.next_attempt_at)).toBe("2026-04-14T12:30:00.000Z");
   });
 
   it("dead-letters after max attempts for retryable errors", async () => {
     const row = makeRow({ attempt_count: 5 });
-    const db = new MockDB([row]);
+    const mock = new MockDB([row]);
 
     await runDispatchWorker({
-      db,
+      db: mock as unknown as DBLike,
       metaEventSourceUrl: "https://windowman.pro",
       sendToMeta: async () => ({
         ok: false,
@@ -181,17 +181,17 @@ describe("runDispatchWorker", () => {
       sendToGoogle: async () => ({ ok: true }),
     });
 
-    const failureUpsert = db.upserts.wm_platform_dispatch_log?.[0];
+    const failureUpsert = mock.upserts.wm_platform_dispatch_log?.[0];
     expect(failureUpsert?.dispatch_status).toBe("dead_letter");
     expect(failureUpsert?.next_attempt_at).toBe(null);
   });
 
   it("dead-letters immediately for non-retryable errors without scheduling a retry", async () => {
     const row = makeRow({ attempt_count: 1 });
-    const db = new MockDB([row]);
+    const mock = new MockDB([row]);
 
     await runDispatchWorker({
-      db,
+      db: mock as unknown as DBLike,
       metaEventSourceUrl: "https://windowman.pro",
       sendToMeta: async () => ({
         ok: false,
@@ -202,18 +202,18 @@ describe("runDispatchWorker", () => {
       sendToGoogle: async () => ({ ok: true }),
     });
 
-    const failureUpsert = db.upserts.wm_platform_dispatch_log?.[0];
+    const failureUpsert = mock.upserts.wm_platform_dispatch_log?.[0];
     expect(failureUpsert?.dispatch_status).toBe("dead_letter");
     expect(failureUpsert?.next_attempt_at).toBe(null);
   });
 
   it("does not resend already sent rows", async () => {
     const row = makeRow({ dispatch_status: "sent" });
-    const db = new MockDB([row]);
+    const mock = new MockDB([row]);
     let calls = 0;
 
     await runDispatchWorker({
-      db,
+      db: mock as unknown as DBLike,
       metaEventSourceUrl: "https://windowman.pro",
       sendToMeta: async () => {
         calls += 1;

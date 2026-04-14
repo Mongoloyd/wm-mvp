@@ -26,13 +26,16 @@ export interface DispatchRowWithEvent {
   should_send_google: boolean;
 }
 
-interface DBLike {
+export interface DBLike {
   rpc<T>(fn: string, args?: Record<string, unknown>): Promise<{ data: T | null; error: { message?: string } | null }>;
   from(table: string): {
     select(columns: string): {
       eq(column: string, value: string): {
-        in?(column: string, value: string[]): {
-          then?: never;
+        in(column: string, value: string[]): {
+          order(column: string, options?: { ascending?: boolean }): Promise<{
+            data: Array<Record<string, unknown>> | null;
+            error: { message?: string } | null;
+          }>;
         };
         maybeSingle(): Promise<{ data: Record<string, unknown> | null; error: { message?: string } | null }>;
       };
@@ -87,7 +90,7 @@ function toCanonicalEvent(row: DispatchRowWithEvent): WMCanonicalEvent {
 
 function getRetryDelayMs(attemptCount: number): number | null {
   const retryIndex = attemptCount - 1;
-  const minutes = RETRY_DELAYS_MINUTES[retryIndex as keyof typeof RETRY_DELAYS_MINUTES];
+  const minutes = RETRY_DELAYS_MINUTES[retryIndex] as number | undefined;
   if (!minutes) return null;
   return minutes * 60 * 1000;
 }
