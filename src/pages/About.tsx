@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { trackEvent } from "@/lib/trackEvent";
 import AboutHero from "@/components/about/AboutHero";
 import MarketProblemSection from "@/components/about/MarketProblemSection";
@@ -16,11 +16,13 @@ import ContractorBenefitSection from "@/components/about/ContractorBenefitSectio
 import InevitabilitySection from "@/components/about/InevitabilitySection";
 import TrustProofSection from "@/components/about/TrustProofSection";
 import AboutCTASection from "@/components/about/AboutCTASection";
+import StickyCTAFooter from "@/components/StickyCTAFooter";
 
 
 
 export default function About() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const isDirectEntry = searchParams.get("startArb") === "1";
   const source = searchParams.get("src") || "unknown";
@@ -54,7 +56,7 @@ export default function About() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(170deg, #dce8f4 0%, #e4edf6 30%, #eaeff8 60%, #dde6f2 100%)" }}>
+    <main className="relative min-h-screen overflow-hidden pb-32" style={{ background: "linear-gradient(170deg, #dce8f4 0%, #e4edf6 30%, #eaeff8 60%, #dde6f2 100%)" }}>
       <AboutHero onTrack={handleTrack} />
       <MarketProblemSection />
       <InformationAsymmetrySection onTrack={handleTrack} />
@@ -85,7 +87,13 @@ export default function About() {
       <InevitabilitySection />
       <TrustProofSection />
       <AboutCTASection onTrack={handleTrack} />
-      
+      <StickyCTAFooter
+        isVisible={true}
+        conversionType={null}
+        onScanClick={() => navigate("/?action=scan")}
+        onDemoClick={() => navigate("/?action=demo")}
+        onPostConversionClick={() => { window.location.href = "tel:+15614685571"; }}
+      />
     </main>
   );
 }

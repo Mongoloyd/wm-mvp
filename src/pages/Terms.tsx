@@ -1,9 +1,12 @@
 import { AlertTriangle, FileText, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import StickyCTAFooter from "@/components/StickyCTAFooter";
 
 export default function Terms() {
+  const navigate = useNavigate();
   return (
     <main
-      className="relative min-h-screen overflow-hidden"
+      className="relative min-h-screen overflow-hidden pb-32"
       style={{
         background:
           "linear-gradient(170deg, #dce8f4 0%, #e4edf6 30%, #eaeff8 60%, #dde6f2 100%)",
@@ -225,6 +228,13 @@ export default function Terms() {
           </article>
         </div>
       </section>
+      <StickyCTAFooter
+        isVisible={true}
+        conversionType={null}
+        onScanClick={() => navigate("/?action=scan")}
+        onDemoClick={() => navigate("/?action=demo")}
+        onPostConversionClick={() => { window.location.href = "tel:+15614685571"; }}
+      />
     </main>
   );
 }
