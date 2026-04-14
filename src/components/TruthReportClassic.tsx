@@ -631,7 +631,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               >
                 <span
                   className="font-mono"
-                  style={{ fontSize: 16, color: "hsl(var(--color-cyan))", letterSpacing: "0.08em" }}
+                  style={{ fontSize: 14, color: "hsl(var(--color-cyan))", letterSpacing: "0.08em" }}
                 >
                   {county.toUpperCase()} COUNTY BENCHMARKS
                 </span>
