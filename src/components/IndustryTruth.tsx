@@ -67,16 +67,21 @@ const IndustryTruth = ({ onScanClick, onDemoClick }: IndustryTruthProps) => {
           className="text-center"
         >
           <div className="mx-auto mb-6 w-10 h-px bg-primary" />
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-5">HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.</p>
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-5">
+            HERE'S WHAT NO CONTRACTOR WILL TELL YOU BEFORE YOU SIGN.
+          </p>
           <h2
             className="font-display text-4xl md:text-5xl font-extrabold uppercase tracking-tight text-foreground mb-4 mx-auto"
             style={{ maxWidth: 700 }}
           >
             THE IMPACT WINDOW INDUSTRY HAS NO PRICING STANDARD.
           </h2>
-          <p className="text-base md:text-lg leading-relaxed text-foreground/80 mx-auto mb-14" style={{ maxWidth: 640 }}>
-            That means the contractor who wrote your quote decided what to include, how to describe it, and whether to
-            specify the brand.
+          <p
+            className="text-base md:text-lg leading-relaxed text-foreground/80 mx-auto mb-14"
+            style={{ maxWidth: 640 }}
+          >
+            That Means The Contractor Who Wrote Your Quote Decided What to Include, How to dDescribe It, and Whether To
+            Specify The Brand.
           </p>
         </motion.div>
 
