@@ -91,11 +91,11 @@ function formatPhone(raw: string): string {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
-type Scenario = "no_phone" | "known_phone" | "otp_sent";
+type Scenario = "No_Phone" | "Known_Phone" | "OTP_Sent";
 
 const DemoClassic = () => {
   /* ── Scenario selector ── */
-  const [scenario, setScenario] = useState<Scenario>("no_phone");
+  const [scenario, setScenario] = useState<Scenario>("No_Phone");
 
   /* ── Gate state machine ── */
   const [gateMode, setGateMode] = useState<GateMode>("enter_phone");
@@ -120,10 +120,10 @@ const DemoClassic = () => {
     setResendCooldown(0);
     if (cooldownRef.current) clearInterval(cooldownRef.current);
 
-    if (scenario === "no_phone") {
+    if (scenario === "No_Phone") {
       setGateMode("enter_phone");
       setKnownPhone(null);
-    } else if (scenario === "known_phone") {
+    } else if (scenario === "Known_Phone") {
       setGateMode("send_code");
       setKnownPhone("+15551234567");
     } else {
