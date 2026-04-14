@@ -134,7 +134,7 @@ export default function InformationAsymmetrySection({
                     {contractorItems.map((item) => (
                       <li
                         key={item}
-                        className="flex items-center gap-3 rounded-lg border border-cyan-100 bg-cyan-50/60 px-4 py-3 shadow-sm"
+                        className="flex items-center gap-3 rounded-lg bg-cyan-50/60 px-4 py-3 shadow-sm border-2 border-emerald-400"
                       >
                         <span className="h-2 w-2 flex-shrink-0 rounded-full bg-cyan-500" />
                         <span className="text-sm font-medium text-foreground/80">
