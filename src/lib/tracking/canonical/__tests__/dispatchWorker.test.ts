@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { runDispatchWorker } from "../dispatchWorker";
+import { runDispatchWorker, type DBLike } from "../dispatchWorker";
 import type { WMDispatchStatus, WMPlatformName } from "../types";
 
 interface MockDispatchRow {
