@@ -878,7 +878,7 @@ export default function App() {
                           <Key className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
                         </div>
                         <span className="text-amber-100 group-hover:text-amber-50 font-bold text-base sm:text-lg flex-1">
-                          Yes, tell me the secret.
+                          Yes, Tell Me The Secret.
                         </span>
                         <ChevronRight className="w-5 h-5 text-amber-500/50 group-hover:text-amber-400 transition-colors shrink-0 ml-1" />
                       </button>
