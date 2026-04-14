@@ -145,7 +145,7 @@ export default function TrustProofSection({ stats }: TrustProofSectionProps) {
             County Baseline Suggests This Quote Sits Above Expected Range For Comparable Scope. Three Structural Gaps
             Increase The Risk That The Homeowner Is Paying More While Seeing Less on Paper.
           </p>
-          <p className="text-sm italic text-foreground/50">
+          <p className="text-sm italic text-sky-600">
             This is the Kind of Signal WindowMan is Designed to Surface Before Commitment.
           </p>
         </div>
