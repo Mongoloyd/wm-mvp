@@ -26,7 +26,7 @@ export interface DispatchRowWithEvent {
   should_send_google: boolean;
 }
 
-interface DBLike {
+export interface DBLike {
   rpc<T>(fn: string, args?: Record<string, unknown>): Promise<{ data: T | null; error: { message?: string } | null }>;
   from(table: string): {
     select(columns: string): {

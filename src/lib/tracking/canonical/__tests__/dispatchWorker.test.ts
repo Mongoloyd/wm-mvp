@@ -114,7 +114,7 @@ describe("runDispatchWorker", () => {
       },
     });
 
-    const db = new MockDB([row]);
+    const db = new MockDB([row]) as unknown as DBLike;
 
     await runDispatchWorker({
       db,
