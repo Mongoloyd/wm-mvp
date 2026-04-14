@@ -1,35 +1,85 @@
+import { Mail, MapPin, Clock } from "lucide-react";
+
 export default function Contact() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <section className="mx-auto max-w-3xl px-6 py-16 md:px-8 md:py-24">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-          Contact
-        </p>
-
-        <h1 className="mb-4 text-3xl font-semibold tracking-tight md:text-5xl">
-          Need help?
-        </h1>
-
-        <p className="mb-8 max-w-2xl text-base leading-7 text-foreground/80">
-          For support, account questions, or general inquiries about WindowMan.PRO
-          and our forensic quote analysis tools, email our team directly.
-        </p>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
-          <p className="mb-2 text-sm uppercase tracking-[0.18em] text-muted-foreground">
-            Support Email
+    <main
+      className="relative min-h-screen overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(170deg, #dce8f4 0%, #e4edf6 30%, #eaeff8 60%, #dde6f2 100%)",
+      }}
+    >
+      <section className="mx-auto max-w-4xl px-4 py-16 md:px-8 md:py-24">
+        <div className="mb-10">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">
+            Contact
           </p>
-
-          <a
-            href="mailto:support@windowman.pro"
-            className="text-lg font-medium text-foreground underline decoration-white/20 underline-offset-4 transition hover:text-primary"
-          >
-            support@windowman.pro
-          </a>
-
-          <p className="mt-4 text-sm leading-6 text-foreground/70">
-            Support usually responds within 24 hours.
+          <h1 className="text-3xl font-semibold tracking-tight text-gray-900 md:text-5xl">
+            Get in Touch
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-gray-600">
+            Have questions about our quote analysis? Need help with your Truth
+            Report? We're here to help South Florida homeowners.
           </p>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-3">
+          {/* Main Contact Card */}
+          <div className="md:col-span-2">
+            <div className="rounded-2xl border border-slate-200/60 bg-white/70 p-6 shadow-sm backdrop-blur-sm md:p-8">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50">
+                <Mail className="h-7 w-7 text-blue-600" />
+              </div>
+              <h2 className="mb-2 text-xl font-semibold text-gray-900">
+                Email Us Directly
+              </h2>
+              <p className="mb-6 text-sm leading-6 text-gray-600">
+                For support, account questions, or general inquiries about
+                WindowMan.PRO and our forensic quote analysis tools, email our
+                team directly.
+              </p>
+              <a
+                href="mailto:support@windowman.pro"
+                className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-gray-800"
+              >
+                support@windowman.pro
+              </a>
+              <p className="mt-4 text-xs text-gray-500">
+                We typically respond within 24 hours.
+              </p>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Region Card */}
+            <div className="rounded-2xl border border-slate-200/60 bg-white/70 p-5 shadow-sm backdrop-blur-sm">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-50">
+                <MapPin className="h-5 w-5 text-green-600" />
+              </div>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">
+                Service Area
+              </h3>
+              <p className="text-sm text-gray-600">South Florida</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Broward, Miami-Dade & Palm Beach Counties
+              </p>
+            </div>
+
+            {/* Hours Card */}
+            <div className="rounded-2xl border border-slate-200/60 bg-white/70 p-5 shadow-sm backdrop-blur-sm">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-50">
+                <Clock className="h-5 w-5 text-amber-600" />
+              </div>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">
+                Support Hours
+              </h3>
+              <p className="text-sm text-gray-600">Mon–Fri: 9am–6pm EST</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Quote analysis available 24/7
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </main>
