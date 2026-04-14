@@ -64,7 +64,7 @@ export default function BestPriceConditionsSection() {
           {conditionCards.map((card) => (
             <div
               key={card.number}
-              className="flex flex-col rounded-2xl bg-white p-7"
+              className="flex flex-col rounded-2xl bg-white p-7 border-double border-4 border-[#07b6d5]"
               style={{
                 boxShadow:
                   "0 2px 4px rgba(15,30,60,0.05), 0 8px 28px rgba(15,30,60,0.09)",

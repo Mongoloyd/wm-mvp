@@ -71,7 +71,7 @@ export default function InevitabilitySection() {
           {standards.map((item, index) => (
             <div
               key={item.label}
-              className="relative flex flex-col rounded-2xl bg-white p-8"
+              className="relative flex flex-col rounded-2xl bg-white p-8 border-double border-4 shadow-2xl"
               style={
                 item.featured
                   ? {
