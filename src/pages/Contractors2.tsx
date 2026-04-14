@@ -5,6 +5,7 @@ import MarketTruthSection from "@/components/sections/MarketTruthSection";
 import CompetitorQuoteSection from "@/components/sections/CompetitorQuoteSection";
 import BuyerReadinessSection from "@/components/sections/BuyerReadinessSection";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
+import ArbitrageModelSection from "@/components/sections/ArbitrageModelSection";
 import EconomicsSection from "@/components/sections/EconomicsSection";
 import FlywheelSection from "@/components/sections/FlywheelSection";
 import DifferentiationSection from "@/components/sections/DifferentiationSection";
@@ -25,6 +26,7 @@ const Contractors2 = () => {
       <CompetitorQuoteSection />
       <BuyerReadinessSection />
       <HowItWorksSection />
+      <ArbitrageModelSection />
       <EconomicsSection />
       <FlywheelSection />
       <DifferentiationSection />
