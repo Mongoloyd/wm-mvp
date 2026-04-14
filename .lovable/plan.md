@@ -1,40 +1,25 @@
 
 
-## What You Want (Plain English)
+## Plan: Add Flywheel Section
 
-You want the sticky "Scan My Quote / View Live Demo" bar that appears at the bottom of your homepage to also appear on four subpages: **About**, **Contact**, **Terms**, and **Privacy**. The buttons should navigate users back to the homepage (since the scan/demo functionality lives there), and the page content needs enough bottom padding so the sticky bar doesn't cover anything.
+### What
+Create a new `FlywheelSection.tsx` component from the provided code and insert it between `EconomicsSection` and `DifferentiationSection` on the Contractors2 page.
 
----
+### Changes
 
-## Implementation Plan
+**1. Create `src/components/sections/FlywheelSection.tsx`**
+- Adapt the provided code into a standalone section component
+- Remove the outer `App` wrapper and `min-h-screen` container — use a `<section>` root with `py-24` to match page rhythm
+- Keep the two-column layout (headline + bullets on left, flywheel diagram on right)
+- Preserve the teal accent color, glow effect, circular node placement, and hover interactions
+- Keep the external legend labels and all responsive behavior intact
 
-### 1. Add StickyCTAFooter to each page
+**2. Update `src/pages/Contractors2.tsx`**
+- Import `FlywheelSection`
+- Insert `<FlywheelSection />` between `<EconomicsSection />` and `<DifferentiationSection />`
 
-Import and render `<StickyCTAFooter>` at the bottom of these four page components:
-- `src/pages/About.tsx`
-- `src/pages/Contact.tsx`
-- `src/pages/Terms.tsx`
-- `src/pages/Privacy.tsx`
-
-Each will use `useNavigate()` from react-router-dom for the click handlers:
-- **onScanClick**: `navigate("/?action=scan")` — navigates home with a query param the homepage can detect
-- **onDemoClick**: `navigate("/?action=demo")` — same pattern for the demo trigger
-- **onPostConversionClick**: `window.location.href = 'tel:+15614685571'` (same as homepage)
-- **isVisible**: `true` (always visible on subpages since there's no recovery bar)
-- **conversionType**: `null` (default pre-conversion state)
-
-### 2. Add bottom padding to prevent content overlap
-
-Add `pb-32` (or similar ~128px) to the outermost `<main>` wrapper of each page so the sticky footer doesn't cover the last section of content.
-
-### 3. Files changed
-
-| File | Change |
-|------|--------|
-| `src/pages/About.tsx` | Import StickyCTAFooter + useNavigate, add component + bottom padding |
-| `src/pages/Contact.tsx` | Same |
-| `src/pages/Terms.tsx` | Same |
-| `src/pages/Privacy.tsx` | Same |
-
-No changes to `StickyCTAFooter.tsx` itself — the existing component works as-is.
+### Technical notes
+- No new dependencies — pure React + Tailwind + inline math for node positioning
+- The teal accent is new to this page but is specified by the user's design, so it will be used as provided
+- Background will use the provided gradient/dot-grid pattern within the section card, sitting on a `bg-zinc-950` or `bg-black` section background to alternate with neighbors
 
