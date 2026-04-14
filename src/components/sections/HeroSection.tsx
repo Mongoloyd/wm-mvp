@@ -155,6 +155,7 @@ const HeroSection = () => (
           </div>
         </div>
       </motion.div>
+      </div>
     </div>
   </section>
 );
