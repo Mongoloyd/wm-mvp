@@ -7,7 +7,10 @@ import type { CreateCanonicalEventInput, WMCanonicalEvent, WMDispatchStatus, WMP
 interface DBLike {
   from(table: string): {
     insert(payload: Record<string, unknown> | Record<string, unknown>[]): Promise<{ data?: unknown; error?: { message?: string } | null }>;
-    upsert(payload: Record<string, unknown>, options?: { onConflict?: string }): Promise<{ data?: unknown; error?: { message?: string } | null }>;
+    upsert(
+      payload: Record<string, unknown> | Record<string, unknown>[],
+      options?: { onConflict?: string },
+    ): Promise<{ data?: unknown; error?: { message?: string } | null }>;
     select(columns: string): {
       eq(column: string, value: string): {
         maybeSingle(): Promise<{ data?: Record<string, unknown> | null; error?: { message?: string } | null }>;
@@ -289,9 +292,11 @@ export async function createCanonicalEvent(
         dispatch_status: "pending",
       }));
 
-      const dispatchInsert = await deps.db.from("wm_platform_dispatch_log").insert(rows);
+      const dispatchInsert = await deps.db
+        .from("wm_platform_dispatch_log")
+        .upsert(rows, { onConflict: "event_log_id,platform_name" });
       if (dispatchInsert.error) {
-        throw new Error(`wm_platform_dispatch_log insert failed: ${dispatchInsert.error.message ?? "unknown"}`);
+        throw new Error(`wm_platform_dispatch_log upsert failed: ${dispatchInsert.error.message ?? "unknown"}`);
       }
     }
   }

@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.send-contractor-handoff]
 verify_jwt = false
+
+[functions.dispatch-platform-events]
+verify_jwt = false

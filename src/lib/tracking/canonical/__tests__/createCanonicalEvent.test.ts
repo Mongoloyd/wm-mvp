@@ -13,9 +13,10 @@ class MockDB {
         this.inserts[table] = [...(this.inserts[table] ?? []), ...rows];
         return { data: rows, error: null };
       },
-      upsert: async (payload: Record<string, unknown>) => {
-        this.upserts[table] = [...(this.upserts[table] ?? []), payload];
-        return { data: payload, error: null };
+      upsert: async (payload: Record<string, unknown> | Record<string, unknown>[]) => {
+        const rows = Array.isArray(payload) ? payload : [payload];
+        this.upserts[table] = [...(this.upserts[table] ?? []), ...rows];
+        return { data: rows, error: null };
       },
       select: (_columns: string) => ({
         eq: (_column: string, _value: string) => ({
@@ -98,7 +99,7 @@ describe("createCanonicalEvent", () => {
 
     expect(db.inserts.wm_event_log?.length).toBe(1);
     expect(db.upserts.wm_quote_facts?.length).toBe(1);
-    expect(db.inserts.wm_platform_dispatch_log?.length).toBeGreaterThan(0);
+    expect(db.upserts.wm_platform_dispatch_log?.length).toBeGreaterThan(0);
     expect(result.dispatchPlatforms).toContain("meta");
     expect(result.dispatchPlatforms).toContain("google_ads");
   });
@@ -122,6 +123,6 @@ describe("createCanonicalEvent", () => {
       },
     );
 
-    expect(db.inserts.wm_platform_dispatch_log ?? []).toHaveLength(0);
+    expect(db.upserts.wm_platform_dispatch_log ?? []).toHaveLength(0);
   });
 });

@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { normalizePhone } from "../_shared/normalizePhone.ts";
+import { persistCanonicalEvent } from "../_shared/tracking/canonicalBridge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -178,6 +179,38 @@ Deno.serve(async (req) => {
           }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
+      }
+    }
+
+    if (resolvedLeadId && scan_session_id) {
+      try {
+        await persistCanonicalEvent(supabase, {
+          eventId: `wmc_report_revealed_lead-${resolvedLeadId}_scan-${scan_session_id}`,
+          eventName: "report_revealed",
+          eventTimestamp: now,
+          leadId: resolvedLeadId,
+          scanSessionId: scan_session_id,
+          payload: {
+            identity: {
+              leadId: resolvedLeadId,
+              phone: twilioPhone,
+              phoneVerifiedAt: now,
+            },
+            journey: {
+              route: "/verify",
+              flow: "public",
+              scanSessionId: scan_session_id,
+            },
+            source: {
+              sourceSystem: "edge_function",
+            },
+            metadata: {
+              unlock_moment: "otp_verified",
+            },
+          },
+        });
+      } catch (canonicalError) {
+        console.error("[verify-otp] report_revealed canonical event failed", canonicalError);
       }
     }
 
