@@ -1,29 +1,29 @@
 
 
-## Fix: Update `Scenario` type and `useEffect` to use uppercase keys
+## Fix: Export FunnelStep & FUNNEL_STEPS from arbitrageengine.tsx, clean up About.tsx
 
-**File**: `src/pages/DemoClassic.tsx`
+### File 1: `src/components/arbitrageengine.tsx`
 
-### Changes
+**A. Line 30** — Add `export` to the type:
+```tsx
+export type FunnelStep =
+```
 
-1. **Line 94** — Update type definition:
-   ```tsx
-   type Scenario = "No_Phone" | "Known_Phone" | "OTP_Sent";
-   ```
+**B. After line 43** (after the type closing semicolon) — Add the exported constant:
+```tsx
+export const FUNNEL_STEPS: FunnelStep[] = [
+  "scope", "intent_filter", "status", "comp_a", "comp_b",
+  "contact", "identity", "intent", "call", "timeframe",
+  "done", "secret_capture", "secret_success",
+];
+```
 
-2. **Line 98** — Update default state:
-   ```tsx
-   const [scenario, setScenario] = useState<Scenario>("No_Phone");
-   ```
+### File 2: `src/pages/About.tsx`
 
-3. **Lines 123, 126** — Update useEffect comparisons:
-   ```tsx
-   if (scenario === "No_Phone") {
-   ```
-   ```tsx
-   } else if (scenario === "Known_Phone") {
-   ```
-   (The `else` branch already handles the `OTP_Sent` case implicitly.)
+**Delete lines 21-40** — Remove the duplicate local `FunnelStep` type and the `ALLOWED_STEPS` constant. The import on line 11 (`import ArbitrageEngine, { type FunnelStep, FUNNEL_STEPS } from "@/components/arbitrageengine"`) now resolves correctly and replaces both.
 
-Four lines changed. No other modifications.
+Line 48 already references `FUNNEL_STEPS` — no further changes needed.
+
+### Summary
+Two files, three edits. No logic changes, no routing changes, no deletions of usage code.
 
