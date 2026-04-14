@@ -47,7 +47,7 @@ const BenefitItem = ({ icon: Icon, title, description, color }: BenefitItemProps
     <div
       className={`flex-shrink-0 p-3 rounded-xl ${color} bg-opacity-10 mr-4 group-hover:scale-110 transition-transform`}
     >
-      <Icon className={`w-6 h-6 ${color.replace("bg-", "text-")}`} />
+      <Icon className="w-6 h-6 text-white" />
     </div>
     <div>
       <h4 className="text-lg font-bold text-foreground">{title}</h4>
