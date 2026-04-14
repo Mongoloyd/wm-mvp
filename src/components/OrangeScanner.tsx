@@ -280,7 +280,7 @@ const TrustScoreWidget = ({
     >
       <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
         <div>
-          <h4 className="text-[10px] uppercase tracking-tighter text-slate-200 mb-1">Contractor Integrity Score</h4>
+          <h4 className="text-[10px] text-slate-200 mb-1">Contractor Integrity Score</h4>
           <div className="text-3xl font-black font-mono flex items-baseline">
             <span
               className={`transition-colors duration-500 ${score < 70 ? "text-red-500" : score < 85 ? "text-orange-400" : "text-cyan-400"}`}
