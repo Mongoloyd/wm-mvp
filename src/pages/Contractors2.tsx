@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PageWrapper from "@/components/layout/PageWrapper";
+import StickyCTAFooter from "@/components/StickyCTAFooter";
 import HeroSection from "@/components/sections/HeroSection";
 import MarketTruthSection from "@/components/sections/MarketTruthSection";
 import CinematicDivider from "@/components/sections/CinematicDivider";
