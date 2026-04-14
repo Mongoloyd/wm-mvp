@@ -22,12 +22,54 @@ import type { GateMode, LockedOverlayProps } from "@/components/LockedOverlay";
 
 /* ── Fixture data ── */
 const FIXTURE_FLAGS = [
-  { id: 1, severity: "red" as const, label: "Missing NOA Codes", detail: "No product approval numbers listed.", tip: "Ask for NOA numbers.", pillar: "safety_code" as const },
-  { id: 2, severity: "red" as const, label: "Permit Fees TBD", detail: "Permit costs not included.", tip: "Request a fixed permit fee.", pillar: "fine_print" as const },
-  { id: 3, severity: "amber" as const, label: "No Disposal Terms", detail: "No mention of old window removal.", tip: "Ask for disposal in writing.", pillar: "install_scope" as const },
-  { id: 4, severity: "amber" as const, label: "Generic Glass Spec", detail: "Glass listed as 'impact rated' without specifics.", tip: "Request exact product series.", pillar: "safety_code" as const },
-  { id: 5, severity: "green" as const, label: "Line Items Present", detail: "Per-unit pricing is broken out.", tip: null, pillar: "price_fairness" as const },
-  { id: 6, severity: "amber" as const, label: "Warranty Unclear", detail: "Duration not specified.", tip: "Get exact warranty term in writing.", pillar: "warranty" as const },
+  {
+    id: 1,
+    severity: "red" as const,
+    label: "Missing NOA Codes",
+    detail: "No product approval numbers listed.",
+    tip: "Ask for NOA numbers.",
+    pillar: "safety_code" as const,
+  },
+  {
+    id: 2,
+    severity: "red" as const,
+    label: "Permit Fees TBD",
+    detail: "Permit costs not included.",
+    tip: "Request a fixed permit fee.",
+    pillar: "fine_print" as const,
+  },
+  {
+    id: 3,
+    severity: "amber" as const,
+    label: "No Disposal Terms",
+    detail: "No mention of old window removal.",
+    tip: "Ask for disposal in writing.",
+    pillar: "install_scope" as const,
+  },
+  {
+    id: 4,
+    severity: "amber" as const,
+    label: "Generic Glass Spec",
+    detail: "Glass listed as 'impact rated' without specifics.",
+    tip: "Request exact product series.",
+    pillar: "safety_code" as const,
+  },
+  {
+    id: 5,
+    severity: "green" as const,
+    label: "Line Items Present",
+    detail: "Per-unit pricing is broken out.",
+    tip: null,
+    pillar: "price_fairness" as const,
+  },
+  {
+    id: 6,
+    severity: "amber" as const,
+    label: "Warranty Unclear",
+    detail: "Duration not specified.",
+    tip: "Get exact warranty term in writing.",
+    pillar: "warranty" as const,
+  },
 ];
 
 const FIXTURE_PILLARS = [
@@ -49,11 +91,11 @@ function formatPhone(raw: string): string {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
-type Scenario = "no_phone" | "known_phone" | "otp_sent";
+type Scenario = "No_Phone" | "Known_Phone" | "OTP_Sent";
 
 const DemoClassic = () => {
   /* ── Scenario selector ── */
-  const [scenario, setScenario] = useState<Scenario>("no_phone");
+  const [scenario, setScenario] = useState<Scenario>("No_Phone");
 
   /* ── Gate state machine ── */
   const [gateMode, setGateMode] = useState<GateMode>("enter_phone");
@@ -78,10 +120,10 @@ const DemoClassic = () => {
     setResendCooldown(0);
     if (cooldownRef.current) clearInterval(cooldownRef.current);
 
-    if (scenario === "no_phone") {
+    if (scenario === "No_Phone") {
       setGateMode("enter_phone");
       setKnownPhone(null);
-    } else if (scenario === "known_phone") {
+    } else if (scenario === "Known_Phone") {
       setGateMode("send_code");
       setKnownPhone("+15551234567");
     } else {
@@ -113,7 +155,9 @@ const DemoClassic = () => {
   }, []);
 
   useEffect(() => {
-    return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
   }, []);
 
   /* ── Derived phone state ── */
@@ -186,7 +230,10 @@ const DemoClassic = () => {
       ? {
           gateMode,
           otpValue,
-          onOtpChange: (v: string) => { setOtpValue(v); setErrorMsg(""); },
+          onOtpChange: (v: string) => {
+            setOtpValue(v);
+            setErrorMsg("");
+          },
           onOtpSubmit: handleOtpSubmit,
           onSendCode: handleSendCode,
           phoneDisplayValue: phoneDisplay,
@@ -194,13 +241,13 @@ const DemoClassic = () => {
           phoneDigitCount,
           onPhoneChange: handlePhoneChange,
           onPhoneSubmit: handlePhoneSubmit,
-           isLoading,
-           errorMsg,
-           resendCooldown,
-           onResend: handleResend,
-           tcpaConsent,
-           onTcpaChange: setTcpaConsent,
-         }
+          isLoading,
+          errorMsg,
+          resendCooldown,
+          onResend: handleResend,
+          tcpaConsent,
+          onTcpaChange: setTcpaConsent,
+        }
       : undefined;
 
   return (
@@ -223,11 +270,13 @@ const DemoClassic = () => {
         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9CA3AF", letterSpacing: "0.06em" }}>
           SCENARIO:
         </span>
-        {([
-          ["no_phone", "No phone (enter_phone → enter_code → unlock)"],
-          ["known_phone", "Known phone (send_code → enter_code → unlock)"],
-          ["otp_sent", "OTP already sent (enter_code → unlock)"],
-        ] as [Scenario, string][]).map(([key, label]) => (
+        {(
+          [
+            ["No_Phone", "No Phone (Enter_Phone → Enter_Code → Unlock)"],
+            ["Known_Phone", "Known Phone (Send_Code → Enter_Code → Unlock)"],
+            ["OTP_Sent", "OTP Already Sent (Enter_Code → Unlock)"],
+          ] as [Scenario, string][]
+        ).map(([key, label]) => (
           <button
             key={key}
             onClick={() => setScenario(key)}
@@ -249,32 +298,48 @@ const DemoClassic = () => {
         ))}
 
         {/* Status indicators */}
-        <div style={{ display: "flex", gap: 12, marginLeft: 8, fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#64748B" }}>
-          <span>MODE: <span style={{ color: "#C8952A" }}>{accessLevel === "full" ? "UNLOCKED" : gateMode}</span></span>
-          <span>PHONE: <span style={{ color: activePhone ? "#059669" : "#DC2626" }}>{activePhone || "none"}</span></span>
-          <span>ACCESS: <span style={{ color: accessLevel === "full" ? "#059669" : "#F97316" }}>{accessLevel}</span></span>
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            marginLeft: 8,
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 10,
+            color: "#64748B",
+          }}
+        >
+          <span>
+            MODE: <span style={{ color: "#C8952A" }}>{accessLevel === "full" ? "UNLOCKED" : gateMode}</span>
+          </span>
+          <span>
+            PHONE: <span style={{ color: activePhone ? "#059669" : "#DC2626" }}>{activePhone || "none"}</span>
+          </span>
+          <span>
+            ACCESS: <span style={{ color: accessLevel === "full" ? "#059669" : "#F97316" }}>{accessLevel}</span>
+          </span>
         </div>
       </div>
 
       {/* ── Hint bar ── */}
-      <div style={{
-        textAlign: "center",
-        padding: "6px 16px",
-        background: "rgba(200,149,42,0.08)",
-        borderBottom: "1px solid rgba(200,149,42,0.15)",
-        fontFamily: "'DM Mono', monospace",
-        fontSize: 11,
-        color: "#C8952A",
-        letterSpacing: "0.04em",
-      }}>
+      <div
+        style={{
+          textAlign: "center",
+          padding: "6px 16px",
+          background: "rgba(200,149,42,0.08)",
+          borderBottom: "1px solid rgba(200,149,42,0.15)",
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 11,
+          color: "#C8952A",
+          letterSpacing: "0.04em",
+        }}
+      >
         {accessLevel === "full"
           ? "✅ REPORT UNLOCKED — overlay removed, full findings visible"
           : gateMode === "enter_code"
             ? 'Enter code "000000" to unlock · any other code → error'
             : gateMode === "send_code"
               ? 'Click "Get Your Code" to transition → enter_code'
-              : "Enter 10 digits → Send Code → transitions to enter_code"
-        }
+              : "Enter 10 digits → Send Code → transitions to enter_code"}
       </div>
 
       <TruthReportClassic
@@ -293,7 +358,9 @@ const DemoClassic = () => {
         lineItemCount={6}
         onContractorMatchClick={() => {}}
         onReportHelpCall={() => {}}
-        onSecondScan={() => { window.location.href = "/"; }}
+        onSecondScan={() => {
+          window.location.href = "/";
+        }}
         gateProps={gateProps}
       />
     </div>
