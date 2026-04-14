@@ -143,10 +143,197 @@ export interface ExtractionResult {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// SCENARIO FIXTURES — 14 deterministic extraction payloads
-// Calibrated against scoring.ts RUBRIC_VERSION = "1.6.0"
-// Thresholds: A≥88, B≥70, C≥52, D≥37, else F
+// Scenario builders
 // ══════════════════════════════════════════════════════════════════════════════
+
+type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T[K] extends object
+      ? DeepPartial<T[K]>
+      : T[K];
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export const BASE_PASSING_LINE_ITEM: LineItem = {
+  description: "PGT WinGuard Impact Single Hung Window",
+  quantity: 1,
+  unit_price: 1850,
+  total_price: 1850,
+  brand: "PGT",
+  series: "WinGuard",
+  dp_rating: "DP50",
+  noa_number: "NOA 17-0501.06",
+  dimensions: "36x60",
+  opening_location: "Living Room",
+  opening_tag: "W1",
+  product_assignment_text: "PGT WinGuard SH 36x60",
+  glass_package_text: "Insulated laminated Low-E Argon",
+  glass_makeup_type: "insulated_laminated",
+  glass_low_e_present: true,
+  glass_argon_present: true,
+  glass_tint_text: "clear",
+  glass_spec_complete: true,
+};
+
+export const BASE_PASSING_EXTRACTION: ExtractionResult = {
+  document_type: "impact_window_quote",
+  is_window_door_related: true,
+  confidence: 0.95,
+  page_count: 3,
+  contractor_name: "Elite Impact Windows LLC",
+  opening_count: 4,
+  total_quoted_price: 18400,
+  hvhz_zone: true,
+  cancellation_policy: "Full refund within 3 business days of signing. 15% restocking fee after materials ordered.",
+  opening_level_glass_specs_present: true,
+  blanket_glass_language_present: false,
+  mixed_glass_package_visibility: false,
+  opening_schedule_present: true,
+  opening_schedule_room_labels_present: true,
+  opening_schedule_dimensions_complete: true,
+  opening_schedule_product_assignments_present: true,
+  bulk_scope_blob_present: false,
+  terms_conditions_present: true,
+  written_change_order_required: true,
+  homeowner_approval_required_for_change_orders: true,
+  unilateral_price_adjustment_allowed: false,
+  substrate_condition_clause_present: false,
+  rot_unit_pricing_present: true,
+  buck_replacement_unit_pricing_present: true,
+  subject_to_remeasure_present: false,
+  final_payment_before_inspection: false,
+  remeasure_price_adjustment_cap_present: true,
+  payment_schedule_text: "30% deposit, 40% on material delivery, 30% on completion",
+  deposit_percent: 30,
+  generic_product_description_present: false,
+  anchoring_method_text: "Tapcon concrete anchors per manufacturer spec",
+  anchor_spacing_specified: true,
+  fastener_type_specified: true,
+  waterproofing_method_text: "Sealant and flashing tape per FBC",
+  sealant_specified: true,
+  buck_treatment_method_text: "Pressure-treated 2x4 buck with moisture barrier",
+  manufacturer_install_compliance_stated: true,
+  code_compliance_install_statement_present: true,
+  warranty_execution_details_present: true,
+  warranty_service_provider_type: "contractor",
+  warranty_service_provider_name: "Elite Impact Windows LLC",
+  leak_callback_sla_days: 5,
+  labor_service_sla_days: 5,
+  callback_process_text: "Call office within 48 hours — technician dispatched within 5 business days",
+  post_install_stucco_excluded: false,
+  post_install_paint_excluded: false,
+  water_intrusion_damage_excluded: false,
+  wall_repair_scope: "Stucco patch and interior trim replacement included",
+  stucco_repair_included: true,
+  drywall_repair_included: true,
+  paint_touchup_included: true,
+  debris_removal_included: true,
+  engineering_mentioned: true,
+  engineering_fees_included: true,
+  permit_fees_itemized: true,
+  insurance_proof_mentioned: true,
+  licensing_proof_mentioned: true,
+  completion_timeline_text: "6-8 weeks from permit approval",
+  lead_paint_disclosure_present: true,
+  line_items: [
+    BASE_PASSING_LINE_ITEM,
+    {
+      ...BASE_PASSING_LINE_ITEM,
+      description: "PGT WinGuard Impact Horizontal Roller",
+      opening_location: "Master Bedroom",
+      opening_tag: "W2",
+      product_assignment_text: "PGT WinGuard HR 72x48",
+      dimensions: "72x48",
+      quantity: 1,
+      unit_price: 2200,
+      total_price: 2200,
+    },
+    {
+      ...BASE_PASSING_LINE_ITEM,
+      description: "CGI Sentinel Impact Sliding Glass Door",
+      brand: "CGI",
+      series: "Sentinel",
+      noa_number: "NOA 18-0312.02",
+      opening_location: "Back Patio",
+      opening_tag: "D1",
+      product_assignment_text: "CGI Sentinel SGD 96x80",
+      dimensions: "96x80",
+      quantity: 1,
+      unit_price: 4500,
+      total_price: 4500,
+    },
+  ],
+  warranty: {
+    labor_years: 5,
+    manufacturer_years: 25,
+    transferable: true,
+    details: "Manufacturer: limited lifetime on glass seal. Labor: 5-year full coverage including callbacks.",
+  },
+  permits: {
+    included: true,
+    responsible_party: "contractor",
+    details: "All building permits and final inspection included in quoted price.",
+  },
+  installation: {
+    scope_detail:
+      "Full removal of existing windows, installation of new impact units, stucco patching, interior/exterior caulking, foam insulation, and final cleanup.",
+    disposal_included: true,
+    accessories_mentioned: true,
+  },
+};
+
+export function deepMerge<T>(base: T, override: DeepPartial<T> = {}): T {
+  const result = structuredClone(base) as T;
+
+  const mergeInto = (target: unknown, source: unknown) => {
+    if (!isObject(target) || !isObject(source)) return;
+
+    for (const [key, value] of Object.entries(source)) {
+      // Guard against prototype pollution
+      if (key === "__proto__" || key === "prototype" || key === "constructor") {
+        continue;
+      }
+
+      // Allow explicit undefined to delete/clear base fields
+      if (value === undefined) {
+        delete (target as Record<string, unknown>)[key];
+        continue;
+      }
+
+      if (Array.isArray(value)) {
+        (target as Record<string, unknown>)[key] = structuredClone(value);
+      } else if (isObject(value)) {
+        const existing = (target as Record<string, unknown>)[key];
+        if (!isObject(existing)) {
+          (target as Record<string, unknown>)[key] = {};
+        }
+        mergeInto((target as Record<string, unknown>)[key], value);
+      } else {
+        (target as Record<string, unknown>)[key] = value;
+      }
+    }
+  };
+
+  mergeInto(result, override);
+  return result;
+}
+
+export function makeExtraction(
+  overrides: DeepPartial<ExtractionResult> = {},
+  lineItemOverrides?: Array<DeepPartial<LineItem>>,
+): ExtractionResult {
+  const extraction = deepMerge(BASE_PASSING_EXTRACTION, overrides);
+
+  if (lineItemOverrides) {
+    extraction.line_items = lineItemOverrides.map((itemOverride) => deepMerge(BASE_PASSING_LINE_ITEM, itemOverride));
+  }
+
+  return extraction;
+}
 
 export interface ScenarioFixture {
   key: string;
@@ -157,401 +344,145 @@ export interface ScenarioFixture {
   expectedTerminal?: "invalid_document" | "needs_better_upload";
 }
 
-export const SCENARIO_FIXTURES: ScenarioFixture[] = [
-  // ── Grade A ────────────────────────────────────────────────────────────────
-  // All 5 pillars fully satisfied. No hard caps. Weighted average ≥ 88.
-  {
-    key: "gradeA",
-    label: "Grade A",
-    description: "Complete quote: all specs, warranty, permits, install scope — all v1.6.0 fields satisfied",
-    expectedGrade: "A",
-    extraction: {
-      document_type: "impact_window_quote",
-      is_window_door_related: true,
-      confidence: 0.95,
-      page_count: 3,
-      contractor_name: "Elite Impact Windows LLC",
-      opening_count: 4,
-      total_quoted_price: 18400,
-      hvhz_zone: true,
-      cancellation_policy: "Full refund within 3 business days of signing. 15% restocking fee after materials ordered.",
-      // ── Glass (Area 1) ────────────────────────────────────────────────────
-      opening_level_glass_specs_present: true,
-      blanket_glass_language_present: false,
-      mixed_glass_package_visibility: false,
-      // ── Opening scope (Area 2) ────────────────────────────���───────────────
-      opening_schedule_present: true,
-      opening_schedule_room_labels_present: true,
-      opening_schedule_dimensions_complete: true,
-      opening_schedule_product_assignments_present: true,
-      bulk_scope_blob_present: false,
-      // ── Legal / Fine Print (Area 3) ───────────────────────────────────────
-      terms_conditions_present: true,
-      written_change_order_required: true,
-      homeowner_approval_required_for_change_orders: true,
-      unilateral_price_adjustment_allowed: false,
-      substrate_condition_clause_present: false,
-      rot_unit_pricing_present: true,
-      buck_replacement_unit_pricing_present: true,
-      subject_to_remeasure_present: false,
-      final_payment_before_inspection: false,
-      remeasure_price_adjustment_cap_present: true,
-      payment_schedule_text: "30% deposit, 40% on material delivery, 30% on completion",
-      deposit_percent: 30,
-      generic_product_description_present: false,
-      // ── Install method (Area 4) ───────────────────────────────────────────
-      anchoring_method_text: "Tapcon concrete anchors per manufacturer spec",
-      anchor_spacing_specified: true,
-      fastener_type_specified: true,
-      waterproofing_method_text: "Sealant and flashing tape per FBC",
-      sealant_specified: true,
-      buck_treatment_method_text: "Pressure-treated 2x4 buck with moisture barrier",
-      manufacturer_install_compliance_stated: true,
-      code_compliance_install_statement_present: true,
-      // ── Warranty execution (Area 5) ───────────────────────────────────────
-      warranty_execution_details_present: true,
-      warranty_service_provider_type: "contractor",
-      warranty_service_provider_name: "Elite Impact Windows LLC",
-      leak_callback_sla_days: 5,
-      labor_service_sla_days: 5,
-      callback_process_text: "Call office within 48 hours — technician dispatched within 5 business days",
-      post_install_stucco_excluded: false,
-      post_install_paint_excluded: false,
-      water_intrusion_damage_excluded: false,
-      // ── Scope gaps / trust signals ────────────────────────────────────────
-      wall_repair_scope: "Stucco patch and interior trim replacement included",
-      stucco_repair_included: true,
-      drywall_repair_included: true,
-      paint_touchup_included: true,
-      debris_removal_included: true,
-      engineering_mentioned: true,
-      engineering_fees_included: true,
-      permit_fees_itemized: true,
-      insurance_proof_mentioned: true,
-      licensing_proof_mentioned: true,
-      completion_timeline_text: "6-8 weeks from permit approval",
-      lead_paint_disclosure_present: true,
-      line_items: [
-        {
-          description: "PGT WinGuard Impact Single Hung Window",
-          quantity: 2,
-          unit_price: 1850,
-          total_price: 3700,
-          brand: "PGT",
-          series: "WinGuard",
-          dp_rating: "DP50",
-          noa_number: "NOA 17-0501.06",
-          dimensions: "36x60",
-          opening_location: "Living Room",
-          opening_tag: "W1",
-          product_assignment_text: "PGT WinGuard SH 36x60",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_tint_text: "clear",
-          glass_spec_complete: true,
-        },
-        {
-          description: "PGT WinGuard Impact Horizontal Roller",
-          quantity: 1,
-          unit_price: 2200,
-          total_price: 2200,
-          brand: "PGT",
-          series: "WinGuard",
-          dp_rating: "DP50",
-          noa_number: "NOA 17-0501.06",
-          dimensions: "72x48",
-          opening_location: "Master Bedroom",
-          opening_tag: "W2",
-          product_assignment_text: "PGT WinGuard HR 72x48",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_tint_text: "clear",
-          glass_spec_complete: true,
-        },
-        {
-          description: "CGI Sentinel Impact Sliding Glass Door",
-          quantity: 1,
-          unit_price: 4500,
-          total_price: 4500,
-          brand: "CGI",
-          series: "Sentinel",
-          dp_rating: "DP50",
-          noa_number: "NOA 18-0312.02",
-          dimensions: "96x80",
-          opening_location: "Back Patio",
-          opening_tag: "D1",
-          product_assignment_text: "CGI Sentinel SGD 96x80",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_tint_text: "clear",
-          glass_spec_complete: true,
-        },
-        {
-          description: "PGT WinGuard Impact Picture Window - Hurricane rated",
-          quantity: 1,
-          unit_price: 2800,
-          total_price: 2800,
-          brand: "PGT",
-          series: "WinGuard",
-          dp_rating: "DP65",
-          noa_number: "NOA 17-0501.06",
-          dimensions: "60x48",
-          opening_location: "Dining Room",
-          opening_tag: "W3",
-          product_assignment_text: "PGT WinGuard PW 60x48",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_tint_text: "clear",
-          glass_spec_complete: true,
-        },
-      ],
-      warranty: {
-        labor_years: 5,
-        manufacturer_years: 25,
-        transferable: true,
-        details: "Manufacturer: limited lifetime on glass seal. Labor: 5-year full coverage including callbacks.",
-      },
-      permits: {
-        included: true,
-        responsible_party: "contractor",
-        details: "All building permits and final inspection included in quoted price.",
-      },
-      installation: {
-        scope_detail:
-          "Full removal of existing windows, installation of new impact units, stucco patching, interior/exterior caulking, foam insulation, and final cleanup.",
-        disposal_included: true,
-        accessories_mentioned: true,
-      },
-    },
-  },
+function makeScenario(
+  key: ScenarioFixture["key"],
+  label: ScenarioFixture["label"],
+  description: ScenarioFixture["description"],
+  expectedGrade: ScenarioFixture["expectedGrade"],
+  extractionOverrides: DeepPartial<ExtractionResult> = {},
+  lineItemOverrides?: Array<DeepPartial<LineItem>>,
+  expectedTerminal?: ScenarioFixture["expectedTerminal"],
+): ScenarioFixture {
+  return {
+    key,
+    label,
+    description,
+    expectedGrade,
+    expectedTerminal,
+    extraction: makeExtraction(extractionOverrides, lineItemOverrides),
+  };
+}
 
-  // ── Grade B ────────────────────────────────────────────────────────────────
-  // Intentional B-level failures: missing NOA numbers, no cancellation policy,
-  // no disposal. All v1.6.0 baseline fields present to prevent unintended C/D caps.
-  {
-    key: "gradeB",
-    label: "Grade B",
-    description: "Good quote — missing NOA numbers, no cancellation policy, no disposal",
-    expectedGrade: "B",
-    extraction: {
-      document_type: "impact_window_quote",
-      is_window_door_related: true,
+// ══════════════════════════════════════════════════════════════════════════════
+// SCENARIO FIXTURES — deterministic extraction payloads
+// Calibrated against scoring.ts RUBRIC_VERSION = "1.6.0"
+// Thresholds: A≥88, B≥70, C≥52, D≥37, else F
+// ══════════════════════════════════════════════════════════════════════════════
+
+export const SCENARIO_FIXTURES: ScenarioFixture[] = [
+  makeScenario("gradeA", "Grade A", "Complete quote: all specs, warranty, permits, install scope — all v1.6.0 fields satisfied", "A"),
+
+  // Intentional B-level failures: missing NOA numbers, no cancellation policy, no disposal.
+  makeScenario(
+    "gradeB",
+    "Grade B",
+    "Good quote — missing NOA numbers, no cancellation policy, no disposal",
+    "B",
+    {
       confidence: 0.88,
       page_count: 2,
       contractor_name: "Sunshine Windows Inc",
       opening_count: 3,
       total_quoted_price: 12600,
-      hvhz_zone: true,
-      // Intentional B-level gaps: no cancellation_policy, no disposal
-      // ── Glass (Area 1) ────────────────────────────────────────────────────
-      opening_level_glass_specs_present: true,
-      blanket_glass_language_present: false,
-      mixed_glass_package_visibility: false,
-      // ── Opening scope (Area 2) ────────────────────────────────────────────
-      // opening_count: 3, so no ambiguous_opening_scope cap (requires ≥5)
-      opening_schedule_present: true,
-      opening_schedule_room_labels_present: true,
-      opening_schedule_dimensions_complete: true,
-      opening_schedule_product_assignments_present: true,
-      bulk_scope_blob_present: false,
-      // ── Legal / Fine Print (Area 3) ───────────────────────────────────────
-      terms_conditions_present: true,
-      written_change_order_required: true,
-      homeowner_approval_required_for_change_orders: true,
-      unilateral_price_adjustment_allowed: false,
-      substrate_condition_clause_present: false,
-      subject_to_remeasure_present: false,
-      final_payment_before_inspection: false,
-      remeasure_price_adjustment_cap_present: true,
-      payment_schedule_text: "33% deposit, 34% on delivery, 33% on completion",
-      deposit_percent: 33,
-      generic_product_description_present: false,
-      // ── Install method (Area 4) — fully specified to avoid install_method_unverified cap
-      anchoring_method_text: "Tapcon anchors per manufacturer spec",
-      anchor_spacing_specified: true,
-      fastener_type_specified: true,
-      waterproofing_method_text: "Silicone sealant and flashing tape",
-      sealant_specified: true,
-      buck_treatment_method_text: "Moisture barrier and buck prep",
-      manufacturer_install_compliance_stated: true,
-      code_compliance_install_statement_present: true,
-      // ── Warranty execution (Area 5) — specified to avoid opaque_warranty_execution cap
-      warranty_execution_details_present: true,
-      warranty_service_provider_type: "contractor",
-      warranty_service_provider_name: "Sunshine Windows Inc",
-      leak_callback_sla_days: 7,
-      labor_service_sla_days: 5,
-      callback_process_text: "Call our service line — technician dispatched within 7 business days",
-      post_install_stucco_excluded: false,
-      post_install_paint_excluded: false,
-      water_intrusion_damage_excluded: false,
-      // ── Scope gaps / trust signals ────────────────────────────────────────
-      wall_repair_scope: "Caulk and sealant around all openings",
-      stucco_repair_included: true,
-      drywall_repair_included: true,
-      paint_touchup_included: true,
-      debris_removal_included: true,
-      engineering_mentioned: true,
-      engineering_fees_included: true,
-      permit_fees_itemized: true,
-      insurance_proof_mentioned: true,
-      licensing_proof_mentioned: true,
-      completion_timeline_text: "8-10 weeks from permit approval",
-      lead_paint_disclosure_present: true,
-      line_items: [
-        {
-          description: "PGT WinGuard Impact Single Hung Window",
-          quantity: 2,
-          unit_price: 1700,
-          total_price: 3400,
-          brand: "PGT",
-          series: "WinGuard",
-          dp_rating: "DP50",
-          // Intentional B-level gap: no noa_number
-          dimensions: "36x60",
-          opening_location: "Living Room",
-          opening_tag: "W1",
-          product_assignment_text: "PGT WinGuard SH 36x60",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_tint_text: "clear",
-          glass_spec_complete: true,
-        },
-        {
-          description: "Impact Sliding Glass Door - hurricane rated",
-          quantity: 1,
-          unit_price: 4200,
-          total_price: 4200,
-          brand: "CGI",
-          series: "Sentinel",
-          dp_rating: "DP50",
-          // Intentional B-level gap: no noa_number
-          dimensions: "72x80",
-          opening_location: "Back Patio",
-          opening_tag: "D1",
-          product_assignment_text: "CGI Sentinel SGD 72x80",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_tint_text: "clear",
-          glass_spec_complete: true,
-        },
-      ],
+      cancellation_policy: undefined,
       warranty: {
-        // Intentional B-level weakness: shorter labor (2yr → -5 deduction)
         labor_years: 2,
         manufacturer_years: 20,
         transferable: true,
         details: "Written manufacturer and labor warranty provided at installation.",
       },
-      permits: { included: true, responsible_party: "contractor" },
       installation: {
         scope_detail: "Remove and replace all specified openings. Caulk and seal.",
-        // Intentional B-level gap: no disposal_included
         accessories_mentioned: true,
+        disposal_included: false, // Explicitly false to trigger disposal deduction
       },
+      callback_process_text: "Call our service line — technician dispatched within 7 business days",
+      leak_callback_sla_days: 7,
+      labor_service_sla_days: 5,
+      wall_repair_scope: "Caulk and sealant around all openings",
+      completion_timeline_text: "8-10 weeks from permit approval",
     },
-  },
+    [
+      {
+        description: "PGT WinGuard Impact Single Hung Window",
+        quantity: 2,
+        unit_price: 1700,
+        total_price: 3400,
+        noa_number: undefined,
+      },
+      {
+        description: "Impact Sliding Glass Door - hurricane rated",
+        brand: "CGI",
+        series: "Sentinel",
+        dimensions: "72x80",
+        opening_location: "Back Patio",
+        opening_tag: "D1",
+        product_assignment_text: "CGI Sentinel SGD 72x80",
+        quantity: 1,
+        unit_price: 4200,
+        total_price: 4200,
+        noa_number: undefined,
+      },
+    ],
+  ),
 
-  // ── Grade C ────────────────────────────────────────────────────────────────
-  // Intentional C-level trigger: opening_count: 5 + no opening_schedule →
-  // ambiguous_opening_scope hard cap (max C). Baseline fields prevent D-caps.
-  {
-    key: "gradeC",
-    label: "Grade C",
-    description: "Multiple missing specs, vague install scope — ambiguous_opening_scope hard cap fires",
-    expectedGrade: "C",
-    extraction: {
-      document_type: "impact_window_quote",
-      is_window_door_related: true,
+  // Intentional C-level trigger: opening_count >= 5 + missing opening schedule.
+  makeScenario(
+    "gradeC",
+    "Grade C",
+    "Multiple missing specs, vague install scope — ambiguous_opening_scope hard cap fires",
+    "C",
+    {
       confidence: 0.78,
       page_count: 1,
       contractor_name: "Budget Windows FL",
-      opening_count: 5, // ≥5 + no schedule → ambiguous_opening_scope C-cap
+      opening_count: 5,
       total_quoted_price: 8500,
-      hvhz_zone: true,
-      // No cancellation_policy — intentional
-      // ── Glass (Area 1) ────────────────────────────────────────────────────
-      opening_level_glass_specs_present: true,
-      blanket_glass_language_present: false,
-      mixed_glass_package_visibility: false,
-      // ── Opening scope (Area 2) — intentionally absent to trigger ambiguous cap
-      // opening_schedule_present: not set → cap fires at opening_count ≥ 5
-      bulk_scope_blob_present: false,
-      // ── Legal / Fine Print (Area 3) ───────────────────────────────────────
-      written_change_order_required: true,
-      homeowner_approval_required_for_change_orders: true,
-      unilateral_price_adjustment_allowed: false,
-      substrate_condition_clause_present: false,
-      subject_to_remeasure_present: false,
-      final_payment_before_inspection: false,
-      generic_product_description_present: false,
-      // ── Install method (Area 4) — specified to avoid install_method_unverified C-cap
+      cancellation_policy: undefined,
+      opening_schedule_present: undefined,
+      opening_schedule_room_labels_present: undefined,
+      opening_schedule_dimensions_complete: undefined,
+      opening_schedule_product_assignments_present: undefined,
       anchoring_method_text: "Standard anchors per spec",
       waterproofing_method_text: "Caulk and foam",
-      manufacturer_install_compliance_stated: true,
-      code_compliance_install_statement_present: true,
-      sealant_specified: true,
-      // ── Warranty execution (Area 5) — specified to avoid opaque_warranty_execution C-cap
-      warranty_execution_details_present: true,
-      warranty_service_provider_type: "manufacturer",
-      leak_callback_sla_days: 14,
-      callback_process_text: "Contact manufacturer for warranty service",
-      post_install_stucco_excluded: false,
-      post_install_paint_excluded: false,
-      water_intrusion_damage_excluded: false,
-      line_items: [
-        {
-          description: "Impact single hung window",
-          quantity: 3,
-          unit_price: 950,
-          total_price: 2850,
-          brand: "PGT",
-          // Intentional: no dp_rating, no noa_number on this item
-          dimensions: "36x48",
-          glass_package_text: "Laminated glass",
-          glass_makeup_type: "laminated",
-          glass_low_e_present: true,
-          glass_argon_present: false,
-          glass_spec_complete: true,
-        },
-        {
-          description: "Impact horizontal roller",
-          quantity: 2,
-          unit_price: 1100,
-          total_price: 2200,
-          // Intentional: no brand, no dp_rating, no noa_number
-          dimensions: "60x36",
-          glass_package_text: "Laminated glass",
-          glass_makeup_type: "laminated",
-          glass_low_e_present: true,
-          glass_argon_present: false,
-          glass_spec_complete: true,
-        },
-      ],
       warranty: {
         manufacturer_years: 10,
         details: "See manufacturer documentation.",
       },
       installation: { scope_detail: "Install windows per specification" },
+      warranty_service_provider_type: "manufacturer",
+      warranty_service_provider_name: undefined,
+      leak_callback_sla_days: 14,
+      callback_process_text: "Contact manufacturer for warranty service",
     },
-  },
+    [
+      {
+        description: "Impact single hung window",
+        quantity: 3,
+        unit_price: 950,
+        total_price: 2850,
+        dp_rating: undefined,
+        noa_number: undefined,
+        glass_makeup_type: "laminated",
+        glass_argon_present: false,
+      },
+      {
+        description: "Impact horizontal roller",
+        quantity: 2,
+        unit_price: 1100,
+        total_price: 2200,
+        brand: undefined,
+        series: undefined,
+        dp_rating: undefined,
+        noa_number: undefined,
+        dimensions: "60x36",
+        glass_makeup_type: "laminated",
+        glass_argon_present: false,
+      },
+    ],
+  ),
 
-  // ── Grade D ────────────────────────────────────────────────────────────────
-  // Vague descriptions, no dp/noa, no brand. critical_safety D-cap fires
-  // (safety near 0: −50 dp, −40 noa, −10 hvhz, −25 no impact mention, ...).
-  // No changes needed from original — kept as-is.
+  // No changes needed from original — kept intentionally hand-crafted.
   {
     key: "gradeD",
     label: "Grade D",
@@ -564,7 +495,6 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
       page_count: 1,
       contractor_name: "J&R Windows",
       total_quoted_price: 6000,
-      // "Window" and "Slider" — no impact/hurricane/storm mention → unverified_impact_specs D-cap
       line_items: [
         { description: "Window", quantity: 4, unit_price: 750, total_price: 3000 },
         { description: "Slider", quantity: 1, unit_price: 1500, total_price: 1500 },
@@ -573,138 +503,92 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     },
   },
 
-  // ── Grade F ────────────────────────────────────────────────────────────────
   // Zero line items → zero_line_items hard cap → F.
-  {
-    key: "gradeF",
-    label: "Grade F",
-    description: "Zero line items — triggers hard cap to F",
-    expectedGrade: "F",
-    extraction: {
-      document_type: "impact_window_quote",
-      is_window_door_related: true,
+  makeScenario(
+    "gradeF",
+    "Grade F",
+    "Zero line items — triggers hard cap to F",
+    "F",
+    {
       confidence: 0.65,
       page_count: 1,
       contractor_name: "Unknown Contractor",
       total_quoted_price: 15000,
-      line_items: [],
     },
-  },
+    [],
+  ),
 
-  // ── Mixed Pillars ──────────────────────────────────────────────────────────
-  // A-grade safety (all DP/NOA present, hvhz). Weak warranty (no execution detail).
-  // Install method fields added to prevent install_method_unverified C-cap.
-  // Expected B from weighted average: strong safety drags up, weak warranty pulls down.
-  {
-    key: "mixedPillars",
-    label: "Mixed Pillars",
-    description: "A-grade safety (all DP/NOA) but weak warranty and sparse install — expected B",
-    expectedGrade: "B",
-    extraction: {
-      document_type: "impact_window_quote",
-      is_window_door_related: true,
+  makeScenario(
+    "mixedPillars",
+    "Mixed Pillars",
+    "A-grade safety (all DP/NOA) but weak warranty and sparse install — expected B",
+    "B",
+    {
       confidence: 0.9,
       page_count: 2,
       contractor_name: "ProTech Windows",
       opening_count: 3,
       total_quoted_price: 14000,
-      hvhz_zone: true,
       cancellation_policy: "No refunds after 48 hours.",
-      // ── Glass (Area 1) ────────────────────────────────────────────────────
-      opening_level_glass_specs_present: true,
-      blanket_glass_language_present: false,
-      mixed_glass_package_visibility: false,
-      // ── Opening scope (Area 2) ────────────────────────────────────────────
-      opening_schedule_present: true,
-      opening_schedule_room_labels_present: true,
-      opening_schedule_dimensions_complete: true,
-      opening_schedule_product_assignments_present: true,
-      bulk_scope_blob_present: false,
-      // ── Legal (Area 3) ────────────────────────────────────────────────────
-      written_change_order_required: true,
-      homeowner_approval_required_for_change_orders: true,
-      unilateral_price_adjustment_allowed: false,
-      substrate_condition_clause_present: false,
-      subject_to_remeasure_present: false,
-      final_payment_before_inspection: false,
-      generic_product_description_present: false,
-      // ── Install method (Area 4) — must be present to prevent install_method_unverified C-cap
-      anchoring_method_text: "Tapcon anchors",
-      anchor_spacing_specified: true,
-      fastener_type_specified: true,
-      waterproofing_method_text: "Silicone sealant",
-      sealant_specified: true,
-      buck_treatment_method_text: "Moisture barrier",
-      manufacturer_install_compliance_stated: true,
-      code_compliance_install_statement_present: true,
-      // ── Warranty execution (Area 5) — present to prevent opaque_warranty_execution C-cap
-      warranty_execution_details_present: true,
-      warranty_service_provider_type: "contractor",
-      warranty_service_provider_name: "ProTech Windows",
+      warranty: {
+        details: "Contact manufacturer for warranty terms.",
+        labor_years: 1,
+        manufacturer_years: 10,
+        transferable: false,
+      },
+      callback_process_text: "Call office for warranty service",
       leak_callback_sla_days: 7,
       labor_service_sla_days: 7,
-      callback_process_text: "Call office for warranty service",
-      post_install_stucco_excluded: false,
-      post_install_paint_excluded: false,
-      water_intrusion_damage_excluded: false,
-      line_items: [
-        {
-          description: "PGT WinGuard Impact Single Hung",
-          quantity: 2,
-          unit_price: 1800,
-          total_price: 3600,
-          brand: "PGT",
-          series: "WinGuard",
-          dp_rating: "DP50",
-          noa_number: "NOA 17-0501.06",
-          dimensions: "36x60",
-          opening_location: "Living Room",
-          opening_tag: "W1",
-          product_assignment_text: "PGT WinGuard SH 36x60",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_spec_complete: true,
-        },
-        {
-          description: "CGI Sentinel Impact Slider - hurricane",
-          quantity: 1,
-          unit_price: 4500,
-          total_price: 4500,
-          brand: "CGI",
-          series: "Sentinel",
-          dp_rating: "DP50",
-          noa_number: "NOA 18-0312.02",
-          dimensions: "72x80",
-          opening_location: "Back Patio",
-          opening_tag: "D1",
-          product_assignment_text: "CGI Sentinel SGD 72x80",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_spec_complete: true,
-        },
-      ],
-      // Intentional B-level weakness: warranty section exists but fields are sparse.
-      // labor_years undefined → -20 warranty. No details → -10 warranty.
-      // Overall warranty pillar will be low, dragging weighted average below A.
-      warranty: { details: "Contact manufacturer for warranty terms." },
-      installation: {
-        scope_detail: "Replace all specified openings per manufacturer guidelines.",
-        disposal_included: true,
-        accessories_mentioned: true,
-      },
-      permits: { included: true, responsible_party: "contractor" },
     },
-  },
+    [
+      {
+        description: "PGT WinGuard Impact Single Hung",
+        quantity: 2,
+        unit_price: 1800,
+        total_price: 3600,
+      },
+      {
+        description: "CGI Sentinel Impact Slider - hurricane",
+        brand: "CGI",
+        series: "Sentinel",
+        noa_number: "NOA 18-0312.02",
+        dimensions: "72x80",
+        opening_location: "Back Patio",
+        opening_tag: "D1",
+        product_assignment_text: "CGI Sentinel SGD 72x80",
+        quantity: 1,
+        unit_price: 4500,
+        total_price: 4500,
+      },
+    ],
+  ),
 
-  // ── Corner Cutting ─────────────────────────────────────────────────────────
-  // $150/unit, no brand/series, no DP. "Impact window"/"Impact slider" have impact
-  // mention so unverified_impact_specs cap won't fire on that condition alone.
-  // However safety cratera: −50 dp, −40 noa, −10 hvhz, −20 glass specs →
-  // safety = 0 → critical_safety D-cap fires. No changes from original.
+  // ── The Inspection Trap ───────────────────────────────────────────────────
+  // Forensic Audit Case: Premium-looking quote with predatory payment terms.
+  // This scenario isolates legal/payment risk while keeping specs strong.
+  makeScenario(
+    "inspectionTrap",
+    "The Inspection Trap",
+    "Excellent specs and branding, but predatory legal terms require final payment before inspection and allow uncapped remeasure-based price increases.",
+    "C",
+    {
+      confidence: 0.98,
+      final_payment_before_inspection: true,
+      payment_schedule_text:
+        "50% deposit at signing. Remaining balance due upon installation completion and before municipal final inspection approval.",
+      unilateral_price_adjustment_allowed: true,
+      subject_to_remeasure_present: true,
+      subject_to_remeasure_text:
+        "Final contract price is subject to change after field remeasure at contractor discretion.",
+      remeasure_price_adjustment_cap_present: false,
+      change_order_policy_text:
+        "Contractor may revise price based on site conditions, measurements, and material variances without a stated cap.",
+      written_change_order_required: false,
+      homeowner_approval_required_for_change_orders: false,
+    },
+  ),
+
+  // Kept hand-crafted so severe deficiencies stay explicit and stable.
   {
     key: "cornerCutting",
     label: "Corner-Cutting",
@@ -724,118 +608,23 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     },
   },
 
-  // ── Overpayment Trap ───────────────────────────────────────────────────────
-  // Premium pricing, missing NOA on one item, no cancellation policy.
-  // Install method + warranty execution fields added to prevent C-caps.
-  // Intentional B failures: 1 missing NOA (−20 safety), no cancellation (−25 finePrint).
-  {
-    key: "overpaymentTrap",
-    label: "Overpayment Trap",
-    description: "Premium pricing, one item missing NOA, no cancellation — expected B",
-    expectedGrade: "B",
-    extraction: {
-      document_type: "impact_window_quote",
-      is_window_door_related: true,
+  makeScenario(
+    "overpaymentTrap",
+    "Overpayment Trap",
+    "Premium pricing, one item missing NOA, no cancellation — expected B",
+    "B",
+    {
       confidence: 0.92,
       page_count: 2,
       contractor_name: "Premium Impact Solutions",
       opening_count: 5,
       total_quoted_price: 22000,
-      hvhz_zone: true,
-      // Intentional B gap: no cancellation_policy
-      // ── Glass (Area 1) ────────────────────────────────────────────────────
-      opening_level_glass_specs_present: true,
-      blanket_glass_language_present: false,
-      mixed_glass_package_visibility: false,
-      // ── Opening scope (Area 2) — opening_count: 5 but schedule present, so no cap
-      opening_schedule_present: true,
-      opening_schedule_room_labels_present: true,
-      opening_schedule_dimensions_complete: true,
-      opening_schedule_product_assignments_present: true,
-      bulk_scope_blob_present: false,
-      // ── Legal (Area 3) ────────────────────────────────────────────────────
-      terms_conditions_present: true,
-      written_change_order_required: true,
-      homeowner_approval_required_for_change_orders: true,
-      unilateral_price_adjustment_allowed: false,
-      substrate_condition_clause_present: false,
-      subject_to_remeasure_present: false,
-      final_payment_before_inspection: false,
+      cancellation_policy: undefined,
       payment_schedule_text: "33% deposit, 33% delivery, 34% completion",
       deposit_percent: 33,
-      generic_product_description_present: false,
-      // ── Install method (Area 4) — specified to avoid install_method_unverified C-cap
-      anchoring_method_text: "Tapcon concrete anchors",
-      anchor_spacing_specified: true,
-      fastener_type_specified: true,
-      waterproofing_method_text: "Silicone sealant and flashing",
-      sealant_specified: true,
-      buck_treatment_method_text: "Moisture barrier wrap",
-      manufacturer_install_compliance_stated: true,
-      code_compliance_install_statement_present: true,
-      // ── Warranty execution (Area 5) — specified to avoid opaque_warranty_execution C-cap
-      warranty_execution_details_present: true,
-      warranty_service_provider_type: "contractor",
-      warranty_service_provider_name: "Premium Impact Solutions",
+      callback_process_text: "Call our warranty line for all service requests",
       leak_callback_sla_days: 7,
       labor_service_sla_days: 5,
-      callback_process_text: "Call our warranty line for all service requests",
-      post_install_stucco_excluded: false,
-      post_install_paint_excluded: false,
-      water_intrusion_damage_excluded: false,
-      // ── Scope gaps ────────────────────────────────────────────────────────
-      wall_repair_scope: "Stucco patch and caulk included",
-      stucco_repair_included: true,
-      drywall_repair_included: true,
-      paint_touchup_included: true,
-      debris_removal_included: true,
-      engineering_mentioned: true,
-      engineering_fees_included: true,
-      permit_fees_itemized: true,
-      insurance_proof_mentioned: true,
-      licensing_proof_mentioned: true,
-      completion_timeline_text: "8-12 weeks from signed contract",
-      lead_paint_disclosure_present: true,
-      line_items: [
-        {
-          description: "PGT WinGuard Impact Single Hung - Hurricane rated",
-          quantity: 4,
-          unit_price: 2200,
-          total_price: 8800,
-          brand: "PGT",
-          series: "WinGuard",
-          dp_rating: "DP50",
-          noa_number: "NOA 17-0501.06",
-          dimensions: "36x60",
-          opening_location: "Various Bedrooms",
-          opening_tag: "W1-W4",
-          product_assignment_text: "PGT WinGuard SH 36x60",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_spec_complete: true,
-        },
-        {
-          description: "PGT WinGuard Impact Sliding Door - Hurricane rated",
-          quantity: 1,
-          unit_price: 5200,
-          total_price: 5200,
-          brand: "PGT",
-          series: "WinGuard",
-          dp_rating: "DP50",
-          // Intentional B-level gap: missing noa_number on this item → −20 safety
-          dimensions: "72x80",
-          opening_location: "Back Patio",
-          opening_tag: "D1",
-          product_assignment_text: "PGT WinGuard SGD 72x80",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_spec_complete: true,
-        },
-      ],
       warranty: {
         labor_years: 10,
         manufacturer_years: 25,
@@ -848,13 +637,32 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
         disposal_included: true,
         accessories_mentioned: true,
       },
+      completion_timeline_text: "8-12 weeks from signed contract",
     },
-  },
+    [
+      {
+        description: "PGT WinGuard Impact Single Hung - Hurricane rated",
+        quantity: 4,
+        unit_price: 2200,
+        total_price: 8800,
+        opening_location: "Various Bedrooms",
+        opening_tag: "W1-W4",
+      },
+      {
+        description: "PGT WinGuard Impact Sliding Door - Hurricane rated",
+        dimensions: "72x80",
+        opening_location: "Back Patio",
+        opening_tag: "D1",
+        product_assignment_text: "PGT WinGuard SGD 72x80",
+        quantity: 1,
+        unit_price: 5200,
+        total_price: 5200,
+        noa_number: undefined,
+      },
+    ],
+  ),
 
-  // ── Vague Scope ────────────────────────────────────────────────────────────
-  // Descriptions < 10 chars, no brand, no dp/noa, no impact mention.
-  // unverified_impact_specs D-cap fires (no impact word + all specs missing).
-  // No changes from original.
+  // Kept hand-crafted to preserve intentionally sparse scope language.
   {
     key: "vagueScope",
     label: "Vague Scope",
@@ -875,271 +683,114 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     },
   },
 
-  // ── Missing Warranty ───────────────────────────────────────────────────────
-  // Decent specs but no warranty section at all → no_warranty_section C-cap.
-  // NOA numbers and glass fields added to keep safety ≥ 40 (avoids D-cap).
-  {
-    key: "missingWarranty",
-    label: "Missing Warranty",
-    description: "Decent specs but no warranty section — no_warranty_section C-cap fires",
-    expectedGrade: "C",
-    extraction: {
-      document_type: "impact_window_quote",
-      is_window_door_related: true,
+  makeScenario(
+    "missingWarranty",
+    "Missing Warranty",
+    "Decent specs but no warranty section — no_warranty_section C-cap fires",
+    "C",
+    {
       confidence: 0.82,
       page_count: 2,
       contractor_name: "SunShield Windows",
       opening_count: 3,
       total_quoted_price: 11000,
-      hvhz_zone: true,
-      // No warranty property → no_warranty_section C-cap fires
-      // ── Glass (Area 1) ────────────────────────────────────────────────────
-      opening_level_glass_specs_present: true,
-      blanket_glass_language_present: false,
-      mixed_glass_package_visibility: false,
-      // ── Opening scope (Area 2) ────────────────────────────────────────────
-      opening_schedule_present: true,
-      opening_schedule_room_labels_present: true,
-      opening_schedule_dimensions_complete: true,
-      opening_schedule_product_assignments_present: true,
-      bulk_scope_blob_present: false,
-      // ── Legal (Area 3) ────────────────────────────────────────────────────
-      written_change_order_required: true,
-      homeowner_approval_required_for_change_orders: true,
-      unilateral_price_adjustment_allowed: false,
-      substrate_condition_clause_present: false,
-      subject_to_remeasure_present: false,
-      final_payment_before_inspection: false,
-      generic_product_description_present: false,
-      // ── Install method (Area 4) — specified to avoid install_method_unverified C-cap
-      anchoring_method_text: "Tapcon anchors per spec",
-      anchor_spacing_specified: true,
-      fastener_type_specified: true,
-      waterproofing_method_text: "Sealant and flashing",
-      sealant_specified: true,
-      buck_treatment_method_text: "Buck prep and moisture barrier",
-      manufacturer_install_compliance_stated: true,
-      code_compliance_install_statement_present: true,
-      line_items: [
-        {
-          description: "PGT WinGuard Impact Single Hung - hurricane",
-          quantity: 2,
-          unit_price: 1600,
-          total_price: 3200,
-          brand: "PGT",
-          series: "WinGuard",
-          dp_rating: "DP50",
-          noa_number: "NOA 17-0501.06", // Added to keep safety ≥ 40
-          dimensions: "36x60",
-          opening_location: "Living Room",
-          opening_tag: "W1",
-          product_assignment_text: "PGT WinGuard SH 36x60",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_spec_complete: true,
-        },
-        {
-          description: "Impact Sliding Glass Door - storm rated",
-          quantity: 1,
-          unit_price: 3800,
-          total_price: 3800,
-          brand: "CGI",
-          series: "Sentinel",
-          dp_rating: "DP45",
-          noa_number: "NOA 18-0312.02", // Added to keep safety ≥ 40
-          dimensions: "72x80",
-          opening_location: "Back Patio",
-          opening_tag: "D1",
-          product_assignment_text: "CGI Sentinel SGD 72x80",
-          glass_package_text: "Insulated laminated Low-E Argon",
-          glass_makeup_type: "insulated_laminated",
-          glass_low_e_present: true,
-          glass_argon_present: true,
-          glass_spec_complete: true,
-        },
-      ],
-      // warranty: intentionally omitted → no_warranty_section C-cap
-      permits: { included: true, responsible_party: "contractor" },
-      installation: {
-        scope_detail: "Remove and replace specified openings. Caulking and cleanup.",
-        disposal_included: true,
-        accessories_mentioned: true,
-      },
+      warranty: undefined,
     },
-  },
+    [
+      {
+        description: "PGT WinGuard Impact Single Hung - hurricane",
+        quantity: 2,
+        unit_price: 1600,
+        total_price: 3200,
+      },
+      {
+        description: "Impact Sliding Glass Door - storm rated",
+        brand: "CGI",
+        series: "Sentinel",
+        dp_rating: "DP45",
+        noa_number: "NOA 18-0312.02",
+        dimensions: "72x80",
+        opening_location: "Back Patio",
+        opening_tag: "D1",
+        product_assignment_text: "CGI Sentinel SGD 72x80",
+        quantity: 1,
+        unit_price: 3800,
+        total_price: 3800,
+      },
+    ],
+  ),
 
-  // ── Fine Print Trap ────────────────────────────────────────────────────────
-  // No cancellation policy, unbranded items, homeowner-responsible permits.
-  // dp_rating + noa added to items to keep safety ≥ 40 (avoids D-cap).
-  // C comes from weak finePrint + install score on weighted average.
-  {
-    key: "finePrintTrap",
-    label: "Fine Print Trap",
-    description: "No cancellation, unbranded items — finePrint pillar failures drive grade to C",
-    expectedGrade: "C",
-    extraction: {
-      document_type: "impact_window_quote",
-      is_window_door_related: true,
+  makeScenario(
+    "finePrintTrap",
+    "Fine Print Trap",
+    "No cancellation, unbranded items — finePrint pillar failures drive grade to C",
+    "C",
+    {
       confidence: 0.75,
       page_count: 1,
       contractor_name: "AllStar Construction",
       total_quoted_price: 9000,
-      // No cancellation_policy — intentional (−25 finePrint)
-      // ── Glass (Area 1) ────────────────────────────────────────────────────
-      opening_level_glass_specs_present: true,
-      blanket_glass_language_present: false,
-      mixed_glass_package_visibility: false,
-      // ── Legal (Area 3) ────────────────────────────────────────────────────
-      written_change_order_required: true,
-      homeowner_approval_required_for_change_orders: true,
-      unilateral_price_adjustment_allowed: false,
-      substrate_condition_clause_present: false,
-      subject_to_remeasure_present: false,
-      final_payment_before_inspection: false,
-      generic_product_description_present: false,
-      // ── Install method (Area 4) — specified to avoid install_method_unverified C-cap
-      anchoring_method_text: "Standard anchors",
-      waterproofing_method_text: "Caulk and foam",
-      manufacturer_install_compliance_stated: true,
-      code_compliance_install_statement_present: true,
-      sealant_specified: true,
-      // ── Warranty execution (Area 5) — minimal to avoid opaque_warranty_execution C-cap
-      warranty_execution_details_present: true,
-      warranty_service_provider_type: "contractor",
-      leak_callback_sla_days: 14,
-      callback_process_text: "Call office for warranty service",
-      post_install_stucco_excluded: false,
-      post_install_paint_excluded: false,
-      water_intrusion_damage_excluded: false,
-      line_items: [
-        {
-          description: "Impact rated window unit",
-          quantity: 3,
-          unit_price: 1200,
-          total_price: 3600,
-          // Intentional: no brand, no series — unbranded penalty (−10 finePrint per item)
-          dp_rating: "DP50", // Added to prevent critical_safety D-cap
-          noa_number: "NOA 17-0501.06", // Added to prevent critical_safety D-cap
-          glass_package_text: "Laminated glass",
-          glass_makeup_type: "laminated",
-          glass_low_e_present: true,
-          glass_argon_present: false,
-          glass_spec_complete: true,
-        },
-        {
-          description: "Impact rated slider",
-          quantity: 1,
-          unit_price: 2500,
-          total_price: 2500,
-          // Intentional: no brand, no series — unbranded penalty
-          dp_rating: "DP50", // Added to prevent critical_safety D-cap
-          noa_number: "NOA 17-0501.06", // Added to prevent critical_safety D-cap
-          glass_package_text: "Laminated glass",
-          glass_makeup_type: "laminated",
-          glass_low_e_present: true,
-          glass_argon_present: false,
-          glass_spec_complete: true,
-        },
-      ],
-      // Intentional weakness: short labor warranty (1yr → -10), no transferable
-      warranty: { labor_years: 1, manufacturer_years: 10 },
-      // Intentional: homeowner responsible for permits — adds risk signal
+      cancellation_policy: undefined,
       permits: { included: true, responsible_party: "homeowner" },
       installation: {
         scope_detail: "Standard installation per manufacturer specs.",
-        disposal_included: false, // Intentional gap
+        disposal_included: false,
       },
+      warranty: { labor_years: 1, manufacturer_years: 10 },
+      warranty_service_provider_name: undefined,
+      warranty_service_provider_type: "contractor",
+      leak_callback_sla_days: 14,
+      callback_process_text: "Call office for warranty service",
     },
-  },
+    [
+      {
+        description: "Impact rated window unit",
+        quantity: 3,
+        unit_price: 1200,
+        total_price: 3600,
+        brand: undefined,
+        series: undefined,
+        glass_makeup_type: "laminated",
+        glass_argon_present: false,
+      },
+      {
+        description: "Impact rated slider",
+        quantity: 1,
+        unit_price: 2500,
+        total_price: 2500,
+        brand: undefined,
+        series: undefined,
+        glass_makeup_type: "laminated",
+        glass_argon_present: false,
+      },
+    ],
+  ),
 
-  // ── Insurance Sensitive ────────────────────────────────────────────────────
-  // No HVHZ, no NOA — insurance coverage risk. dp_rating added to items to keep
-  // safety ≥ 40 (avoids D-cap). opening_count: 6 + no opening_schedule →
-  // ambiguous_opening_scope C-cap fires as the primary cap.
-  {
-    key: "insuranceSensitive",
-    label: "Insurance-Sensitive",
-    description: "No HVHZ, no NOA numbers — ambiguous_opening_scope C-cap from 6 openings + no schedule",
-    expectedGrade: "C",
-    extraction: {
-      document_type: "impact_window_quote",
-      is_window_door_related: true,
+  makeScenario(
+    "insuranceSensitive",
+    "Insurance-Sensitive",
+    "No HVHZ, no NOA numbers — ambiguous_opening_scope C-cap from 6 openings + no schedule",
+    "C",
+    {
       confidence: 0.8,
       page_count: 2,
       contractor_name: "Coastal Guard Windows",
-      opening_count: 6, // ≥5 + no schedule → ambiguous_opening_scope C-cap
+      opening_count: 6,
       total_quoted_price: 16000,
-      // hvhz_zone intentionally not set — shows absence of HVHZ certification
+      hvhz_zone: undefined,
       cancellation_policy: "50% deposit non-refundable.",
-      // ── Glass (Area 1) ────────────────────────────────────────────────────
-      opening_level_glass_specs_present: true,
-      blanket_glass_language_present: false,
-      mixed_glass_package_visibility: false,
-      // ── Opening scope (Area 2) — intentionally absent → ambiguous_opening_scope C-cap
-      // opening_schedule_present: not set
-      bulk_scope_blob_present: false,
-      // ── Legal (Area 3) ────────────────────────────────────────────────────
-      written_change_order_required: true,
-      homeowner_approval_required_for_change_orders: true,
-      unilateral_price_adjustment_allowed: false,
-      substrate_condition_clause_present: false,
-      subject_to_remeasure_present: false,
-      final_payment_before_inspection: false,
-      generic_product_description_present: false,
-      // ── Install method (Area 4) — specified to avoid install_method_unverified C-cap
-      anchoring_method_text: "Anchors per manufacturer spec",
-      waterproofing_method_text: "Silicone sealant",
-      manufacturer_install_compliance_stated: true,
-      code_compliance_install_statement_present: true,
-      sealant_specified: true,
-      // ── Warranty execution (Area 5) — minimal to avoid opaque_warranty_execution C-cap
-      warranty_execution_details_present: true,
-      warranty_service_provider_type: "contractor",
-      leak_callback_sla_days: 14,
-      callback_process_text: "Contact us for warranty service",
-      post_install_stucco_excluded: false,
-      post_install_paint_excluded: false,
-      water_intrusion_damage_excluded: false,
-      line_items: [
-        {
-          description: "Impact single hung window - hurricane protection",
-          quantity: 4,
-          unit_price: 1400,
-          total_price: 5600,
-          brand: "ECO",
-          series: "StormMax",
-          dp_rating: "DP40", // Added to prevent critical_safety D-cap
-          // noa_number intentionally absent — insurance risk signal
-          glass_package_text: "Laminated Low-E",
-          glass_makeup_type: "laminated",
-          glass_low_e_present: true,
-          glass_argon_present: false,
-          glass_spec_complete: true,
-        },
-        {
-          description: "Impact sliding glass door - hurricane protection",
-          quantity: 2,
-          unit_price: 3200,
-          total_price: 6400,
-          brand: "ECO",
-          series: "StormMax",
-          dp_rating: "DP40", // Added to prevent critical_safety D-cap
-          // noa_number intentionally absent — insurance risk signal
-          glass_package_text: "Laminated Low-E",
-          glass_makeup_type: "laminated",
-          glass_low_e_present: true,
-          glass_argon_present: false,
-          glass_spec_complete: true,
-        },
-      ],
+      opening_schedule_present: undefined,
+      opening_schedule_room_labels_present: undefined,
+      opening_schedule_dimensions_complete: undefined,
+      opening_schedule_product_assignments_present: undefined,
       warranty: {
         labor_years: 3,
         manufacturer_years: 15,
         transferable: false,
         details: "Limited manufacturer warranty.",
       },
+      leak_callback_sla_days: 14,
+      callback_process_text: "Contact us for warranty service",
       permits: { included: true, responsible_party: "contractor", details: "Permit fees included." },
       installation: {
         scope_detail: "Full removal and replacement. Caulk and seal. Disposal of old windows.",
@@ -1147,10 +798,34 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
         accessories_mentioned: true,
       },
     },
-  },
+    [
+      {
+        description: "Impact single hung window - hurricane protection",
+        quantity: 4,
+        unit_price: 1400,
+        total_price: 5600,
+        brand: "ECO",
+        series: "StormMax",
+        dp_rating: "DP40",
+        noa_number: undefined,
+        glass_makeup_type: "laminated",
+        glass_argon_present: false,
+      },
+      {
+        description: "Impact sliding glass door - hurricane protection",
+        quantity: 2,
+        unit_price: 3200,
+        total_price: 6400,
+        brand: "ECO",
+        series: "StormMax",
+        dp_rating: "DP40",
+        noa_number: undefined,
+        glass_makeup_type: "laminated",
+        glass_argon_present: false,
+      },
+    ],
+  ),
 
-  // ── Invalid Document ───────────────────────────────────────────────────────
-  // Not a window/door quote → invalid_document terminal gate.
   {
     key: "invalidDocument",
     label: "Invalid Document",
@@ -1172,12 +847,7 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     },
   },
 
-  // ── Lipstick on a Pig ──────────────────────────────────────────────────────
-  // Perfect-looking quote but FATAL FLAW: non-impact standard glass.
-  // Description has NO "impact"/"hurricane"/"storm" word + all items missing
-  // dp_rating + noa_number → unverified_impact_specs D-cap fires.
-  // NOTE: "Non-Impact Glass" was renamed to "Standard Annealed Glass" to ensure
-  // the word "impact" does NOT appear in the description (hasImpactMention = false).
+  // Kept hand-crafted to preserve exact non-impact fatal flaw semantics.
   {
     key: "lipstickOnAPig_NonImpact",
     label: "Lipstick on a Pig",
@@ -1191,14 +861,12 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
       contractor_name: "Premium Illusions LLC",
       line_items: [
         {
-          // FATAL FLAW: no "impact"/"hurricane"/"storm" + no dp/noa → D-cap
           description: "PGT WinGuard Single Hung - Standard Annealed Glass",
           quantity: 12,
           unit_price: 1800,
           total_price: 21600,
           brand: "PGT",
           series: "WinGuard",
-          // dp_rating and noa_number intentionally absent — unverified spec
         },
       ],
       warranty: {
@@ -1211,8 +879,6 @@ export const SCENARIO_FIXTURES: ScenarioFixture[] = [
     },
   },
 
-  // ── Low Confidence ─────────────────────────────────────────────────────────
-  // Confidence 0.2 → needs_better_upload terminal gate.
   {
     key: "lowConfidence",
     label: "Low Confidence",
