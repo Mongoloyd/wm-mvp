@@ -59,7 +59,6 @@ BEGIN
         d.dispatch_status = 'processing'
           AND d.last_attempt_at IS NOT NULL
           AND d.last_attempt_at <= (now() - make_interval(mins => p_lock_stale_minutes))
-          AND COALESCE(d.attempt_count, 0) < 5
         -- New/unscheduled pending rows
         OR d.dispatch_status = 'pending'
           AND (d.next_attempt_at IS NULL OR d.next_attempt_at <= now())

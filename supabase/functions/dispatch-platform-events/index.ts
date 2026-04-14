@@ -43,8 +43,15 @@ Deno.serve(async (req) => {
   // dispatch.  Set DISPATCH_WORKER_SECRET in the edge-function environment and
   // pass it as the `x-dispatch-secret` header from the caller.
   const expectedSecret = Deno.env.get("DISPATCH_WORKER_SECRET");
+  if (!expectedSecret) {
+    return new Response(JSON.stringify({ error: "DISPATCH_WORKER_SECRET is not configured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const providedSecret = req.headers.get("x-dispatch-secret");
-  if (!expectedSecret || providedSecret !== expectedSecret) {
+  if (providedSecret !== expectedSecret) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
