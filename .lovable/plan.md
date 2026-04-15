@@ -1,35 +1,25 @@
 
 
-## Plan: Fix Mobile VerdictHologram Overflow
+## Plan: Create Contractors2 CRM Migration
 
-### Problem
-The `VerdictHologram` component in `OrangeScanner.tsx` renders as a large overlay card (`w-[85%] max-w-md`) with heavy content (64px icon, 3 risk cards, 2 CTA buttons, audit ID footer). On mobile (390px viewport), this overflows vertically and causes flickering/layout issues.
+### What
+Run the user-provided SQL migration to create the contractor CRM schema: `contractor_leads`, `contractor_activity_log`, `contractor_followups` tables with enums, indexes, triggers, and RLS policies.
 
-### Approach
-Rather than hiding and building a separate fallback, we'll make the existing hologram mobile-responsive by scaling down its internal elements. This keeps a single code path.
+### Steps
 
-### Changes — `src/components/OrangeScanner.tsx` (VerdictHologram)
+1. **Create the migration file** at `supabase/migrations/20260414_contractors2_crm.sql` with the exact SQL provided by the user — no modifications needed.
 
-1. **Constrain the outer container for mobile**
-   - Add `max-h-[85vh] overflow-y-auto` so it scrolls if content exceeds the viewport
-   - Change padding from `p-8` to `p-4 md:p-8`
+2. **Run the migration** via the database migration tool so the tables, enums, indexes, triggers, and policies are applied to the Supabase project.
 
-2. **Shrink icon on mobile**
-   - Reduce `VerdictIcon` from `size={64}` to a responsive approach: `size={36}` on mobile via a class-based wrapper (`w-9 h-9 md:w-16 md:h-16`)
+### What gets created
+- 6 custom enums (`contractor_qualification_status`, `contractor_booking_status`, `contractor_pipeline_stage`, `contractor_activity_type`, `contractor_followup_type`, `contractor_followup_status`)
+- 3 tables (`contractor_leads`, `contractor_activity_log`, `contractor_followups`)
+- 11 indexes for query performance
+- 2 triggers (`set_contractor_updated_at`, `log_contractor_pipeline_change`)
+- 3 RLS policies (service_role full access on each table)
+- RLS enabled on all 3 tables
 
-3. **Reduce headline size on mobile**
-   - Change `text-3xl md:text-4xl` to `text-xl md:text-3xl`
-
-4. **Compact risk cards on mobile**
-   - Reduce `mb-8` gaps to `mb-4 md:mb-8`
-   - Reduce `space-y-3` to `space-y-2`
-
-5. **Compact CTA section**
-   - Reduce `mt-8` to `mt-4 md:mt-8`
-   - Reduce button height from `h-14` to `h-11 md:h-14`
-
-6. **Remove `animate-bounce` on mobile icon** — replace with a one-time `animate-in` to reduce visual noise and GPU load
-
-### Result
-The hologram will fit cleanly within the mobile viewport without overflow, flickering, or needing a separate fallback component. Same content, tighter spacing.
+### Notes
+- No frontend code changes needed for this step
+- The `anon` role has no policies, so these tables are backend-only (accessed via service_role in edge functions) — correct for a CRM
 
