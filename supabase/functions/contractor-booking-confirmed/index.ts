@@ -11,7 +11,7 @@
  *   calendly_event_start?: string | null
  *   calendly_event_end?: string | null
  *
- * Uses service role — no end-user auth required.
+ * Auth: require x-contractor-secret header matching CONTRACTOR_CRON_SECRET env var.
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -19,7 +19,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-contractor-secret",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -30,6 +30,20 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
+/** Verify the shared secret header. Returns an error Response or null on success. */
+function verifySecret(req: Request): Response | null {
+  const cronSecret = Deno.env.get("CONTRACTOR_CRON_SECRET");
+  if (!cronSecret) {
+    console.error("[contractor-booking-confirmed] CONTRACTOR_CRON_SECRET not set");
+    return json({ error: "Server configuration error" }, 500);
+  }
+  const provided = req.headers.get("x-contractor-secret");
+  if (!provided || provided !== cronSecret) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+  return null;
+}
+
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -38,6 +52,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method !== "POST") {
     return json({ error: "Method not allowed" }, 405);
   }
+
+  // Authenticate
+  const authErr = verifySecret(req);
+  if (authErr) return authErr;
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -58,10 +76,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const {
     lead_id,
-    calendly_event_uri = null,
-    calendly_invitee_uri = null,
-    calendly_event_start = null,
-    calendly_event_end = null,
+    calendly_event_uri,
+    calendly_invitee_uri,
+    calendly_event_start,
+    calendly_event_end,
   } = body as {
     lead_id?: string;
     calendly_event_uri?: string | null;
@@ -77,7 +95,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // 1. Fetch contractor_leads row
   const { data: lead, error: fetchErr } = await supabase
     .from("contractor_leads")
-    .select("id, booking_status, calendly_event_start")
+    .select("id, booking_status")
     .eq("id", lead_id)
     .maybeSingle();
 
@@ -92,17 +110,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const alreadyBooked = lead.booking_status === "booked";
 
-  // 2. Update contractor_leads
+  // 2. Update contractor_leads — only overwrite Calendly fields when values are provided
+  const leadUpdate: Record<string, unknown> = {
+    booking_status: "booked",
+    pipeline_stage: "booked",
+  };
+  if (calendly_event_uri !== undefined) leadUpdate.calendly_event_uri = calendly_event_uri;
+  if (calendly_invitee_uri !== undefined) leadUpdate.calendly_invitee_uri = calendly_invitee_uri;
+  if (calendly_event_start !== undefined) leadUpdate.calendly_event_start = calendly_event_start;
+  if (calendly_event_end !== undefined) leadUpdate.calendly_event_end = calendly_event_end;
+
   const { error: updateErr } = await supabase
     .from("contractor_leads")
-    .update({
-      booking_status: "booked",
-      pipeline_stage: "booked",
-      calendly_event_uri: calendly_event_uri ?? null,
-      calendly_invitee_uri: calendly_invitee_uri ?? null,
-      calendly_event_start: calendly_event_start ?? null,
-      calendly_event_end: calendly_event_end ?? null,
-    })
+    .update(leadUpdate)
     .eq("id", lead_id);
 
   if (updateErr) {
@@ -130,7 +150,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     // Non-fatal — continue
   }
 
-  // 4. Queue followup emails (idempotent — no duplicate followup of same type + scheduled_for)
+  // 4. Queue followup emails with idempotency checks (always check, regardless of alreadyBooked)
   const now = new Date();
 
   const followupsToInsert: Array<{
@@ -141,17 +161,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
     payload: Record<string, unknown>;
   }> = [];
 
-  // confirmation_email — always, scheduled now
-  const confirmScheduled = now.toISOString();
-  const confirmExists = alreadyBooked
-    ? await checkFollowupExists(supabase, lead_id, "confirmation_email", confirmScheduled)
-    : false;
+  // confirmation_email — dedupe by (lead_id, followup_type) only, regardless of scheduled_for
+  const confirmExists = await checkFollowupExistsByType(
+    supabase,
+    lead_id,
+    "confirmation_email"
+  );
 
   if (!confirmExists) {
     followupsToInsert.push({
       contractor_lead_id: lead_id,
       followup_type: "confirmation_email",
-      scheduled_for: confirmScheduled,
+      scheduled_for: now.toISOString(),
       status: "pending",
       payload: {
         calendly_event_start: calendly_event_start ?? null,
@@ -160,7 +181,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     });
   }
 
-  // reminder_24h / reminder_1h — only if event start is provided and sufficiently far away
+  // reminder_24h / reminder_1h — dedupe by (lead_id, followup_type, scheduled_for ±60s)
   if (calendly_event_start) {
     const eventStart = new Date(calendly_event_start);
 
@@ -171,9 +192,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       if (msUntilEvent > MS_24H) {
         const reminder24Scheduled = new Date(eventStart.getTime() - MS_24H).toISOString();
-        const exists24h = alreadyBooked
-          ? await checkFollowupExists(supabase, lead_id, "reminder_24h", reminder24Scheduled)
-          : false;
+        const exists24h = await checkFollowupExistsByTypeAndTime(
+          supabase,
+          lead_id,
+          "reminder_24h",
+          reminder24Scheduled
+        );
 
         if (!exists24h) {
           followupsToInsert.push({
@@ -191,9 +215,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       if (msUntilEvent > MS_1H) {
         const reminder1hScheduled = new Date(eventStart.getTime() - MS_1H).toISOString();
-        const exists1h = alreadyBooked
-          ? await checkFollowupExists(supabase, lead_id, "reminder_1h", reminder1hScheduled)
-          : false;
+        const exists1h = await checkFollowupExistsByTypeAndTime(
+          supabase,
+          lead_id,
+          "reminder_1h",
+          reminder1hScheduled
+        );
 
         if (!exists1h) {
           followupsToInsert.push({
@@ -230,14 +257,43 @@ Deno.serve(async (req: Request): Promise<Response> => {
   });
 });
 
-// ── Helper: check if a followup already exists (pending or sent) ─────────────
-async function checkFollowupExists(
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Check if ANY active (pending/sent/sending) followup of the given type exists for a lead.
+ * Used for confirmation_email — dedupes by (lead_id, followup_type) regardless of time.
+ */
+async function checkFollowupExistsByType(
+  supabase: ReturnType<typeof createClient>,
+  leadId: string,
+  followupType: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("contractor_followups")
+    .select("id")
+    .eq("contractor_lead_id", leadId)
+    .eq("followup_type", followupType)
+    .in("status", ["pending", "sent", "sending"])
+    .limit(1);
+
+  if (error) {
+    console.error("[contractor-booking-confirmed] checkFollowupExistsByType error:", error);
+    return false;
+  }
+
+  return (data?.length ?? 0) > 0;
+}
+
+/**
+ * Check if an active followup of the given type exists near a specific scheduled_for time (±60s).
+ * Used for reminder_24h / reminder_1h — dedupes by (lead_id, followup_type, scheduled_for).
+ */
+async function checkFollowupExistsByTypeAndTime(
   supabase: ReturnType<typeof createClient>,
   leadId: string,
   followupType: string,
   scheduledFor: string
 ): Promise<boolean> {
-  // Match within a 60-second window to handle minor timestamp drift
   const lower = new Date(new Date(scheduledFor).getTime() - 60_000).toISOString();
   const upper = new Date(new Date(scheduledFor).getTime() + 60_000).toISOString();
 
@@ -246,13 +302,13 @@ async function checkFollowupExists(
     .select("id")
     .eq("contractor_lead_id", leadId)
     .eq("followup_type", followupType)
-    .in("status", ["pending", "sent"])
+    .in("status", ["pending", "sent", "sending"])
     .gte("scheduled_for", lower)
     .lte("scheduled_for", upper)
     .limit(1);
 
   if (error) {
-    console.error("[contractor-booking-confirmed] checkFollowupExists error:", error);
+    console.error("[contractor-booking-confirmed] checkFollowupExistsByTypeAndTime error:", error);
     return false;
   }
 

@@ -2,12 +2,15 @@
  * contractor-send-followups
  *
  * Send pending contractor followup emails using Resend.
- * Safe for repeated runs — skips already-sent followups.
+ * Safe for concurrent/repeated runs — atomically claims followups before sending.
  *
- * POST (no body required — processes all pending due followups)
+ * POST (no body required — processes due followups up to MAX_BATCH_SIZE per run)
+ *
+ * Auth: require x-contractor-secret header matching CONTRACTOR_CRON_SECRET env var.
  *
  * Required env:
- *   RESEND_API_KEY       — Resend.com API key
+ *   RESEND_API_KEY             — Resend.com API key
+ *   CONTRACTOR_CRON_SECRET     — Shared secret for server-to-server auth
  *   SUPABASE_URL
  *   SUPABASE_SERVICE_ROLE_KEY
  *
@@ -22,9 +25,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-contractor-secret",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+const MAX_BATCH_SIZE = 100;
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -33,9 +38,24 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
+/** Verify the shared secret header. Returns an error Response or null on success. */
+function verifySecret(req: Request): Response | null {
+  const cronSecret = Deno.env.get("CONTRACTOR_CRON_SECRET");
+  if (!cronSecret) {
+    console.error("[contractor-send-followups] CONTRACTOR_CRON_SECRET not set");
+    return json({ error: "Server configuration error" }, 500);
+  }
+  const provided = req.headers.get("x-contractor-secret");
+  if (!provided || provided !== cronSecret) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+  return null;
+}
+
 // ── Email template builders ──────────────────────────────────────────────────
 
 interface LeadInfo {
+  id: string;
   first_name: string | null;
   last_name: string | null;
   company_name: string | null;
@@ -261,6 +281,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return json({ error: "Method not allowed" }, 405);
   }
 
+  // Authenticate
+  const authErr = verifySecret(req);
+  if (authErr) return authErr;
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
@@ -280,51 +304,76 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  // 1. Fetch all pending followups due now
+  // 1. Atomically claim a bounded batch of pending followups due now.
+  //    Updating status to 'sending' before processing prevents concurrent
+  //    workers from selecting the same rows and sending duplicate emails.
   const now = new Date().toISOString();
   const { data: followups, error: fetchErr } = await supabase
     .from("contractor_followups")
-    .select("id, contractor_lead_id, followup_type, scheduled_for, payload")
+    .update({ status: "sending" })
     .eq("status", "pending")
-    .lte("scheduled_for", now);
+    .lte("scheduled_for", now)
+    .order("scheduled_for", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(MAX_BATCH_SIZE)
+    .select("id, contractor_lead_id, followup_type, scheduled_for, payload");
 
   if (fetchErr) {
-    console.error("[contractor-send-followups] fetch followups error:", fetchErr);
-    return json({ error: "Failed to fetch followups" }, 500);
+    console.error("[contractor-send-followups] claim followups error:", fetchErr);
+    return json({ error: "Failed to claim followups" }, 500);
   }
 
   if (!followups || followups.length === 0) {
     return json({ attempted: 0, sent: 0, failed: 0 });
   }
 
+  const followupRows = followups as FollowupRow[];
+
+  // 2. Batch-fetch all unique leads in a single query (avoids N+1)
+  const leadIds = [...new Set(followupRows.map((f) => f.contractor_lead_id))];
+  const leadById = new Map<string, LeadInfo>();
+
+  const { data: leads, error: leadsErr } = await supabase
+    .from("contractor_leads")
+    .select("id, first_name, last_name, company_name, email")
+    .in("id", leadIds);
+
+  if (leadsErr) {
+    console.error("[contractor-send-followups] batch lead fetch error:", leadsErr);
+    // Mark all claimed followups as failed — we can't proceed without lead data
+    await supabase
+      .from("contractor_followups")
+      .update({ status: "failed" })
+      .in("id", followupRows.map((f) => f.id));
+    return json({ error: "Failed to fetch leads" }, 500);
+  }
+
+  for (const lead of (leads ?? []) as LeadInfo[]) {
+    leadById.set(lead.id, lead);
+  }
+
   let attempted = 0;
   let sent = 0;
   let failed = 0;
 
-  for (const followup of followups as FollowupRow[]) {
+  for (const followup of followupRows) {
     attempted++;
 
-    // 2. Fetch corresponding lead
-    const { data: lead, error: leadErr } = await supabase
-      .from("contractor_leads")
-      .select("id, first_name, last_name, company_name, email")
-      .eq("id", followup.contractor_lead_id)
-      .maybeSingle();
+    // 3. Get corresponding lead from prefetched results
+    const leadInfo = leadById.get(followup.contractor_lead_id);
 
-    if (leadErr || !lead) {
+    if (!leadInfo) {
       console.error(
-        `[contractor-send-followups] lead not found for followup ${followup.id}`,
-        leadErr
+        `[contractor-send-followups] lead not found for followup ${followup.id}`
       );
       await markFollowup(supabase, followup.id, "failed");
       failed++;
       continue;
     }
 
-    const leadInfo = lead as LeadInfo;
     const { subject, html, text } = buildEmailContent(followup, leadInfo);
 
-    // 3. Send email
+    // 4. Send email
     const result = await sendEmail(
       resendApiKey,
       fromEmail,
@@ -338,7 +387,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       await markFollowup(supabase, followup.id, "sent");
       sent++;
 
-      // 4. Log activity
+      // 5. Log activity
       await supabase.from("contractor_activity_log").insert({
         contractor_lead_id: followup.contractor_lead_id,
         activity_type: "followup_sent",

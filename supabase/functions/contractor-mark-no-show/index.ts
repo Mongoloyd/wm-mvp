@@ -6,7 +6,7 @@
  * POST body:
  *   lead_id: string (required)
  *
- * Uses service role — no end-user auth required.
+ * Auth: require x-contractor-secret header matching CONTRACTOR_CRON_SECRET env var.
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -14,7 +14,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-contractor-secret",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -25,6 +25,20 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
+/** Verify the shared secret header. Returns an error Response or null on success. */
+function verifySecret(req: Request): Response | null {
+  const cronSecret = Deno.env.get("CONTRACTOR_CRON_SECRET");
+  if (!cronSecret) {
+    console.error("[contractor-mark-no-show] CONTRACTOR_CRON_SECRET not set");
+    return json({ error: "Server configuration error" }, 500);
+  }
+  const provided = req.headers.get("x-contractor-secret");
+  if (!provided || provided !== cronSecret) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+  return null;
+}
+
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -33,6 +47,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method !== "POST") {
     return json({ error: "Method not allowed" }, 405);
   }
+
+  // Authenticate
+  const authErr = verifySecret(req);
+  if (authErr) return authErr;
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -73,32 +91,30 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return json({ error: "Lead not found" }, 404);
   }
 
-  const alreadyNoShow = lead.booking_status === "no_show";
+  // 2. Idempotency: check for an existing active no_show_followup regardless of
+  //    current booking_status. This prevents duplicate followups from concurrent
+  //    requests that both see the lead in its original state before the update.
+  const { data: existing, error: existErr } = await supabase
+    .from("contractor_followups")
+    .select("id")
+    .eq("contractor_lead_id", lead_id)
+    .eq("followup_type", "no_show_followup")
+    .in("status", ["pending", "sent", "sending"])
+    .limit(1);
 
-  // 2. Idempotency: if already no_show, check for existing pending/sent followup
-  if (alreadyNoShow) {
-    const { data: existing, error: existErr } = await supabase
-      .from("contractor_followups")
-      .select("id")
-      .eq("contractor_lead_id", lead_id)
-      .eq("followup_type", "no_show_followup")
-      .in("status", ["pending", "sent"])
-      .limit(1);
+  if (existErr) {
+    console.error("[contractor-mark-no-show] idempotency check error:", existErr);
+  }
 
-    if (existErr) {
-      console.error("[contractor-mark-no-show] idempotency check error:", existErr);
-    }
-
-    if (existing && existing.length > 0) {
-      // Already handled — return success without duplicating
-      return json({
-        success: true,
-        lead_id,
-        booking_status: "no_show",
-        followup_queued: false,
-        idempotent: true,
-      });
-    }
+  if (existing && existing.length > 0) {
+    // Already handled — return success without duplicating
+    return json({
+      success: true,
+      lead_id,
+      booking_status: "no_show",
+      followup_queued: false,
+      idempotent: true,
+    });
   }
 
   // 3. Update booking_status to no_show
