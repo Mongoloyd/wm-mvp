@@ -33,6 +33,7 @@ const Disclaimer = lazy(() => import("./pages/Disclaimer.tsx"));
 const HowWeBeatWindowQuotes = lazy(() => import("./pages/HowWeBeatWindowQuotes.tsx"));
 const Contractors = lazy(() => import("./pages/Contractors.tsx"));
 const Contractors2 = lazy(() => import("./pages/Contractors2.tsx"));
+const Contractors3 = lazy(() => import("./pages/contractors3/Contractors3.tsx"));
 const PartnerDossier = lazy(() => import("./pages/PartnerDossier.tsx"));
 const ContractorLogin = lazy(() => import("./pages/ContractorLogin.tsx"));
 const ContractorOpportunitiesPage = lazy(() => import("./pages/ContractorOpportunitiesPage.tsx"));
@@ -118,6 +119,7 @@ const App = () => (
                 <Route path="/dev/report-preview" element={<DevReportPreview />} />
                 <Route path="/devtesting" element={<DevTesting />} />
                 <Route path="/devtesting2" element={<DevTesting2 />} />
+                <Route path="/contractors3" element={<Contractors3 />} />
                 
 
                 {/* ── Static content pages (shared PublicNavbar via PublicLayout) ── */}
