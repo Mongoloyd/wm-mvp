@@ -1,40 +1,67 @@
 
 
-## What You Want (Plain English)
+## Plan: Import Contractors3 Page from Project Harmonizer
 
-You want the sticky "Scan My Quote / View Live Demo" bar that appears at the bottom of your homepage to also appear on four subpages: **About**, **Contact**, **Terms**, and **Privacy**. The buttons should navigate users back to the homepage (since the scan/demo functionality lives there), and the page content needs enough bottom padding so the sticky bar doesn't cover anything.
+### What
+Copy the entire `src/pages/contractors3/` directory from [Project Harmonizer](/projects/426ee123-ee09-4bb3-a36d-88231683fbb1) verbatim into this project and wire it up at `/contractors3`.
 
----
+### Files to copy (21 files, all `.jsx` except root `.tsx`)
 
-## Implementation Plan
+```text
+src/pages/contractors3/
+├── Contractors3.tsx
+├── config/
+│   └── page.config.js
+├── lib/
+│   └── qualificationLogic.js
+└── components/
+    ├── layout/
+    │   └── PageWrapper.jsx
+    ├── qualification/
+    │   ├── QualificationFlow.jsx
+    │   ├── OptionButton.jsx
+    │   └── StepCard.jsx
+    ├── sections/
+    │   ├── HeroSection.jsx
+    │   ├── MarketTruthSection.jsx
+    │   ├── CompetitorQuoteSection.jsx
+    │   ├── BuyerReadinessSection.jsx
+    │   ├── HowItWorksSection.jsx
+    │   ├── EconomicsSection.jsx
+    │   ├── DifferentiationSection.jsx
+    │   ├── ExclusivitySection.jsx
+    │   ├── VideoSection.jsx
+    │   ├── BookingSection.jsx
+    │   ├── NativeBookingForm.jsx
+    │   ├── QualificationStripSection.jsx
+    │   └── FAQSection.jsx
+    └── ui/
+        ├── CalendlyEmbed.jsx
+        └── spinner.jsx
+```
 
-### 1. Add StickyCTAFooter to each page
+### Steps
 
-Import and render `<StickyCTAFooter>` at the bottom of these four page components:
-- `src/pages/About.tsx`
-- `src/pages/Contact.tsx`
-- `src/pages/Terms.tsx`
-- `src/pages/Privacy.tsx`
+1. **Copy all 21 files** from Project Harmonizer — no modifications, verbatim.
 
-Each will use `useNavigate()` from react-router-dom for the click handlers:
-- **onScanClick**: `navigate("/?action=scan")` — navigates home with a query param the homepage can detect
-- **onDemoClick**: `navigate("/?action=demo")` — same pattern for the demo trigger
-- **onPostConversionClick**: `window.location.href = 'tel:+15614685571'` (same as homepage)
-- **isVisible**: `true` (always visible on subpages since there's no recovery bar)
-- **conversionType**: `null` (default pre-conversion state)
+2. **Delete the empty `src/pages/contractors3.tsx`** placeholder file (it's blank).
 
-### 2. Add bottom padding to prevent content overlap
+3. **Add route in `App.tsx`** — lazy-load outside any layout wrapper:
+   ```tsx
+   const Contractors3 = lazy(() => import("./pages/contractors3/Contractors3.tsx"));
+   // Route: <Route path="/contractors3" element={<Contractors3 />} />
+   ```
 
-Add `pb-32` (or similar ~128px) to the outermost `<main>` wrapper of each page so the sticky footer doesn't cover the last section of content.
+4. **Add scoped CSS to `src/index.css`** — Plus Jakarta Sans font import + `.contractors3-page` CSS variables scoped so they don't leak into the rest of the app:
+   - `--background`, `--foreground`, `--card`, `--border`, etc. from Project Harmonizer's dark theme
+   - Font family override within `.contractors3-page`
 
-### 3. Files changed
+5. **Verify Tailwind config** — the `content` array already covers `./src/**/*.{ts,tsx}` but needs `js,jsx` added for these files.
 
-| File | Change |
-|------|--------|
-| `src/pages/About.tsx` | Import StickyCTAFooter + useNavigate, add component + bottom padding |
-| `src/pages/Contact.tsx` | Same |
-| `src/pages/Terms.tsx` | Same |
-| `src/pages/Privacy.tsx` | Same |
+### Dependencies
+- `framer-motion` — already installed in this project
+- `lucide-react` — already installed
+- No new npm packages needed
 
-No changes to `StickyCTAFooter.tsx` itself — the existing component works as-is.
-
+### No modifications
+Every component file is copied exactly as-is from the source project.
