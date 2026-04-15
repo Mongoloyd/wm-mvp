@@ -335,7 +335,7 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
 
           <div className="max-w-md mx-auto lg:mx-0 lg:mr-auto w-full relative z-10">
             <h2 className="text-2xl lg:text-3xl text-blue-300 font-semibold mb-12 lg:mb-16 flex items-center gap-3">
-              Machine Sees:
+              WindowMans AI Sees:
               {isAnalyzing && (
                 <span className="inline-block w-4 h-4 border-2 border-t-cyan-400 border-r-cyan-400 border-b-transparent border-l-transparent rounded-full animate-spin" />
               )}
