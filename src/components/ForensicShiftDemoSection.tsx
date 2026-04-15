@@ -288,7 +288,7 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
     >
       <header className="py-5 px-6 lg:px-12 bg-[#253245] text-white flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700/50 shadow-md gap-4">
         <h1 className="text-xl lg:text-3xl font-medium tracking-tight">
-          The Forensic Shift: <span className="text-slate-300">What You See vs. What the Machine Sees</span>
+          The Forensic Shift: <span className="text-slate-300">What You See vs. What Our AI Sees</span>
         </h1>
 
         <div className="flex flex-wrap items-center gap-3">
