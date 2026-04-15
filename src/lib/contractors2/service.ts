@@ -24,6 +24,16 @@ import type {
 type JsonObject = Record<string, unknown>;
 
 // ============================================================
+// CONSTANTS
+// ============================================================
+
+/** Default source value for leads created from the contractors2 funnel */
+export const DEFAULT_LEAD_SOURCE = "contractors2_page";
+
+/** Default limit for paginated queries */
+const DEFAULT_PAGE_LIMIT = 50;
+
+// ============================================================
 // INPUT TYPES
 // ============================================================
 
@@ -122,7 +132,7 @@ export async function createContractorLead(
     calendly_event_start: null,
     calendly_event_end: null,
     pipeline_stage: "new",
-    source: input.source ?? "contractors2_page",
+    source: input.source ?? DEFAULT_LEAD_SOURCE,
     utm_source: input.utm_source ?? null,
     utm_medium: input.utm_medium ?? null,
     utm_campaign: input.utm_campaign ?? null,
@@ -226,12 +236,11 @@ export async function listContractorLeads(
   if (filters.serviceArea) {
     query = query.eq("service_area", filters.serviceArea);
   }
-  if (filters.limit) {
-    query = query.limit(filters.limit);
-  }
-  if (filters.offset) {
-    query = query.range(filters.offset, filters.offset + (filters.limit ?? 50) - 1);
-  }
+
+  // Handle pagination: use range() which covers both offset and limit
+  const limit = filters.limit ?? DEFAULT_PAGE_LIMIT;
+  const offset = filters.offset ?? 0;
+  query = query.range(offset, offset + limit - 1);
 
   const { data, error } = await query;
 
