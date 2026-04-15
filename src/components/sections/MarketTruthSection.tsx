@@ -42,10 +42,10 @@ const MarketTruthSection = () => (
             transition={{ ...fadeUp.transition, delay: i * 0.08 }}
             className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6"
           >
-            <h3 className="text-base font-semibold text-white/90 mb-2">
+            <h3 className="text-base font-semibold text-slate-100 mb-2">
               {card.title}
             </h3>
-            <p className="text-sm text-white/50 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               {card.body}
             </p>
           </motion.div>

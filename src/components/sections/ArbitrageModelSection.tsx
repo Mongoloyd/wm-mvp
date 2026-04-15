@@ -17,7 +17,7 @@ const ArbCard = ({ children, className = '' }: { children: React.ReactNode; clas
 );
 
 const variants: Record<string, string> = {
-  default: 'bg-slate-800 text-slate-300',
+  default: 'bg-slate-800 text-slate-200',
   warning: 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
   success: 'bg-green-500/20 text-green-400 border border-green-500/30',
   info: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30',
@@ -33,11 +33,11 @@ const ArbBadge = ({ children, variant = 'default', className = '' }: { children:
 
 const Connector = ({ icon: Icon }: { icon: React.ElementType }) => (
   <div className="flex flex-col items-center justify-center my-2">
-    <div className="w-px h-8 bg-gradient-to-b from-slate-500/50 to-slate-500/10" />
-    <div className="bg-slate-800 border border-slate-700 p-2 rounded-full text-slate-400 z-10 shadow-lg">
+    <div className="w-px h-8 bg-gradient-to-b from-slate-300/50 to-slate-300/10" />
+    <div className="bg-slate-800 border border-slate-700 p-2 rounded-full text-slate-300 z-10 shadow-lg">
       <Icon size={18} />
     </div>
-    <div className="w-px h-8 bg-gradient-to-b from-slate-500/10 to-slate-500/50" />
+    <div className="w-px h-8 bg-gradient-to-b from-slate-300/10 to-slate-300/50" />
   </div>
 );
 
@@ -53,7 +53,7 @@ const ArbitrageModelSection = () => {
             <h2 className="text-white text-3xl sm:text-4xl font-extrabold tracking-tight">
               OUR <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">ARBITRAGE MODEL</span>
             </h2>
-            <p className="text-slate-400 mt-4 max-w-lg mx-auto text-sm sm:text-base">
+            <p className="text-slate-200 mt-4 max-w-lg mx-auto text-sm sm:text-base">
               Capturing the spread between high customer acquisition costs and wholesale fulfillment pricing.
             </p>
           </div>
@@ -74,7 +74,7 @@ const ArbitrageModelSection = () => {
                   <AlertCircle size={14} /> SUNK COST
                 </ArbBadge>
               </div>
-              <p className="text-slate-300 mt-4 text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-200 mt-4 text-sm sm:text-base leading-relaxed">
                 Incurs high Customer Acquisition Cost (CAC) spending on marketing, performs initial discovery, and delivers a premium retail proposal.
               </p>
             </ArbCard>
@@ -95,7 +95,7 @@ const ArbitrageModelSection = () => {
                   <ShieldCheck size={14} /> PRICE SENSITIVE
                 </ArbBadge>
               </div>
-              <p className="text-slate-300 mt-4 text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-200 mt-4 text-sm sm:text-base leading-relaxed">
                 Receives the high retail quote from Contractor A. Experiences sticker shock and seeks alternative solutions to fulfill the identical scope of work.
               </p>
             </ArbCard>
@@ -116,7 +116,7 @@ const ArbitrageModelSection = () => {
                   <TrendingUp size={14} /> THE ARBITRAGE
                 </ArbBadge>
               </div>
-              <p className="text-slate-300 mt-4 text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-200 mt-4 text-sm sm:text-base leading-relaxed">
                 Intercepts the demand. Uses the existing diagnostic/scope from Contractor A to bypass discovery. Connects homeowner to wholesale fulfillment.
               </p>
             </ArbCard>
@@ -138,7 +138,7 @@ const ArbitrageModelSection = () => {
                     <h3 className="text-white font-bold text-lg">CONTRACTOR B</h3>
                     <ArbBadge variant="success" className="w-fit">ZERO CAC</ArbBadge>
                   </div>
-                  <p className="text-slate-300 text-sm leading-relaxed">
+                  <p className="text-slate-200 text-sm leading-relaxed">
                     Secures immediate installation work without spending on marketing, sales, or scoping. Happy to work at wholesale rates.
                   </p>
                 </ArbCard>
@@ -155,7 +155,7 @@ const ArbitrageModelSection = () => {
                     <h3 className="text-white font-bold text-lg">PROFIT MARGIN</h3>
                     <ArbBadge variant="gold" className="w-fit">ARBITRAGE SPREAD</ArbBadge>
                   </div>
-                  <p className="text-slate-300 text-sm leading-relaxed">
+                  <p className="text-slate-200 text-sm leading-relaxed">
                     Captures the margin difference between Contractor A's retail quote and Contractor B's wholesale fulfillment cost.
                   </p>
                 </ArbCard>

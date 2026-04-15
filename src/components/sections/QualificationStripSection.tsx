@@ -29,7 +29,7 @@ export default function QualificationStripSection({ onOpenQualification }: Props
 
           <ul className="space-y-4 text-left mb-10">
             {bullets.map((b) => (
-              <li key={b} className="flex items-start gap-3 text-lg text-zinc-400 leading-relaxed">
+              <li key={b} className="flex items-start gap-3 text-lg text-slate-200 leading-relaxed">
                 <span className="mt-2 w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
                 {b}
               </li>
@@ -39,7 +39,7 @@ export default function QualificationStripSection({ onOpenQualification }: Props
           <div className="h-px bg-white/10 mb-8" />
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <span className="text-zinc-400">Think this is you?</span>
+            <span className="text-slate-200">Think this is you?</span>
             <motion.button
               onClick={onOpenQualification}
               whileHover={{ scale: 1.02 }}

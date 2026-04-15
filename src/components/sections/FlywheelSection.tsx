@@ -23,7 +23,7 @@ const FlywheelSection = () => (
               The Compounding <br />
               <span className="text-teal-400">Pricing Monopoly</span>
             </h2>
-            <div className="space-y-6 text-slate-300 text-lg">
+            <div className="space-y-6 text-slate-200 text-lg">
               <div className="flex items-start gap-4">
                 <div className="w-2 h-2 rounded-full bg-teal-400 mt-2.5 flex-shrink-0" />
                 <p>
@@ -86,7 +86,7 @@ const FlywheelSection = () => (
                         <span className="text-sm sm:text-xl font-black text-teal-400">{step.id}</span>
                       </div>
                       <div className="mt-2 sm:mt-6 flex flex-col items-center gap-0.5 sm:gap-1">
-                        <span className="text-[8px] sm:text-[10px] text-slate-400 uppercase tracking-widest leading-none hidden sm:block">
+                        <span className="text-[8px] sm:text-[10px] text-slate-300 uppercase tracking-widest leading-none hidden sm:block">
                           {step.title}
                         </span>
                         <span className="text-[9px] sm:text-xs font-bold text-white leading-tight">
@@ -100,28 +100,28 @@ const FlywheelSection = () => (
             </div>
 
             {/* External Legend Labels */}
-            <div className="hidden xl:flex absolute left-[-15%] top-[18%] flex-col items-end text-sm text-slate-400 font-medium">
-              <span className="font-bold text-slate-200">More</span>
+            <div className="hidden xl:flex absolute left-[-15%] top-[18%] flex-col items-end text-sm text-slate-300 font-medium">
+              <span className="font-bold text-slate-100">More</span>
               <span>Uploads</span>
             </div>
-            <div className="hidden xl:flex absolute right-[-10%] top-[25%] flex-col items-start text-sm text-slate-400 font-medium">
-              <span className="font-bold text-slate-200">Extract</span>
+            <div className="hidden xl:flex absolute right-[-10%] top-[25%] flex-col items-start text-sm text-slate-300 font-medium">
+              <span className="font-bold text-slate-100">Extract</span>
               <span>Pricing</span>
             </div>
-            <div className="hidden xl:flex absolute left-[-15%] top-[65%] flex-col items-end text-sm text-slate-400 font-medium opacity-60">
-              <span className="font-bold text-slate-200">Lower</span>
+            <div className="hidden xl:flex absolute left-[-15%] top-[65%] flex-col items-end text-sm text-slate-300 font-medium opacity-60">
+              <span className="font-bold text-slate-100">Lower</span>
               <span>CAC</span>
             </div>
-            <div className="hidden xl:flex absolute right-[-10%] top-[68%] flex-col items-start text-sm text-slate-400 font-medium opacity-60">
-              <span className="font-bold text-slate-200">Enrich</span>
+            <div className="hidden xl:flex absolute right-[-10%] top-[68%] flex-col items-start text-sm text-slate-300 font-medium opacity-60">
+              <span className="font-bold text-slate-100">Enrich</span>
               <span>Local Index</span>
             </div>
-            <div className="hidden xl:flex absolute right-[20%] bottom-[-10%] flex-col items-center text-sm text-slate-400 font-medium opacity-40">
-              <span className="font-bold text-slate-200">Meta Pixel</span>
+            <div className="hidden xl:flex absolute right-[20%] bottom-[-10%] flex-col items-center text-sm text-slate-300 font-medium opacity-40">
+              <span className="font-bold text-slate-100">Meta Pixel</span>
               <span>Training</span>
             </div>
-            <div className="hidden xl:flex absolute left-[30%] bottom-[-12%] flex-col items-center text-sm text-slate-400 font-medium opacity-40">
-              <span className="font-bold text-slate-200">Compounding</span>
+            <div className="hidden xl:flex absolute left-[30%] bottom-[-12%] flex-col items-center text-sm text-slate-300 font-medium opacity-40">
+              <span className="font-bold text-slate-100">Compounding</span>
               <span>Data Growth</span>
             </div>
           </div>

@@ -20,12 +20,12 @@ const ExclusivitySection = () => (
       <motion.h2 {...fadeUp} className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-6">
         Not Every Contractor Is a Fit
       </motion.h2>
-      <motion.p {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }} className="text-lg text-zinc-400 leading-relaxed mb-10 max-w-2xl mx-auto">
+      <motion.p {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }} className="text-lg text-slate-200 leading-relaxed mb-10 max-w-2xl mx-auto">
         WindowMan is structured to work with a limited number of contractors per area to maintain quality and consistency.
       </motion.p>
       <motion.ul {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }} className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
         {points.map((p) => (
-          <li key={p} className="text-sm text-zinc-500 font-medium tracking-wide uppercase">{p}</li>
+          <li key={p} className="text-sm text-slate-300 font-medium tracking-wide uppercase">{p}</li>
         ))}
       </motion.ul>
       <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.15 }}>
