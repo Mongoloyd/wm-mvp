@@ -224,6 +224,38 @@ export type Database = {
           },
         ]
       }
+      contractor_activity_log: {
+        Row: {
+          activity_data: Json
+          activity_type: Database["public"]["Enums"]["contractor_activity_type"]
+          contractor_lead_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          activity_data?: Json
+          activity_type: Database["public"]["Enums"]["contractor_activity_type"]
+          contractor_lead_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          activity_data?: Json
+          activity_type?: Database["public"]["Enums"]["contractor_activity_type"]
+          contractor_lead_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_activity_log_contractor_lead_id_fkey"
+            columns: ["contractor_lead_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_credit_ledger: {
         Row: {
           balance_after: number
@@ -350,6 +382,47 @@ export type Database = {
           },
         ]
       }
+      contractor_followups: {
+        Row: {
+          contractor_lead_id: string
+          created_at: string
+          followup_type: Database["public"]["Enums"]["contractor_followup_type"]
+          id: string
+          payload: Json
+          scheduled_for: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["contractor_followup_status"]
+        }
+        Insert: {
+          contractor_lead_id: string
+          created_at?: string
+          followup_type: Database["public"]["Enums"]["contractor_followup_type"]
+          id?: string
+          payload?: Json
+          scheduled_for: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["contractor_followup_status"]
+        }
+        Update: {
+          contractor_lead_id?: string
+          created_at?: string
+          followup_type?: Database["public"]["Enums"]["contractor_followup_type"]
+          id?: string
+          payload?: Json
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["contractor_followup_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_followups_contractor_lead_id_fkey"
+            columns: ["contractor_lead_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_invitations: {
         Row: {
           accepted_at: string | null
@@ -392,6 +465,114 @@ export type Database = {
           invited_email?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      contractor_leads: {
+        Row: {
+          average_job_size_band: string | null
+          booking_status: Database["public"]["Enums"]["contractor_booking_status"]
+          calendly_event_end: string | null
+          calendly_event_start: string | null
+          calendly_event_uri: string | null
+          calendly_invitee_uri: string | null
+          close_rate_band: string | null
+          company_name: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          follow_up_consistency: string | null
+          id: string
+          installs_regularly: string | null
+          last_name: string | null
+          monthly_lead_volume_band: string | null
+          notes: string | null
+          owner_name: string | null
+          phone: string | null
+          pipeline_stage: Database["public"]["Enums"]["contractor_pipeline_stage"]
+          qualification_score: number
+          qualification_status: Database["public"]["Enums"]["contractor_qualification_status"]
+          response_speed: string | null
+          service_area: string | null
+          source: string | null
+          territory_requested: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          wants_quality_over_volume: string | null
+        }
+        Insert: {
+          average_job_size_band?: string | null
+          booking_status?: Database["public"]["Enums"]["contractor_booking_status"]
+          calendly_event_end?: string | null
+          calendly_event_start?: string | null
+          calendly_event_uri?: string | null
+          calendly_invitee_uri?: string | null
+          close_rate_band?: string | null
+          company_name?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          follow_up_consistency?: string | null
+          id?: string
+          installs_regularly?: string | null
+          last_name?: string | null
+          monthly_lead_volume_band?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          pipeline_stage?: Database["public"]["Enums"]["contractor_pipeline_stage"]
+          qualification_score?: number
+          qualification_status?: Database["public"]["Enums"]["contractor_qualification_status"]
+          response_speed?: string | null
+          service_area?: string | null
+          source?: string | null
+          territory_requested?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          wants_quality_over_volume?: string | null
+        }
+        Update: {
+          average_job_size_band?: string | null
+          booking_status?: Database["public"]["Enums"]["contractor_booking_status"]
+          calendly_event_end?: string | null
+          calendly_event_start?: string | null
+          calendly_event_uri?: string | null
+          calendly_invitee_uri?: string | null
+          close_rate_band?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          follow_up_consistency?: string | null
+          id?: string
+          installs_regularly?: string | null
+          last_name?: string | null
+          monthly_lead_volume_band?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          pipeline_stage?: Database["public"]["Enums"]["contractor_pipeline_stage"]
+          qualification_score?: number
+          qualification_status?: Database["public"]["Enums"]["contractor_qualification_status"]
+          response_speed?: string | null
+          service_area?: string | null
+          source?: string | null
+          territory_requested?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          wants_quality_over_volume?: string | null
         }
         Relationships: []
       }
@@ -2040,7 +2221,43 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      contractor_activity_type:
+        | "qualification_completed"
+        | "calendly_opened"
+        | "booking_created"
+        | "booking_completed"
+        | "no_show"
+        | "reminder_sent"
+        | "followup_sent"
+        | "stage_changed"
+        | "note_added"
+      contractor_booking_status:
+        | "not_started"
+        | "calendly_started"
+        | "booked"
+        | "completed"
+        | "no_show"
+        | "canceled"
+      contractor_followup_status: "pending" | "sent" | "failed" | "canceled"
+      contractor_followup_type:
+        | "confirmation_email"
+        | "reminder_24h"
+        | "reminder_1h"
+        | "no_show_followup"
+        | "post_call_followup"
+      contractor_pipeline_stage:
+        | "new"
+        | "booked"
+        | "showed"
+        | "qualified_call"
+        | "proposal_sent"
+        | "won"
+        | "lost"
+      contractor_qualification_status:
+        | "new"
+        | "qualified"
+        | "soft_reject"
+        | "hard_reject"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2167,6 +2384,49 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      contractor_activity_type: [
+        "qualification_completed",
+        "calendly_opened",
+        "booking_created",
+        "booking_completed",
+        "no_show",
+        "reminder_sent",
+        "followup_sent",
+        "stage_changed",
+        "note_added",
+      ],
+      contractor_booking_status: [
+        "not_started",
+        "calendly_started",
+        "booked",
+        "completed",
+        "no_show",
+        "canceled",
+      ],
+      contractor_followup_status: ["pending", "sent", "failed", "canceled"],
+      contractor_followup_type: [
+        "confirmation_email",
+        "reminder_24h",
+        "reminder_1h",
+        "no_show_followup",
+        "post_call_followup",
+      ],
+      contractor_pipeline_stage: [
+        "new",
+        "booked",
+        "showed",
+        "qualified_call",
+        "proposal_sent",
+        "won",
+        "lost",
+      ],
+      contractor_qualification_status: [
+        "new",
+        "qualified",
+        "soft_reject",
+        "hard_reject",
+      ],
+    },
   },
 } as const
