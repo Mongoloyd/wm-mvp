@@ -23,7 +23,7 @@ export default function NativeBookingForm() {
     e.preventDefault();
     if (!selectedDate || !selectedTime) { alert("Please select a date and time."); return; }
     setIsSubmitting(true);
-    setTimeout(() => { setIsSubmitting(false); setIsSuccess(true); console.log("Booking submitted:", { date: selectedDate, time: selectedTime, ...formData }); }, 1500);
+    setTimeout(() => { setIsSubmitting(false); setIsSuccess(true); }, 1500);
   };
 
   const renderCalendar = () => {
