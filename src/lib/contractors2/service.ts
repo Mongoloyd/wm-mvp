@@ -144,7 +144,7 @@ export async function createContractorLead(
 
   const { data, error } = await supabase
     .from("contractor_leads")
-    .insert(insertData as JsonObject)
+    .insert(insertData as any)
     .select()
     .single();
 
@@ -352,7 +352,7 @@ export async function logContractorActivity(
 
   const { data, error } = await supabase
     .from("contractor_activity_log")
-    .insert(insertData as JsonObject)
+    .insert(insertData as any)
     .select()
     .single();
 
@@ -418,7 +418,7 @@ export async function scheduleFollowup(
 
   const { data, error } = await supabase
     .from("contractor_followups")
-    .insert(insertData as JsonObject)
+    .insert(insertData as any)
     .select()
     .single();
 
