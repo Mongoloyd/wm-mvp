@@ -27,7 +27,7 @@ const HeroSection = () => (
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-24 lg:gap-32 xl:gap-40 items-center">
         {/* LEFT */}
         <div>
-          <motion.p {...fadeUp} className="text-sm font-medium tracking-widest uppercase text-white/50 mb-4">
+          <motion.p {...fadeUp} className="text-sm font-medium tracking-widest uppercase text-slate-300 mb-4">
             WindowMan for Contractors
           </motion.p>
 
@@ -42,7 +42,7 @@ const HeroSection = () => (
           <motion.p
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.1 }}
-            className="text-lg text-white/70 leading-relaxed mb-4"
+            className="text-lg text-slate-200 leading-relaxed mb-4"
           >
             WindowMan Gets Homeowners After They've Already Received Competitor Quotes. They Upload Those Estimates, We
             Show Them What's Wrong, and Offer Them A Better Option — That Option Can Be You.
@@ -51,7 +51,7 @@ const HeroSection = () => (
           <motion.p
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.15 }}
-            className="text-base text-white/50 leading-relaxed mb-10"
+            className="text-base text-slate-300 leading-relaxed mb-10"
           >
             These are not random leads. These are active buyers already comparing quotes and trying to decide who to
             trust.
@@ -86,7 +86,7 @@ const HeroSection = () => (
           className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-8"
         >
           <div className="flex items-center justify-between mb-6">
-            <p className="text-xs font-medium tracking-widest uppercase text-white/40">Quote Analysis</p>
+            <p className="text-xs font-medium tracking-widest uppercase text-slate-300">Quote Analysis</p>
             <span className="text-xs font-semibold tracking-wide uppercase px-2.5 py-1 rounded-md bg-red-500/15 text-red-400 border border-red-500/20">
               3 Issues Found
             </span>
@@ -99,8 +99,8 @@ const HeroSection = () => (
                 <DollarSign className="h-4 w-4 text-red-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-white/90">Pricing Above Market</p>
-                <p className="text-sm text-white/50 mt-0.5">
+                <p className="text-sm font-semibold text-white">Pricing Above Market</p>
+                <p className="text-sm text-slate-300 mt-0.5">
                   Total is 28% above county median for this scope and window count.
                 </p>
               </div>
@@ -112,8 +112,8 @@ const HeroSection = () => (
                 <AlertTriangle className="h-4 w-4 text-amber-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-white/90">Missing Scope Items</p>
-                <p className="text-sm text-white/50 mt-0.5">
+                <p className="text-sm font-semibold text-white">Missing Scope Items</p>
+                <p className="text-sm text-slate-300 mt-0.5">
                   No permit handling, no stucco repair, and no debris removal listed.
                 </p>
               </div>
@@ -125,8 +125,8 @@ const HeroSection = () => (
                 <ShieldAlert className="h-4 w-4 text-amber-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-white/90">Warranty Gaps</p>
-                <p className="text-sm text-white/50 mt-0.5">
+                <p className="text-sm font-semibold text-white">Warranty Gaps</p>
+                <p className="text-sm text-slate-300 mt-0.5">
                   Labor warranty not specified. Manufacturer coverage unclear.
                 </p>
               </div>
@@ -136,7 +136,7 @@ const HeroSection = () => (
           {/* Summary bar */}
           <div className="mt-8 pt-5 border-t border-white/[0.06]">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-white/40">Estimated Overcharge</p>
+              <p className="text-xs text-slate-300">Estimated Overcharge</p>
               <p className="text-lg font-bold text-red-400">$4,200 – $6,800</p>
             </div>
           </div>

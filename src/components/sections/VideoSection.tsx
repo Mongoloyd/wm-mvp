@@ -16,7 +16,7 @@ export default function VideoSection() {
     <section className="py-24 bg-zinc-950">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div {...fadeUp} className="mb-12">
-          <span className="text-sm font-semibold tracking-widest uppercase text-zinc-500 mb-3 block">
+          <span className="text-sm font-semibold tracking-widest uppercase text-slate-300 mb-3 block">
             The System in 30 Seconds
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-6">
@@ -43,17 +43,17 @@ export default function VideoSection() {
                 <div className="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center">
                   <Play className="w-7 h-7 text-white ml-1" />
                 </div>
-                <p className="text-lg text-zinc-400 leading-relaxed text-center max-w-xs px-4">
+                <p className="text-lg text-slate-200 leading-relaxed text-center max-w-xs px-4">
                   {PAGE_CONFIG.video.fallbackText}
                 </p>
-                <p className="text-xs text-zinc-600">Video coming soon</p>
+                <p className="text-xs text-slate-300">Video coming soon</p>
               </div>
             )}
           </motion.div>
 
           {/* Right — Copy */}
           <motion.div {...fadeUp} className="flex flex-col gap-6">
-            <p className="text-lg text-zinc-400 leading-relaxed">
+            <p className="text-lg text-slate-200 leading-relaxed">
               In under 30 seconds, this shows exactly how WindowMan intercepts
               homeowners after they've received competitor estimates — and how
               that moment becomes an opportunity for the right contractor.
@@ -67,7 +67,7 @@ export default function VideoSection() {
               ].map((item) => (
                 <li
                   key={item}
-                  className="flex items-start gap-3 text-zinc-300"
+                  className="flex items-start gap-3 text-slate-200"
                 >
                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
                   {item}
@@ -88,7 +88,7 @@ export default function VideoSection() {
               </motion.a>
               <a
                 href={PAGE_CONFIG.phone.href}
-                className="text-zinc-400 hover:text-white transition-colors text-sm pt-3 sm:pt-4"
+                className="text-slate-300 hover:text-white transition-colors text-sm pt-3 sm:pt-4"
               >
                 Or call {PAGE_CONFIG.phone.display}
               </a>

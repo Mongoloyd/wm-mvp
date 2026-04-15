@@ -21,7 +21,7 @@ const BuyerReadinessSection = () => (
         <motion.h2 {...fadeUp} className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-6">
           These Buyers Are Already Trying to Decide.
         </motion.h2>
-        <motion.p {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }} className="text-lg text-zinc-400 leading-relaxed">
+        <motion.p {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }} className="text-lg text-slate-200 leading-relaxed">
           This is the moment most contractors never see — the point where the homeowner has multiple quotes and is trying to figure out what's real, what's missing, and who to trust.
         </motion.p>
       </div>
@@ -29,7 +29,7 @@ const BuyerReadinessSection = () => (
         {cards.map((c, i) => (
           <motion.div key={c.title} {...fadeUp} transition={{ ...fadeUp.transition, delay: i * 0.08 }} className="bg-zinc-900/40 border border-white/10 rounded-2xl p-8 backdrop-blur-sm flex flex-col">
             <h3 className="text-xl font-bold text-white mb-3">{c.title}</h3>
-            <p className="text-lg text-zinc-400 leading-relaxed">{c.body}</p>
+            <p className="text-lg text-slate-200 leading-relaxed">{c.body}</p>
           </motion.div>
         ))}
       </div>

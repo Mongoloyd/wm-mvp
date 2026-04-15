@@ -20,16 +20,16 @@ const DifferentiationSection = () => (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Typical — muted */}
         <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }} className="bg-zinc-900/40 border border-white/10 rounded-2xl p-8 backdrop-blur-sm flex flex-col opacity-50">
-          <span className="text-sm font-semibold tracking-widest uppercase text-zinc-500 mb-3 block">Typical Lead Generation</span>
+          <span className="text-sm font-semibold tracking-widest uppercase text-slate-300 mb-3 block">Typical Lead Generation</span>
           <ul className="space-y-3 mt-2">
             {typical.map((t) => (
-              <li key={t} className="text-lg text-zinc-400 leading-relaxed">— {t}</li>
+              <li key={t} className="text-lg text-slate-200 leading-relaxed">— {t}</li>
             ))}
           </ul>
         </motion.div>
         {/* WindowMan — highlighted */}
         <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }} className="bg-zinc-900/40 border border-white/10 rounded-2xl p-8 backdrop-blur-sm flex flex-col shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-          <span className="text-sm font-semibold tracking-widest uppercase text-zinc-500 mb-3 block">WindowMan Approach</span>
+          <span className="text-sm font-semibold tracking-widest uppercase text-slate-300 mb-3 block">WindowMan Approach</span>
           <ul className="space-y-3 mt-2">
             {windowman.map((w) => (
               <li key={w} className="text-lg text-white leading-relaxed">— {w}</li>

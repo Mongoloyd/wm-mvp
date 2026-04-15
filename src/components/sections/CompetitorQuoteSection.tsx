@@ -39,14 +39,14 @@ const CompetitorQuoteSection = () => (
           transition={{ ...fadeUp.transition, delay: 0.05 }}
           className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-8"
         >
-          <p className="text-xs font-medium tracking-widest uppercase text-white/40 mb-6">
+          <p className="text-xs font-medium tracking-widest uppercase text-slate-300 mb-6">
             What the Homeowner Brings
           </p>
           <ul className="space-y-4">
             {homeownerBrings.map((item) => (
               <li key={item} className="flex items-start gap-3">
                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-amber-400/70" />
-                <span className="text-sm text-white/70">{item}</span>
+                <span className="text-sm text-slate-200">{item}</span>
               </li>
             ))}
           </ul>
@@ -58,14 +58,14 @@ const CompetitorQuoteSection = () => (
           transition={{ ...fadeUp.transition, delay: 0.1 }}
           className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-8"
         >
-          <p className="text-xs font-medium tracking-widest uppercase text-white/40 mb-6">
+          <p className="text-xs font-medium tracking-widest uppercase text-slate-300 mb-6">
             What WindowMan Does
           </p>
           <ul className="space-y-4">
             {windowmanDoes.map((item) => (
               <li key={item} className="flex items-start gap-3">
                 <Check className="h-4 w-4 mt-0.5 shrink-0 text-emerald-400/70" />
-                <span className="text-sm text-white/70">{item}</span>
+                <span className="text-sm text-slate-200">{item}</span>
               </li>
             ))}
           </ul>
@@ -78,7 +78,7 @@ const CompetitorQuoteSection = () => (
         transition={{ ...fadeUp.transition, delay: 0.15 }}
         className="mt-12 rounded-xl border border-white/[0.06] bg-white/[0.02] px-8 py-6 text-center"
       >
-        <p className="text-base text-white/60 leading-relaxed max-w-2xl mx-auto">
+        <p className="text-base text-slate-200 leading-relaxed max-w-2xl mx-auto">
           WindowMan meets the buyer at the exact moment they start questioning
           what they've been sold.
         </p>

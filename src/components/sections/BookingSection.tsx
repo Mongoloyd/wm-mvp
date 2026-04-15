@@ -11,7 +11,7 @@ const fadeUp = {
 };
 
 const inputClass =
-  "w-full min-h-[48px] bg-zinc-900/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/30 transition-colors text-sm";
+  "w-full min-h-[48px] bg-zinc-900/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-300 focus:outline-none focus:border-white/30 transition-colors text-sm";
 
 export default function BookingSection() {
   const [form, setForm] = useState({
@@ -37,7 +37,7 @@ export default function BookingSection() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4">
             See If Your Territory Is Open
           </h2>
-          <p className="text-lg text-zinc-400 leading-relaxed">
+          <p className="text-lg text-slate-200 leading-relaxed">
             Takes 10 minutes. No obligation. We'll confirm availability on the
             call.
           </p>
@@ -46,7 +46,7 @@ export default function BookingSection() {
         <div className="grid lg:grid-cols-[55%_45%] gap-12">
           {/* Left — Calendly */}
           <motion.div {...fadeUp}>
-            <p className="text-sm text-zinc-500 mb-4">
+            <p className="text-sm text-slate-300 mb-4">
               Book directly below
             </p>
             <CalendlyEmbed url={PAGE_CONFIG.calendly.url} />
@@ -55,25 +55,25 @@ export default function BookingSection() {
           {/* Right — Phone + Form */}
           <motion.div {...fadeUp} className="flex flex-col gap-8">
             <div>
-              <p className="text-sm text-zinc-500 mb-4">
+              <p className="text-sm text-slate-300 mb-4">
                 Or request access by call or text
               </p>
               <a
                 href={PAGE_CONFIG.phone.href}
-                className="text-2xl md:text-3xl font-bold text-white hover:text-zinc-200 transition-colors"
+                className="text-2xl md:text-3xl font-bold text-white hover:text-slate-100 transition-colors"
               >
                 {PAGE_CONFIG.phone.display}
               </a>
               <div className="flex gap-4 mt-3">
                 <a
                   href={PAGE_CONFIG.phone.href}
-                  className="text-sm text-zinc-400 hover:text-white transition-colors"
+                  className="text-sm text-slate-300 hover:text-white transition-colors"
                 >
                   Call
                 </a>
                 <a
                   href={PAGE_CONFIG.phone.sms}
-                  className="text-sm text-zinc-400 hover:text-white transition-colors"
+                  className="text-sm text-slate-300 hover:text-white transition-colors"
                 >
                   Text
                 </a>
@@ -83,7 +83,7 @@ export default function BookingSection() {
             {/* Divider */}
             <div className="flex items-center gap-4">
               <div className="flex-1 h-px bg-white/10" />
-              <span className="text-xs text-zinc-600">or submit below</span>
+              <span className="text-xs text-slate-300">or submit below</span>
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
@@ -139,7 +139,7 @@ export default function BookingSection() {
               </motion.button>
             </form>
 
-            <p className="text-xs text-zinc-600 text-center">
+            <p className="text-xs text-slate-300 text-center">
               Prefer to talk first? Call or text directly above.
             </p>
           </motion.div>

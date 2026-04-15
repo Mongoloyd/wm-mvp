@@ -24,9 +24,9 @@ const HowItWorksSection = () => (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-14">
         {steps.map((s, i) => (
           <motion.div key={s.title} {...fadeUp} transition={{ ...fadeUp.transition, delay: i * 0.08 }} className="bg-zinc-900/40 border border-white/10 rounded-2xl p-8 backdrop-blur-sm flex flex-col">
-            <span className="text-sm font-semibold tracking-widest uppercase text-zinc-500 mb-3 block">Step {i + 1}</span>
+            <span className="text-sm font-semibold tracking-widest uppercase text-slate-300 mb-3 block">Step {i + 1}</span>
             <h3 className="text-xl font-bold text-white mb-3">{s.title}</h3>
-            <p className="text-lg text-zinc-400 leading-relaxed">{s.body}</p>
+            <p className="text-lg text-slate-200 leading-relaxed">{s.body}</p>
           </motion.div>
         ))}
       </div>
