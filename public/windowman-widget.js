@@ -45,7 +45,7 @@
     subheadline: config.subheadline,
     buttonLabel: config.buttonLabel,
     accentColor: config.accentColor,
-    hostSite: window.location.hostname,
+    hostOrigin: window.location.origin,
   });
 
   const iframeUrl = `${config.hostUrl.replace(/\/$/, '')}/widget-host.html?${query.toString()}`;
@@ -141,7 +141,8 @@
   launcher.type = 'button';
   launcher.className = `wmw-launcher wmw-launcher--${config.position}`;
   launcher.setAttribute('aria-label', config.buttonLabel);
-  launcher.innerHTML = `<span class="wmw-launcher__dot"></span><span>${config.buttonLabel}</span>`;
+  launcher.innerHTML = '<span class="wmw-launcher__dot"></span><span></span>';
+  launcher.lastElementChild.textContent = config.buttonLabel;
 
   let overlay = null;
 

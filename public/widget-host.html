@@ -264,7 +264,8 @@
 
       function closeWidget() {
         if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ type: 'WINDOWMAN_WIDGET_CLOSE' }, '*');
+          const targetOrigin = params.get('hostOrigin') || '*';
+          window.parent.postMessage({ type: 'WINDOWMAN_WIDGET_CLOSE' }, targetOrigin);
         }
       }
 
