@@ -11,16 +11,8 @@ type QuoteViewData = {
 };
 
 const defaultData: QuoteViewData = {
-  homeownerBulletPoints: [
-    "Total Price: $17,400",
-    "Lifetime Warranty",
-    "Standard Install",
-  ],
-  machineBulletPoints: [
-    "26% Local Markup",
-    "Excludes Labor &\nService Calls",
-    "Missing NOA\nReference",
-  ],
+  homeownerBulletPoints: ["Total Price: $17,400", "Lifetime Warranty", "Standard Install"],
+  machineBulletPoints: ["26% Local Markup", "Excludes Labor &\nService Calls", "Missing NOA\nReference"],
   invoiceRows: [
     { qty: "1", desc: "Standard Windows - Series 8000", price: "$4,500" },
     { qty: "4", desc: "Custom Impact Glass (Dining)", price: "$4,800" },
@@ -41,16 +33,8 @@ const defaultData: QuoteViewData = {
 
 const demoVariants: QuoteViewData[] = [
   {
-    homeownerBulletPoints: [
-      "Total Price: $17,400",
-      "Impact Glass Package",
-      "Lifetime Warranty",
-    ],
-    machineBulletPoints: [
-      "Permit Scope\nNot Confirmed",
-      "Markup Pattern\nDetected",
-      "Warranty Labor\nMay Be Excluded",
-    ],
+    homeownerBulletPoints: ["Total Price: $17,400", "Impact Glass Package", "Lifetime Warranty"],
+    machineBulletPoints: ["Permit Scope\nNot Confirmed", "Markup Pattern\nDetected", "Warranty Labor\nMay Be Excluded"],
     invoiceRows: [
       { qty: "10", desc: "Impact Window Units", price: "$10,200" },
       { qty: "1", desc: "Installation Labor", price: "INCLUDED" },
@@ -67,11 +51,7 @@ const demoVariants: QuoteViewData[] = [
       "Machine review detected likely markup concentration, unclear permit scope, and warranty language that may exclude labor or service-call coverage. Final contract and product approvals should be verified before signing.",
   },
   {
-    homeownerBulletPoints: [
-      "Total Price: $21,900",
-      "Custom Impact Doors",
-      "Premium Install Package",
-    ],
+    homeownerBulletPoints: ["Total Price: $21,900", "Custom Impact Doors", "Premium Install Package"],
     machineBulletPoints: [
       "Deposit Amount\nHigher Than Expected",
       "Glass Spec\nNot Fully Stated",
@@ -92,11 +72,7 @@ const demoVariants: QuoteViewData[] = [
       "System flagged elevated deposit exposure, incomplete glazing/spec detail, and pricing language that may allow post-measurement increases or change-order upsells.",
   },
   {
-    homeownerBulletPoints: [
-      "Total Price: $13,600",
-      "Quick Install Timeline",
-      "Factory Warranty Included",
-    ],
+    homeownerBulletPoints: ["Total Price: $13,600", "Quick Install Timeline", "Factory Warranty Included"],
     machineBulletPoints: [
       "NOA / Approval\nReference Missing",
       "Labor Coverage\nLooks Limited",
@@ -173,10 +149,7 @@ function DocumentContent({ isDigital, data, isAnalyzing }: DocumentContentProps)
 
       <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
         {data.invoiceRows.map((row, idx) => (
-          <div
-            key={idx}
-            className={`grid grid-cols-12 gap-2 text-sm ${isDigital ? "opacity-90" : "opacity-80"}`}
-          >
+          <div key={idx} className={`grid grid-cols-12 gap-2 text-sm ${isDigital ? "opacity-90" : "opacity-80"}`}>
             <div className="col-span-2">{row.qty}</div>
             <div className="col-span-7 line-clamp-1" title={row.desc}>
               {row.desc}
@@ -224,10 +197,18 @@ function DocumentContent({ isDigital, data, isAnalyzing }: DocumentContentProps)
 
       {isDigital && (
         <div className="absolute inset-0 pointer-events-none">
-          <div className={`absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`} />
-          <div className={`absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`} />
-          <div className={`absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`} />
-          <div className={`absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`} />
+          <div
+            className={`absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`}
+          />
+          <div
+            className={`absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`}
+          />
+          <div
+            className={`absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`}
+          />
+          <div
+            className={`absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-cyan-400 ${isAnalyzing ? "animate-ping" : "opacity-50"}`}
+          />
         </div>
       )}
     </div>
@@ -239,10 +220,7 @@ type ForensicShiftDemoSectionProps = {
   onUploadClick?: () => void;
 };
 
-export default function ForensicShiftDemoSection({
-  className = "",
-  onUploadClick,
-}: ForensicShiftDemoSectionProps) {
+export default function ForensicShiftDemoSection({ className = "", onUploadClick }: ForensicShiftDemoSectionProps) {
   const [data, setData] = useState<QuoteViewData>(defaultData);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -310,7 +288,7 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
     >
       <header className="py-5 px-6 lg:px-12 bg-[#253245] text-white flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700/50 shadow-md gap-4">
         <h1 className="text-xl lg:text-3xl font-medium tracking-tight">
-          The Forensic Shift: <span className="text-slate-300">What You See vs. What the Machine Sees</span>
+          The Forensic Shift: <span className="text-slate-300">What You See vs. What Our AI Sees</span>
         </h1>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -335,11 +313,11 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
       <main className="relative flex flex-col lg:flex-row w-full min-h-[1200px] lg:min-h-[980px]">
         <div className="w-full lg:w-1/2 bg-[#f4f4f5] flex flex-col justify-center py-16 px-8 lg:pl-16 xl:pl-24 lg:pr-[280px] xl:pr-[300px] z-0 transition-colors duration-700">
           <div className="max-w-md mx-auto lg:mx-0 lg:ml-auto w-full">
-            <h2 className="text-2xl lg:text-3xl text-slate-600 font-semibold mb-12 lg:mb-16">
-              Homeowner Sees:
-            </h2>
+            <h2 className="text-2xl lg:text-3xl text-slate-600 font-semibold mb-12 lg:mb-16">Homeowner Sees:</h2>
 
-            <div className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
+            <div
+              className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${isAnalyzing ? "opacity-0" : "opacity-100"}`}
+            >
               {data.homeownerBulletPoints.map((point, idx) => (
                 <div
                   key={`ho-${idx}`}
@@ -357,13 +335,15 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
 
           <div className="max-w-md mx-auto lg:mx-0 lg:mr-auto w-full relative z-10">
             <h2 className="text-2xl lg:text-3xl text-blue-300 font-semibold mb-12 lg:mb-16 flex items-center gap-3">
-              Machine Sees:
+              WindowMans AI Sees:
               {isAnalyzing && (
                 <span className="inline-block w-4 h-4 border-2 border-t-cyan-400 border-r-cyan-400 border-b-transparent border-l-transparent rounded-full animate-spin" />
               )}
             </h2>
 
-            <div className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
+            <div
+              className={`space-y-10 lg:space-y-16 transition-opacity duration-500 ${isAnalyzing ? "opacity-0" : "opacity-100"}`}
+            >
               {data.machineBulletPoints.map((point, idx) => (
                 <div
                   key={`mc-${idx}`}
@@ -396,28 +376,36 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
               }`}
             />
 
-            <div className={`hidden lg:block absolute left-1/2 top-[15%] w-32 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
+            <div
+              className={`hidden lg:block absolute left-1/2 top-[15%] w-32 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}
+            >
               <div className="absolute right-[-100px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
                 Data features
               </div>
               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300" />
             </div>
 
-            <div className={`hidden lg:block absolute left-1/2 top-[35%] w-40 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
+            <div
+              className={`hidden lg:block absolute left-1/2 top-[35%] w-40 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}
+            >
               <div className="absolute right-[-80px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
                 Data Points
               </div>
               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300" />
             </div>
 
-            <div className={`hidden lg:block absolute left-[50%] top-[45%] w-24 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
+            <div
+              className={`hidden lg:block absolute left-[50%] top-[45%] w-24 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}
+            >
               <div className="absolute right-[-110px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
                 Anomaly Dtc...
               </div>
               <div className="absolute left-0 top-[-2px] w-[5px] h-[5px] rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,1)]" />
             </div>
 
-            <div className={`hidden lg:block absolute left-[50%] top-[70%] w-48 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}>
+            <div
+              className={`hidden lg:block absolute left-[50%] top-[70%] w-48 h-[1px] bg-cyan-400/60 z-20 transition-opacity ${isAnalyzing ? "opacity-0" : "opacity-100"}`}
+            >
               <div className="absolute right-[-60px] top-[-8px] text-[10px] text-cyan-300 font-mono tracking-widest whitespace-nowrap">
                 Data Ref
               </div>
@@ -436,16 +424,14 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
               <div className="absolute inset-0 z-50 flex items-center justify-center p-6 pointer-events-none">
                 <div
                   className={`pointer-events-auto flex flex-col items-center gap-3 rounded-2xl border border-cyan-400/30 bg-slate-950/85 backdrop-blur-md px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out ${
-                    showUploadCta
-                      ? "opacity-100 scale-100 translate-y-0"
-                      : "opacity-0 scale-95 translate-y-3"
+                    showUploadCta ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-3"
                   }`}
                 >
                   <p className="text-center text-white text-lg md:text-xl font-semibold leading-tight">
                     Now Upload Your Quote
                   </p>
                   <p className="text-center text-slate-300 text-sm max-w-[320px] leading-relaxed">
-                    See what the machine says about your actual estimate.
+                    See What The AI Extracts Off Your Actual Estimate.
                   </p>
                   <button
                     onClick={onUploadClick}
@@ -479,9 +465,7 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#1e293b] border border-slate-600 rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-slate-700 flex justify-between items-center bg-[#253245]">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                ✨ Forensic Scanner Demo
-              </h3>
+              <h3 className="text-xl font-semibold text-white flex items-center gap-2">✨ Forensic Scanner Demo</h3>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -491,7 +475,8 @@ Note: Lifetime warranty applies to parts. Service calls and some labor coverage 
 
             <div className="p-6">
               <p className="text-slate-300 mb-4 text-sm">
-                Paste quote text below and run the local demo. This version does not call any API. It simply simulates the machine-read experience.
+                Paste quote text below and run the local demo. This version does not call any API. It simply simulates
+                the machine-read experience.
               </p>
 
               <textarea

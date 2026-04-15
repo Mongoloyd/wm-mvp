@@ -6,7 +6,7 @@ import CalendlyEmbed from "../ui/CalendlyEmbed.jsx";
 export default function BookingSection() {
   const [formData, setFormData] = useState({ name: "", company: "", phone: "", serviceArea: "", jobSize: "" });
   const handleChange = (e) => { const { name, value } = e.target; setFormData(prev => ({ ...prev, [name]: value })); };
-  const handleSubmit = (e) => { e.preventDefault(); console.log("Form Request Submitted:", formData); alert("Request captured! We will be in touch shortly."); };
+  const handleSubmit = (e) => { e.preventDefault(); alert("Request captured! We will be in touch shortly."); };
 
   return (
     <section className="w-full bg-[#0d0d0d] py-24">

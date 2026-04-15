@@ -44,7 +44,7 @@ export default function QualificationFlow({ isOpen, onClose, onQualified, onDisq
   const handleBack = (prevStep) => { setDirection(-1); setStep(prevStep); };
   const handleNext = (nextStep) => { setDirection(1); setStep(nextStep); };
   const resetFlow = () => { setDirection(-1); setStep(1); setTier(null); setAnswers(INITIAL_ANSWERS); setEmail(""); setEmailSubmitted(false); };
-  const handleEmailSubmit = (e) => { e.preventDefault(); if (email.trim()) { console.log("Email submitted for waitlist:", email); setEmailSubmitted(true); } };
+  const handleEmailSubmit = (e) => { e.preventDefault(); if (email.trim()) { setEmailSubmitted(true); } };
 
   const variants = {
     enter: (dir) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),

@@ -5,7 +5,12 @@ export default function CalendlyEmbed({ url, height = 700 }) {
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef(null);
 
-  const embedUrl = new URL(url);
+  let embedUrl;
+  try {
+    embedUrl = new URL(url || "");
+  } catch (e) {
+    return null;
+  }
   embedUrl.searchParams.set("hide_event_type_details", "1");
   embedUrl.searchParams.set("hide_gdpr_banner", "1");
   embedUrl.searchParams.set("background_color", "111111");
