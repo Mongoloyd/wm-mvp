@@ -13,7 +13,7 @@ import { test, expect, type Page } from "@playwright/test";
  *         capi_signal_logs (realtime signal log)
  */
 
-const BASE = "http://localhost:5173";
+const BASE = process.env.BASE_URL ?? "http://localhost:5173";
 
 // ── Helper: Navigate to the admin partners page ──────────────
 async function goToPartners(page: Page) {
