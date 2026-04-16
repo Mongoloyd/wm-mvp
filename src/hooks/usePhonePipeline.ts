@@ -15,6 +15,7 @@ import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { screenPhone } from "@/utils/screenPhone";
 import { trackEvent } from "@/lib/trackEvent";
 import { sendOtp, verifyOtp } from "@/services/phoneVerificationService";
+import type { OtpServiceErr } from "@/types/serviceResults";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -87,8 +88,6 @@ export function usePhonePipeline(
   options?: {
     scanSessionId?: string | null;
     onVerified?: () => void;
-    /** Pre-known phone from upstream (e.g. ScanFunnelContext). When set,
-     *  submitOtp / resend / submitPhone use this instead of local input. */
     externalPhoneE164?: string | null;
   }
 ): UsePhonePipelineReturn {
@@ -102,10 +101,6 @@ export function usePhonePipeline(
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isSendingRef = useRef(false);
 
-  /**
-   * The single source of truth for the phone number used by all actions.
-   * Priority: external funnel phone > local input phone.
-   */
   const activePhone = options?.externalPhoneE164 || e164;
 
   // Cooldown ticker
@@ -141,21 +136,18 @@ export function usePhonePipeline(
   /* ── submitPhone ─────────────────────────────────────── */
 
   const submitPhone = useCallback(async (): Promise<PipelineStartResult> => {
-    // Guard against double-send race: if a send is already in-flight, bail out
     if (isSendingRef.current) {
       console.warn("[usePhonePipeline] submitPhone blocked — send already in-flight");
       return { status: "error", error: "Already sending. Please wait." };
     }
     setErrorMsg(""); setErrorType(null);
 
-    // If we have an external phone, skip local screening entirely
     const hasExternal = !!options?.externalPhoneE164;
     let normalizedE164: string;
 
     if (hasExternal) {
       normalizedE164 = options!.externalPhoneE164!;
     } else {
-      // Screen local input
       const screen = screenPhone(rawDigits);
       if (screen.ok === false) {
         setPhoneStatus("invalid");
@@ -166,13 +158,12 @@ export function usePhonePipeline(
       normalizedE164 = screen.e164;
     }
 
-    // validate_only — done
     if (mode === "validate_only") {
       setPhoneStatus("valid");
       return { status: "valid", e164: normalizedE164 };
     }
 
-    // validate_and_send_otp — call send-otp via service
+    // validate_and_send_otp
     isSendingRef.current = true;
     setPhoneStatus("sending_otp");
     console.log("[usePhonePipeline] submitPhone → calling send-otp", { phone: normalizedE164 });
@@ -180,12 +171,13 @@ export function usePhonePipeline(
       const result = await sendOtp(normalizedE164, options?.scanSessionId || undefined);
 
       if (!result.ok) {
-        const classifiedType = (result.errorCode || "generic") as ErrorType;
+        const err = result as OtpServiceErr;
+        const classifiedType = (err.errorCode || "generic") as ErrorType;
         setPhoneStatus("otp_failed");
-        setErrorMsg(result.message);
+        setErrorMsg(err.message);
         setErrorType(classifiedType);
-        trackEvent({ event_name: classifiedType === "rate_limit" ? "rate_limit_hit" : "otp_send_failed", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: result.message } });
-        return { status: "error", error: result.message };
+        trackEvent({ event_name: classifiedType === "rate_limit" ? "rate_limit_hit" : "otp_send_failed", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: err.message } });
+        return { status: "error", error: err.message };
       }
 
       console.log("[usePhonePipeline] send-otp SUCCESS");
@@ -223,12 +215,13 @@ export function usePhonePipeline(
         const result = await verifyOtp(activePhone, code, options?.scanSessionId || undefined);
 
         if (!result.ok) {
-          const classifiedType = (result.errorCode || "invalid_code") as ErrorType;
+          const err = result as OtpServiceErr;
+          const classifiedType = (err.errorCode || "invalid_code") as ErrorType;
           setPhoneStatus("otp_sent"); // allow retry
-          setErrorMsg(result.message);
+          setErrorMsg(err.message);
           setErrorType(classifiedType);
-          trackEvent({ event_name: "otp_error", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: result.message } });
-          return { status: "invalid_code", error: result.message };
+          trackEvent({ event_name: "otp_error", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: err.message } });
+          return { status: "invalid_code", error: err.message };
         }
 
         const canonicalPhone = result.data.phone_e164;
@@ -264,12 +257,13 @@ export function usePhonePipeline(
       );
 
       if (!result.ok) {
-        const classifiedType = (result.errorCode || "generic") as ErrorType;
-        setErrorMsg(result.message);
+        const err = result as OtpServiceErr;
+        const classifiedType = (err.errorCode || "generic") as ErrorType;
+        setErrorMsg(err.message);
         setErrorType(classifiedType);
         setPhoneStatus("otp_failed");
         setCooldown(0);
-        return { status: "error", error: result.message };
+        return { status: "error", error: err.message };
       }
 
       setPhoneStatus("otp_sent");

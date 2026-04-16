@@ -17,7 +17,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { getVerifiedAccess, saveVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
 import type { HybridPreviewPayload, HybridFullPayload } from "@/types/reportHybrid";
-import type { RawPreviewRow, RawFullRow } from "@/types/serviceResults";
+import type { ServiceErr, RawPreviewRow, RawFullRow } from "@/types/serviceResults";
 import {
   fetchScanStatus,
   fetchAnalysisPreview,
@@ -46,7 +46,6 @@ export interface PillarScore {
 export interface AnalysisData {
   grade: string;
   flags: AnalysisFlag[];
-  /** Aggregate counts — available from preview even when flags[] is empty */
   flagCount: number;
   flagRedCount: number;
   flagAmberCount: number;
@@ -61,13 +60,10 @@ export interface AnalysisData {
   hasWarranty: boolean | null;
   hasPermits: boolean | null;
   analysisStatus: string | null;
-  /** Financial metrics from calculate-estimate-metrics (full only) */
   derivedMetrics?: Record<string, unknown> | null;
-  /** Financial forensics fields (full only) */
   priceFairness?: string | null;
   markupEstimate?: string | null;
   negotiationLeverage?: string | null;
-  /** Hybrid report compiler fields */
   warnings?: (string | Record<string, unknown>)[];
   missingItems?: (string | Record<string, unknown>)[];
   summary?: string | null;
@@ -296,16 +292,11 @@ export interface UseAnalysisDataResult {
   data: AnalysisData | null;
   isLoading: boolean;
   error: string | null;
-  /** Error specific to full-fetch / reveal failures (auth, empty, RPC).
-   *  Separate from `error` so preview-phase "analysis missing" still renders correctly. */
   fullFetchError: string | null;
-  /** Call after OTP success. Pass the verified E.164 phone. */
   fetchFull: (phoneE164: string) => Promise<void>;
   isLoadingFull: boolean;
   isFullLoaded: boolean;
-  /** Try to resume a previously verified session from localStorage. */
   tryResume: () => Promise<boolean>;
-  /** True while tryResume is running */
   isResuming: boolean;
 }
 
@@ -326,7 +317,6 @@ export function useAnalysisData(
   const resumeAttemptedRef = useRef<string | null>(null);
   const isFullLoadedRef = useRef(false);
 
-  // ── Reset all state when scanSessionId changes (e.g. "Start New Scan") ──
   useEffect(() => {
     setData(null);
     setIsFullLoaded(false);
@@ -340,11 +330,10 @@ export function useAnalysisData(
     resumeAttemptedRef.current = null;
   }, [scanSessionId]);
 
-  // ── Phase 1: Preview fetch ─────────────────────────────────────────────
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
   const TERMINAL_STATUSES = new Set(["invalid_document", "failed", "error", "unreadable"]);
 
+  // ── Phase 1: Preview fetch ─────────────────────────────────────────────
   useEffect(() => {
     if (!enabled || !scanSessionId || previewFetchedRef.current === scanSessionId) return;
     if (!UUID_RE.test(scanSessionId)) {
@@ -359,7 +348,6 @@ export function useAnalysisData(
 
     const doFetch = async (attempt: number) => {
       try {
-        // Pre-check: short-circuit if scan session reached a terminal status
         if (attempt > 0) {
           const statusResult = await fetchScanStatus(scanSessionId);
           if (statusResult.ok && statusResult.data) {
@@ -378,7 +366,8 @@ export function useAnalysisData(
         if (cancelled) return;
 
         if (!result.ok) {
-          console.error("get_analysis_preview error:", result.message);
+          const err = result as ServiceErr;
+          console.error("get_analysis_preview error:", err.message);
           if (attempt < 8) { retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500); return; }
           setError("Failed to load analysis."); setIsLoading(false); return;
         }
@@ -391,7 +380,6 @@ export function useAnalysisData(
         previewFetchedRef.current = scanSessionId;
         trackEvent({ event_name: "preview_rendered", session_id: scanSessionId, metadata: { grade: result.data.grade, flag_count: result.data.flag_count } });
 
-        // Guard: don't overwrite full data with stale preview data
         if (isFullLoadedRef.current) { setIsLoading(false); return; }
 
         setData(buildPreviewData(result.data));
@@ -413,14 +401,16 @@ export function useAnalysisData(
   const devBypassEnabled =
     import.meta.env.DEV && !!import.meta.env.VITE_DEV_BYPASS_SECRET;
 
-  /** Fetch full row via dev bypass service, returning typed result */
   const doDevBypassFetch = useCallback(
     async (sessionId: string): Promise<RawFullRow | null> => {
       const result = await fetchFullViaDevBypassService(
         sessionId,
         import.meta.env.VITE_DEV_BYPASS_SECRET
       );
-      if (!result.ok) throw new Error(result.message);
+      if (!result.ok) {
+        const err = result as ServiceErr;
+        throw new Error(err.message);
+      }
       return result.data;
     },
     []
@@ -436,7 +426,6 @@ export function useAnalysisData(
     setIsLoadingFull(true);
     setFullFetchError(null);
 
-    // ── Forensic logging ──
     console.log("[FETCH_FULL_FORENSIC] start", JSON.stringify({
       scanSessionId,
       phone_last4: phoneE164?.slice(-4) ?? "null",
@@ -452,9 +441,10 @@ export function useAnalysisData(
       } else {
         const result = await fetchAnalysisFull(scanSessionId, phoneE164);
         if (!result.ok) {
-          console.error("[FETCH_FULL_FORENSIC] error", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4), code: result.code, message: result.message }));
-          setFullFetchError(result.code === "unauthorized"
-            ? result.message
+          const err = result as ServiceErr;
+          console.error("[FETCH_FULL_FORENSIC] error", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4), code: err.code, message: err.message }));
+          setFullFetchError(err.code === "unauthorized"
+            ? err.message
             : "Failed to unlock report.");
           return;
         }
@@ -510,7 +500,8 @@ export function useAnalysisData(
       } else {
         const result = await fetchAnalysisFull(scanSessionId, record!.phone_e164);
         if (!result.ok) {
-          console.warn("[tryResume] RPC error — clearing stale record", result.message);
+          const err = result as ServiceErr;
+          console.warn("[tryResume] RPC error — clearing stale record", err.message);
           clearVerifiedAccess();
           return false;
         }
