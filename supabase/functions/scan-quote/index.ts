@@ -526,7 +526,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { scan_session_id, dev_extraction_override, dev_secret } = await req.json();
+    const { scan_session_id, dev_extraction_override, dev_secret, event_id: client_event_id } = await req.json();
     if (!scan_session_id) {
       return jsonResponse({ error: "scan_session_id required" }, 400);
     }
@@ -608,6 +608,11 @@ Deno.serve(async (req: Request) => {
     try {
       try {
         await persistCanonicalEvent(supabase, {
+          // Arc 1.5 measurement parity: when the browser fired its dataLayer
+          // `quote_uploaded` it generated a deterministic id and forwarded it
+          // here. Reusing that id keeps browser+server in lockstep so GTM/CAPI
+          // dedup works without rewriting the event format.
+          eventId: typeof client_event_id === "string" && client_event_id.length > 0 ? client_event_id : undefined,
           eventName: "quote_uploaded",
           leadId: session.lead_id ?? undefined,
           scanSessionId: scan_session_id,

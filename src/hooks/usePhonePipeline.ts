@@ -46,6 +46,10 @@ export interface PipelineVerifyResult {
   error?: string;
   /** Server-canonical phone in E.164 format, returned on successful verify */
   e164?: string;
+  /** Server-generated canonical event_id for the phone_verified business event (browser reuses for dedup) */
+  phoneVerifiedEventId?: string | null;
+  /** Server-generated canonical event_id for the report_revealed business event (browser reuses for dedup) */
+  reportRevealedEventId?: string | null;
 }
 
 export interface UsePhonePipelineReturn {
@@ -229,7 +233,12 @@ export function usePhonePipeline(
         setPhoneStatus("verified");
         trackEvent({ event_name: "otp_verify_success", session_id: options?.scanSessionId, metadata: { phone_last4: canonicalPhone.slice(-4) } });
         options?.onVerified?.();
-        return { status: "verified", e164: canonicalPhone };
+        return {
+          status: "verified",
+          e164: canonicalPhone,
+          phoneVerifiedEventId: result.data.phone_verified_event_id,
+          reportRevealedEventId: result.data.report_revealed_event_id,
+        };
       } finally {
         isVerifyingRef.current = false;
       }

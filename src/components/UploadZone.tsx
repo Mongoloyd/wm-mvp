@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
 import { trackGtmEvent } from "@/lib/trackConversion";
+import { buildCanonicalEventId } from "@/lib/tracking/canonicalEventId";
 import { toast } from "sonner";
 
 interface UploadZoneProps {
@@ -126,14 +127,28 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
         metadata: { scan_session_id: scanSessionId, file_name: file.name, file_size: file.size },
       });
       onScanStart?.(file.name, scanSessionId);
+
+      // Arc 1.5 measurement parity: deterministic event_id mirrors the
+      // server-side `defaultCreateId` so browser dataLayer + server canonical
+      // event share one id for downstream Meta/Google dedup.
+      const quoteUploadedEventId = buildCanonicalEventId({
+        eventName: "quote_uploaded",
+        leadId: leadId,
+        scanSessionId,
+      });
+
       trackGtmEvent("quote_uploaded", {
+        event_id: quoteUploadedEventId,
+        value: 250,
+        currency: "USD",
         scan_session_id: scanSessionId,
+        lead_id: leadId || undefined,
         file_size: file.size,
         file_type: file.type,
-        lead_id: leadId || undefined,
       });
+
       const { data: fnData, error: fnError } = await supabase.functions.invoke("scan-quote", {
-        body: { scan_session_id: scanSessionId },
+        body: { scan_session_id: scanSessionId, event_id: quoteUploadedEventId },
       });
       if (fnError) {
         const isRateLimited = fnData?.error === "rate_limit_exceeded";
