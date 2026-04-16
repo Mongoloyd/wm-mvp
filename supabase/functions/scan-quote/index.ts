@@ -526,7 +526,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { scan_session_id, dev_extraction_override, dev_secret } = await req.json();
+    const { scan_session_id, dev_extraction_override, dev_secret, event_id: client_event_id } = await req.json();
     if (!scan_session_id) {
       return jsonResponse({ error: "scan_session_id required" }, 400);
     }
