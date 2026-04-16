@@ -43,6 +43,7 @@ const AcceptInvite = lazy(() => import("./pages/AcceptInvite.tsx"));
 const PartnerResetPassword = lazy(() => import("./pages/PartnerResetPassword.tsx"));
 const ContractorOnboarding = lazy(() => import("./pages/ContractorOnboarding.tsx"));
 const LandingPage = lazy(() => import("./pages/LandingPage.tsx"));
+const Estimate = lazy(() => import("./pages/Estimate.tsx"));
 
 // PartnerGuard removed — partner pages render publicly with preview fallback
 
@@ -114,6 +115,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/lp/:slug" element={<LandingPage />} />
+                <Route path="/estimate" element={<Estimate />} />
                 <Route path="/report/classic/:sessionId" element={<ScanFunnelProvider><ReportClassic /></ScanFunnelProvider>} />
                 {/* Legacy V2 route → permanent redirect to Classic */}
                 <Route path="/report/:sessionId" element={<ReportRedirect />} />

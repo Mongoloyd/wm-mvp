@@ -1415,6 +1415,9 @@ export type Database = {
           scan_count: number
           service_area_valid: boolean | null
           session_id: string
+          snapshot_email_last_error: string | null
+          snapshot_email_sent_at: string | null
+          snapshot_email_status: string
           source: string | null
           state: string | null
           status: string | null
@@ -1545,6 +1548,9 @@ export type Database = {
           scan_count?: number
           service_area_valid?: boolean | null
           session_id: string
+          snapshot_email_last_error?: string | null
+          snapshot_email_sent_at?: string | null
+          snapshot_email_status?: string
           source?: string | null
           state?: string | null
           status?: string | null
@@ -1675,6 +1681,9 @@ export type Database = {
           scan_count?: number
           service_area_valid?: boolean | null
           session_id?: string
+          snapshot_email_last_error?: string | null
+          snapshot_email_sent_at?: string | null
+          snapshot_email_status?: string
           source?: string | null
           state?: string | null
           status?: string | null
