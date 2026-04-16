@@ -16,7 +16,7 @@ All mapped values must include `currency: "USD"`.
 | Business moment | Canonical event | Standard event | Value | Notes |
 |---|---|---|---:|---|
 | Lead captured | `wm_lead_submitted` | `Lead` | 10 | Lead signal only. |
-| Upload confirmed success | `quote_uploaded` | `SubmitApplication` | 250 | **Must fire only after** storage upload + lead/session creation + scan session creation all succeed. |
+| Upload confirmed success | `quote_upload_completed` | `SubmitApplication` | 250 | **Must fire only after** storage upload + lead/session creation + scan session creation all succeed. |
 | OTP verified (legacy compatibility milestone) | `wm_otp_verified` | `CompleteRegistration` | 500 | Short-term legacy compatibility patch. |
 | Contractor match requested | `wm_contractor_match_requested` | `Schedule` | 1000 | Highest-value CTA in this phase. |
 

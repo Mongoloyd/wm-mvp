@@ -141,16 +141,17 @@ Deno.serve(async (req) => {
       lead_id: resolvedLeadId,
     };
 
-    const { error: updateErr } = await supabase
+    const { data: updatedRows, error: updateErr } = await supabase
       .from("phone_verifications")
       .update(updatePayload)
       .eq("id", pendingRow.id)
       .eq("status", "pending")
       .eq("lead_id", resolvedLeadId)
-      .eq("scan_session_id", scan_session_id);
+      .eq("scan_session_id", scan_session_id)
+      .select();
 
-    if (updateErr) {
-      console.error("[verify-otp] CRITICAL: failed to persist verification status:", updateErr);
+    if (updateErr || !updatedRows || updatedRows.length === 0) {
+      console.error("[verify-otp] CRITICAL: failed to persist verification status:", updateErr || "no rows updated");
       return new Response(
         JSON.stringify({
           error: "Verification confirmed but could not be saved. Please request a new code and try again.",

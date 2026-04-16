@@ -4,6 +4,13 @@
 ALTER TABLE public.phone_verifications
   ADD COLUMN IF NOT EXISTS scan_session_id uuid;
 
+-- Add foreign key to enforce referential integrity for session binding
+ALTER TABLE public.phone_verifications
+  ADD CONSTRAINT fk_phone_verifications_scan_session
+  FOREIGN KEY (scan_session_id)
+  REFERENCES public.scan_sessions(id)
+  ON DELETE SET NULL;
+
 CREATE INDEX IF NOT EXISTS idx_phone_verifications_scan_session_id
   ON public.phone_verifications(scan_session_id);
 
