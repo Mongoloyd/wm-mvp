@@ -75,6 +75,10 @@ export function PostScanReportSwitcher(props: Props) {
   const [fetchStallTimerFired, setFetchStallTimerFired] = useState(false);
   const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  // Canonical lead identity hydrated once per scan_session.
+  // Used for identity continuity on dual-routed business events
+  // (`report_revealed`, `contractor_match_requested`).
+  const [leadId, setLeadId] = useState<string | null>(null);
 
   // ── CTA state ──
   const [introRequested, setIntroRequested] = useState(false);
