@@ -1,116 +1,63 @@
-# Table Access Model — Current Reality
+# Table Access Model
 
-Last verified: 2026-04-16
+Classification of every table's access pattern based on RLS policies, RPCs, and edge functions.
 
-This document classifies every table by its actual access pattern. Use this to understand what code paths reach each table and why certain RLS policies exist (or intentionally don't).
+## Access classes
 
-## Access Pattern Legend
-
-- **Anon client**: Anonymous frontend user (scan funnel, upload, event logging)
-- **Auth client**: Authenticated frontend user (contractor portal, admin dashboard)
-- **RPC**: SECURITY DEFINER function (called by any role, executes as function owner)
-- **Service-role**: Edge functions using `SUPABASE_SERVICE_ROLE_KEY`
-- **Internal operator**: Authenticated user with `is_internal_operator()` = true (admin dashboard)
+- **CLIENT_READABLE** — RLS policy allows direct anon or authenticated reads
+- **RPC_ONLY** — accessible only via SECURITY DEFINER functions
+- **SERVICE_ROLE_ONLY** — accessible only via service-role key in edge functions
+- **ADMIN_ONLY** — restricted to internal operators via `is_internal_operator()` check
 
 ---
 
-## Consumer-Facing Tables
+| Table | Access Class | Access Mechanism | Columns Excluded from Client |
+|---|---|---|---|
+| analyses | ADMIN_ONLY + RPC_ONLY | `analyses_select_internal` (admin SELECT), `get_analysis_preview` / `get_analysis_full` RPCs, `analyses_service_role_all` (edge functions) | `full_json`, `flags` excluded from preview RPC; gated by OTP in full RPC |
+| billable_intros | ADMIN_ONLY | `billable_intros_select_internal` + full CRUD for internal operators | All columns admin-only |
+| capi_signal_logs | ADMIN_ONLY | `capi_logs_select_internal`, `capi_logs_service_role_all` | All columns admin-only |
+| clients | CLIENT_READABLE + ADMIN_ONLY | `clients_anon_select_active` (anon reads active only), full CRUD for internal operators | None excluded for active clients |
+| contractor_activity_log | SERVICE_ROLE_ONLY | `service_role_full_access_contractor_activity_log` | All columns service-role only |
+| contractor_credit_ledger | CLIENT_READABLE (own) | `ccl_select_own` (contractor reads own rows via `auth.uid() = contractor_id`) | No INSERT/UPDATE/DELETE for clients |
+| contractor_credit_purchases | CLIENT_READABLE (own) + ADMIN_ONLY | `ccp_select_own`, `ccp_select_internal`, `ccp_service_role_all` | No write access for clients |
+| contractor_credits | CLIENT_READABLE (own) | `contractor_credits_select_own` | No write access for clients |
+| contractor_followups | SERVICE_ROLE_ONLY | `service_role_full_access_contractor_followups` | All columns service-role only |
+| contractor_invitations | ADMIN_ONLY | `invitations_select_internal` + full CRUD for internal operators, `invitations_service_role_all` | All columns admin-only |
+| contractor_leads | SERVICE_ROLE_ONLY | `service_role_full_access_contractor_leads` | All columns service-role only |
+| contractor_opportunities | ADMIN_ONLY | `contractor_opportunities_select_internal` + full CRUD for internal operators, `contractor_opportunities_service_role_all` | All columns admin-only |
+| contractor_opportunity_routes | ADMIN_ONLY | `contractor_opportunity_routes_select_internal` + full CRUD for internal operators | All columns admin-only |
+| contractor_outcomes | ADMIN_ONLY | `contractor_outcomes_select_internal` + full CRUD for internal operators | All columns admin-only |
+| contractor_profiles | CLIENT_READABLE (own) | `contractor_profiles_select_own` (`auth.uid() = id`) | No write access for clients |
+| contractor_unlocked_leads | CLIENT_READABLE (own) | `contractor_unlocked_leads_select_own` (`auth.uid() = contractor_id`) | No write access for clients |
+| contractors | ADMIN_ONLY | `contractors_select_internal` + full CRUD for internal operators | All columns admin-only |
+| conversion_events | SERVICE_ROLE_ONLY | RESTRICTIVE deny policies block anon; no authenticated SELECT policy; service-role implicit | All columns blocked from clients |
+| county_benchmarks | CLIENT_READABLE | `county_benchmarks_select_public` (anon + authenticated), `county_benchmarks_service_role_all` | None excluded |
+| event_logs | CLIENT_READABLE (write-only) | `anon_insert_event_logs` (anon INSERT only); no SELECT policy for clients | All columns write-only for clients |
+| lead_events | ADMIN_ONLY | `lead_events_select_internal`, `lead_events_service_role_all` | All columns admin-only |
+| leads | CLIENT_READABLE (limited) | `authenticated_select_own_leads` (via scan_sessions JOIN), `leads_anon_insert_constrained` (anon INSERT with constraints) | OTP fields constrained on INSERT; no UPDATE/DELETE for clients |
+| meta_configurations | ADMIN_ONLY | `meta_config_select_internal` + full CRUD for internal operators, `meta_config_service_role_all` | All columns admin-only |
+| otp_failures | ADMIN_ONLY | `otp_failures_select_internal` + full CRUD for internal operators | All columns admin-only |
+| phone_verifications | SERVICE_ROLE_ONLY | `phone_verifications_service_role_all` | All columns service-role only |
+| quote_analyses | SERVICE_ROLE_ONLY | `quote_analyses_service_role_all` (legacy table) | All columns service-role only |
+| quote_comparisons | ADMIN_ONLY | `quote_comparisons_select_internal`, `quote_comparisons_service_role_all` | All columns admin-only |
+| quote_files | CLIENT_READABLE (write-only) | `quote_files_anon_insert_only`, `quote_files_authenticated_insert_only` | No SELECT for clients |
+| scan_sessions | CLIENT_READABLE (own) | Via authenticated user policies (user_id match) | Varies by policy |
+| voice_followups | SERVICE_ROLE_ONLY | Service-role access via edge functions | All columns service-role only |
 
-| Table | Read | Write | Access Model | Notes |
-|-------|------|-------|-------------|-------|
-| `leads` | RPC (`get_lead_by_session`, `get_lead_by_email`) | Anon INSERT (constrained), service-role UPDATE | Anon creates, service-role manages | Anon INSERT prevents OTP forgery |
-| `scan_sessions` | RPC (`get_scan_status`) | Anon INSERT (user_id must be NULL) | Anon creates, service-role manages | No SELECT policy — status checked via RPC |
-| `quote_files` | None (no SELECT policy) | Anon/auth INSERT (lead_id + storage_path required) | Write-only from client | Status tracked via scan_sessions |
-| `analyses` | RPC (`get_analysis_preview`, `get_analysis_full`) | Service-role only | RPC-gated, never direct client read | `get_analysis_full` validates phone verification |
-| `phone_verifications` | RPC (`get_analysis_full` checks internally) | Service-role only | Fully service-role | Used by OTP edge functions |
-| `event_logs` | None (no SELECT policy) | Anon INSERT (unrestricted) | Write-only analytics sink | No PII, intentionally permissive |
-| `county_benchmarks` | Anon/auth SELECT | Service-role only | Public read, admin write | Frontend currently uses hardcoded data |
+## SECURITY DEFINER RPCs
 
-## Contractor Portal Tables
-
-| Table | Read | Write | Access Model |
-|-------|------|-------|-------------|
-| `contractor_profiles` | Auth SELECT (own row only) | Service-role only | Owner-scoped read |
-| `contractor_credits` | Auth SELECT (own row only) | Service-role (via atomic RPCs) | Owner-scoped read |
-| `contractor_credit_ledger` | Auth SELECT (own row only) | Service-role (via atomic RPCs) | Owner-scoped read |
-| `contractor_credit_purchases` | Auth SELECT (own or internal) | Service-role only | Owner + admin read |
-| `contractor_unlocked_leads` | Auth SELECT (own row only) | Service-role (via `unlock_contractor_lead` RPC) | Owner-scoped read |
-
-## Admin/Operator Tables
-
-| Table | Read | Write | Access Model |
-|-------|------|-------|-------------|
-| `contractor_opportunities` | Internal operator SELECT | Internal operator CRUD, service-role ALL | Admin-only |
-| `contractor_opportunity_routes` | Internal operator SELECT | Internal operator CRUD | Admin-only |
-| `billable_intros` | Internal operator SELECT | Internal operator CRUD | Admin-only |
-| `contractor_outcomes` | Internal operator SELECT | Internal operator CRUD | Admin-only |
-| `contractors` | Internal operator SELECT | Internal operator CRUD | Admin-only |
-| `contractor_invitations` | Internal operator SELECT | Internal operator CRUD, service-role ALL | Admin-only |
-| `lead_events` | Internal operator SELECT | Service-role only (triggers + edge functions) | Admin read, service-role write |
-| `otp_failures` | Internal operator CRUD | Internal operator CRUD | Admin-only |
-| `user_roles` | Has_role RPC | Service-role only | RPC-gated |
-| `user_role_audit_log` | Super-admin SELECT | Service-role only (RESTRICTIVE deny on public INSERT) | Super-admin read |
-| `clients` | Anon SELECT (active only), internal operator CRUD | Internal operator CRUD, service-role ALL | Public read for slug validation |
-| `meta_configurations` | Internal operator SELECT | Internal operator CRUD, service-role ALL | Admin-only |
-| `capi_signal_logs` | Internal operator SELECT | Service-role ALL | Admin read, service-role write |
-
-## B2B Pipeline Tables
-
-| Table | Read | Write | Access Model |
-|-------|------|-------|-------------|
-| `contractor_leads` | Service-role only | Service-role only | Fully service-role |
-| `contractor_activity_log` | Service-role only | Service-role only (trigger) | Fully service-role |
-| `contractor_followups` | Service-role only | Service-role only | Fully service-role |
-
-## Legacy/Unused Tables
-
-| Table | Status | Notes |
-|-------|--------|-------|
-| `quote_analyses` | Legacy | Early prototype table. Service-role only policy. Not used by current product. |
-| `quote_comparisons` | Service-role + internal operator | Used by `compare-quotes` edge function. |
-| `service_tickets` | Legacy | Not part of core product. Service-role only policy. |
-| `conversion_events` | Restricted | CAPI tracking. RESTRICTIVE deny on anon. No auth policies besides deny. |
-
----
-
-## Edge Functions — Current Inventory
-
-Active edge functions (from `supabase/config.toml` + filesystem):
-
-| Function | JWT Required | Purpose |
-|----------|-------------|---------|
-| `send-otp` | No | Twilio OTP send |
-| `verify-otp` | No | Twilio OTP verify |
-| `generate-contractor-brief` | No | AI brief generation |
-| `contractor-actions` | No | Contractor portal actions |
-| `voice-followup` | No | Voice call webhook handler |
-| `admin-data` | No | Admin dashboard data (validates internally via adminAuth) |
-| `dial-lead` | No | Trigger voice call to lead |
-| `send-contractor-handoff` | No | CRM handoff notification |
-| `dispatch-platform-events` | No | Meta/Google CAPI dispatch |
-| `scan-quote` | Yes (default) | AI quote analysis |
-| `create-checkout-session` | Yes | Stripe checkout |
-| `stripe-webhook` | Yes | Stripe webhook handler |
-| `accept-invite` | Yes | Contractor invite acceptance |
-| `enrich-lead` | Yes | Lead enrichment |
-| `qualify-homepage-lead` | Yes | Homepage lead qualification |
-| `request-callback` | Yes | Homeowner callback request |
-| `unlock-lead` | Yes | Contractor lead unlock |
-| `compare-quotes` | Yes | Multi-quote comparison |
-| `dev-report-unlock` | Yes | Dev-only report bypass |
-| `get-contractor-document-url` | Yes | Signed URL for quote files |
-| `get-contractor-dossier` | Yes | Contractor intelligence |
-| `list-contractor-opportunities` | Yes | Contractor opportunity list |
-| `save-routing-preferences` | Yes | Contractor routing prefs |
-| `send-report-email` | Yes | Report delivery email |
-| `lead-reactivation` | Yes | Ghost lead recovery |
-| `refresh-benchmarks` | Yes | County benchmark refresh |
-| `calculate-estimate-metrics` | Yes | Estimate calculations |
-| `capi-event` | Yes | CAPI signal fire |
-| `generate-negotiation-script` | Yes | AI negotiation script |
-| `process-webhook` | Yes | Generic webhook processor |
-| `contractor-booking-confirmed` | Yes | Booking confirmation handler |
-| `contractor-mark-no-show` | Yes | No-show marking |
-| `contractor-send-followups` | Yes | Followup automation |
-
-**Note:** Functions with `verify_jwt = false` in config.toml handle their own authentication internally (e.g., `admin-data` uses `adminAuth.ts` with bearer token + role validation).
+| Function | Tables Accessed | Purpose |
+|---|---|---|
+| `get_analysis_preview` | analyses | Returns grade, flag counts, proof_of_read, preview_json — no full_json |
+| `get_analysis_full` | phone_verifications, leads, scan_sessions, analyses | Returns full_json only after OTP verification confirmed |
+| `get_scan_status` | scan_sessions | Returns scan session status |
+| `get_lead_by_session` | leads | Returns lead ID by session_id |
+| `get_lead_by_email` | leads | Returns lead by email |
+| `get_lead_phone_by_scan_session` | leads, scan_sessions | Returns phone for a scan session |
+| `get_county_by_scan_session` | leads, scan_sessions | Returns county for a scan session |
+| `unlock_contractor_lead` | contractor_profiles, leads, contractor_credits, contractor_unlocked_leads, contractor_credit_ledger | Atomic credit debit + lead unlock |
+| `admin_adjust_contractor_credits` | contractor_profiles, contractor_credits, contractor_credit_ledger | Admin credit adjustment |
+| `fulfill_contractor_credit_purchase` | contractor_credit_purchases, contractor_credits, contractor_credit_ledger | Stripe purchase fulfillment |
+| `get_rubric_stats` | analyses | Admin-only rubric statistics |
+| `is_internal_operator` | (JWT check) | Returns true if user has operator/admin/super_admin role |
+| `has_role` / `has_any_role` | user_roles | Role checking utilities |
