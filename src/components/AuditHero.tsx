@@ -4,7 +4,7 @@ import { TrustBullets } from "./TrustBullets";
 import SampleGradeCard from "./SampleGradeCard";
 import { useTickerStats } from "@/hooks/useTickerStats";
 import { Shield, TrendingDown, BarChart3 } from "lucide-react";
-import scanOcrImg from "@/assets/scan_ocr_hero.png";
+import scanOcrImg from "@/assets/scan_ocr_hero.avif";
 
 const PowerToolFlow = React.lazy(() => import("./PowerToolDemo"));
 
@@ -195,9 +195,9 @@ const AuditHero = ({
               {statsStrip}
             </div>
 
-            {/* ── OCR screenshot: desktop only (lg+) ── */}
+            {/* ── OCR screenshot: responsive, single img tag ── */}
             <motion.div
-              className="hidden lg:block mt-8 w-full max-w-3xl"
+              className="hidden sm:block mt-8 w-full max-w-3xl"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -208,6 +208,8 @@ const AuditHero = ({
                 alt="WindowMan AI scanning a quote — extraction, context injection, anomaly detection"
                 loading="lazy"
                 decoding="async"
+                width={700}
+                height={400}
                 className="w-full h-auto rounded-xl shadow-lg"
               />
             </motion.div>
@@ -227,21 +229,6 @@ const AuditHero = ({
             <div className="hidden sm:flex w-full max-w-lg">
               {statsStrip}
             </div>
-            <motion.div
-              className="hidden sm:flex justify-center mt-6 w-full max-w-md mx-auto"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            >
-              <img
-                src={scanOcrImg}
-                alt="WindowMan AI scanning a quote — extraction, context injection, anomaly detection"
-                loading="lazy"
-                decoding="async"
-                className="w-full h-auto rounded-xl shadow-lg"
-              />
-            </motion.div>
           </div>
         </div>
       </div>
