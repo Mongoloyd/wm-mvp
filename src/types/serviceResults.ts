@@ -7,9 +7,18 @@
 
 // ── Generic envelope ────────────────────────────────────────────────────────
 
-export type ServiceResult<T> =
-  | { ok: true; data: T; code?: undefined; message?: undefined }
-  | { ok: false; data?: undefined; code: string; message: string };
+export interface ServiceOk<T> {
+  readonly ok: true;
+  readonly data: T;
+}
+
+export interface ServiceErr {
+  readonly ok: false;
+  readonly code: string;
+  readonly message: string;
+}
+
+export type ServiceResult<T> = ServiceOk<T> | ServiceErr;
 
 // ── Report service ──────────────────────────────────────────────────────────
 
@@ -43,16 +52,6 @@ export interface ScanStatusRow {
 
 // ── Phone verification service ──────────────────────────────────────────────
 
-export interface SendOtpResponse {
-  success: boolean;
-}
-
-export interface VerifyOtpResponse {
-  verified: boolean;
-  /** Server-canonical phone in E.164, returned on success */
-  phone_e164?: string;
-}
-
 export type OtpErrorCode =
   | "rate_limit"
   | "blocked_prefix"
@@ -60,3 +59,16 @@ export type OtpErrorCode =
   | "invalid_code"
   | "network"
   | "generic";
+
+export interface OtpServiceOk<T> {
+  readonly ok: true;
+  readonly data: T;
+}
+
+export interface OtpServiceErr {
+  readonly ok: false;
+  readonly message: string;
+  readonly errorCode: OtpErrorCode;
+}
+
+export type OtpServiceResult<T> = OtpServiceOk<T> | OtpServiceErr;
