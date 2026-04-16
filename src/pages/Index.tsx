@@ -389,7 +389,7 @@ const Index = () => {
       {/* Dev-only preview panel */}
       {IS_DEV_MODE && <DevPreviewPanel currentState={devState} onChange={setDevState} sessionId={sessionId} onScanStart={(fileName, scanId) => { setScanSessionId(scanId); setFileUploaded(true); }} />}
       <div className="bg-card pb-[240px] sm:pb-[180px] lg:pb-32">
-        <Footer />
+        <React.Suspense fallback={null}><Footer /></React.Suspense>
       </div>
       </div>
     </div>
