@@ -774,7 +774,7 @@ Deno.serve(async (req: Request) => {
         .download(qf.storage_path);
 
       if (dlErr || !fileData) {
-        console.error("File download failed:", dlErr);
+        logScanError("storage_download", { scan_session_id, detail: "download_failed", error: dlErr?.message });
         const downloadFailureStatusUpdate = await updateScanSessionStatus(
           supabase,
           scan_session_id,
@@ -797,8 +797,29 @@ Deno.serve(async (req: Request) => {
         }, 500);
       }
 
-      // 5. Base64 encode file
+      // 5. Base64 encode file (with size guard so we never blow up the AI call)
       const arrayBuf = await fileData.arrayBuffer();
+      if (arrayBuf.byteLength > scannerCfg.maxFileBytes) {
+        logScanError("storage_download", {
+          scan_session_id,
+          detail: "file_too_large",
+          file_bytes: arrayBuf.byteLength,
+          max_bytes: scannerCfg.maxFileBytes,
+        });
+        const oversizeStatusUpdate = await updateScanSessionStatus(
+          supabase,
+          scan_session_id,
+          "needs_better_upload",
+          "scan_sessions needs_better_upload update failed after oversize upload",
+        );
+        if (!oversizeStatusUpdate.success) return oversizeStatusUpdate.response;
+        return jsonResponse({
+          error: "File too large",
+          scan_session_id,
+          analysis_status: "needs_better_upload",
+          scan_session_status: "needs_better_upload",
+        }, 413);
+      }
       const uint8 = new Uint8Array(arrayBuf);
       let binary = "";
       for (let i = 0; i < uint8.length; i++) {
@@ -807,8 +828,9 @@ Deno.serve(async (req: Request) => {
       const base64Data = btoa(binary);
       const mimeType = mimeFromPath(qf.storage_path);
 
-      // 6. Call Gemini API directly
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${geminiKey}`;
+      // 6. Call Gemini API (model + timeout pulled from shared scannerConfig
+      //    so operators can override via GEMINI_SCAN_MODEL / GEMINI_SCAN_TIMEOUT_MS).
+      const geminiUrl = buildGeminiUrl(scannerCfg.geminiModel, geminiKey!);
 
       const geminiPayload = {
         contents: [
@@ -831,18 +853,53 @@ Deno.serve(async (req: Request) => {
       };
 
       const geminiController = new AbortController();
-      const geminiTimeout = setTimeout(() => geminiController.abort("gemini_timeout"), 15000);
+      const geminiTimeout = setTimeout(
+        () => geminiController.abort("gemini_timeout"),
+        scannerCfg.geminiTimeoutMs,
+      );
 
-      const geminiResp = await fetch(geminiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(geminiPayload),
-        signal: geminiController.signal,
-      }).finally(() => clearTimeout(geminiTimeout));
+      let geminiResp: Response;
+      try {
+        geminiResp = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(geminiPayload),
+          signal: geminiController.signal,
+        });
+      } catch (fetchErr) {
+        // Network error / timeout / abort: keep the session in `processing`
+        // so the stale-recovery sweep can retry, but never leak provider
+        // internals to the client.
+        const isAbort =
+          (fetchErr instanceof DOMException && fetchErr.name === "AbortError") ||
+          String(fetchErr).includes("gemini_timeout");
+        logScanError("gemini_request", {
+          scan_session_id,
+          detail: isAbort ? "timeout" : "network_error",
+          model: scannerCfg.geminiModel,
+          timeout_ms: scannerCfg.geminiTimeoutMs,
+          error: String(fetchErr),
+        });
+        return jsonResponse({
+          error: isAbort ? "AI extraction timed out" : "AI extraction unavailable",
+          scan_session_id,
+          analysis_status: "processing",
+          scan_session_status: "processing",
+        }, 504);
+      } finally {
+        clearTimeout(geminiTimeout);
+      }
 
       if (!geminiResp.ok) {
-        const errText = await geminiResp.text();
-        console.error("Gemini API error:", geminiResp.status, errText);
+        const errText = await geminiResp.text().catch(() => "");
+        logScanError("gemini_request", {
+          scan_session_id,
+          detail: "non_2xx_response",
+          model: scannerCfg.geminiModel,
+          status: geminiResp.status,
+          // Truncate provider error string so we never log raw document echoes.
+          provider_snippet: errText.slice(0, 240),
+        });
         // Stay in 'processing' for crash recovery
         return jsonResponse({
           error: "AI extraction failed",
@@ -852,12 +909,34 @@ Deno.serve(async (req: Request) => {
         }, 502);
       }
 
-      // 7. Parse Gemini response
-      const geminiJson = await geminiResp.json();
-      const rawText = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+      // 7. Parse Gemini response (defensively — never trust upstream JSON shape)
+      let geminiJson: Record<string, unknown> | null = null;
+      try {
+        geminiJson = await geminiResp.json();
+      } catch (jsonErr) {
+        logScanError("gemini_parse", {
+          scan_session_id,
+          detail: "envelope_not_json",
+          model: scannerCfg.geminiModel,
+          error: String(jsonErr),
+        });
+        return jsonResponse({
+          error: "AI returned malformed response",
+          scan_session_id,
+          analysis_status: "processing",
+          scan_session_status: "processing",
+        }, 502);
+      }
+
+      const rawText = (geminiJson as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> })
+        ?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!rawText) {
-        console.error("No text in Gemini response:", JSON.stringify(geminiJson).slice(0, 500));
+        logScanError("gemini_parse", {
+          scan_session_id,
+          detail: "empty_text_part",
+          model: scannerCfg.geminiModel,
+        });
         const emptyResponseStatusUpdate = await updateScanSessionStatus(
           supabase,
           scan_session_id,
@@ -890,7 +969,12 @@ Deno.serve(async (req: Request) => {
       try {
         parsed = JSON.parse(cleanJson);
       } catch (parseErr) {
-        console.error("JSON parse failed:", parseErr, "Raw:", cleanJson.slice(0, 500));
+        logScanError("gemini_parse", {
+          scan_session_id,
+          detail: "extraction_json_parse_failed",
+          model: scannerCfg.geminiModel,
+          error: String(parseErr),
+        });
         const parseFailureStatusUpdate = await updateScanSessionStatus(
           supabase,
           scan_session_id,
@@ -913,6 +997,7 @@ Deno.serve(async (req: Request) => {
         }, 200);
       }
       } // end else (non-bypass OCR path)
+
 
       // 8. CLASSIFICATION GATE — check document type BEFORE full extraction validation
       //    This catches invalid documents even when Gemini returns partial/malformed data.
