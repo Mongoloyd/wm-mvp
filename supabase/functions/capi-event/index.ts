@@ -64,10 +64,11 @@ async function hashPhone(phone: string): Promise<string> {
 
 // --- UTILITY: Resolve which pixel config to use ---
 // Priority: clientSlug → default row → env vars
+// Returns source label for observability (never logs raw secrets)
 async function resolvePixelConfig(
   supabase: ReturnType<typeof createClient>,
   clientSlug?: string,
-): Promise<{ pixelId: string; accessToken: string; testEventCode?: string } | null> {
+): Promise<{ pixelId: string; accessToken: string; testEventCode?: string; source: string } | null> {
   // Tier 1: Client-specific pixel
   if (clientSlug) {
     const { data: client } = await supabase
@@ -85,13 +86,16 @@ async function resolvePixelConfig(
         .single();
 
       if (config?.pixel_id && config?.access_token) {
+        console.log(`[CAPI:RESOLVE] Using client-specific pixel for slug="${clientSlug}"`);
         return {
           pixelId: config.pixel_id,
           accessToken: config.access_token,
           testEventCode: config.test_event_code ?? undefined,
+          source: `client:${clientSlug}`,
         };
       }
     }
+    console.warn(`[CAPI:RESOLVE] Client slug="${clientSlug}" not found or missing pixel config — falling through`);
   }
 
   // Tier 2: Platform default pixel
@@ -102,23 +106,27 @@ async function resolvePixelConfig(
     .single();
 
   if (defaultConfig?.pixel_id && defaultConfig?.access_token) {
+    console.log("[CAPI:RESOLVE] Using platform default pixel from meta_configurations");
     return {
       pixelId: defaultConfig.pixel_id,
       accessToken: defaultConfig.access_token,
       testEventCode: defaultConfig.test_event_code ?? undefined,
+      source: "db:default",
     };
   }
 
-  // Tier 3: Environment variable fallback
+  // Tier 3: Environment variable fallback (graceful safety net)
   const pixelId = Deno.env.get("META_PIXEL_ID");
   const accessToken = Deno.env.get("META_CAPI_TOKEN");
   const testEventCode = Deno.env.get("META_TEST_EVENT_CODE");
 
   if (pixelId && accessToken) {
-    return { pixelId, accessToken, testEventCode: testEventCode ?? undefined };
+    console.log("[CAPI:RESOLVE] Using fallback META_PIXEL_ID from environment secrets");
+    return { pixelId, accessToken, testEventCode: testEventCode ?? undefined, source: "env:fallback" };
   }
 
-  return null; // Nothing configured — abort
+  console.warn("[CAPI:RESOLVE] No pixel configuration found in DB or environment. Signal will be dropped gracefully.");
+  return null; // Nothing configured — abort gracefully
 }
 
 Deno.serve(async (req) => {
