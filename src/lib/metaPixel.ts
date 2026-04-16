@@ -219,6 +219,7 @@ export async function trackConversion(options: TrackEventOptions): Promise<strin
     event_time: Math.floor(Date.now() / 1000),
     event_source_url: window.location.href,
     action_source: "website",
+    client_slug: options.clientSlug || undefined,
     user_data: {
       em: hashedEmail,
       ph: hashedPhone,
