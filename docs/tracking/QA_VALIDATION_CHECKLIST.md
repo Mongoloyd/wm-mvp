@@ -9,7 +9,7 @@
 
 ## Core pipeline checks
 - [ ] `lead_identified` canonical events are persisted by `qualify-homepage-lead`.
-- [ ] `quote_upload_completed` canonical events are persisted by `scan-quote`.
+- [ ] `quote_uploaded` canonical events are persisted by `scan-quote` (note: `quote_upload_completed` is a compatibility-only / legacy alias, not the canonical forward event name).
 - [ ] `quote_validation_passed` canonical events are persisted by `scan-quote`.
 - [ ] `report_revealed` canonical event is persisted after successful OTP verification in `verify-otp`.
 
