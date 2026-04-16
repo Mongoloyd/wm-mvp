@@ -12,6 +12,8 @@ import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
 import { trackGtmEvent } from "@/lib/trackConversion";
+import { metaConversions } from "@/lib/metaPixel";
+import { useScanFunnelSafe } from "@/state/scanFunnel";
 
 interface PhoneVerifyModalProps {
   open: boolean;

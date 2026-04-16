@@ -13,6 +13,8 @@ import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
 import { trackGtmEvent } from "@/lib/trackConversion";
+import { metaConversions } from "@/lib/metaPixel";
+import { useScanFunnelSafe } from "@/state/scanFunnel";
 
 interface VerifyGateProps {
   issueCount: number;
@@ -33,6 +35,7 @@ const fadeUp = {
 
 export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGateProps) {
   const { displayValue, rawDigits, e164, isValid, handleChange } = usePhoneInput();
+  const funnel = useScanFunnelSafe();
   const [otpValue, setOtpValue] = useState("");
   const [step, setStep] = useState<Step>("phone");
   const [errorMsg, setErrorMsg] = useState("");
@@ -162,6 +165,13 @@ export function VerifyGate({ issueCount, onVerified, scanSessionId }: VerifyGate
       });
       trackGtmEvent("report_revealed", {
         scan_session_id: scanSessionId || undefined,
+      });
+      // Fire server-side CAPI with client_slug for multi-pixel routing
+      metaConversions.otpVerified({
+        county: null,
+        flow: "A",
+        phone: e164 || undefined,
+        clientSlug: funnel?.clientSlug ?? undefined,
       });
       onVerified();
     } catch {
