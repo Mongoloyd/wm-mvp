@@ -1,0 +1,1 @@
+INSERT INTO public.clients (name, slug, is_active) VALUES ('Test Client', 'test', true) ON CONFLICT (slug) DO NOTHING;
