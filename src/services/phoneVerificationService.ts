@@ -6,9 +6,13 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type { ServiceResult, OtpErrorCode } from "@/types/serviceResults";
+import type { OtpErrorCode } from "@/types/serviceResults";
 
 // ── Result types ────────────────────────────────────────────────────────────
+
+export type OtpServiceResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; message: string; errorCode: OtpErrorCode };
 
 export interface OtpSendResult {
   success: true;
@@ -56,7 +60,7 @@ async function parseEdgeFunctionError(
 export async function sendOtp(
   phoneE164: string,
   scanSessionId?: string
-): Promise<ServiceResult<OtpSendResult> & { errorCode?: OtpErrorCode }> {
+): Promise<OtpServiceResult<OtpSendResult>> {
   try {
     const { data, error } = await supabase.functions.invoke("send-otp", {
       body: {
@@ -68,19 +72,19 @@ export async function sendOtp(
     if (error) {
       const parsed = await parseEdgeFunctionError(error, "Failed to send verification code.");
       console.error("[phoneVerificationService] send-otp error:", parsed);
-      return { ok: false, code: parsed.code, message: parsed.message, errorCode: parsed.code };
+      return { ok: false, message: parsed.message, errorCode: parsed.code };
     }
 
     if (!data?.success) {
       const msg = data?.error || "Failed to send verification code.";
       console.error("[phoneVerificationService] send-otp success=false:", data);
-      return { ok: false, code: "generic", message: msg, errorCode: "generic" };
+      return { ok: false, message: msg, errorCode: "generic" };
     }
 
     return { ok: true, data: { success: true } };
   } catch (err) {
     console.error("[phoneVerificationService] send-otp network exception:", err);
-    return { ok: false, code: "network", message: "Network error. Check your connection and try again.", errorCode: "network" };
+    return { ok: false, message: "Network error. Check your connection and try again.", errorCode: "network" };
   }
 }
 
@@ -90,7 +94,7 @@ export async function verifyOtp(
   phoneE164: string,
   code: string,
   scanSessionId?: string
-): Promise<ServiceResult<OtpVerifyResult> & { errorCode?: OtpErrorCode }> {
+): Promise<OtpServiceResult<OtpVerifyResult>> {
   try {
     const { data, error } = await supabase.functions.invoke("verify-otp", {
       body: {
@@ -105,19 +109,19 @@ export async function verifyOtp(
       // Default to invalid_code for verify errors unless a more specific code was found
       if (parsed.code === "generic") parsed.code = "invalid_code";
       console.error("[phoneVerificationService] verify-otp error:", parsed);
-      return { ok: false, code: parsed.code, message: parsed.message, errorCode: parsed.code };
+      return { ok: false, message: parsed.message, errorCode: parsed.code };
     }
 
     if (!data?.verified) {
       const msg = data?.error || "Invalid or expired code.";
       console.error("[phoneVerificationService] verify-otp verified=false:", data);
-      return { ok: false, code: "invalid_code", message: msg, errorCode: "invalid_code" };
+      return { ok: false, message: msg, errorCode: "invalid_code" };
     }
 
     const canonicalPhone = data?.phone_e164 || phoneE164;
     return { ok: true, data: { verified: true, phone_e164: canonicalPhone } };
   } catch (err) {
     console.error("[phoneVerificationService] verify-otp network exception:", err);
-    return { ok: false, code: "network", message: "Network error. Check your connection and try again.", errorCode: "network" };
+    return { ok: false, message: "Network error. Check your connection and try again.", errorCode: "network" };
   }
 }
