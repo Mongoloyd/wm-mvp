@@ -7,6 +7,11 @@ const GOOGLE_ACTION_MAP: Record<string, string> = {
   quote_uploaded: "wm_quote_uploaded",
   quote_upload_completed: "wm_quote_uploaded",
   quote_validation_passed: "wm_quote_validation_passed",
+  // Arc 1.5: phone_verified + report_revealed had no Google mapping, which
+  // silently suppressed every server canonical fire. Add canonical conversion
+  // actions so the server lane can dispatch (deferred event remains excluded).
+  phone_verified: "wm_phone_verified",
+  report_revealed: "wm_report_revealed",
   appointment_booked: "wm_appointment_booked",
   sale_confirmed: "wm_sale_confirmed",
 };
