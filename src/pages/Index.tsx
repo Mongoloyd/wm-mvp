@@ -154,8 +154,12 @@ const Index = () => {
   const reportFlags = activeData?.flags || [];
   const shouldShowReport = showReportFromDev || gradeRevealed;
 
+  // If already inside a ScanFunnelProvider (e.g. from /lp/:slug), don't double-wrap
+  const existingFunnel = useScanFunnelSafe();
+  const Wrapper = existingFunnel ? React.Fragment : ScanFunnelProvider;
+
   return (
-    <ScanFunnelProvider>
+    <Wrapper>
     <div className="min-h-screen bg-background relative overflow-hidden">
       <HomepageBackdrop />
       <div className="relative z-10">
@@ -393,7 +397,7 @@ const Index = () => {
       </div>
       </div>
     </div>
-    </ScanFunnelProvider>
+    </Wrapper>
   );
 };
 
