@@ -267,10 +267,14 @@ export function PostScanReportSwitcher(props: Props) {
       const result = await pipeline.submitOtp(otpValue);
       if (result.status === "verified" && result.e164) {
         setCapturedPhone(result.e164);
+        // Stash the server-issued report_revealed event_id so the
+        // report_revealed effect uses the SAME id as the server canonical event.
+        reportRevealedEventIdRef.current = result.reportRevealedEventId ?? null;
         // ═══ CANONICAL BUSINESS EVENT: phone_verified ═══
-        // This is the SINGLE fire location for the phone_verified business event.
-        // usePhonePipeline fires operational telemetry (otp_verify_success) separately.
+        // Single fire location. event_id is supplied by verify-otp so the
+        // browser dataLayer push and the server canonical event share one id.
         trackGtmEvent("phone_verified", {
+          event_id: result.phoneVerifiedEventId ?? undefined,
           scan_session_id: props.scanSessionId || undefined,
           phone_e164_last4: result.e164.slice(-4),
         });
