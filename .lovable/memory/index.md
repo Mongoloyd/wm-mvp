@@ -1,5 +1,5 @@
 # Memory: index.md
-Updated: now
+Updated: 2026-04-16
 
 WindowMan.PRO design system and architecture constraints
 
@@ -7,7 +7,7 @@ WindowMan.PRO design system and architecture constraints
 - `quotes` bucket: private, 10MB limit, PDF/JPEG/PNG/WEBP/HEIC only
 - New tables: `scan_sessions`, `analyses`, `phone_verifications`, `event_logs`
 - `analyses` = canonical scoring table; `quote_analyses` = legacy (do not write to)
-- `analyses` and `phone_verifications`: NO anon policies (service role only)
+- `analyses` and `phone_verifications`: service-role + internal operator SELECT only (no anon/auth direct access)
 - `scan_sessions` and `event_logs`: temporary anon INSERT only
 - All FKs use ON DELETE CASCADE (except event_logs.lead_id = SET NULL)
 - `update_updated_at()` trigger on scan_sessions, analyses, phone_verifications
@@ -18,7 +18,16 @@ WindowMan.PRO design system and architecture constraints
 - full_json never sent to client before SMS verification
 - No anon SELECT on analyses or phone_verifications
 - Storage: no public URLs, signed URLs only via edge functions
-- Existing leads/quote_files RLS is broad (temporary MVP) — tighten with auth in Phase 2
+- `leads` anon INSERT constrained: cannot forge phone_verified, otp_state, or report_unlocked_at
+- Deny policies on conversion_events and user_role_audit_log use RESTRICTIVE type
+- All functions have explicit SET search_path = public
+
+## Phase 1 Preflight Hardening (completed 2026-04-16)
+- 8 zero-policy tables now have explicit RLS policies (see docs/db/TABLE_ACCESS_MODEL.md)
+- Critical fix: leads anon INSERT constrained to prevent OTP gate bypass
+- Type generation: `npm run typegen` and `npm run typegen:check` scripts added
+- Documentation: TABLE_ACCESS_MODEL.md, FK_HARDENING_PLAN.md, AUDIT_STRATEGY.md, TYPEGEN_WORKFLOW.md
+- DB_PREFLIGHT_STATUS.md tracks all changes and deferred items
 
 ## Phase 3.3 — Contractor Monetization (completed)
 - Tables: `contractors`, `contractor_opportunities`, `contractor_opportunity_routes`
