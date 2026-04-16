@@ -1,0 +1,123 @@
+/**
+ * phoneVerificationService — Supabase transport for OTP send/verify.
+ *
+ * Owns function invocation, response parsing, and error normalization.
+ * Hooks call these functions instead of touching supabase directly.
+ */
+
+import { supabase } from "@/integrations/supabase/client";
+import type { ServiceResult, OtpErrorCode } from "@/types/serviceResults";
+
+// ── Result types ────────────────────────────────────────────────────────────
+
+export interface OtpSendResult {
+  success: true;
+}
+
+export interface OtpVerifyResult {
+  verified: true;
+  /** Server-canonical phone in E.164 */
+  phone_e164: string;
+}
+
+// ── Error classification helpers ────────────────────────────────────────────
+
+async function parseEdgeFunctionError(
+  error: any,
+  fallbackMsg: string
+): Promise<{ message: string; code: OtpErrorCode; twilioCode?: number }> {
+  let parsedMsg = fallbackMsg;
+  let code: OtpErrorCode = "generic";
+  let twilioCode: number | undefined;
+
+  try {
+    if (error.context && typeof error.context.json === "function") {
+      const body = await error.context.json();
+      parsedMsg = body?.error || parsedMsg;
+      twilioCode = body?.twilio_code;
+
+      if (twilioCode === 60410 || parsedMsg.toLowerCase().includes("blocked by our carrier")) {
+        code = "blocked_prefix";
+      } else if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
+        code = "rate_limit";
+      } else if (parsedMsg.toLowerCase().includes("expired") || parsedMsg.toLowerCase().includes("not found")) {
+        code = "expired_session";
+      }
+    }
+  } catch {
+    // unparseable — use defaults
+  }
+
+  return { message: parsedMsg, code, twilioCode };
+}
+
+// ── Send OTP ────────────────────────────────────────────────────────────────
+
+export async function sendOtp(
+  phoneE164: string,
+  scanSessionId?: string
+): Promise<ServiceResult<OtpSendResult> & { errorCode?: OtpErrorCode }> {
+  try {
+    const { data, error } = await supabase.functions.invoke("send-otp", {
+      body: {
+        phone_e164: phoneE164,
+        scan_session_id: scanSessionId || undefined,
+      },
+    });
+
+    if (error) {
+      const parsed = await parseEdgeFunctionError(error, "Failed to send verification code.");
+      console.error("[phoneVerificationService] send-otp error:", parsed);
+      return { ok: false, code: parsed.code, message: parsed.message, errorCode: parsed.code };
+    }
+
+    if (!data?.success) {
+      const msg = data?.error || "Failed to send verification code.";
+      console.error("[phoneVerificationService] send-otp success=false:", data);
+      return { ok: false, code: "generic", message: msg, errorCode: "generic" };
+    }
+
+    return { ok: true, data: { success: true } };
+  } catch (err) {
+    console.error("[phoneVerificationService] send-otp network exception:", err);
+    return { ok: false, code: "network", message: "Network error. Check your connection and try again.", errorCode: "network" };
+  }
+}
+
+// ── Verify OTP ──────────────────────────────────────────────────────────────
+
+export async function verifyOtp(
+  phoneE164: string,
+  code: string,
+  scanSessionId?: string
+): Promise<ServiceResult<OtpVerifyResult> & { errorCode?: OtpErrorCode }> {
+  try {
+    const { data, error } = await supabase.functions.invoke("verify-otp", {
+      body: {
+        phone_e164: phoneE164,
+        code,
+        scan_session_id: scanSessionId || undefined,
+      },
+    });
+
+    if (error) {
+      const parsed = await parseEdgeFunctionError(error, "Invalid or expired code.");
+      // Default to invalid_code for verify errors unless a more specific code was found
+      if (parsed.code === "generic") parsed.code = "invalid_code";
+      console.error("[phoneVerificationService] verify-otp error:", parsed);
+      return { ok: false, code: parsed.code, message: parsed.message, errorCode: parsed.code };
+    }
+
+    if (!data?.verified) {
+      const msg = data?.error || "Invalid or expired code.";
+      console.error("[phoneVerificationService] verify-otp verified=false:", data);
+      return { ok: false, code: "invalid_code", message: msg, errorCode: "invalid_code" };
+    }
+
+    const canonicalPhone = data?.phone_e164 || phoneE164;
+    return { ok: true, data: { verified: true, phone_e164: canonicalPhone } };
+  } catch (err) {
+    console.error("[phoneVerificationService] verify-otp network exception:", err);
+    return { ok: false, code: "network", message: "Network error. Check your connection and try again.", errorCode: "network" };
+  }
+}
