@@ -746,3 +746,13 @@
   background-color: hsl(0 0% 7%);
   color: white;
 }
+
+/* ── Mascot float animation (GPU-composited, no layout thrash) ── */
+@keyframes mascot-float {
+  0%, 100% { transform: translateY(-8px); }
+  50% { transform: translateY(0); }
+}
+.mascot-float {
+  animation: mascot-float 6s ease-in-out infinite;
+  will-change: transform;
+}
