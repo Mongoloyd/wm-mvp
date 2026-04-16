@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FacebookConversionProvider } from "@/components/FacebookConversionProvider";
+import { HelmetProvider } from "react-helmet-async";
 import AdminSettings from "./pages/AdminSettings";
 import PublicLayout from "@/components/PublicLayout";
 import { ScanFunnelProvider } from "@/state/scanFunnel";
@@ -40,6 +41,7 @@ const ContractorOpportunitiesPage = lazy(() => import("./pages/ContractorOpportu
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite.tsx"));
 const PartnerResetPassword = lazy(() => import("./pages/PartnerResetPassword.tsx"));
 const ContractorOnboarding = lazy(() => import("./pages/ContractorOnboarding.tsx"));
+const LandingPage = lazy(() => import("./pages/LandingPage.tsx"));
 
 // PartnerGuard removed — partner pages render publicly with preview fallback
 
@@ -100,6 +102,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <HelmetProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -109,6 +112,7 @@ const App = () => (
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/lp/:slug" element={<LandingPage />} />
                 <Route path="/report/classic/:sessionId" element={<ScanFunnelProvider><ReportClassic /></ScanFunnelProvider>} />
                 {/* Legacy V2 route → permanent redirect to Classic */}
                 <Route path="/report/:sessionId" element={<ReportRedirect />} />
@@ -148,6 +152,7 @@ const App = () => (
         </FacebookConversionProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 

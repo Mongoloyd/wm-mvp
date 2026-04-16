@@ -398,6 +398,7 @@ const TruthGateFlow = ({
         window_count: parseWindowCount(answers.windowCount),
         quote_range: answers.quoteRange,
         source: "truth-gate",
+        client_slug: funnel?.clientSlug ?? null,
         // Attribution fields from useUtmCapture
         utm_source: utm.utm_source,
         utm_medium: utm.utm_medium,

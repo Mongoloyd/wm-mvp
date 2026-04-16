@@ -128,6 +128,7 @@ interface CAPIPayload {
   event_time: number;
   event_source_url: string;
   action_source: "website";
+  client_slug?: string;
   user_data: {
     em?: string;        // hashed email
     ph?: string;        // hashed phone
@@ -168,13 +169,14 @@ async function fireCAPI(payload: CAPIPayload) {
 
 interface TrackEventOptions {
   eventName: string;
-  standardEventName?: string; // If different from eventName for fbq standard
+  standardEventName?: string;
   params?: Record<string, unknown>;
   email?: string;
   phone?: string;
   firstName?: string;
   value?: number;
   currency?: string;
+  clientSlug?: string;
 }
 
 export async function trackConversion(options: TrackEventOptions): Promise<string> {
@@ -217,6 +219,7 @@ export async function trackConversion(options: TrackEventOptions): Promise<strin
     event_time: Math.floor(Date.now() / 1000),
     event_source_url: window.location.href,
     action_source: "website",
+    client_slug: options.clientSlug || undefined,
     user_data: {
       em: hashedEmail,
       ph: hashedPhone,
@@ -322,11 +325,12 @@ export const metaConversions = {
     }),
 
   /** OTP verified — phone confirmed, full report unlocked */
-  otpVerified: (params: { county?: string; flow?: string; phone?: string }) =>
+  otpVerified: (params: { county?: string; flow?: string; phone?: string; clientSlug?: string }) =>
     trackConversion({
       eventName: "wm_otp_verified",
       standardEventName: "CompleteRegistration",
       phone: params.phone,
+      clientSlug: params.clientSlug,
       params: {
         county: params.county,
         flow: params.flow,

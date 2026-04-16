@@ -1318,6 +1318,7 @@ export type Database = {
           billable_intro_created_at: string | null
           billable_status: string | null
           city: string | null
+          client_slug: string | null
           closed_at: string | null
           confidence_score: number | null
           contact_release_status: string | null
@@ -1447,6 +1448,7 @@ export type Database = {
           billable_intro_created_at?: string | null
           billable_status?: string | null
           city?: string | null
+          client_slug?: string | null
           closed_at?: string | null
           confidence_score?: number | null
           contact_release_status?: string | null
@@ -1576,6 +1578,7 @@ export type Database = {
           billable_intro_created_at?: string | null
           billable_status?: string | null
           city?: string | null
+          client_slug?: string | null
           closed_at?: string | null
           confidence_score?: number | null
           contact_release_status?: string | null
