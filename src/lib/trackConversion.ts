@@ -1,23 +1,39 @@
 /**
- * trackGtmEvent — Universal GTM dataLayer push utility.
+ * trackConversion.ts — Canonical Business Event Emitter (dataLayer)
  *
- * USAGE:
- *   import { trackGtmEvent } from "@/lib/trackConversion";
- *   trackGtmEvent("quote_uploaded", { county: "Miami-Dade", file_type: "pdf" });
+ * This is the ONLY lane for business / conversion events on the canonical
+ * scanner → OTP → report reveal path. Every business event pushed here
+ * lands in `window.dataLayer` for GTM to consume.
+ *
+ * OWNERSHIP:
+ *   This file owns event emission format and dataLayer push mechanics.
+ *   Individual call-site owners decide WHEN to fire each event.
+ *
+ * SEPARATION FROM trackEvent.ts:
+ *   trackEvent.ts is operational telemetry (event_logs table).
+ *   trackConversion.ts is business / conversion signaling (dataLayer).
+ *   They serve different consumers and must not be conflated.
+ *
+ * CANONICAL BUSINESS EVENTS on the scanner/OTP/report path:
+ *   ┌──────────────────────────────┬────────────────────────────────────────────┐
+ *   │ Event Name                   │ Canonical Owner                            │
+ *   ├──────────────────────────────┼────────────────────────────────────────────┤
+ *   │ quote_uploaded               │ UploadZone.tsx (after successful upload)   │
+ *   │ phone_verified               │ PostScanReportSwitcher (on OTP success)    │
+ *   │ report_revealed              │ PostScanReportSwitcher (on full data load) │
+ *   │ contractor_match_requested   │ TruthReportClassic (on CTA click)         │
+ *   └──────────────────────────────┴────────────────────────────────────────────┘
  *
  * GTM SETUP:
- *   Your GTM expert creates triggers matching `event` names below,
- *   then maps them to GA4, Meta CAPI, Google Ads, etc. as needed.
- *   The codebase never references platform-specific SDKs.
+ *   GTM triggers match `event` names above, then route to GA4, Meta CAPI,
+ *   Google Ads, etc. The codebase never calls vendor SDKs directly.
  *
- * REGISTERED EVENTS (reference for GTM configuration):
- *   - homepage_variant_viewed     → A/B test variant assignment
- *   - quote_uploaded              → User successfully uploaded a quote file
- *   - otp_verified                → User completed SMS phone verification
- *   - report_revealed             → Full Truth Report unlocked post-OTP
- *   - voice_call_triggered        → AI voice call manually triggered from admin
- *   - appointment_booked          → Lead status changed to "appointment"
- *   - contractor_match_requested  → User clicked "Get a Counter-Quote"
+ * DEFERRED (not yet implemented — future GTM/CAPI rollout):
+ *   - event_id generation for cross-platform dedup
+ *   - lead_id / UTM enrichment in payload
+ *   - CAPI server-side relay
+ *   These will be added when trackBusinessEvent.ts is promoted to replace
+ *   this file, or when this file is upgraded to use its payload contract.
  */
 
 export function trackGtmEvent(
