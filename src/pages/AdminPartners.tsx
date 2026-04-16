@@ -1,10 +1,10 @@
 /**
  * AdminPartners — White-label client management dashboard.
  * CRUD for clients + meta_configurations, realtime CAPI signal log.
- * P1: RBAC gating, search/sort, multi-filter signal log, CSV export, input sanitization.
+ * P2: Idempotency guards, race condition handling, undo/restore, virtualized log, mobile touch targets.
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Plus, Check, Copy, ChevronDown, ChevronRight, X, Loader2,
   Globe, Settings, Radio, Trash2, Search, ArrowUpDown, Download,
-  ArrowLeft,
+  ArrowLeft, RotateCcw,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -162,6 +162,7 @@ function ClientDossierModal({ open, onClose, client, metaConfig, existingSlugs, 
   const canSave = name.trim() && slug && !slugError && !nameError && !saving;
 
   async function handleSave() {
+    if (saving) return; // Idempotency: prevent double-submit
     setTouched(true);
     if (!name.trim()) { setNameError("Client name is required"); return; }
     if (!canSave) return;
@@ -293,7 +294,7 @@ function ClientDossierModal({ open, onClose, client, metaConfig, existingSlugs, 
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!canSave}>
+          <Button onClick={handleSave} disabled={!canSave} className="min-w-[88px]">
             {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Saving…</> : "Save"}
           </Button>
         </DialogFooter>
@@ -317,9 +318,8 @@ function LandingPageUrl({ url }: { url: string }) {
     <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
       <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
       <code className="text-xs flex-1 truncate">{url}</code>
-      <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleCopy}>
-        {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-        <span className="ml-1 text-xs">{copied ? "Copied!" : "Copy"}</span>
+      <Button size="sm" variant="ghost" className="h-11 w-11 min-w-[44px] min-h-[44px] p-0" onClick={handleCopy}>
+        {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
       </Button>
     </div>
   );
@@ -336,14 +336,14 @@ function DeleteConfirmDialog({ open, clientName, deleting, onConfirm, onCancel }
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will deactivate <strong>{clientName}</strong>. The client record will be preserved but marked inactive.
+            This will deactivate <strong>{clientName}</strong>. The client record will be preserved but marked inactive. You can restore it later.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm} disabled={deleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 min-h-[44px] min-w-[44px]"
           >
             {deleting ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Deleting…</> : "Delete Client"}
           </AlertDialogAction>
@@ -377,158 +377,11 @@ function SortableHeader({ label, sortKey, currentKey, currentDir, onSort, classN
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Realtime Signal Log (multi-filter + CSV export)
+   Virtualized Signal Log Row
    ══════════════════════════════════════════════════════════════ */
 
-function SignalLogSection({ clients }: { clients: Client[] }) {
-  const [logs, setLogs] = useState<SignalLog[]>([]);
-  const [filterSlug, setFilterSlug] = useState<string>("all");
-  const [filterEvent, setFilterEvent] = useState<string>("all");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("capi_signal_logs")
-        .select("*")
-        .order("fired_at", { ascending: false })
-        .limit(100);
-      setLogs((data ?? []) as SignalLog[]);
-      setLoading(false);
-    })();
-  }, []);
-
-  useEffect(() => {
-    const channel = supabase
-      .channel("capi-signal-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "capi_signal_logs" },
-        (payload) => setLogs(prev => [payload.new as SignalLog, ...prev].slice(0, 200))
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
-
-  /** Unique event names for the event type filter */
-  const eventNames = useMemo(() => {
-    const set = new Set<string>();
-    for (const l of logs) if (l.event_name) set.add(l.event_name);
-    return Array.from(set).sort();
-  }, [logs]);
-
-  /** AND-logic: both filters must pass */
-  const filtered = useMemo(() => {
-    return logs.filter(l => {
-      const slugMatch = filterSlug === "all" || (filterSlug === "default" ? !l.client_slug : l.client_slug === filterSlug);
-      const eventMatch = filterEvent === "all" || l.event_name === filterEvent;
-      return slugMatch && eventMatch;
-    });
-  }, [logs, filterSlug, filterEvent]);
-
-  /** Build client slug→name map for CSV */
-  const slugToName = useMemo(() => {
-    const m: Record<string, string> = {};
-    for (const c of clients) m[c.slug] = c.name;
-    return m;
-  }, [clients]);
-
-  function exportCsv() {
-    const headers = ["id", "type", "partner_slug", "partner_name", "timestamp", "pixel_id", "status_code", "payload"];
-    const rows = filtered.map(l => [
-      l.id,
-      l.event_name ?? "",
-      l.client_slug ?? "default",
-      l.client_slug ? (slugToName[l.client_slug] ?? l.client_slug) : "Default Pixel",
-      new Date(l.fired_at).toISOString(),
-      l.pixel_id ?? "",
-      String(l.status_code ?? ""),
-      JSON.stringify(l.payload ?? {}),
-    ]);
-    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `signal-log-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success(`Exported ${filtered.length} signals`);
-  }
-
-  return (
-    <section className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Radio className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-bold uppercase tracking-wider">CAPI Signal Log</h2>
-          <span className="text-xs text-muted-foreground">({filtered.length})</span>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Event type filter */}
-          <Select value={filterEvent} onValueChange={setFilterEvent}>
-            <SelectTrigger className="w-40 h-8 text-xs">
-              <SelectValue placeholder="Signal type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Events</SelectItem>
-              {eventNames.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-            </SelectContent>
-          </Select>
-
-          {/* Client filter */}
-          <Select value={filterSlug} onValueChange={setFilterSlug}>
-            <SelectTrigger className="w-40 h-8 text-xs">
-              <SelectValue placeholder="Filter by client" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Clients</SelectItem>
-              <SelectItem value="default">Default Pixel</SelectItem>
-              {clients.map(c => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-
-          {/* CSV export */}
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={exportCsv} disabled={filtered.length === 0}>
-            <Download className="h-3.5 w-3.5 mr-1" /> CSV
-          </Button>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <p className="text-xs text-muted-foreground text-center py-8">No signals match the current filters.</p>
-      ) : (
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-muted/50 text-left">
-                <th className="px-3 py-2 w-6"></th>
-                <th className="px-3 py-2">Event</th>
-                <th className="px-3 py-2">Client</th>
-                <th className="px-3 py-2">Pixel</th>
-                <th className="px-3 py-2 text-center">Status</th>
-                <th className="px-3 py-2 text-right">Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(log => (
-                <SignalLogRow
-                  key={log.id} log={log}
-                  expanded={expandedId === log.id}
-                  onToggle={() => setExpandedId(expandedId === log.id ? null : log.id)}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  );
-}
+const LOG_ROW_HEIGHT = 40;
+const LOG_VISIBLE_COUNT = 50;
 
 function SignalLogRow({ log, expanded, onToggle }: { log: SignalLog; expanded: boolean; onToggle: () => void }) {
   const statusOk = log.status_code != null && log.status_code >= 200 && log.status_code < 300;
@@ -575,6 +428,204 @@ function SignalLogRow({ log, expanded, onToggle }: { log: SignalLog; expanded: b
 }
 
 /* ══════════════════════════════════════════════════════════════
+   Realtime Signal Log (multi-filter + CSV export + virtualization)
+   ══════════════════════════════════════════════════════════════ */
+
+function SignalLogSection({ clients, sessionKey }: { clients: Client[]; sessionKey: string }) {
+  const [logs, setLogs] = useState<SignalLog[]>([]);
+  const [filterSlug, setFilterSlug] = useState<string>("all");
+  const [filterEvent, setFilterEvent] = useState<string>("all");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(LOG_VISIBLE_COUNT);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Session-scoped: reset state when sessionKey changes (navigating between partners)
+  useEffect(() => {
+    setLogs([]);
+    setFilterSlug("all");
+    setFilterEvent("all");
+    setExpandedId(null);
+    setLoading(true);
+    setVisibleCount(LOG_VISIBLE_COUNT);
+
+    (async () => {
+      const { data } = await supabase
+        .from("capi_signal_logs")
+        .select("*")
+        .order("fired_at", { ascending: false })
+        .limit(200);
+      setLogs((data ?? []) as SignalLog[]);
+      setLoading(false);
+    })();
+  }, [sessionKey]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`capi-signal-realtime-${sessionKey}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "capi_signal_logs" },
+        (payload) => setLogs(prev => [payload.new as SignalLog, ...prev].slice(0, 500))
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [sessionKey]);
+
+  /** Unique event names for the event type filter */
+  const eventNames = useMemo(() => {
+    const set = new Set<string>();
+    for (const l of logs) if (l.event_name) set.add(l.event_name);
+    return Array.from(set).sort();
+  }, [logs]);
+
+  /** AND-logic: both filters must pass */
+  const filtered = useMemo(() => {
+    return logs.filter(l => {
+      const slugMatch = filterSlug === "all" || (filterSlug === "default" ? !l.client_slug : l.client_slug === filterSlug);
+      const eventMatch = filterEvent === "all" || l.event_name === filterEvent;
+      return slugMatch && eventMatch;
+    });
+  }, [logs, filterSlug, filterEvent]);
+
+  /** Virtualized slice — only render visibleCount rows */
+  const visibleLogs = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+
+  /** Load more on scroll */
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+      setVisibleCount(prev => Math.min(prev + LOG_VISIBLE_COUNT, filtered.length));
+    }
+  }, [filtered.length]);
+
+  /** Build client slug→name map for CSV */
+  const slugToName = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const c of clients) m[c.slug] = c.name;
+    return m;
+  }, [clients]);
+
+  /** Stream-friendly chunked CSV export to prevent browser timeout on 10k+ entries */
+  function exportCsv() {
+    const headers = ["id", "type", "partner_slug", "partner_name", "timestamp", "pixel_id", "status_code", "payload"];
+    const chunks: string[] = [headers.join(",") + "\n"];
+    const CHUNK_SIZE = 500;
+    for (let i = 0; i < filtered.length; i += CHUNK_SIZE) {
+      const slice = filtered.slice(i, i + CHUNK_SIZE);
+      const block = slice.map(l => [
+        l.id,
+        l.event_name ?? "",
+        l.client_slug ?? "default",
+        l.client_slug ? (slugToName[l.client_slug] ?? l.client_slug) : "Default Pixel",
+        new Date(l.fired_at).toISOString(),
+        l.pixel_id ?? "",
+        String(l.status_code ?? ""),
+        JSON.stringify(l.payload ?? {}),
+      ].map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+      chunks.push(block + "\n");
+    }
+    const blob = new Blob(chunks, { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `signal-log-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filtered.length} signals`);
+  }
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Radio className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-bold uppercase tracking-wider">CAPI Signal Log</h2>
+          <span className="text-xs text-muted-foreground">({filtered.length})</span>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Event type filter */}
+          <Select value={filterEvent} onValueChange={setFilterEvent}>
+            <SelectTrigger className="w-40 h-8 text-xs">
+              <SelectValue placeholder="Signal type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Events</SelectItem>
+              {eventNames.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          {/* Client filter */}
+          <Select value={filterSlug} onValueChange={setFilterSlug}>
+            <SelectTrigger className="w-40 h-8 text-xs">
+              <SelectValue placeholder="Filter by client" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Clients</SelectItem>
+              <SelectItem value="default">Default Pixel</SelectItem>
+              {clients.map(c => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          {/* CSV export */}
+          <Button size="sm" variant="outline" className="h-11 min-w-[44px] min-h-[44px] text-xs px-3" onClick={exportCsv} disabled={filtered.length === 0}>
+            <Download className="h-3.5 w-3.5 mr-1" /> CSV
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="text-xs text-muted-foreground text-center py-8">No signals match the current filters.</p>
+      ) : (
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="border rounded-lg overflow-auto max-h-[600px]"
+        >
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-muted/50 text-left">
+                <th className="px-3 py-2 w-6"></th>
+                <th className="px-3 py-2">Event</th>
+                <th className="px-3 py-2">Client</th>
+                <th className="px-3 py-2">Pixel</th>
+                <th className="px-3 py-2 text-center">Status</th>
+                <th className="px-3 py-2 text-right">Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleLogs.map(log => (
+                <SignalLogRow
+                  key={log.id} log={log}
+                  expanded={expandedId === log.id}
+                  onToggle={() => setExpandedId(expandedId === log.id ? null : log.id)}
+                />
+              ))}
+              {visibleCount < filtered.length && (
+                <tr>
+                  <td colSpan={6} className="px-3 py-3 text-center">
+                    <Button
+                      size="sm" variant="ghost" className="text-xs h-8"
+                      onClick={() => setVisibleCount(prev => Math.min(prev + LOG_VISIBLE_COUNT, filtered.length))}
+                    >
+                      Load more ({filtered.length - visibleCount} remaining)
+                    </Button>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
    Main Page
    ══════════════════════════════════════════════════════════════ */
 
@@ -595,6 +646,9 @@ function AdminPartnersContent() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  // Session key for scoping signal log state — changes whenever client list refreshes
+  const [sessionKey, setSessionKey] = useState(() => crypto.randomUUID());
 
   // Debounce search input
   useEffect(() => {
@@ -658,15 +712,70 @@ function AdminPartnersContent() {
     setModalOpen(true);
   }
 
+  /** Restore (undo soft-delete) — sets is_active back to true */
+  async function handleRestore(client: Client) {
+    try {
+      const { error, data } = await supabase
+        .from("clients")
+        .update({ is_active: true })
+        .eq("id", client.id)
+        .select("id")
+        .single();
+      // Race condition: record was hard-deleted or doesn't exist
+      if (error || !data) {
+        toast.error("This record has already been removed and cannot be restored.");
+        return;
+      }
+      toast.success(`"${client.name}" has been restored`);
+      fetchAll();
+    } catch {
+      toast.error("Restore failed");
+    }
+  }
+
   async function handleDelete() {
-    if (!deleteTarget || !hasWriteAccess) return;
+    if (!deleteTarget || !hasWriteAccess || deleting) return; // Idempotency guard
     setDeleting(true);
     try {
+      // Race condition: check the record still exists and is active before soft-deleting
+      const { data: current, error: fetchError } = await supabase
+        .from("clients")
+        .select("id, is_active, name")
+        .eq("id", deleteTarget.id)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (!current) {
+        toast.info("This record has already been removed.");
+        setDeleteTarget(null);
+        fetchAll();
+        return;
+      }
+
+      if (!current.is_active) {
+        toast.info(`"${current.name}" was already deactivated.`);
+        setDeleteTarget(null);
+        fetchAll();
+        return;
+      }
+
       const { error } = await supabase.from("clients").update({ is_active: false }).eq("id", deleteTarget.id);
       if (error) throw error;
-      toast.success(`"${deleteTarget.name}" has been deactivated`);
+
+      const deletedName = deleteTarget.name;
+      const deletedClient = { ...deleteTarget };
       setDeleteTarget(null);
       fetchAll();
+
+      // Undo toast with restore action
+      toast.success(`"${deletedName}" has been deactivated`, {
+        action: {
+          label: "Undo",
+          onClick: () => handleRestore(deletedClient),
+        },
+        duration: 8000,
+      });
     } catch (err: any) {
       console.error("[AdminPartners] delete error:", err);
       toast.error(err?.message ?? "Delete failed");
@@ -683,7 +792,7 @@ function AdminPartnersContent() {
       <div className="border-b bg-card">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/admin" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors mr-1">
+            <Link to="/admin" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors mr-1 min-h-[44px] min-w-[44px] justify-center">
               <ArrowLeft className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">CRM</span>
             </Link>
@@ -695,7 +804,7 @@ function AdminPartnersContent() {
             </div>
           </div>
           {hasWriteAccess && (
-            <Button size="sm" onClick={openCreate}>
+            <Button size="sm" onClick={openCreate} className="min-h-[44px] min-w-[44px]">
               <Plus className="h-4 w-4 mr-1.5" /> Add Client
             </Button>
           )}
@@ -710,10 +819,13 @@ function AdminPartnersContent() {
             placeholder="Search clients…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="pl-9 h-9"
+            className="pl-9 h-11"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            >
               <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
             </button>
           )}
@@ -763,20 +875,35 @@ function AdminPartnersContent() {
                         <span className={`inline-block w-2 h-2 rounded-full ${c.is_active ? "bg-emerald-500" : "bg-muted-foreground/30"}`} />
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{formatDate(c.created_at)}</td>
-                      <td className="px-4 py-3 text-right space-x-1">
+                      <td className="px-4 py-3 text-right">
                         {hasWriteAccess ? (
-                          <>
-                            <Button size="sm" variant="ghost" onClick={() => openEdit(c)}>
-                              <Settings className="h-3.5 w-3.5 mr-1" /> Manage
-                            </Button>
+                          <div className="inline-flex items-center gap-1">
                             <Button
                               size="sm" variant="ghost"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              onClick={() => setDeleteTarget(c)}
+                              className="min-h-[44px] min-w-[44px] px-3"
+                              onClick={() => openEdit(c)}
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <Settings className="h-3.5 w-3.5 mr-1" /> Manage
                             </Button>
-                          </>
+                            {c.is_active ? (
+                              <Button
+                                size="sm" variant="ghost"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10 min-h-[44px] min-w-[44px] p-0"
+                                onClick={() => setDeleteTarget(c)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm" variant="ghost"
+                                className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 min-h-[44px] min-w-[44px] p-0"
+                                onClick={() => handleRestore(c)}
+                                title="Restore client"
+                              >
+                                <RotateCcw className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-xs text-muted-foreground italic">View only</span>
                         )}
@@ -790,7 +917,7 @@ function AdminPartnersContent() {
         )}
 
         {/* ── Signal Log ── */}
-        <SignalLogSection clients={clients} />
+        <SignalLogSection clients={clients} sessionKey={sessionKey} />
       </div>
 
       {/* ── Dossier Modal ── */}
@@ -800,7 +927,10 @@ function AdminPartnersContent() {
         client={editClient}
         metaConfig={editClient ? configByClientId[editClient.id] ?? null : null}
         existingSlugs={existingSlugs}
-        onSaved={fetchAll}
+        onSaved={() => {
+          fetchAll();
+          setSessionKey(crypto.randomUUID()); // Reset signal log session on data change
+        }}
       />
 
       {/* ── Delete Confirmation ── */}
