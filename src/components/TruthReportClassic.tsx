@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { trackGtmEvent } from "@/lib/trackConversion";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Copy,
