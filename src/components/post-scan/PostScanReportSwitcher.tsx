@@ -89,15 +89,18 @@ export function PostScanReportSwitcher(props: Props) {
   // ═══ CANONICAL BUSINESS EVENT: report_revealed ═══
   // Fires ONCE when full report data loads after OTP verification.
   // Does NOT fire on resume (resume is a returning-user operational event, not a conversion).
+  // event_id is supplied by verify-otp and reused here so browser dataLayer +
+  // server canonical persistence share one id (cross-lane dedup-safe).
   const reportRevealedRef = useRef(false);
+  const reportRevealedEventIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (reportRevealedRef.current) return;
     if (props.isFullLoaded && capturedPhone) {
-      // capturedPhone is only set during OTP flow, not on resume.
-      // This ensures report_revealed fires once per fresh verification only.
       reportRevealedRef.current = true;
       trackGtmEvent("report_revealed", {
+        event_id: reportRevealedEventIdRef.current ?? undefined,
         scan_session_id: props.scanSessionId || undefined,
+        lead_id: undefined,
         grade: props.grade,
       });
     }
