@@ -5,6 +5,7 @@ const GOOGLE_ACTION_MAP: Record<string, string> = {
   lead_identified: "wm_lead_identified",
   lead_qualified: "wm_lead_qualified",
   quote_uploaded: "wm_quote_uploaded",
+  quote_upload_completed: "wm_quote_uploaded",
   quote_validation_passed: "wm_quote_validation_passed",
   appointment_booked: "wm_appointment_booked",
   sale_confirmed: "wm_sale_confirmed",

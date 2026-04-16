@@ -41,7 +41,7 @@ interface CreateCanonicalEventResult {
   dispatchPlatforms: WMPlatformName[];
 }
 
-const QUOTE_EVENTS = new Set(["quote_validation_passed", "quote_upload_completed"]);
+const QUOTE_EVENTS = new Set(["quote_validation_passed", "quote_upload_completed", "quote_uploaded"]);
 
 function sanitizeEventIdSegment(value: unknown): string {
   if (value === null || value === undefined) {
