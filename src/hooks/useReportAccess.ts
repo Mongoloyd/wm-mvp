@@ -9,8 +9,6 @@
  * has confirmed verification and released the data.
  */
 
-import { useScanFunnelSafe } from "../state/scanFunnel";
-
 export type ReportAccessLevel = "preview" | "full";
 
 interface UseReportAccessOptions {

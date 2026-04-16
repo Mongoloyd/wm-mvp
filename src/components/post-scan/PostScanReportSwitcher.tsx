@@ -4,16 +4,23 @@
  * CANONICAL: Always renders TruthReportClassic (findings-first removed).
  * Owns the real Twilio OTP pipeline for the in-page scan flow.
  * Owns CTA logic: generate-contractor-brief + voice-followup edge functions.
+ *
+ * STATE OWNERSHIP (Phase 3):
+ *   - This component is the SINGLE place that decides which render state
+ *     the reveal path displays (locked / full_loading / full_stalled / full_ready).
+ *   - It derives a canonical RevealPhase from hook outputs once per render.
+ *   - TruthReportClassic is presentational — it receives accessLevel and
+ *     gateProps but does not independently reason about access.
  */
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Loader2 } from "lucide-react";
-import { useReportAccess } from "@/hooks/useReportAccess";
 import { trackEvent } from "@/lib/trackEvent";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { deriveRevealPhase, phaseToAccessLevel } from "@/lib/deriveRevealPhase";
 import TruthReportClassic from "../TruthReportClassic";
 import type { SuggestedMatch } from "../TruthReportClassic";
 import type { GateMode, LockedOverlayProps } from "@/components/LockedOverlay";
@@ -44,21 +51,11 @@ type Props = {
   onVerified?: (phoneE164: string) => void;
   /** True when gated full data has been loaded */
   isFullLoaded?: boolean;
+  /** True when full data fetch is in-flight */
+  isLoadingFull?: boolean;
   /** Error message from fetchFull — surfaces immediately instead of waiting for stall timer */
   fullFetchError?: string | null;
 };
-
-function deriveGateMode(
-  funnelPhoneStatus: string | undefined,
-  funnelPhoneE164: string | null | undefined,
-  localGateOverride: GateMode | null
-): GateMode {
-  if (localGateOverride) return localGateOverride;
-  if (funnelPhoneStatus === "sending_otp") return "send_code";
-  if (funnelPhoneStatus === "otp_sent" || funnelPhoneStatus === "verified") return "enter_code";
-  if (funnelPhoneE164) return "send_code";
-  return "enter_phone";
-}
 
 function maskPhone(e164: string): string {
   const digits = e164.replace(/\D/g, "");
@@ -67,14 +64,13 @@ function maskPhone(e164: string): string {
 }
 
 export function PostScanReportSwitcher(props: Props) {
-  const accessLevel = useReportAccess({ isFullLoaded: props.isFullLoaded });
   const funnel = useScanFunnelSafe();
   const [otpValue, setOtpValue] = useState("");
   const [isSendInFlight, setIsSendInFlight] = useState(false);
   const [tcpaConsent, setTcpaConsent] = useState(false);
   const [localGateOverride, setLocalGateOverride] = useState<GateMode | null>(null);
   const [capturedPhone, setCapturedPhone] = useState<string | null>(null);
-  const [fetchStalled, setFetchStalled] = useState(false);
+  const [fetchStallTimerFired, setFetchStallTimerFired] = useState(false);
   const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
@@ -110,10 +106,6 @@ export function PostScanReportSwitcher(props: Props) {
   }, [props.scanSessionId, props.isFullLoaded]);
 
   // ── Hydrate/validate phone from leads table on mount ──
-  // Two cases handled:
-  // 1. Funnel phone is empty → hydrate from DB (page refresh scenario)
-  // 2. Funnel phone is set but DOESN'T MATCH the current lead → clear it
-  //    (stale phone from previous session leaked via localStorage)
   const phoneValidatedRef = useRef<string | null>(null);
   useEffect(() => {
     if (!props.scanSessionId || phoneValidatedRef.current === props.scanSessionId) return;
@@ -140,12 +132,10 @@ export function PostScanReportSwitcher(props: Props) {
         phoneValidatedRef.current = props.scanSessionId;
 
         if (lead?.phone_e164) {
-          // Lead has a phone — inject into funnel if not already set
           if (!funnel.phoneE164) {
             funnel.setPhone(lead.phone_e164, "none");
           }
         } else if (funnel.phoneE164) {
-          // Lead has NO phone but funnel has a stale one — clear it
           console.log("[PostScanReportSwitcher] Clearing stale funnel phone (lead has no phone)");
           funnel.setPhone("", "none");
         }
@@ -162,45 +152,71 @@ export function PostScanReportSwitcher(props: Props) {
     externalPhoneE164: funnel?.phoneE164 ?? null,
     onVerified: () => {
       funnel?.setPhoneStatus("verified");
-      // DO NOT call props.onVerified here — phone is not yet available.
-      // The canonical phone handoff happens in handleOtpSubmit after
-      // submitOtp returns result.e164.
     },
   });
-// ── Send report email on first preview load (fire-and-forget) ──
-useEffect(() => {
-  if (!props.scanSessionId || !props.grade) return;
-  // Non-blocking: send email in background
-  supabase.functions
-    .invoke("send-report-email", {
-      body: {
-        scan_session_id: props.scanSessionId,
-        email_type: "preview",
-      },
-    })
-    .then(({ data, error }) => {
-      if (error) console.warn("[PostScanReportSwitcher] report email failed:", error);
-      else if (data?.success) console.log("[PostScanReportSwitcher] report email sent");
-      else if (data?.skipped) console.log("[PostScanReportSwitcher] email skipped:", data.reason);
-    });
-}, [props.scanSessionId, props.grade]);
+
+  // ── Send report email on first preview load (fire-and-forget) ──
+  useEffect(() => {
+    if (!props.scanSessionId || !props.grade) return;
+    supabase.functions
+      .invoke("send-report-email", {
+        body: {
+          scan_session_id: props.scanSessionId,
+          email_type: "preview",
+        },
+      })
+      .then(({ data, error }) => {
+        if (error) console.warn("[PostScanReportSwitcher] report email failed:", error);
+        else if (data?.success) console.log("[PostScanReportSwitcher] report email sent");
+        else if (data?.skipped) console.log("[PostScanReportSwitcher] email skipped:", data.reason);
+      });
+  }, [props.scanSessionId, props.grade]);
+
   // Resolve phone for CTA calls
   const phoneE164 = capturedPhone || funnel?.phoneE164 || pipeline.e164 || null;
 
-  // ── Stall detection ──
+  // ── Stall detection timer ──
+  // Sets fetchStallTimerFired=true when verified but full not loaded after 5s.
+  // This is an INPUT to the canonical RevealPhase derivation, not a render decision.
   useEffect(() => {
-    // If fetchFull already failed, surface error immediately — no need to wait 5s
+    // If fetchFull already failed, surface immediately — no need to wait 5s
     if (props.fullFetchError && !props.isFullLoaded) {
-      setFetchStalled(true);
+      setFetchStallTimerFired(true);
       return;
     }
     if (funnel?.phoneStatus === "verified" && !props.isFullLoaded) {
-      stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);
+      stallTimerRef.current = setTimeout(() => setFetchStallTimerFired(true), 5000);
       return () => { if (stallTimerRef.current) clearTimeout(stallTimerRef.current); };
     }
-    if (props.isFullLoaded && fetchStalled) setFetchStalled(false);
+    if (props.isFullLoaded && fetchStallTimerFired) setFetchStallTimerFired(false);
     if (stallTimerRef.current) { clearTimeout(stallTimerRef.current); stallTimerRef.current = null; }
-  }, [funnel?.phoneStatus, props.isFullLoaded, props.fullFetchError, fetchStalled]);
+  }, [funnel?.phoneStatus, props.isFullLoaded, props.fullFetchError, fetchStallTimerFired]);
+
+  // ═══ CANONICAL PHASE DERIVATION ═══
+  // This is the SINGLE source of truth for render decisions.
+  // All downstream rendering branches from this value.
+  const revealPhase = useMemo(() => deriveRevealPhase({
+    isFullLoaded: !!props.isFullLoaded,
+    isLoadingFull: !!props.isLoadingFull,
+    fullFetchError: props.fullFetchError ?? null,
+    funnelPhoneStatus: funnel?.phoneStatus,
+    funnelPhoneE164: funnel?.phoneE164,
+    localGateOverride,
+    fetchStallTimerFired,
+  }), [
+    props.isFullLoaded,
+    props.isLoadingFull,
+    props.fullFetchError,
+    funnel?.phoneStatus,
+    funnel?.phoneE164,
+    localGateOverride,
+    fetchStallTimerFired,
+  ]);
+
+  // Derived values from canonical phase
+  const accessLevel = phaseToAccessLevel(revealPhase);
+  const currentGateMode: GateMode = revealPhase.phase === "locked" ? revealPhase.gateMode : "enter_code";
+  const isStalled = revealPhase.phase === "full_stalled";
 
   const handleRetryFetchFull = useCallback(() => {
     const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
@@ -213,17 +229,14 @@ useEffect(() => {
       return;
     }
     trackEvent({ event_name: "fetch_stall_retry", session_id: props.scanSessionId, metadata: { phone_last4: phone.slice(-4) } });
-    setFetchStalled(false);
+    setFetchStallTimerFired(false);
     props.onVerified(phone);
     // Restart the stall timer so the retry button reappears if the fetch stalls again
     if (stallTimerRef.current) clearTimeout(stallTimerRef.current);
-    stallTimerRef.current = setTimeout(() => setFetchStalled(true), 5000);
+    stallTimerRef.current = setTimeout(() => setFetchStallTimerFired(true), 5000);
   }, [capturedPhone, funnel?.phoneE164, pipeline.e164, props]);
 
-  const gateMode = deriveGateMode(funnel?.phoneStatus, funnel?.phoneE164, localGateOverride);
-
   const verifyLockRef = useRef(false);
-
 
   const handleOtpSubmit = useCallback(async () => {
     if (otpValue.length < 6 || verifyLockRef.current) return;
@@ -263,16 +276,15 @@ useEffect(() => {
   }, [funnel, pipeline, isSendInFlight]);
 
   // Auto-send OTP when phone is pre-filled (e.g. hydrated from leads table)
-  // Guard: only fire once per component lifetime to prevent duplicate Twilio sends
   const autoSendFiredRef = useRef(false);
   useEffect(() => {
     if (autoSendFiredRef.current) return;
-    if (gateMode === "send_code" && funnel?.phoneE164 && !isSendInFlight) {
+    if (currentGateMode === "send_code" && funnel?.phoneE164 && !isSendInFlight) {
       autoSendFiredRef.current = true;
       handleSendCode();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally fire only once
-  }, [gateMode, funnel?.phoneE164]);
+  }, [currentGateMode, funnel?.phoneE164]);
 
   const handlePhoneSubmit = useCallback(async () => {
     if (isSendInFlight) return;
@@ -312,7 +324,6 @@ useEffect(() => {
       return;
     }
     if (result.status === "blocked") {
-      // Keep OTP-ready state for cooldown UX; do not downgrade to send_failed.
       funnel.setPhoneStatus("otp_sent");
       return;
     }
@@ -320,9 +331,6 @@ useEffect(() => {
   }, [pipeline, funnel]);
 
   // ── Detect 2+ completed analyses for this lead via SECURITY DEFINER RPC ──
-  // Direct queries to scan_sessions and analyses are blocked for anon users (no
-  // SELECT RLS policy). get_comparable_sessions() runs as SECURITY DEFINER and
-  // returns the session IDs for completed analyses belonging to the same lead.
   useEffect(() => {
     if (!props.scanSessionId || !props.isFullLoaded) return;
     let cancelled = false;
@@ -367,6 +375,7 @@ useEffect(() => {
       setComparisonLoading(false);
     }
   }, [availableComparisons, phoneE164]);
+
   const handleContractorMatchClick = useCallback(async () => {
     if (!props.scanSessionId || !phoneE164) {
       toast.error("Unable to process request. Please verify your phone number first.");
@@ -386,7 +395,6 @@ useEffect(() => {
       if (data.suggested_match) {
         setSuggestedMatch(data.suggested_match);
       }
-      // Fire voice followup
       supabase.functions.invoke("voice-followup", {
         body: {
           scan_session_id: props.scanSessionId,
@@ -435,8 +443,9 @@ useEffect(() => {
   const effectiveErrorMsg =
     pipeline.errorMsg || (sharedSendFailed ? "Send or confirm your number to receive a code." : "");
 
+  // ── Build gate props (only used when phase is locked or stalled) ──
   const gateProps: Omit<LockedOverlayProps, "grade" | "flagCount"> = {
-    gateMode,
+    gateMode: currentGateMode,
     otpValue,
     onOtpChange: setOtpValue,
     onOtpSubmit: handleOtpSubmit,
@@ -459,7 +468,7 @@ useEffect(() => {
     errorType: pipeline.errorType ?? (sharedSendFailed ? "generic" : undefined),
     resendCooldown: pipeline.resendCooldown,
     onResend: handleResend,
-    fetchStalled,
+    fetchStalled: isStalled,
     onRetryFetchFull: handleRetryFetchFull,
   };
 
