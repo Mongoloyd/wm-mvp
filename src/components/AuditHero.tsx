@@ -99,18 +99,15 @@ const AuditHero = ({
           {/* ── ORDER 2 (mobile/tablet) / right column (lg+): Mascot + GradeCard ── */}
           <div className="order-2 lg:order-last lg:flex-1 flex flex-col items-center pt-0 lg:pt-16">
             <div className="relative z-20 flex justify-center pointer-events-none w-full">
-              <motion.div
-                animate={{ y: [-8, 0, -8] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              >
                 <img
                   src={MASCOT_URL}
                   alt="WindowMan holding a Truth Report"
                   fetchPriority="high"
                   decoding="async"
-                  className="w-full max-w-md lg:w-80 xl:w-[480px] h-auto object-contain"
+                  width={480}
+                  height={640}
+                  className="w-full max-w-md lg:w-80 xl:w-[480px] h-auto object-contain mascot-float"
                 />
-              </motion.div>
             </div>
 
             {/* Grade card: visible on lg+ (desktop right column) */}
