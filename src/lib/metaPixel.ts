@@ -289,12 +289,31 @@ export const metaConversions = {
       params,
     }),
 
-  /** Upload started — quote upload initiated */
+  /** Upload started — quote upload initiated (custom event only) */
   uploadStarted: (params: { county?: string }) =>
     trackConversion({
       eventName: "wm_upload_started",
-      standardEventName: "AddToCart",
       params,
+    }),
+
+  /** Quote uploaded — file successfully uploaded and scan session created */
+  quoteUploaded: (params: {
+    county?: string;
+    email?: string;
+    phone?: string;
+    firstName?: string;
+  }) =>
+    trackConversion({
+      eventName: "quote_uploaded",
+      standardEventName: "SubmitApplication",
+      email: params.email,
+      phone: params.phone,
+      firstName: params.firstName,
+      value: 250,
+      currency: "USD",
+      params: {
+        county: params.county,
+      },
     }),
 
   /** Lead captured — phone/email submitted */
@@ -311,6 +330,8 @@ export const metaConversions = {
       email: params.email,
       phone: params.phone,
       firstName: params.firstName,
+      value: 10,
+      currency: "USD",
       params: {
         county: params.county,
         flow: params.flow,
@@ -331,6 +352,8 @@ export const metaConversions = {
       standardEventName: "CompleteRegistration",
       phone: params.phone,
       clientSlug: params.clientSlug,
+      value: 500,
+      currency: "USD",
       params: {
         county: params.county,
         flow: params.flow,
@@ -363,8 +386,9 @@ export const metaConversions = {
     trackConversion({
       eventName: "wm_contractor_match_requested",
       standardEventName: "Schedule",
+      value: 1000,
+      currency: "USD",
       params,
-      value: 0,
     }),
 };
 

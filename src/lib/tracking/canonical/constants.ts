@@ -12,7 +12,6 @@ export const WM_EVENT_NAMES = [
   "sold",
   "lead_identified",
   "lead_qualified",
-  "quote_upload_completed",
   "quote_validation_passed",
   "sale_confirmed",
 ] as const;
