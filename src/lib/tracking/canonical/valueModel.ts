@@ -3,6 +3,7 @@ import type { WMEventName, WMOptimizationPayload } from "./types";
 const VALUE_LADDER: Record<string, number> = {
   lead_identified: 10,
   lead_qualified: 100,
+  quote_uploaded: 250,
   quote_upload_completed: 250,
   quote_validation_passed: 500,
   appointment_booked: 1000,

@@ -608,7 +608,7 @@ Deno.serve(async (req: Request) => {
     try {
       try {
         await persistCanonicalEvent(supabase, {
-          eventName: "quote_upload_completed",
+          eventName: "quote_uploaded",
           leadId: session.lead_id ?? undefined,
           scanSessionId: scan_session_id,
           quoteFileId: session.quote_file_id ?? undefined,
@@ -631,7 +631,7 @@ Deno.serve(async (req: Request) => {
           },
         });
       } catch (canonicalErr) {
-        console.error("quote_upload_completed canonical event failed (non-fatal):", canonicalErr);
+        console.error("quote_uploaded canonical event failed (non-fatal):", canonicalErr);
       }
       // ── DEV BYPASS: skip file download + Gemini when override provided ──
       const _devBypassSecret = Deno.env.get("DEV_BYPASS_SECRET");

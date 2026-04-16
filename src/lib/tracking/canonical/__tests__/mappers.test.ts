@@ -82,4 +82,28 @@ describe("canonical mappers", () => {
 
     expect(mapToMeta(canonical, "https://windowman.example").suppressed).toBe(true);
   });
+
+  it("maps quote_uploaded to correct google conversion action", () => {
+    const canonical = canonicalFixture({ eventName: "quote_uploaded" });
+    const google = mapToGoogle(canonical);
+
+    expect(google.suppressed).toBe(false);
+    expect(google.payload?.conversion_action).toBe("wm_quote_uploaded");
+  });
+
+  it("maps quote_upload_completed alias to correct google conversion action", () => {
+    const canonical = canonicalFixture({ eventName: "quote_upload_completed" });
+    const google = mapToGoogle(canonical);
+
+    expect(google.suppressed).toBe(false);
+    expect(google.payload?.conversion_action).toBe("wm_quote_uploaded");
+  });
+
+  it("maps quote_uploaded to SubmitApplication meta event", () => {
+    const canonical = canonicalFixture({ eventName: "quote_uploaded" });
+    const meta = mapToMeta(canonical, "https://windowman.example/vault");
+
+    expect(meta.suppressed).toBe(false);
+    expect(meta.payload?.event_name).toBe("SubmitApplication");
+  });
 });

@@ -4,7 +4,8 @@ import type { WMCanonicalEvent } from "./types";
 const GOOGLE_ACTION_MAP: Record<string, string> = {
   lead_identified: "wm_lead_identified",
   lead_qualified: "wm_lead_qualified",
-  quote_upload_completed: "wm_quote_upload_completed",
+  quote_uploaded: "wm_quote_uploaded",
+  quote_upload_completed: "wm_quote_uploaded",
   quote_validation_passed: "wm_quote_validation_passed",
   appointment_booked: "wm_appointment_booked",
   sale_confirmed: "wm_sale_confirmed",
@@ -32,13 +33,20 @@ export interface GoogleMapperResult {
 }
 
 export function mapToGoogle(canonical: WMCanonicalEvent): GoogleMapperResult {
-  if (!canonical.shouldSendGoogle) return { suppressed: true, reason: "shouldSendGoogle_false" };
+  if (!canonical.shouldSendGoogle) {
+    return { suppressed: true, reason: "shouldSendGoogle_false" };
+  }
 
   const action = GOOGLE_ACTION_MAP[canonical.eventName];
-  if (!action) return { suppressed: true, reason: "no_google_mapping" };
+  if (!action) {
+    return { suppressed: true, reason: "no_google_mapping" };
+  }
 
   if (QUOTE_QUALITY_EVENTS.has(canonical.eventName)) {
-    if (canonical.payload.analytics?.anomalyStatus !== "safe") return { suppressed: true, reason: "unsafe_anomaly_status" };
+    if (canonical.payload.analytics?.anomalyStatus !== "safe") {
+      return { suppressed: true, reason: "unsafe_anomaly_status" };
+    }
+
     if ((canonical.payload.analytics?.trustScore ?? 0) < WM_QUOTE_TRUST_MIN_FOR_DISPATCH) {
       return { suppressed: true, reason: "trust_below_threshold" };
     }

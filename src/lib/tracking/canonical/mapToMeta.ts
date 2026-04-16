@@ -4,6 +4,7 @@ import type { WMCanonicalEvent } from "./types";
 const META_EVENT_MAP: Record<string, string> = {
   lead_identified: "Lead",
   lead_qualified: "Lead",
+  quote_uploaded: "SubmitApplication",
   quote_upload_completed: "SubmitApplication",
   quote_validation_passed: "CompleteRegistration",
   appointment_booked: "Schedule",
