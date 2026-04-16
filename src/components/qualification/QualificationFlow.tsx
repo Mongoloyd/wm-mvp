@@ -163,8 +163,8 @@ export default function QualificationFlow({ isOpen, onClose }: QualificationFlow
       await supabase.functions.invoke("contractor-booking-confirmed", {
         body: {
           lead_id: leadId,
-          calendly_event_uri: eventData.event?.uri ?? null,
-          calendly_invitee_uri: eventData.invitee?.uri ?? null,
+      calendly_event_uri: (eventData.event as Record<string, unknown>)?.uri ?? null,
+          calendly_invitee_uri: (eventData.invitee as Record<string, unknown>)?.uri ?? null,
         },
       });
       toast({ title: "Booking confirmed!", description: "We'll be in touch shortly." });
