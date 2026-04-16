@@ -240,7 +240,7 @@ const Index = () => {
           </div>
 
           {flowMode === 'A' && (
-            <>
+            <React.Suspense fallback={null}>
               <ScamConcernImage />
               <OrangeScanner
                 onScanClick={() => triggerTruthGate('demo_scan')}
@@ -268,7 +268,7 @@ const Index = () => {
               <div className="mt-24">
                 <SocialProofStrip />
               </div>
-            </>
+            </React.Suspense>
           )}
         </>
       )}
@@ -358,14 +358,14 @@ const Index = () => {
       )}
 
       {!shouldShowReport && !isDevPreview && (
-        <>
+        <React.Suspense fallback={null}>
           <QuoteSpreadShowcase onScanClick={() => triggerTruthGate('quote_spread')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <IndustryTruth onScanClick={() => triggerTruthGate('industry_truth')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <MarketMakerManifesto onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <NarrativeProof onScanClick={() => triggerTruthGate('narrative_proof')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <ClosingManifesto onScanClick={() => triggerTruthGate('closing_manifesto')} onDemoClick={() => { setPowerToolTriggered(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           <Testimonials onScanClick={() => triggerTruthGate('testimonials')} />
-        </>
+        </React.Suspense>
       )}
 
       <ExitIntentPhoneModal stepsCompleted={stepsCompleted} flowMode={flowMode as 'A' | 'B' | 'C'} leadCaptured={leadCaptured} flowBLeadCaptured={flowBLeadCaptured} county={selectedCounty}
