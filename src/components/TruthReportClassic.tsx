@@ -942,14 +942,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                   <motion.button
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
-                    onClick={() => {
-                      trackGtmEvent("contractor_match_requested", {
-                        grade,
-                        county,
-                        issue_count: issueCount,
-                      });
-                      onContractorMatchClick();
-                    }}
+                    onClick={onContractorMatchClick}
                     disabled={isCtaLoading}
                     className={`flex items-center justify-center gap-2 w-full py-4 px-8 text-[17px] ${isCtaLoading ? "btn-depth-gold--pending" : "btn-depth-gold"}`}
                   >
