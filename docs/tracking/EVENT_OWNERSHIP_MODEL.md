@@ -59,7 +59,18 @@ These components bypass the Phase 2 service layer (calling `supabase.functions.i
 
 The following are intentionally NOT implemented in this phase:
 
-1. **`event_id` generation** — `trackBusinessEvent.ts` already has `generateEventId()` but is not yet wired to the canonical path. Will be activated during GTM/CAPI rollout.
-2. **`lead_id` / UTM enrichment** — Same: `trackBusinessEvent.ts` enriches payloads with `getLeadId()` and `getUtmPayload()`. Deferred until `trackBusinessEvent` replaces `trackGtmEvent` as the canonical emitter.
-3. **CAPI server-side relay** — `supabase/functions/capi-event` exists and is preserved but not wired from the frontend canonical path.
-4. **`trackBusinessEvent.ts` promotion** — This file has the correct payload contract (event_id, lead_id, utm, route) but is not yet the canonical emitter. It will replace `trackGtmEvent` when GTM/CAPI rollout is formalized.
+1. **`appointment_booked` activation** — Mapped in canonical constants/value ladder but no live producer on the homeowner path. Activated only when the admin/CRM pipeline owns it.
+2. **`trackBusinessEvent.ts` promotion** — This file has a richer payload contract (auto event_id, lead_id, utm, route) but is not yet the canonical emitter. It will replace `trackGtmEvent` when GTM/CAPI rollout is formalized.
+3. **Direct frontend `capi-event` calls** — Frontend stays vendor-agnostic. CAPI relay is owned by the server canonical lane and GTM server-side container.
+
+## Arc 1.5 — Browser/Server `event_id` Parity (active)
+
+Browser dataLayer fires for `quote_uploaded`, `phone_verified`, and `report_revealed` now carry an `event_id` that matches the server-side canonical event id 1:1, so GTM (browser → Meta/Google) can deduplicate against the server-side CAPI/Google dispatch.
+
+| Event | Browser source of `event_id` | Server source of `event_id` |
+|---|---|---|
+| `quote_uploaded` | `buildCanonicalEventId({ eventName, leadId, scanSessionId })` in `UploadZone.tsx`, forwarded to `scan-quote` as `body.event_id` | `scan-quote` reuses `client_event_id` when supplied; falls back to `defaultCreateId` otherwise |
+| `phone_verified` | Server-issued id returned from `verify-otp` (`phone_verified_event_id`), reused by `PostScanReportSwitcher.tsx` in the dataLayer push | `verify-otp` generates `wmc_phone_verified_lead-{leadId}_scan-{scanSessionId}` |
+| `report_revealed` | Server-issued id returned from `verify-otp` (`report_revealed_event_id`), stored in a ref and used when the reveal effect fires | `verify-otp` generates `wmc_report_revealed_lead-{leadId}_scan-{scanSessionId}` |
+
+Mapper coverage was extended so the server lane is no longer silently suppressed: `phone_verified` → Meta `CompleteRegistration` / Google `wm_phone_verified`; `report_revealed` → Meta `ViewContent` / Google `wm_report_revealed`. Their value rungs remain unset (fall through to `0`) — no fabricated value inflation.
