@@ -152,6 +152,7 @@ const App = () => (
         </FacebookConversionProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 
