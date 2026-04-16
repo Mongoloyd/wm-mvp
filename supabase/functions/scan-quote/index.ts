@@ -533,22 +533,53 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // ── 0. Request boundary validation (Zod) ──
+  // Fail fast on malformed bodies before touching the DB or AI provider.
+  let rawBody: unknown;
   try {
-    const { scan_session_id, dev_extraction_override, dev_secret, event_id: client_event_id } = await req.json();
-    if (!scan_session_id) {
-      return jsonResponse({ error: "scan_session_id required" }, 400);
+    rawBody = await req.json();
+  } catch (parseErr) {
+    logScanError("request_validation", { detail: "json_parse_failed", error: String(parseErr) });
+    return jsonResponse({ error: "Invalid JSON body" }, 400);
+  }
+
+  const parsedRequest = parseScanQuoteRequest(rawBody);
+  if (!parsedRequest.ok) {
+    logScanError("request_validation", { detail: parsedRequest.error, fields: parsedRequest.details });
+    return jsonResponse({ error: parsedRequest.error, details: parsedRequest.details }, 400);
+  }
+
+  const {
+    scan_session_id,
+    dev_extraction_override,
+    dev_secret,
+    event_id: client_event_id,
+  } = parsedRequest.value;
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceRoleKey) {
+      logScanError("request_validation", { scan_session_id, detail: "supabase_env_missing" });
+      return jsonResponse({ error: "Server not configured" }, 500);
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const geminiKey = Deno.env.get("GEMINI_API_KEY");
     const _devBypassSecretEarly = Deno.env.get("DEV_BYPASS_SECRET");
-    const _isDevBypass = dev_extraction_override && dev_secret && _devBypassSecretEarly && dev_secret === _devBypassSecretEarly;
+    const _isDevBypass = Boolean(
+      dev_extraction_override !== undefined &&
+        dev_secret &&
+        _devBypassSecretEarly &&
+        dev_secret === _devBypassSecretEarly,
+    );
 
     if (!geminiKey && !_isDevBypass) {
-      console.error("GEMINI_API_KEY not configured");
+      logScanError("request_validation", { scan_session_id, detail: "gemini_key_missing" });
       return jsonResponse({ error: "AI service not configured" }, 500);
     }
+
+    // Single source of truth for model + timeout + stale-session threshold.
+    const scannerCfg = getScannerRuntimeConfig();
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
@@ -565,23 +596,66 @@ Deno.serve(async (req: Request) => {
       req.headers.get("x-real-ip") ||
       "unknown";
 
-    // 1. Load scan session
+    // 1. Load scan session (include timestamps for stale-recovery decision)
     const { data: session, error: sessionErr } = await supabase
       .from("scan_sessions")
-      .select("id, quote_file_id, lead_id, status")
+      .select("id, quote_file_id, lead_id, status, created_at, updated_at")
       .eq("id", scan_session_id)
       .single();
 
     if (sessionErr || !session) {
-      console.error("Session not found:", sessionErr);
+      logScanError("session_load", { scan_session_id, detail: "session_not_found", error: sessionErr?.message });
       return jsonResponse({ error: "Session not found" }, 404);
     }
 
-    // ── Idempotency guard: reject if session is already terminal ──
-    const TERMINAL_STATUSES = ["processing", "preview_ready", "complete", "invalid_document"];
-    if (TERMINAL_STATUSES.includes(session.status) && !_isDevBypass) {
-      console.log(`Idempotency guard: session ${scan_session_id} already in status '${session.status}'`);
-      return jsonResponse({ scan_session_id, status: session.status }, 200);
+    // ── Idempotency + stuck-session recovery guard ──
+    // Terminal statuses → idempotent no-op return.
+    // `processing` younger than the stale threshold → reject (something else
+    //   is still working on it; do not double-write `analyses`).
+    // `processing` older than the threshold → take it over (recovery path).
+    // The dev-bypass path skips this guard so test fixtures stay deterministic.
+    if (!_isDevBypass) {
+      const decision = decideSessionRecovery(
+        { status: session.status, updated_at: session.updated_at, created_at: session.created_at },
+        scannerCfg.staleProcessingMinutes,
+      );
+
+      if (decision.kind === "skip_terminal") {
+        logScanInfo("status_processing", {
+          scan_session_id,
+          detail: "idempotent_terminal_status",
+          status: decision.status,
+        });
+        return jsonResponse({ scan_session_id, status: decision.status }, 200);
+      }
+
+      if (decision.kind === "skip_in_flight") {
+        logScanInfo("status_processing", {
+          scan_session_id,
+          detail: "in_flight_invocation_active",
+          age_ms: decision.ageMs,
+          stale_threshold_minutes: scannerCfg.staleProcessingMinutes,
+        });
+        return jsonResponse(
+          {
+            scan_session_id,
+            status: "processing",
+            message: "Scan already in progress.",
+          },
+          202,
+        );
+      }
+
+      if (decision.kind === "takeover_stale") {
+        logScanWarn("recovery_takeover", {
+          scan_session_id,
+          detail: "stale_processing_takeover",
+          age_ms: decision.ageMs,
+          stale_threshold_minutes: scannerCfg.staleProcessingMinutes,
+        });
+        // Fall through into normal processing path — analyses upsert is
+        // idempotent on scan_session_id, so re-processing is safe.
+      }
     }
 
     // ── Rate-limit check (by lead_id — one lead per visitor session) ──
@@ -594,7 +668,12 @@ Deno.serve(async (req: Request) => {
         .gte("created_at", cutoff);
 
       if (!rlErr && (count ?? 0) > RATE_LIMIT_MAX) {
-        console.warn(`Rate limit hit: lead_id=${session.lead_id} ip=${clientIp} count=${count}`);
+        logScanWarn("rate_limit", {
+          scan_session_id,
+          lead_id: session.lead_id,
+          ip: clientIp,
+          count,
+        });
         // Mark this session so it doesn't sit in "uploading" forever
         await supabase.from("scan_sessions").update({ status: "error" }).eq("id", scan_session_id);
         return jsonResponse({
@@ -611,7 +690,10 @@ Deno.serve(async (req: Request) => {
       "processing",
       "scan_sessions processing update failed",
     );
-    if (!processingUpdate.success) return processingUpdate.response;
+    if (!processingUpdate.success) {
+      logScanError("status_processing", { scan_session_id, detail: "status_update_failed" });
+      return processingUpdate.response;
+    }
 
     try {
       try {
