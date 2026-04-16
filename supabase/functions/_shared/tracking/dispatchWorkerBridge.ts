@@ -1,21 +1,20 @@
 /**
  * dispatchWorkerBridge.ts — Edge-function bridge to the canonical dispatch worker.
  *
- * Mirrors the pattern used by `canonicalBridge.ts`. The Supabase edge bundler
- * ships `_shared/` and the `src/` paths it transitively imports; reaching into
- * `src/` directly from a sibling edge function does not work reliably. This
- * bridge gives the dispatch edge function a stable, deno-friendly entry point.
- *
- * Re-exports only what `dispatch-platform-events/index.ts` consumes.
+ * The Supabase edge bundler does not ship arbitrary `src/` paths to deployed
+ * functions. To keep the canonical worker callable from edge functions, the
+ * source modules are mirrored into `_shared/tracking/canonical/` (kept in
+ * lockstep with `src/lib/tracking/canonical/*`). This bridge is the single
+ * import surface the dispatch edge function consumes.
  */
 
 export {
   fetchWithTimeout,
   runDispatchWorker,
-} from "../../../../src/lib/tracking/canonical/dispatchWorker.ts";
+} from "./canonical/dispatchWorker.ts";
 
 export type {
   DBLike,
   DispatchRowWithEvent,
   VendorSendResult,
-} from "../../../../src/lib/tracking/canonical/dispatchWorker.ts";
+} from "./canonical/dispatchWorker.ts";
