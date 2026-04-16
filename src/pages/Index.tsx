@@ -4,29 +4,29 @@ import LinearHeader from "@/components/LinearHeader";
 import AuditHero from "@/components/AuditHero";
 import FlowBEntry from "@/components/FlowBEntry";
 import MarketBaselineTool from "@/components/MarketBaselineTool";
-import ForensicChecklist from "@/components/ForensicChecklist";
-import QuoteWatcher from "@/components/QuoteWatcher";
-import SocialProofStrip from "@/components/SocialProofStrip";
 import TruthGateFlow from "@/components/TruthGateFlow";
 import UploadZone from "@/components/UploadZone";
 import ScanTheatrics from "@/components/ScanTheatrics";
 import { PostScanReportSwitcher } from "@/components/post-scan/PostScanReportSwitcher";
-// ContractorMatch removed — CTAs now native in TruthReportClassic
-import IndustryTruth from "@/components/IndustryTruth";
-import ProcessSteps from "@/components/ProcessSteps";
-
-import NarrativeProof from "@/components/NarrativeProof";
-import ClosingManifesto from "@/components/ClosingManifesto";
-import Testimonials from "@/components/Testimonials";
-import MarketMakerManifesto from "@/components/MarketMakerManifesto";
 import StickyRecoveryBar from "@/components/StickyRecoveryBar";
-import OrangeScanner from "@/components/OrangeScanner";
-import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
-import ScamConcernImage from "@/components/ScamConcernImage";
 import StickyCTAFooter from "@/components/StickyCTAFooter";
 import HomepageBackdrop from "@/components/HomepageBackdrop";
-import QuoteSpreadShowcase from "@/components/QuoteSpreadShowcase";
-import Footer from "@/components/Footer";
+import ExitIntentPhoneModal from "@/components/ExitIntentPhoneModal";
+
+// ── Below-fold: lazy-loaded to cut initial bundle ~50% ──
+const ForensicChecklist = React.lazy(() => import("@/components/ForensicChecklist"));
+const QuoteWatcher = React.lazy(() => import("@/components/QuoteWatcher"));
+const SocialProofStrip = React.lazy(() => import("@/components/SocialProofStrip"));
+const IndustryTruth = React.lazy(() => import("@/components/IndustryTruth"));
+const ProcessSteps = React.lazy(() => import("@/components/ProcessSteps"));
+const NarrativeProof = React.lazy(() => import("@/components/NarrativeProof"));
+const ClosingManifesto = React.lazy(() => import("@/components/ClosingManifesto"));
+const Testimonials = React.lazy(() => import("@/components/Testimonials"));
+const MarketMakerManifesto = React.lazy(() => import("@/components/MarketMakerManifesto"));
+const OrangeScanner = React.lazy(() => import("@/components/OrangeScanner"));
+const ScamConcernImage = React.lazy(() => import("@/components/ScamConcernImage"));
+const QuoteSpreadShowcase = React.lazy(() => import("@/components/QuoteSpreadShowcase"));
+const Footer = React.lazy(() => import("@/components/Footer"));
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useHomepageVariant } from "@/hooks/useHomepageVariant";
 import { ScanFunnelProvider } from "@/state/scanFunnel";

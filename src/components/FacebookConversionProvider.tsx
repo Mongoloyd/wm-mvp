@@ -49,10 +49,14 @@ export function FacebookConversionProvider({ children }: { children: React.React
   const leadId = useLeadId();
   const utmData = useUtmCapture();
 
-  // Initialize pixel on mount
+  // Defer pixel init until browser is idle (saves ~750ms FCP)
   useEffect(() => {
-    initMetaPixel();
-    captureFbc();
+    const init = () => { initMetaPixel(); captureFbc(); };
+    if ("requestIdleCallback" in window) {
+      (window as any).requestIdleCallback(init, { timeout: 3000 });
+    } else {
+      setTimeout(init, 3000);
+    }
   }, []);
 
   // Track SPA route changes
