@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { createCanonicalEvent } from "../../../../src/lib/tracking/canonical/createCanonicalEvent.ts";
-import type { CreateCanonicalEventInput } from "../../../../src/lib/tracking/canonical/types.ts";
+import { createCanonicalEvent } from "./canonical/createCanonicalEvent.ts";
+import type { CreateCanonicalEventInput } from "./canonical/types.ts";
 
 export async function persistCanonicalEvent(
   supabase: SupabaseClient,

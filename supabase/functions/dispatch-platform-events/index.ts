@@ -3,7 +3,7 @@ import {
   fetchWithTimeout,
   runDispatchWorker,
   type VendorSendResult,
-} from "../../../src/lib/tracking/canonical/dispatchWorker.ts";
+} from "../_shared/tracking/dispatchWorkerBridge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
