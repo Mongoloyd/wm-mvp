@@ -59,7 +59,7 @@ interface SignalLog {
 /* ── Helpers ────────────────────────────────────────────────── */
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/;
-const PRODUCTION_DOMAIN = "windowman.pro";
+
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
@@ -200,7 +200,7 @@ function ClientDossierModal({ open, onClose, client, metaConfig, existingSlugs, 
     }
   }
 
-  const lpUrl = slug ? `${PRODUCTION_DOMAIN}/lp/${slug}` : null;
+  const lpUrl = slug ? `${window.location.origin}/lp/${slug}` : null;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
