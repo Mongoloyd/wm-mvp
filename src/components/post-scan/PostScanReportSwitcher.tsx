@@ -423,6 +423,25 @@ export function PostScanReportSwitcher(props: Props) {
       return;
     }
     setIsCtaLoading(true);
+
+    // ═══ CANONICAL BUSINESS EVENT: contractor_match_requested ═══
+    // Single owner: this smart container (full identity is known here).
+    // event_id mirrors the server `defaultCreateId` algorithm so the
+    // browser dataLayer push and any server-side canonical persistence
+    // share one id (cross-lane dedup-safe via GTM → Meta/Google).
+    const contractorMatchEventId = buildCanonicalEventId({
+      eventName: "contractor_match_requested",
+      leadId,
+      scanSessionId: props.scanSessionId,
+    });
+    trackGtmEvent("contractor_match_requested", {
+      event_id: contractorMatchEventId,
+      scan_session_id: props.scanSessionId,
+      lead_id: leadId ?? undefined,
+      grade: props.grade,
+      county: props.county,
+    });
+
     try {
       const { data, error: fnError } = await supabase.functions.invoke("generate-contractor-brief", {
         body: { scan_session_id: props.scanSessionId, phone_e164: phoneE164, cta_source: "intro_request" },
@@ -452,7 +471,7 @@ export function PostScanReportSwitcher(props: Props) {
     } finally {
       setIsCtaLoading(false);
     }
-  }, [props.scanSessionId, phoneE164]);
+  }, [props.scanSessionId, phoneE164, leadId, props.grade, props.county]);
 
   // ── CTA B: Call WindowMan About My Report ──
   const handleReportHelpCall = useCallback(async () => {
