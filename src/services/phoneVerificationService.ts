@@ -57,6 +57,9 @@ export async function sendOtp(
   phoneE164: string,
   scanSessionId?: string
 ): Promise<ServiceResult<OtpSendResult> & { errorCode?: OtpErrorCode }> {
+  phoneE164: string,
+  scanSessionId?: string
+): Promise<ServiceResult<OtpSendResult> & { errorCode?: OtpErrorCode }> {
   try {
     const { data, error } = await supabase.functions.invoke("send-otp", {
       body: {
