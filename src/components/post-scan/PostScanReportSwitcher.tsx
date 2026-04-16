@@ -185,22 +185,41 @@ export function PostScanReportSwitcher(props: Props) {
     },
   });
 
-  // ── Send report email on first preview load (fire-and-forget) ──
+  // ── Snapshot Receipt email — fire ONCE on first true full unlock ──
+  // Server is the authority on idempotency (leads.snapshot_email_status).
+  // The frontend-side ref is just a per-tab guard against double-invoke
+  // during a single session. Provider failure must NOT block reveal.
+  const snapshotEmailFiredRef = useRef(false);
   useEffect(() => {
-    if (!props.scanSessionId || !props.grade) return;
+    if (snapshotEmailFiredRef.current) return;
+    if (!props.scanSessionId) return;
+    if (!props.isFullLoaded) return;
+    if (!capturedPhone) return; // proves OTP success in this tab
+
+    snapshotEmailFiredRef.current = true;
     supabase.functions
       .invoke("send-report-email", {
         body: {
           scan_session_id: props.scanSessionId,
-          email_type: "preview",
+          email_type: "full",
         },
       })
       .then(({ data, error }) => {
-        if (error) console.warn("[PostScanReportSwitcher] report email failed:", error);
-        else if (data?.success) console.log("[PostScanReportSwitcher] report email sent");
-        else if (data?.skipped) console.log("[PostScanReportSwitcher] email skipped:", data.reason);
+        if (error) {
+          console.warn("[PostScanReportSwitcher] snapshot email failed:", error);
+        } else if (data?.already_sent) {
+          console.log("[PostScanReportSwitcher] snapshot email already sent");
+        } else if (data?.skipped) {
+          console.log("[PostScanReportSwitcher] snapshot email skipped:", data.reason);
+        } else if (data?.success) {
+          console.log("[PostScanReportSwitcher] snapshot email sent");
+        }
+      })
+      .catch((err) => {
+        // Never let email delivery interfere with reveal.
+        console.warn("[PostScanReportSwitcher] snapshot email invoke threw:", err);
       });
-  }, [props.scanSessionId, props.grade]);
+  }, [props.scanSessionId, props.isFullLoaded, capturedPhone]);
 
   // Resolve phone for CTA calls
   const phoneE164 = capturedPhone || funnel?.phoneE164 || pipeline.e164 || null;
