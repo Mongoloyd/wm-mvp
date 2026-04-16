@@ -9,7 +9,7 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { toast } from "sonner";
 import {
   Plus, Check, Copy, ChevronDown, ChevronRight, X, Loader2,
-  Globe, Settings, Radio, ExternalLink,
+  Globe, Settings, Radio, ExternalLink, Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,10 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -60,7 +64,6 @@ interface SignalLog {
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/;
 
-
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
@@ -72,6 +75,12 @@ function relTime(iso: string) {
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return d.toLocaleDateString();
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -99,6 +108,8 @@ function ClientDossierModal({ open, onClose, client, metaConfig, existingSlugs, 
   const [tokenDirty, setTokenDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [slugError, setSlugError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [touched, setTouched] = useState(false);
 
   // Reset form when modal opens
   useEffect(() => {
@@ -121,12 +132,21 @@ function ClientDossierModal({ open, onClose, client, metaConfig, existingSlugs, 
       setTokenDirty(false);
     }
     setSlugError(null);
+    setNameError(null);
+    setTouched(false);
   }, [open, client, metaConfig]);
 
   // Auto-slug from name in create mode
   useEffect(() => {
     if (!isEdit && name) setSlug(slugify(name));
   }, [name, isEdit]);
+
+  // Validate name
+  useEffect(() => {
+    if (!touched) { setNameError(null); return; }
+    if (!name.trim()) { setNameError("Client name is required"); return; }
+    setNameError(null);
+  }, [name, touched]);
 
   // Validate slug
   useEffect(() => {
@@ -141,6 +161,11 @@ function ClientDossierModal({ open, onClose, client, metaConfig, existingSlugs, 
   const canSave = name.trim() && slug && !slugError && !saving;
 
   async function handleSave() {
+    setTouched(true);
+    if (!name.trim()) {
+      setNameError("Client name is required");
+      return;
+    }
     if (!canSave) return;
     setSaving(true);
     try {
@@ -216,7 +241,15 @@ function ClientDossierModal({ open, onClose, client, metaConfig, existingSlugs, 
           {/* Name */}
           <div className="space-y-1.5">
             <Label htmlFor="client-name">Client Name</Label>
-            <Input id="client-name" value={name} onChange={e => setName(e.target.value)} placeholder="Acme Windows" />
+            <Input
+              id="client-name"
+              value={name}
+              onChange={e => { setName(e.target.value); setTouched(true); }}
+              onBlur={() => setTouched(true)}
+              placeholder="Acme Windows"
+              className={nameError ? "border-destructive" : ""}
+            />
+            {nameError && <p className="text-xs text-destructive">{nameError}</p>}
           </div>
 
           {/* Slug */}
@@ -308,6 +341,44 @@ function LandingPageUrl({ url }: { url: string }) {
         <span className="ml-1 text-xs">{copied ? "Copied!" : "Copy"}</span>
       </Button>
     </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Delete Confirmation Dialog
+   ══════════════════════════════════════════════════════════════ */
+
+interface DeleteConfirmProps {
+  open: boolean;
+  clientName: string;
+  deleting: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function DeleteConfirmDialog({ open, clientName, deleting, onConfirm, onCancel }: DeleteConfirmProps) {
+  return (
+    <AlertDialog open={open} onOpenChange={(v) => !v && onCancel()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will deactivate <strong>{clientName}</strong>. The client record will be preserved but marked inactive.
+            Any associated pixel configuration will remain intact.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            disabled={deleting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {deleting ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Deleting…</> : "Delete Client"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
@@ -482,6 +553,10 @@ function AdminPartnersContent() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editClient, setEditClient] = useState<Client | null>(null);
 
+  // Delete state
+  const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const fetchAll = useCallback(async () => {
     const [{ data: c }, { data: m }] = await Promise.all([
       supabase.from("clients").select("*").order("created_at", { ascending: false }),
@@ -510,6 +585,27 @@ function AdminPartnersContent() {
   function openEdit(c: Client) {
     setEditClient(c);
     setModalOpen(true);
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      // Soft-delete: deactivate the client
+      const { error } = await supabase
+        .from("clients")
+        .update({ is_active: false })
+        .eq("id", deleteTarget.id);
+      if (error) throw error;
+      toast.success(`"${deleteTarget.name}" has been deactivated`);
+      setDeleteTarget(null);
+      fetchAll();
+    } catch (err: any) {
+      console.error("[AdminPartners] delete error:", err);
+      toast.error(err?.message ?? "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   const existingSlugs = clients.map(c => c.slug);
@@ -559,6 +655,7 @@ function AdminPartnersContent() {
                   <th className="px-4 py-2.5">Slug</th>
                   <th className="px-4 py-2.5 text-center">Pixel Status</th>
                   <th className="px-4 py-2.5 text-center">Active</th>
+                  <th className="px-4 py-2.5">Created</th>
                   <th className="px-4 py-2.5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -585,9 +682,20 @@ function AdminPartnersContent() {
                           <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground/30" />
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        {formatDate(c.created_at)}
+                      </td>
+                      <td className="px-4 py-3 text-right space-x-1">
                         <Button size="sm" variant="ghost" onClick={() => openEdit(c)}>
                           <Settings className="h-3.5 w-3.5 mr-1" /> Manage
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteTarget(c)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </td>
                     </tr>
@@ -610,6 +718,15 @@ function AdminPartnersContent() {
         metaConfig={editClient ? configByClientId[editClient.id] ?? null : null}
         existingSlugs={existingSlugs}
         onSaved={fetchAll}
+      />
+
+      {/* ── Delete Confirmation ── */}
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        clientName={deleteTarget?.name ?? ""}
+        deleting={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
       />
     </div>
   );
