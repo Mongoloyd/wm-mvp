@@ -1,5 +1,5 @@
-import { WM_QUOTE_TRUST_MIN_FOR_DISPATCH } from "./constants";
-import type { WMCanonicalEvent } from "./types";
+import { WM_QUOTE_TRUST_MIN_FOR_DISPATCH } from "./constants.ts";
+import type { WMCanonicalEvent } from "./types.ts";
 
 const GOOGLE_ACTION_MAP: Record<string, string> = {
   lead_identified: "wm_lead_identified",

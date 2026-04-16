@@ -1,6 +1,6 @@
-import { mapToGoogle } from "./mapToGoogle";
-import { mapToMeta } from "./mapToMeta";
-import type { WMCanonicalEvent, WMDispatchStatus, WMPlatformName } from "./types";
+import { mapToGoogle } from "./mapToGoogle.ts";
+import { mapToMeta } from "./mapToMeta.ts";
+import type { WMCanonicalEvent, WMDispatchStatus, WMPlatformName } from "./types.ts";
 
 const RETRY_DELAYS_MINUTES = [5, 30, 120, 720] as const;
 const MAX_ATTEMPTS = RETRY_DELAYS_MINUTES.length + 1;

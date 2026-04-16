@@ -1,4 +1,4 @@
-import type { WMIdentityPayload, WMIdentityQuality } from "./types";
+import type { WMIdentityPayload, WMIdentityQuality } from "./types.ts";
 
 function isSha256Hex(value: string): boolean {
   return /^[a-f0-9]{64}$/i.test(value);

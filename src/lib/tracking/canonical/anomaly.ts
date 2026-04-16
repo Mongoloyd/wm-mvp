@@ -1,4 +1,4 @@
-import type { WMAnomalyInput, WMAnomalyResult } from "./types";
+import type { WMAnomalyInput, WMAnomalyResult } from "./types.ts";
 
 const EPSILON = 1e-9;
 

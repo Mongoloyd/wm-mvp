@@ -1,8 +1,8 @@
-import { WM_QUOTE_TRUST_MIN_FOR_DISPATCH } from "./constants";
-import { normalizeAndHashIdentity, computeIdentityQuality } from "./identity";
-import { evaluateQuoteTrust } from "./trustScore";
-import { buildOptimizationPayload } from "./valueModel";
-import type { CreateCanonicalEventInput, WMCanonicalEvent, WMDispatchStatus, WMPlatformName } from "./types";
+import { WM_QUOTE_TRUST_MIN_FOR_DISPATCH } from "./constants.ts";
+import { normalizeAndHashIdentity, computeIdentityQuality } from "./identity.ts";
+import { evaluateQuoteTrust } from "./trustScore.ts";
+import { buildOptimizationPayload } from "./valueModel.ts";
+import type { CreateCanonicalEventInput, WMCanonicalEvent, WMDispatchStatus, WMPlatformName } from "./types.ts";
 
 interface DBLike {
   from(table: string): {

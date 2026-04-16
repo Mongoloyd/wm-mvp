@@ -1,6 +1,6 @@
-import { WM_TRUST_THRESHOLDS, WM_TRUST_WEIGHTS } from "./constants";
-import { evaluateAnomaly } from "./anomaly";
-import type { WMAnomalyStatus, WMTrustScoreInput, WMTrustScoreResult } from "./types";
+import { WM_TRUST_THRESHOLDS, WM_TRUST_WEIGHTS } from "./constants.ts";
+import { evaluateAnomaly } from "./anomaly.ts";
+import type { WMAnomalyStatus, WMTrustScoreInput, WMTrustScoreResult } from "./types.ts";
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));

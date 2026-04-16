@@ -4,7 +4,7 @@ import type {
   WM_EVENT_NAMES,
   WM_IDENTITY_QUALITIES,
   WM_PLATFORM_NAMES,
-} from "./constants";
+} from "./constants.ts";
 
 export type WMEventName = (typeof WM_EVENT_NAMES)[number];
 export type WMAnomalyStatus = (typeof WM_ANOMALY_STATUSES)[number];

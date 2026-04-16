@@ -5,7 +5,7 @@ import {
   WM_EVENT_NAMES,
   WM_IDENTITY_QUALITIES,
   WM_PLATFORM_NAMES,
-} from "./constants";
+} from "./constants.ts";
 
 export const wmEventNameSchema = z.enum(WM_EVENT_NAMES);
 export const wmAnomalyStatusSchema = z.enum(WM_ANOMALY_STATUSES);

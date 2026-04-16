@@ -1,4 +1,4 @@
-import type { WMEventName, WMOptimizationPayload } from "./types";
+import type { WMEventName, WMOptimizationPayload } from "./types.ts";
 
 const VALUE_LADDER: Record<string, number> = {
   lead_identified: 10,
