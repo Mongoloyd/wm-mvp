@@ -16,6 +16,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { trackEvent } from "@/lib/trackEvent";
+import { trackGtmEvent } from "@/lib/trackConversion";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,6 +85,23 @@ export function PostScanReportSwitcher(props: Props) {
   const [availableComparisons, setAvailableComparisons] = useState<string[]>([]);
   const [comparisonResult, setComparisonResult] = useState<Record<string, unknown> | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
+
+  // ═══ CANONICAL BUSINESS EVENT: report_revealed ═══
+  // Fires ONCE when full report data loads after OTP verification.
+  // Does NOT fire on resume (resume is a returning-user operational event, not a conversion).
+  const reportRevealedRef = useRef(false);
+  useEffect(() => {
+    if (reportRevealedRef.current) return;
+    if (props.isFullLoaded && capturedPhone) {
+      // capturedPhone is only set during OTP flow, not on resume.
+      // This ensures report_revealed fires once per fresh verification only.
+      reportRevealedRef.current = true;
+      trackGtmEvent("report_revealed", {
+        scan_session_id: props.scanSessionId || undefined,
+        grade: props.grade,
+      });
+    }
+  }, [props.isFullLoaded, capturedPhone, props.scanSessionId, props.grade]);
 
   // ── Hydrate CTA state from DB on mount (prevents duplicates after refresh) ──
   useEffect(() => {
@@ -246,6 +264,13 @@ export function PostScanReportSwitcher(props: Props) {
       const result = await pipeline.submitOtp(otpValue);
       if (result.status === "verified" && result.e164) {
         setCapturedPhone(result.e164);
+        // ═══ CANONICAL BUSINESS EVENT: phone_verified ═══
+        // This is the SINGLE fire location for the phone_verified business event.
+        // usePhonePipeline fires operational telemetry (otp_verify_success) separately.
+        trackGtmEvent("phone_verified", {
+          scan_session_id: props.scanSessionId || undefined,
+          phone_e164_last4: result.e164.slice(-4),
+        });
         // Canonical phone handoff: use server-returned phone to trigger fetchFull
         props.onVerified?.(result.e164);
       }

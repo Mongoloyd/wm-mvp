@@ -1,0 +1,65 @@
+# Event Ownership Model — Canonical Scanner / OTP / Report Path
+
+> Phase 4 Preflight deliverable. Covers only the canonical scanner → OTP → report reveal path.
+
+## Two-Lane Architecture
+
+| Lane | File | Consumer | Purpose |
+|------|------|----------|---------|
+| **Business Events** | `src/lib/trackConversion.ts` (`trackGtmEvent`) | `window.dataLayer` → GTM → GA4/Meta/Google Ads | Conversion signals for marketing attribution and platform optimization |
+| **Operational Telemetry** | `src/lib/trackEvent.ts` (`trackEvent`) | `event_logs` Supabase table | Internal diagnostics, funnel debugging, support visibility |
+
+These lanes must never be conflated. A single business moment may fire one event in each lane, but the event names must differ to prevent confusion.
+
+## Business Events — Canonical Owners
+
+| Event Name | Owner File | Trigger Moment | Dedup-Worthy | Identity Keys |
+|---|---|---|---|---|
+| `quote_uploaded` | `UploadZone.tsx` | After file upload + scan_session creation succeeds | Yes | `scan_session_id`, `lead_id`, `file_type`, `file_size` |
+| `phone_verified` | `PostScanReportSwitcher.tsx` | On `pipeline.submitOtp()` returning `status: "verified"` | Yes | `scan_session_id`, `phone_e164_last4` |
+| `report_revealed` | `PostScanReportSwitcher.tsx` | On `isFullLoaded` transitioning to `true` after OTP (guarded by `capturedPhone` presence to exclude resume) | Yes | `scan_session_id`, `grade` |
+| `contractor_match_requested` | `TruthReportClassic.tsx` | On user clicking the "Get a Counter-Quote" CTA | Yes | `grade`, `county`, `issue_count` |
+
+### Why each owner is correct
+
+- **`quote_uploaded` → UploadZone**: This is the only component that performs the file upload. The event fires after the scan session is created, making it the earliest reliable moment.
+- **`phone_verified` → PostScanReportSwitcher**: This is the canonical OTP orchestrator. It calls `pipeline.submitOtp()` and receives the verified result. VerifyGate and PhoneVerifyModal are dead code (not imported anywhere).
+- **`report_revealed` → PostScanReportSwitcher**: This component is the single render-decision authority (Phase 3). It knows when `isFullLoaded` transitions after verification. The `capturedPhone` guard prevents firing on resume.
+- **`contractor_match_requested` → TruthReportClassic**: The CTA button lives in the report renderer. The click handler is the true business moment.
+
+## Operational Telemetry Events
+
+| Event Name | Owner File | Purpose |
+|---|---|---|
+| `upload_completed` | `UploadZone.tsx` | Track successful file upload to storage |
+| `photo_option_clicked` | `UploadZone.tsx` | Track interest in photo upload option |
+| `preview_rendered` | `useAnalysisData.ts` | Track when preview data is first fetched and rendered |
+| `report_unlocked` | `useAnalysisData.ts` | Track successful full data fetch (internal complement to `report_revealed`) |
+| `resume_flow_triggered` | `useAnalysisData.ts` | Track returning-user resume |
+| `otp_sent` | `usePhonePipeline.ts` | Track successful OTP dispatch |
+| `otp_verify_success` | `usePhonePipeline.ts` | Track successful OTP verification (internal complement to `phone_verified`) |
+| `otp_error` | `usePhonePipeline.ts` | Track OTP verification failures |
+| `otp_send_failed` | `usePhonePipeline.ts` | Track OTP send failures |
+| `rate_limit_hit` | `usePhonePipeline.ts` | Track rate limit encounters |
+| `phone_submitted` | `PostScanReportSwitcher.tsx` | Track phone form submission |
+| `fetch_stall_retry` | `PostScanReportSwitcher.tsx` | Track stall retry attempts |
+| `lead_captured_with_phone` / `lead_captured_no_phone` | `TruthGateFlow.tsx` | Track lead creation with phone presence flag |
+
+## Dead Code Components (Not on Canonical Path)
+
+The following components contain OTP/verification event fires but are **not imported anywhere** in the live codebase:
+
+- `src/components/TruthReportFindings/VerifyGate.tsx` — Contains duplicate `trackGtmEvent("otp_verified")` and `trackGtmEvent("report_revealed")`
+- `src/components/TruthReportFindings/PhoneVerifyModal.tsx` — Contains duplicate `trackGtmEvent("otp_verified")` and `trackGtmEvent("report_revealed")`
+- `src/components/TruthReportFindings/VerifyBanner.tsx` — References PhoneVerifyModal
+
+These components bypass the Phase 2 service layer (calling `supabase.functions.invoke` directly) and the Phase 3 state model. They should be removed or formally deprecated.
+
+## Intentionally Deferred
+
+The following are intentionally NOT implemented in this phase:
+
+1. **`event_id` generation** — `trackBusinessEvent.ts` already has `generateEventId()` but is not yet wired to the canonical path. Will be activated during GTM/CAPI rollout.
+2. **`lead_id` / UTM enrichment** — Same: `trackBusinessEvent.ts` enriches payloads with `getLeadId()` and `getUtmPayload()`. Deferred until `trackBusinessEvent` replaces `trackGtmEvent` as the canonical emitter.
+3. **CAPI server-side relay** — `supabase/functions/capi-event` exists and is preserved but not wired from the frontend canonical path.
+4. **`trackBusinessEvent.ts` promotion** — This file has the correct payload contract (event_id, lead_id, utm, route) but is not yet the canonical emitter. It will replace `trackGtmEvent` when GTM/CAPI rollout is formalized.

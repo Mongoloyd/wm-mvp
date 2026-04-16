@@ -227,7 +227,7 @@ export function usePhonePipeline(
         const canonicalPhone = result.data.phone_e164;
         console.log("[usePhonePipeline] verify-otp SUCCESS — canonical phone:", canonicalPhone);
         setPhoneStatus("verified");
-        trackEvent({ event_name: "otp_verified", session_id: options?.scanSessionId, metadata: { phone_last4: canonicalPhone.slice(-4) } });
+        trackEvent({ event_name: "otp_verify_success", session_id: options?.scanSessionId, metadata: { phone_last4: canonicalPhone.slice(-4) } });
         options?.onVerified?.();
         return { status: "verified", e164: canonicalPhone };
       } finally {
