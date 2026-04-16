@@ -169,13 +169,14 @@ async function fireCAPI(payload: CAPIPayload) {
 
 interface TrackEventOptions {
   eventName: string;
-  standardEventName?: string; // If different from eventName for fbq standard
+  standardEventName?: string;
   params?: Record<string, unknown>;
   email?: string;
   phone?: string;
   firstName?: string;
   value?: number;
   currency?: string;
+  clientSlug?: string;
 }
 
 export async function trackConversion(options: TrackEventOptions): Promise<string> {
