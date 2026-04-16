@@ -8,6 +8,14 @@
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getCountyBenchmark } from "../_shared/countyBenchmarks.ts";
 import { persistCanonicalEvent } from "../_shared/tracking/canonicalBridge.ts";
+import { buildGeminiUrl, getScannerRuntimeConfig } from "../_shared/scannerConfig.ts";
+import {
+  logScanError,
+  logScanInfo,
+  logScanWarn,
+} from "../_shared/scannerLogger.ts";
+import { parseScanQuoteRequest } from "./requestSchema.ts";
+import { decideSessionRecovery } from "./sessionRecovery.ts";
 import {
   type LineItem,
   type ExtractionResult,
