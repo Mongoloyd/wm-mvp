@@ -467,8 +467,10 @@ function SignalLogRow({ log, expanded, onToggle }: { log: SignalLog; expanded: b
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Realtime Signal Log (multi-filter + CSV export + virtualization)
+   Realtime Signal Log (multi-filter + CSV export + virtualization + resiliency)
    ══════════════════════════════════════════════════════════════ */
+
+type ChannelState = "live" | "reconnecting" | "disconnected";
 
 function SignalLogSection({ clients, sessionKey }: { clients: Client[]; sessionKey: string }) {
   const [logs, setLogs] = useState<SignalLog[]>([]);
@@ -476,36 +478,52 @@ function SignalLogSection({ clients, sessionKey }: { clients: Client[]; sessionK
   const [filterEvent, setFilterEvent] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [visibleCount, setVisibleCount] = useState(LOG_VISIBLE_COUNT);
+  const [channelState, setChannelState] = useState<ChannelState>("reconnecting");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Session-scoped: reset state when sessionKey changes (navigating between partners)
-  useEffect(() => {
-    setLogs([]);
-    setFilterSlug("all");
-    setFilterEvent("all");
-    setExpandedId(null);
-    setLoading(true);
-    setVisibleCount(LOG_VISIBLE_COUNT);
-
-    (async () => {
+  // Fetch logs from REST (used on mount + manual refresh)
+  const fetchLogs = useCallback(async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
+    else setRefreshing(true);
+    try {
       const { data } = await supabase
         .from("capi_signal_logs")
         .select("*")
         .order("fired_at", { ascending: false })
         .limit(200);
       setLogs((data ?? []) as SignalLog[]);
+    } finally {
       setLoading(false);
-    })();
-  }, [sessionKey]);
+      setRefreshing(false);
+    }
+  }, []);
 
+  // Session-scoped: reset state when sessionKey changes
+  useEffect(() => {
+    setLogs([]);
+    setFilterSlug("all");
+    setFilterEvent("all");
+    setExpandedId(null);
+    setVisibleCount(LOG_VISIBLE_COUNT);
+    setChannelState("reconnecting");
+    fetchLogs(true);
+  }, [sessionKey, fetchLogs]);
+
+  // Realtime subscription with connection state tracking
   useEffect(() => {
     const channel = supabase
       .channel(`capi-signal-realtime-${sessionKey}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "capi_signal_logs" },
         (payload) => setLogs(prev => [payload.new as SignalLog, ...prev].slice(0, 500))
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") setChannelState("live");
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") setChannelState("disconnected");
+        else if (status === "CLOSED") setChannelState("disconnected");
+      });
+
     return () => { supabase.removeChannel(channel); };
   }, [sessionKey]);
 
@@ -525,7 +543,7 @@ function SignalLogSection({ clients, sessionKey }: { clients: Client[]; sessionK
     });
   }, [logs, filterSlug, filterEvent]);
 
-  /** Virtualized slice — only render visibleCount rows */
+  /** Virtualized slice */
   const visibleLogs = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
 
   /** Load more on scroll */
@@ -544,7 +562,7 @@ function SignalLogSection({ clients, sessionKey }: { clients: Client[]; sessionK
     return m;
   }, [clients]);
 
-  /** Stream-friendly chunked CSV export to prevent browser timeout on 10k+ entries */
+  /** Stream-friendly chunked CSV export */
   function exportCsv() {
     const headers = ["id", "type", "partner_slug", "partner_name", "timestamp", "pixel_id", "status_code", "payload"];
     const chunks: string[] = [headers.join(",") + "\n"];
@@ -573,6 +591,9 @@ function SignalLogSection({ clients, sessionKey }: { clients: Client[]; sessionK
     toast.success(`Exported ${filtered.length} signals`);
   }
 
+  const stateLabel: Record<ChannelState, string> = { live: "Live", reconnecting: "Connecting…", disconnected: "Disconnected" };
+  const stateDot: Record<ChannelState, string> = { live: "bg-emerald-500", reconnecting: "bg-amber-500 animate-pulse", disconnected: "bg-destructive" };
+
   return (
     <section className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -580,9 +601,26 @@ function SignalLogSection({ clients, sessionKey }: { clients: Client[]; sessionK
           <Radio className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-bold uppercase tracking-wider">CAPI Signal Log</h2>
           <span className="text-xs text-muted-foreground">({filtered.length})</span>
+          {/* Connection state indicator */}
+          <span className="inline-flex items-center gap-1 ml-1" title={stateLabel[channelState]}>
+            <span className={`w-1.5 h-1.5 rounded-full ${stateDot[channelState]}`} />
+            <span className="text-[10px] text-muted-foreground">{stateLabel[channelState]}</span>
+          </span>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Manual refresh button */}
+          <Button
+            size="sm" variant="outline"
+            className="h-11 min-w-[44px] min-h-[44px] p-0 w-11"
+            onClick={() => fetchLogs(false)}
+            disabled={refreshing}
+            title="Refresh signals"
+            aria-label="Refresh signal log"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+          </Button>
+
           {/* Event type filter */}
           <Select value={filterEvent} onValueChange={setFilterEvent}>
             <SelectTrigger className="w-40 h-8 text-xs">
