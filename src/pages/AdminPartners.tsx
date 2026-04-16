@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Plus, Check, Copy, ChevronDown, ChevronRight, X, Loader2,
   Globe, Settings, Radio, Trash2, Search, ArrowUpDown, Download,
-  ArrowLeft, RotateCcw,
+  ArrowLeft, RotateCcw, RefreshCw,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -303,25 +303,64 @@ function ClientDossierModal({ open, onClose, client, metaConfig, existingSlugs, 
   );
 }
 
-/* ── Landing Page URL with copy ──────────────────────────────── */
+/* ── Landing Page URL with copy + Safari fallback ────────────── */
 
 function LandingPageUrl({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
+  const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
+  const fallbackInputRef = useRef<HTMLInputElement>(null);
 
-  function handleCopy() {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Safari / insecure context fallback — show manual copy modal
+      setFallbackUrl(url);
+    }
   }
 
+  // Auto-select text when the fallback modal opens
+  useEffect(() => {
+    if (fallbackUrl && fallbackInputRef.current) {
+      fallbackInputRef.current.select();
+    }
+  }, [fallbackUrl]);
+
   return (
-    <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
-      <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
-      <code className="text-xs flex-1 truncate">{url}</code>
-      <Button size="sm" variant="ghost" className="h-11 w-11 min-w-[44px] min-h-[44px] p-0" onClick={handleCopy}>
-        {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-      </Button>
-    </div>
+    <>
+      <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
+        <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
+        <code className="text-xs flex-1 truncate">{url}</code>
+        <Button size="sm" variant="ghost" className="h-11 w-11 min-w-[44px] min-h-[44px] p-0" onClick={handleCopy} aria-label="Copy URL">
+          {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {/* Safari / iOS fallback: manual copy dialog */}
+      <Dialog open={!!fallbackUrl} onOpenChange={(v) => !v && setFallbackUrl(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Copy Landing Page URL</DialogTitle>
+            <DialogDescription>
+              Your browser blocked automatic clipboard access. Select the URL below and copy it manually.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            ref={fallbackInputRef}
+            readOnly
+            value={fallbackUrl ?? ""}
+            className="font-mono text-xs"
+            onFocus={e => e.target.select()}
+            aria-label="Landing page URL"
+          />
+          <DialogFooter>
+            <Button onClick={() => setFallbackUrl(null)} className="min-h-[44px]">Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
