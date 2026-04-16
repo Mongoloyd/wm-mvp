@@ -324,11 +324,12 @@ export const metaConversions = {
     }),
 
   /** OTP verified — phone confirmed, full report unlocked */
-  otpVerified: (params: { county?: string; flow?: string; phone?: string }) =>
+  otpVerified: (params: { county?: string; flow?: string; phone?: string; clientSlug?: string }) =>
     trackConversion({
       eventName: "wm_otp_verified",
       standardEventName: "CompleteRegistration",
       phone: params.phone,
+      clientSlug: params.clientSlug,
       params: {
         county: params.county,
         flow: params.flow,
