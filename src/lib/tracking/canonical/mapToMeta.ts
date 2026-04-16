@@ -7,6 +7,11 @@ const META_EVENT_MAP: Record<string, string> = {
   quote_uploaded: "SubmitApplication",
   quote_upload_completed: "SubmitApplication",
   quote_validation_passed: "CompleteRegistration",
+  // Arc 1.5: phone_verified + report_revealed had no Meta mapping, which silently
+  // suppressed every server canonical fire. Mapped to standard Meta events so the
+  // server lane can actually dispatch (not to invent value, but to enable parity).
+  phone_verified: "CompleteRegistration",
+  report_revealed: "ViewContent",
   appointment_booked: "Schedule",
   sale_confirmed: "Purchase",
 };
