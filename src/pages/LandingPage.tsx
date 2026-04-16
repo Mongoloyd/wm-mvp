@@ -1,0 +1,75 @@
+/**
+ * LandingPage.tsx — White-label /lp/:slug route.
+ *
+ * Validates the slug against the `clients` table, then renders the
+ * identical homepage funnel. The slug is threaded into ScanFunnelContext
+ * so lead creation and CAPI calls stamp the correct client_slug.
+ *
+ * If the slug is invalid or inactive → silent redirect to /.
+ */
+
+import { useEffect, useState } from "react";
+import { useParams, Navigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { supabase } from "@/integrations/supabase/client";
+import Index from "./Index";
+import { ScanFunnelProvider } from "@/state/scanFunnel";
+
+type SlugState = "loading" | "valid" | "invalid";
+
+const LandingPage = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const [state, setState] = useState<SlugState>("loading");
+
+  useEffect(() => {
+    if (!slug) {
+      setState("invalid");
+      return;
+    }
+
+    let cancelled = false;
+
+    supabase
+      .from("clients")
+      .select("id, name")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data) {
+          setState("invalid");
+        } else {
+          setState("valid");
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [slug]);
+
+  if (state === "loading") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (state === "invalid") {
+    return <Navigate to="/" replace />;
+  }
+
+  return (
+    <>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <ScanFunnelProvider initialClientSlug={slug!}>
+        <Index />
+      </ScanFunnelProvider>
+    </>
+  );
+};
+
+export default LandingPage;
