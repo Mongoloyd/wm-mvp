@@ -1463,8 +1463,13 @@ Deno.serve(async (req: Request) => {
       }, 200);
 
     } catch (innerErr) {
-      // CRASH RECOVERY: session stays in 'processing' — recoverable by sweep
-      console.error("Unexpected error during scan processing:", innerErr);
+      // CRASH RECOVERY: session stays in 'processing' — recoverable by the
+      // stale-takeover path on the next invocation.
+      logScanError("session_finalize", {
+        scan_session_id,
+        detail: "unexpected_inner_error",
+        error: String(innerErr),
+      });
       return jsonResponse({
         error: "Internal processing error",
         scan_session_id,
@@ -1474,7 +1479,7 @@ Deno.serve(async (req: Request) => {
     }
 
   } catch (outerErr) {
-    console.error("scan-quote outer error:", outerErr);
+    logScanError("request_validation", { detail: "unexpected_outer_error", error: String(outerErr) });
     return jsonResponse({ error: "Bad request" }, 400);
   }
 });
