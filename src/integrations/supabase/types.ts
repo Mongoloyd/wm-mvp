@@ -224,6 +224,63 @@ export type Database = {
           },
         ]
       }
+      capi_signal_logs: {
+        Row: {
+          client_slug: string | null
+          event_name: string | null
+          fired_at: string
+          id: string
+          payload: Json | null
+          pixel_id: string | null
+          response: Json | null
+          status_code: number | null
+        }
+        Insert: {
+          client_slug?: string | null
+          event_name?: string | null
+          fired_at?: string
+          id?: string
+          payload?: Json | null
+          pixel_id?: string | null
+          response?: Json | null
+          status_code?: number | null
+        }
+        Update: {
+          client_slug?: string | null
+          event_name?: string | null
+          fired_at?: string
+          id?: string
+          payload?: Json | null
+          pixel_id?: string | null
+          response?: Json | null
+          status_code?: number | null
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       contractor_activity_log: {
         Row: {
           activity_data: Json
@@ -1641,6 +1698,44 @@ export type Database = {
           zip?: string | null
         }
         Relationships: []
+      }
+      meta_configurations: {
+        Row: {
+          access_token: string | null
+          client_id: string | null
+          id: string
+          is_default: boolean
+          pixel_id: string | null
+          test_event_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          client_id?: string | null
+          id?: string
+          is_default?: boolean
+          pixel_id?: string | null
+          test_event_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          client_id?: string | null
+          id?: string
+          is_default?: boolean
+          pixel_id?: string | null
+          test_event_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_configurations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       otp_failures: {
         Row: {
