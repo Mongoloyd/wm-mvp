@@ -1,43 +1,55 @@
 
 
-## QA Findings and Fix Plan: AdminPartners Page
+# WindowMan Master Roadmap — Status Recap
 
-### Critical Bug Found: Double-Protocol in Copy URL
+## PHASE 1: CORE INFRASTRUCTURE — Status: ✅ COMPLETE
 
-**Line 294** in `LandingPageUrl` component:
-```ts
-const fullUrl = `https://${url}`;
-```
+| Prompt | Goal | Status | Evidence |
+|--------|------|--------|----------|
+| **1 — /lp/[slug] Routes + Default Pixel Seed** | White-label slug routing, clientSlug stamping | ✅ Done | `LandingPage.tsx` validates against `clients` table, threads slug into `ScanFunnelProvider`. `meta_configurations` table with 3-tier fallback seeded. |
+| **2 — Browser-Side Pixel & Attribution** | Global Meta Pixel, `_fbp`/`_fbc` capture, UTM persistence | ✅ Done | `metaPixel.ts`, `shadowPixel.ts`, `useUtmCapture.ts`, `useLeadId.ts` all wired in `main.tsx`. |
+| **3 — E2E Test Mode + CAPI Verification** | Fire mock CAPI payloads with `META_TEST_EVENT_CODE` | ✅ Done | `capi-event` edge function supports `test_event_code` from DB or env. `verify-capi-fallback.ts` script validates DB-priority → env-fallback. `capi_signal_logs` table records every signal. |
+| **4 — Partner Admin Dashboard** | Onboard clients, assign pixels, view signal logs | ✅ Done | `AdminPartners.tsx`, `AdminDashboard.tsx` with multiple tabs (Pipeline, Ghost Recovery, Attribution, Contractor Accounts, etc.). |
+| **5 — DB Migration & Hardening** | Schema finalization, RLS, edge function hardening | ✅ Done | 70+ migrations. RLS on all tables. `is_internal_operator()` function gates admin access. Edge functions use service role. |
 
-But `url` is already built from `window.location.origin` (line 203), which includes the protocol (e.g., `https://wmmvp.lovable.app/lp/test`). The copy button currently produces:
+## PHASE 2: THE INTELLIGENCE LAYER — Status: ✅ COMPLETE
 
-```
-https://https://wmmvp.lovable.app/lp/test
-```
+| Prompt | Goal | Status | Evidence |
+|--------|------|--------|----------|
+| **6 — The Vault (Secure Document Storage)** | Private bucket, upload locked to `lead_id` | ✅ Done | `quotes` private bucket, signed URL access only, `UploadZone.tsx`, `quote_files` table with RLS. |
+| **7 — Lead Quality Scoring & AI Truth Report** | Gemini OCR → deterministic TypeScript scoring | ✅ Done | `scan-quote` edge function (extraction → `scoring.ts` → `flagging.ts` → `reportCompiler.ts`). 5-pillar rubric, A-F grading, county benchmarks. |
+| **8 — Client Portal (Proof of Work)** | Authenticated contractor dashboard with leads + Truth Reports | ✅ Done | `ContractorOpportunitiesPage.tsx`, `PartnerDossier.tsx` with document vault, intelligence dossier, lead status management. Credit-based unlock system. |
 
-This is a broken URL. The fix is to remove the `https://` prefix on line 294.
+## PHASE 3: SCALE & REVENUE — Status: ⚠️ PARTIAL
 
-### Database State
+| Prompt | Goal | Status | Evidence |
+|--------|------|--------|----------|
+| **9 — Billing & Subscription (Stripe)** | Stripe Checkout, webhook fulfillment, `is_active` kill-switch | ⚠️ Partial | `create-checkout-session` and `stripe-webhook` edge functions exist. Credit purchase tiers work. **Missing:** automatic `is_active` toggle on payment failure; no recurring subscription model yet — current model is credit-pack purchases only. |
+| **10 — Multi-Territory (Hub & Spoke)** | `client_routes` table, 1-to-Many slug→pixel mapping | ❌ Not Started | No `client_routes` table. Current model is 1 client = 1 slug = 1 pixel via `clients` + `meta_configurations`. |
+| **11 — Reclamation Engine** | "Lost" lead → re-offer to Client B, automated second-opinion email | ❌ Not Started | No reclamation logic, no "Second Opinion" email flow, no lead reassignment UI. |
 
-- **`test` client exists** (slug: `test`, active: `true`) but has **no `meta_configurations` row** — no pixel ID or access token. The edge function correctly returns "CAPI not configured" for this client.
-- To complete an E2E signal log test, pixel credentials must be added via the UI modal or directly in the DB.
+---
 
-### Other Observations
+## WHAT I WOULD ADD (Gaps & Recommendations)
 
-- **No Delete flow exists.** The UI has no delete button for clients. The prompt's "Delete" test cases are not applicable to current implementation.
-- **No Update/Edit for slug** after creation — `slugify()` is applied on change, but the slug field is editable in edit mode (which is fine, just noting).
-- **Signal Log Realtime** subscription is correctly wired via `postgres_changes` on `capi_signal_logs` INSERT events.
-- **Filtering** works by `client_slug` match; the "Default Pixel" filter checks for `null` client_slug, which is correct.
-- **AuthGuard** wraps the page; unauthorized access redirects as expected.
+### Missing from the roadmap that already exists in your codebase
+These are significant capabilities you've built that the roadmap doesn't mention — worth documenting:
 
-### Plan
+1. **OTP Hard Gate (SMS Verification)** — Full Twilio Verify flow (`send-otp`, `verify-otp`), phone_verifications table, report access gating. This is a core moat piece.
+2. **Contractor Monetization Layer** — Credit system, `contractor_credits`, `contractor_credit_purchases`, `billable_intros`, `contractor_outcomes`. Far more sophisticated than the roadmap's simple "Stripe subscription."
+3. **Contractor Onboarding & Invite System** — `accept-invite`, partner auth, password reset flow.
+4. **Voice Follow-up Pipeline** — `voice-followup` and `request-callback` edge functions.
+5. **Canonical Event Tracking Architecture** — 4-layer vendor-agnostic tracking system with anomaly detection, trust scoring, and platform mappers.
+6. **Contractor Brief Generation** — AI-generated anonymized briefs with match scoring.
 
-**Step 1 — Fix the double-protocol bug** in `LandingPageUrl`:
-- Change line 294 from `const fullUrl = \`https://${url}\`;` to `const fullUrl = url;` since `url` already contains the full origin with protocol.
+### Genuinely missing pieces to complete the vision
 
-**Step 2 — Seed test pixel config (optional, for E2E verification)**
-- If you want to complete the signal log E2E test, add a `meta_configurations` row for the `test` client with a valid Meta Pixel ID and CAPI access token via the UI modal.
+1. **Reclamation Engine (Prompt 11)** — No lead reassignment or "Second Opinion" email automation exists.
+2. **Hub & Spoke Multi-Territory (Prompt 10)** — No `client_routes` table for 1-to-Many slug mapping.
+3. **Subscription billing with auto-deactivation** — Current model is one-time credit packs. No recurring billing or automatic `is_active = false` on failed payment.
+4. **`/admin/test-signal` UI** — The E2E test script exists but there's no in-app admin tool to fire mock CAPI payloads interactively.
+5. **No Polling guardrail** — The roadmap mandates Supabase Realtime WebSocket subscriptions. Some admin views may still use polling (`useEffect` + `setInterval`) rather than Realtime channels.
 
-### No other code changes needed
-The CRUD (create/update), signal log realtime, filtering, and copy URL logic are all correctly implemented aside from the double-protocol bug.
+### Summary
+Phases 1 and 2 are fully delivered. Phase 3 is roughly 40% complete — billing exists but as credits, not subscriptions, and the two most advanced features (Hub & Spoke + Reclamation Engine) haven't been started.
 
