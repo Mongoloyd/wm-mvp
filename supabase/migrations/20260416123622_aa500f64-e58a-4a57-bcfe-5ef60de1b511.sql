@@ -1,0 +1,1 @@
+CREATE POLICY "clients_anon_select_active" ON public.clients FOR SELECT TO anon USING (is_active = true);
