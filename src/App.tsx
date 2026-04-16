@@ -120,6 +120,7 @@ const App = () => (
                 {/* Internal/dev only — zero production CTAs point here */}
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
+                <Route path="/admin/partners" element={<AdminPartners />} />
                 <Route path="/demo-classic" element={<DemoClassic />} />
                 <Route path="/dev/report-preview" element={<DevReportPreview />} />
                 <Route path="/devtesting" element={<DevTesting />} />
