@@ -351,6 +351,7 @@ const Index = () => {
                 flagRedCount={activeData?.flagRedCount}
                 flagAmberCount={activeData?.flagAmberCount}
                 isFullLoaded={isFullLoaded}
+                isLoadingFull={isLoadingFull}
                 fullFetchError={fullFetchError}
                 priceFairness={activeData?.priceFairness}
                 markupEstimate={activeData?.markupEstimate}
