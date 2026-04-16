@@ -16,6 +16,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { trackEvent } from "@/lib/trackEvent";
+import { trackGtmEvent } from "@/lib/trackConversion";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import { supabase } from "@/integrations/supabase/client";
