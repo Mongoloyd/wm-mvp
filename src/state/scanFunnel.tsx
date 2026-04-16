@@ -30,6 +30,7 @@ export interface ScanFunnelState {
   sessionId: string | null;
   scanSessionId: string | null;
   quoteFileId: string | null;
+  clientSlug: string | null;
 }
 
 export interface ScanFunnelActions {
@@ -116,6 +117,7 @@ const DEFAULT_STATE: ScanFunnelState = {
   sessionId: null,
   scanSessionId: null,
   quoteFileId: null,
+  clientSlug: null,
 };
 
 /* ── Context ───────────────────────────────────────────── */
@@ -124,10 +126,10 @@ export const ScanFunnelContext = createContext<ScanFunnelContextValue | null>(nu
 
 /* ── Provider ──────────────────────────────────────────── */
 
-export function ScanFunnelProvider({ children }: { children: React.ReactNode }) {
+export function ScanFunnelProvider({ children, initialClientSlug }: { children: React.ReactNode; initialClientSlug?: string }) {
   const [state, setState] = useState<ScanFunnelState>(() => {
     const persisted = readPersistedState();
-    return { ...DEFAULT_STATE, ...persisted };
+    return { ...DEFAULT_STATE, ...persisted, clientSlug: initialClientSlug ?? null };
   });
 
   const setPhone = useCallback((e164: string, status: PhoneFunnelStatus) => {
