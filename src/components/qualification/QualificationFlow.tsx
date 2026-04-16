@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import {
@@ -9,9 +9,12 @@ import {
   getOutcomeContent,
 } from "../../lib/qualificationLogic";
 import { PAGE_CONFIG } from "../../config/page.config";
+import { createContractorLead } from "../../lib/contractors2/service";
+import { supabase } from "@/integrations/supabase/client";
 import StepCard from "./StepCard";
 import OptionButton from "./OptionButton";
 import CalendlyEmbed from "../ui/CalendlyEmbed";
+import { useToast } from "@/hooks/use-toast";
 
 interface QualificationFlowProps {
   isOpen: boolean;
@@ -36,6 +39,18 @@ const fadeScale = {
   exit: { opacity: 0, scale: 0.96 },
 };
 
+/** Map UI answers to contractor_leads columns */
+function mapAnswersToLeadInput(answers: Answers) {
+  return {
+    service_area: answers.serviceArea || undefined,
+    average_job_size_band: answers.jobSize ?? undefined,
+    installs_regularly: answers.installVolume ?? undefined,
+    response_speed: answers.responseSpeed ?? undefined,
+    follow_up_consistency: answers.followUpBehavior ?? undefined,
+    wants_quality_over_volume: answers.expectationAlignment ?? undefined,
+  };
+}
+
 export default function QualificationFlow({ isOpen, onClose }: QualificationFlowProps) {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -44,6 +59,9 @@ export default function QualificationFlow({ isOpen, onClose }: QualificationFlow
   const [lowTierEmail, setLowTierEmail] = useState("");
   const [lowTierSubmitted, setLowTierSubmitted] = useState(false);
   const [lowTierError, setLowTierError] = useState("");
+  const [leadId, setLeadId] = useState<string | null>(null);
+  const [persisting, setPersisting] = useState(false);
+  const { toast } = useToast();
 
   const reset = useCallback(() => {
     setStep(1);
@@ -53,6 +71,8 @@ export default function QualificationFlow({ isOpen, onClose }: QualificationFlow
     setLowTierEmail("");
     setLowTierSubmitted(false);
     setLowTierError("");
+    setLeadId(null);
+    setPersisting(false);
   }, []);
 
   // Reset on close
@@ -78,15 +98,54 @@ export default function QualificationFlow({ isOpen, onClose }: QualificationFlow
     return () => window.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
 
-  // Step 5 auto-advance
+  // Step 5 auto-advance — persist lead during this "checking" pause
   useEffect(() => {
-    if (step !== 5 || !isOpen) return;
-    const t = setTimeout(() => {
-      setDirection(1);
-      setStep(6);
-    }, 1500);
-    return () => clearTimeout(t);
-  }, [step, isOpen]);
+    if (step !== 5 || !isOpen || !tier) return;
+
+    let cancelled = false;
+
+    const persistLead = async () => {
+      // Only persist for tiers that aren't BLOCK (BLOCK = no lead worth saving)
+      if (tier === "BLOCK") {
+        setTimeout(() => {
+          if (!cancelled) {
+            setDirection(1);
+            setStep(6);
+          }
+        }, 1500);
+        return;
+      }
+
+      setPersisting(true);
+      try {
+        // Create lead with qualification data (email will be added later for LOW tier)
+        const lead = await createContractorLead({
+          email: `pending-${Date.now()}@qualification.windowman.pro`,
+          ...mapAnswersToLeadInput(answers),
+          source: "contractors2_page",
+        });
+        if (!cancelled) {
+          setLeadId(lead.id);
+        }
+      } catch (err) {
+        console.error("[QualificationFlow] Failed to persist lead:", err);
+        // Non-fatal — still advance to step 6
+      } finally {
+        if (!cancelled) {
+          setPersisting(false);
+          setDirection(1);
+          setStep(6);
+        }
+      }
+    };
+
+    // Small visual delay before persisting
+    const t = setTimeout(persistLead, 800);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [step, isOpen, tier, answers]);
 
   const updateAnswer = <K extends keyof Answers>(key: K, value: Answers[K]) =>
     setAnswers((prev) => ({ ...prev, [key]: value }));
@@ -95,6 +154,24 @@ export default function QualificationFlow({ isOpen, onClose }: QualificationFlow
     setDirection(dir);
     setStep(to);
   };
+
+  /** Called when Calendly fires `calendly.event_scheduled` */
+  const handleCalendlyScheduled = useCallback(async (eventData: Record<string, unknown>) => {
+    if (!leadId) return;
+
+    try {
+      await supabase.functions.invoke("contractor-booking-confirmed", {
+        body: {
+          lead_id: leadId,
+          calendly_event_uri: eventData.event?.uri ?? null,
+          calendly_invitee_uri: eventData.invitee?.uri ?? null,
+        },
+      });
+      toast({ title: "Booking confirmed!", description: "We'll be in touch shortly." });
+    } catch (err) {
+      console.error("[QualificationFlow] Booking confirmation failed:", err);
+    }
+  }, [leadId, toast]);
 
   if (!isOpen) return null;
 
@@ -158,6 +235,7 @@ export default function QualificationFlow({ isOpen, onClose }: QualificationFlow
             {step === 6 && tier && (
               <Step6
                 tier={tier}
+                leadId={leadId}
                 email={lowTierEmail}
                 setEmail={setLowTierEmail}
                 submitted={lowTierSubmitted}
@@ -165,6 +243,7 @@ export default function QualificationFlow({ isOpen, onClose }: QualificationFlow
                 error={lowTierError}
                 setError={setLowTierError}
                 onStartOver={reset}
+                onCalendlyScheduled={handleCalendlyScheduled}
               />
             )}
           </motion.div>
@@ -373,6 +452,7 @@ function Step5() {
 
 function Step6({
   tier,
+  leadId,
   email,
   setEmail,
   submitted,
@@ -380,8 +460,10 @@ function Step6({
   error,
   setError,
   onStartOver,
+  onCalendlyScheduled,
 }: {
   tier: RoutingTier;
+  leadId: string | null;
   email: string;
   setEmail: (v: string) => void;
   submitted: boolean;
@@ -389,16 +471,35 @@ function Step6({
   error: string;
   setError: (v: string) => void;
   onStartOver: () => void;
+  onCalendlyScheduled: (data: Record<string, unknown>) => void;
 }) {
   const content = getOutcomeContent(tier);
 
-  const handleLowSubmit = () => {
+  const handleLowSubmit = async () => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError("Please enter a valid email address.");
       return;
     }
     setError("");
-    console.log({ type: "low_tier", email });
+
+    try {
+      if (leadId) {
+        // Update existing lead with actual email
+        await supabase
+          .from("contractor_leads")
+          .update({ email })
+          .eq("id", leadId);
+      } else {
+        // Create new lead with just the email
+        await createContractorLead({
+          email,
+          source: "contractors2_page",
+        });
+      }
+    } catch (err) {
+      console.error("[QualificationFlow] LOW tier email persist failed:", err);
+    }
+
     setSubmitted(true);
   };
 
@@ -414,7 +515,11 @@ function Step6({
           {tier === "MID" && content.note && (
             <p className="text-sm text-zinc-500 mb-4 italic">{content.note}</p>
           )}
-          <CalendlyEmbed url={PAGE_CONFIG.calendly.url} height={600} />
+          <CalendlyEmbed
+            url={PAGE_CONFIG.calendly.url}
+            height={600}
+            onEventScheduled={onCalendlyScheduled}
+          />
           <div className="mt-4">
             <a
               href={PAGE_CONFIG.phone.href}

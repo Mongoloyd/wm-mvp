@@ -1,14 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface CalendlyEmbedProps {
   url: string;
   height?: number;
+  /** Called when Calendly fires `calendly.event_scheduled` via postMessage */
+  onEventScheduled?: (data: Record<string, unknown>) => void;
 }
 
-export default function CalendlyEmbed({ url, height }: CalendlyEmbedProps) {
+export default function CalendlyEmbed({ url, height, onEventScheduled }: CalendlyEmbedProps) {
   const [loaded, setLoaded] = useState(false);
 
   const isValid = typeof url === "string" && url.trim().length > 0;
+
+  // Listen for Calendly postMessage events
+  useEffect(() => {
+    if (!onEventScheduled) return;
+
+    const handler = (e: MessageEvent) => {
+      if (e.data?.event === "calendly.event_scheduled") {
+        onEventScheduled(e.data.payload ?? {});
+      }
+    };
+
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [onEventScheduled]);
 
   if (!isValid) {
     return (
