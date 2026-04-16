@@ -14,10 +14,16 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { getVerifiedAccess, saveVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
 import type { HybridPreviewPayload, HybridFullPayload } from "@/types/reportHybrid";
+import type { RawPreviewRow, RawFullRow } from "@/types/serviceResults";
+import {
+  fetchScanStatus,
+  fetchAnalysisPreview,
+  fetchAnalysisFull,
+  fetchFullViaDevBypass as fetchFullViaDevBypassService,
+} from "@/services/reportService";
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
@@ -91,10 +97,8 @@ function mapSeverity(raw: string | undefined | null): "red" | "amber" | "green" 
   const s = (raw || "").toLowerCase();
   if (s === "critical" || s === "high") return "red";
   if (s === "medium") return "amber";
-  // Explicit green only for known-positive severities
   if (s === "low" || s === "info" || s === "pass" || s === "confirmed") return "green";
   if (s === "green" || s === "ok" || s === "good") return "green";
-  // Unknown/unrecognized severities must never silently become "confirmed"
   return "amber";
 }
 
@@ -186,6 +190,106 @@ function extractPillarScoresWithFlags(previewJson: unknown, flags: AnalysisFlag[
   });
 }
 
+// ── Data assembly helpers ───────────────────────────────────────────────────
+
+function buildPreviewData(row: RawPreviewRow): AnalysisData {
+  const proofOfRead = row.proof_of_read;
+  const previewJson = row.preview_json;
+  const qualityBandRaw = (previewJson as any)?.quality_band as string | undefined;
+  const validBands = new Set(["good", "fair", "poor"]);
+  const hybridPreview = previewJson as unknown as HybridPreviewPayload | null;
+
+  return {
+    grade: row.grade,
+    flags: [],
+    flagCount: row.flag_count ?? 0,
+    flagRedCount: row.flag_red_count ?? 0,
+    flagAmberCount: row.flag_amber_count ?? 0,
+    contractorName: (proofOfRead?.contractor_name as string) || null,
+    confidenceScore: row.confidence_score ?? null,
+    pillarScores: extractPillarScores(row.preview_json),
+    documentType: row.document_type || null,
+    pageCount: typeof proofOfRead?.page_count === "number" ? proofOfRead.page_count : null,
+    openingCount: typeof proofOfRead?.opening_count === "number" ? proofOfRead.opening_count : null,
+    lineItemCount: typeof proofOfRead?.line_item_count === "number" ? proofOfRead.line_item_count : null,
+    qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
+    hasWarranty: typeof (previewJson as any)?.has_warranty === "boolean" ? (previewJson as any).has_warranty : null,
+    hasPermits: typeof (previewJson as any)?.has_permits === "boolean" ? (previewJson as any).has_permits : null,
+    analysisStatus: "complete",
+    warnings: [],
+    missingItems: [],
+    summary: null,
+    topWarning: hybridPreview?.top_warning ?? null,
+    topMissingItem: hybridPreview?.top_missing_item ?? null,
+    pricePerOpening: null,
+    pricePerOpeningBand: hybridPreview?.price_per_opening_band ?? null,
+    paymentRiskDetected: Boolean(hybridPreview?.payment_risk_detected),
+    scopeGapDetected: Boolean(hybridPreview?.scope_gap_detected),
+    summaryTeaser: hybridPreview?.summary_teaser ?? null,
+    missingItemsCount: (typeof hybridPreview?.missing_items_count === "number" && hybridPreview.missing_items_count >= 0) ? hybridPreview.missing_items_count : 0,
+  };
+}
+
+function buildFullData(row: RawFullRow): AnalysisData {
+  const proofOfRead = row.proof_of_read;
+  const previewJson = row.preview_json;
+  const fullJsonRaw = row.full_json;
+  const flags = mapFlags(row.flags);
+  const qualityBandRaw = (previewJson as any)?.quality_band as string | undefined;
+  const validBands = new Set(["good", "fair", "poor"]);
+
+  const derivedMetrics = (fullJsonRaw?.derived_metrics as Record<string, unknown>) || null;
+  const hybridFull = fullJsonRaw as unknown as HybridFullPayload | null;
+  const fullWarnings = Array.isArray(hybridFull?.warnings) ? hybridFull.warnings : [];
+  const fullMissingItems = Array.isArray(hybridFull?.missing_items) ? hybridFull.missing_items : [];
+
+  return {
+    grade: row.grade,
+    flags,
+    flagCount: flags.length,
+    flagRedCount: flags.filter(f => f.severity === "red").length,
+    flagAmberCount: flags.filter(f => f.severity === "amber").length,
+    contractorName: (proofOfRead?.contractor_name as string) || null,
+    confidenceScore: row.confidence_score ?? null,
+    pillarScores: extractPillarScoresWithFlags(row.preview_json, flags),
+    documentType: row.document_type || null,
+    pageCount: typeof proofOfRead?.page_count === "number" ? proofOfRead.page_count : null,
+    openingCount: typeof proofOfRead?.opening_count === "number" ? proofOfRead.opening_count : null,
+    lineItemCount: typeof proofOfRead?.line_item_count === "number" ? proofOfRead.line_item_count : null,
+    qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
+    hasWarranty: typeof (previewJson as any)?.has_warranty === "boolean" ? (previewJson as any).has_warranty : null,
+    hasPermits: typeof (previewJson as any)?.has_permits === "boolean" ? (previewJson as any).has_permits : null,
+    analysisStatus: "complete",
+    derivedMetrics,
+    priceFairness: (fullJsonRaw?.price_fairness as string) || null,
+    markupEstimate: (fullJsonRaw?.markup_estimate as string) || null,
+    negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
+    warnings: fullWarnings,
+    missingItems: fullMissingItems,
+    summary: hybridFull?.summary ?? null,
+    topWarning: hybridFull?.top_warning ?? null,
+    topMissingItem: hybridFull?.top_missing_item ?? null,
+    pricePerOpening: typeof hybridFull?.price_per_opening === "number" ? hybridFull.price_per_opening : null,
+    pricePerOpeningBand: hybridFull?.price_per_opening_band ?? null,
+    paymentRiskDetected: Boolean(hybridFull?.payment_risk_detected),
+    scopeGapDetected: Boolean(hybridFull?.scope_gap_detected),
+    summaryTeaser: null,
+    missingItemsCount: fullMissingItems.length,
+  };
+}
+
+function buildTerminalData(sessionStatus: string): AnalysisData {
+  return {
+    grade: "N/A", flags: [], flagCount: 0, flagRedCount: 0, flagAmberCount: 0,
+    contractorName: null, confidenceScore: null, pillarScores: PILLAR_DEFS.map(d => ({ ...d, score: null, status: "pending" as const })),
+    documentType: null, pageCount: null, openingCount: null, lineItemCount: null,
+    qualityBand: null, hasWarranty: null, hasPermits: null, analysisStatus: sessionStatus,
+    warnings: [], missingItems: [], summary: null, topWarning: null, topMissingItem: null,
+    pricePerOpening: null, pricePerOpeningBand: null, paymentRiskDetected: false,
+    scopeGapDetected: false, summaryTeaser: null, missingItemsCount: 0,
+  };
+}
+
 // ── Hook return ──────────────────────────────────────────────────────────────
 
 export interface UseAnalysisDataResult {
@@ -237,8 +341,9 @@ export function useAnalysisData(
   }, [scanSessionId]);
 
   // ── Phase 1: Preview fetch ─────────────────────────────────────────────
-  // UUID v4 pattern to guard against literal route params like ":sessionId"
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  const TERMINAL_STATUSES = new Set(["invalid_document", "failed", "error", "unreadable"]);
 
   useEffect(() => {
     if (!enabled || !scanSessionId || previewFetchedRef.current === scanSessionId) return;
@@ -252,92 +357,44 @@ export function useAnalysisData(
     let retryTimer: number | undefined;
     let cancelled = false;
 
-    const TERMINAL_STATUSES = new Set(["invalid_document", "failed", "error", "unreadable"]);
-
     const doFetch = async (attempt: number) => {
       try {
         // Pre-check: short-circuit if scan session reached a terminal status
         if (attempt > 0) {
-          const { data: statusRows } = await supabase.rpc("get_scan_status", {
-            p_scan_session_id: scanSessionId,
-          });
-          const sessionStatus = Array.isArray(statusRows) ? statusRows[0]?.status : (statusRows as any)?.status;
-          if (sessionStatus && TERMINAL_STATUSES.has(sessionStatus)) {
-            console.warn("[useAnalysisData] terminal session status:", sessionStatus);
-            setData({
-              grade: "N/A", flags: [], flagCount: 0, flagRedCount: 0, flagAmberCount: 0,
-              contractorName: null, confidenceScore: null, pillarScores: PILLAR_DEFS.map(d => ({ ...d, score: null, status: "pending" as const })),
-              documentType: null, pageCount: null, openingCount: null, lineItemCount: null,
-              qualityBand: null, hasWarranty: null, hasPermits: null, analysisStatus: sessionStatus,
-              warnings: [], missingItems: [], summary: null, topWarning: null, topMissingItem: null,
-              pricePerOpening: null, pricePerOpeningBand: null, paymentRiskDetected: false,
-              scopeGapDetected: false, summaryTeaser: null, missingItemsCount: 0,
-            });
-            setIsLoading(false);
-            previewFetchedRef.current = scanSessionId;
-            return;
+          const statusResult = await fetchScanStatus(scanSessionId);
+          if (statusResult.ok && statusResult.data) {
+            const sessionStatus = statusResult.data.status;
+            if (sessionStatus && TERMINAL_STATUSES.has(sessionStatus)) {
+              console.warn("[useAnalysisData] terminal session status:", sessionStatus);
+              setData(buildTerminalData(sessionStatus));
+              setIsLoading(false);
+              previewFetchedRef.current = scanSessionId;
+              return;
+            }
           }
         }
 
-        const { data: rows, error: rpcErr } = await supabase.rpc(
-          "get_analysis_preview",
-          { p_scan_session_id: scanSessionId }
-        );
+        const result = await fetchAnalysisPreview(scanSessionId);
         if (cancelled) return;
-        if (rpcErr) {
-          console.error("get_analysis_preview error:", rpcErr);
+
+        if (!result.ok) {
+          console.error("get_analysis_preview error:", result.message);
           if (attempt < 8) { retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500); return; }
           setError("Failed to load analysis."); setIsLoading(false); return;
         }
-        const row = Array.isArray(rows) ? rows[0] : rows;
-        if (!row || !row.grade) {
+
+        if (!result.data) {
           if (attempt < 8) { retryTimer = window.setTimeout(() => doFetch(attempt + 1), 2500); return; }
           setError("Analysis not found."); setIsLoading(false); return;
         }
 
         previewFetchedRef.current = scanSessionId;
-        trackEvent({ event_name: "preview_rendered", session_id: scanSessionId, metadata: { grade: row.grade, flag_count: row.flag_count } });
+        trackEvent({ event_name: "preview_rendered", session_id: scanSessionId, metadata: { grade: result.data.grade, flag_count: result.data.flag_count } });
 
         // Guard: don't overwrite full data with stale preview data
         if (isFullLoadedRef.current) { setIsLoading(false); return; }
 
-        const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
-        const previewJson = row.preview_json as Record<string, unknown> | null;
-        const qualityBandRaw = previewJson?.quality_band as string | undefined;
-        const validBands = new Set(["good", "fair", "poor"]);
-
-        const hybridPreview = previewJson as unknown as HybridPreviewPayload | null;
-
-        setData({
-          grade: row.grade,
-          flags: [],                           // ← EMPTY in preview
-          flagCount: row.flag_count ?? 0,
-          flagRedCount: row.flag_red_count ?? 0,
-          flagAmberCount: row.flag_amber_count ?? 0,
-          contractorName: (proofOfRead?.contractor_name as string) || null,
-          confidenceScore: row.confidence_score ?? null,
-          pillarScores: extractPillarScores(row.preview_json),
-          documentType: row.document_type || null,
-          pageCount: typeof proofOfRead?.page_count === "number" ? proofOfRead.page_count : null,
-          openingCount: typeof proofOfRead?.opening_count === "number" ? proofOfRead.opening_count : null,
-          lineItemCount: typeof proofOfRead?.line_item_count === "number" ? proofOfRead.line_item_count : null,
-          qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
-          hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
-          hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
-          analysisStatus: "complete",
-          // Hybrid preview fields
-          warnings: [],
-          missingItems: [],
-          summary: null,
-          topWarning: hybridPreview?.top_warning ?? null,
-          topMissingItem: hybridPreview?.top_missing_item ?? null,
-          pricePerOpening: null,
-          pricePerOpeningBand: hybridPreview?.price_per_opening_band ?? null,
-          paymentRiskDetected: Boolean(hybridPreview?.payment_risk_detected),
-          scopeGapDetected: Boolean(hybridPreview?.scope_gap_detected),
-          summaryTeaser: hybridPreview?.summary_teaser ?? null,
-          missingItemsCount: (typeof hybridPreview?.missing_items_count === "number" && hybridPreview.missing_items_count >= 0) ? hybridPreview.missing_items_count : 0,
-        });
+        setData(buildPreviewData(result.data));
       } catch (err) {
         if (cancelled) return;
         console.error("useAnalysisData exception:", err);
@@ -356,22 +413,22 @@ export function useAnalysisData(
   const devBypassEnabled =
     import.meta.env.DEV && !!import.meta.env.VITE_DEV_BYPASS_SECRET;
 
-  const fetchFullViaDevBypass = useCallback(
-    async (sessionId: string) => {
-      const { data: fnData, error: fnErr } = await supabase.functions.invoke(
-        "dev-report-unlock",
-        { body: { scan_session_id: sessionId, dev_secret: import.meta.env.VITE_DEV_BYPASS_SECRET } }
+  /** Fetch full row via dev bypass service, returning typed result */
+  const doDevBypassFetch = useCallback(
+    async (sessionId: string): Promise<RawFullRow | null> => {
+      const result = await fetchFullViaDevBypassService(
+        sessionId,
+        import.meta.env.VITE_DEV_BYPASS_SECRET
       );
-      if (fnErr) throw fnErr;
-      // Edge function returns the row directly (not wrapped in array)
-      return fnData;
+      if (!result.ok) throw new Error(result.message);
+      return result.data;
     },
     []
   );
 
   // ── Phase 2: Full gated fetch ──────────────────────────────────────────
   const fetchFull = useCallback(async (phoneE164: string) => {
-    
+
     if (!scanSessionId || isFullLoaded || !UUID_RE.test(scanSessionId)) {
       console.warn("[fetchFull] skipped — missing/invalid scanSessionId or already loaded", { scanSessionId, isFullLoaded });
       return;
@@ -387,95 +444,45 @@ export function useAnalysisData(
     }));
 
     try {
-      let row: any;
+      let fullRow: RawFullRow | null;
 
       if (devBypassEnabled) {
         console.info("[fetchFull] 🔓 DEV BYPASS — skipping get_analysis_full RPC");
-        row = await fetchFullViaDevBypass(scanSessionId);
+        fullRow = await doDevBypassFetch(scanSessionId);
       } else {
-        const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
-          "get_analysis_full",
-          { p_scan_session_id: scanSessionId, p_phone_e164: phoneE164 }
-        );
-        if (rpcErr) {
-          console.error("[FETCH_FULL_FORENSIC] rpc_error", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4), error: rpcErr.message }));
-          setFullFetchError("Failed to unlock report.");
+        const result = await fetchAnalysisFull(scanSessionId, phoneE164);
+        if (!result.ok) {
+          console.error("[FETCH_FULL_FORENSIC] error", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4), code: result.code, message: result.message }));
+          setFullFetchError(result.code === "unauthorized"
+            ? result.message
+            : "Failed to unlock report.");
           return;
         }
-        row = Array.isArray(rows) ? rows[0] : rows;
+        fullRow = result.data;
       }
-      if (!row || !row.grade) {
-        console.error("[FETCH_FULL_FORENSIC] empty_result", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4), row: row ?? null }));
+
+      if (!fullRow) {
+        console.error("[FETCH_FULL_FORENSIC] empty_result", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4) }));
         setFullFetchError("Report data not found.");
         return;
       }
-      if (row.grade === "__UNAUTHORIZED__") {
-        console.error("[FETCH_FULL_FORENSIC] unauthorized", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4) }));
-        setFullFetchError("Verification failed. Please re-verify your phone number.");
-        return;
-      }
 
-      console.log("[FETCH_FULL_FORENSIC] success", JSON.stringify({ scanSessionId, grade: row.grade }));
+      console.log("[FETCH_FULL_FORENSIC] success", JSON.stringify({ scanSessionId, grade: fullRow.grade }));
 
-      const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
-      const previewJson = row.preview_json as Record<string, unknown> | null;
-      const fullJsonRaw = row.full_json as Record<string, unknown> | null;
-      const flags = mapFlags(row.flags);
-      const qualityBandRaw = previewJson?.quality_band as string | undefined;
-      const validBands = new Set(["good", "fair", "poor"]);
-
-      // Extract derived_metrics from full_json (computed by scan-quote)
-      const derivedMetrics = (fullJsonRaw?.derived_metrics as Record<string, unknown>) || null;
-      const hybridFull = fullJsonRaw as unknown as HybridFullPayload | null;
-      const fullWarnings = Array.isArray(hybridFull?.warnings) ? hybridFull.warnings : [];
-      const fullMissingItems = Array.isArray(hybridFull?.missing_items) ? hybridFull.missing_items : [];
-
-      setData({
-        grade: row.grade,
-        flags,
-        flagCount: flags.length,
-        flagRedCount: flags.filter(f => f.severity === "red").length,
-        flagAmberCount: flags.filter(f => f.severity === "amber").length,
-        contractorName: (proofOfRead?.contractor_name as string) || null,
-        confidenceScore: row.confidence_score ?? null,
-        pillarScores: extractPillarScoresWithFlags(row.preview_json, flags),
-        documentType: row.document_type || null,
-        pageCount: typeof proofOfRead?.page_count === "number" ? proofOfRead.page_count : null,
-        openingCount: typeof proofOfRead?.opening_count === "number" ? proofOfRead.opening_count : null,
-        lineItemCount: typeof proofOfRead?.line_item_count === "number" ? proofOfRead.line_item_count : null,
-        qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
-        hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
-        hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
-        analysisStatus: "complete",
-        derivedMetrics,
-        priceFairness: (fullJsonRaw?.price_fairness as string) || null,
-        markupEstimate: (fullJsonRaw?.markup_estimate as string) || null,
-        negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
-        // Hybrid full fields
-        warnings: fullWarnings,
-        missingItems: fullMissingItems,
-        summary: hybridFull?.summary ?? null,
-        topWarning: hybridFull?.top_warning ?? null,
-        topMissingItem: hybridFull?.top_missing_item ?? null,
-        pricePerOpening: typeof hybridFull?.price_per_opening === "number" ? hybridFull.price_per_opening : null,
-        pricePerOpeningBand: hybridFull?.price_per_opening_band ?? null,
-        paymentRiskDetected: Boolean(hybridFull?.payment_risk_detected),
-        scopeGapDetected: Boolean(hybridFull?.scope_gap_detected),
-        summaryTeaser: null,
-        missingItemsCount: fullMissingItems.length,
-      });
+      const assembled = buildFullData(fullRow);
+      setData(assembled);
       setIsFullLoaded(true);
       isFullLoadedRef.current = true;
       saveVerifiedAccess(scanSessionId, phoneE164);
-      trackEvent({ event_name: "report_unlocked", session_id: scanSessionId, metadata: { grade: row.grade, flag_count: flags.length } });
-      
+      trackEvent({ event_name: "report_unlocked", session_id: scanSessionId, metadata: { grade: assembled.grade, flag_count: assembled.flags.length } });
+
     } catch (err) {
       console.error("[FETCH_FULL_FORENSIC] exception", JSON.stringify({ scanSessionId, phone_last4: phoneE164?.slice(-4), error: String(err) }));
       setFullFetchError("Unexpected error unlocking report.");
     } finally {
       setIsLoadingFull(false);
     }
-  }, [scanSessionId, isFullLoaded, devBypassEnabled, fetchFullViaDevBypass]);
+  }, [scanSessionId, isFullLoaded, devBypassEnabled, doDevBypassFetch]);
 
   // ── Phase 3: Auto-resume for returning verified users ─────────────────
   const tryResume = useCallback(async (): Promise<boolean> => {
@@ -488,90 +495,41 @@ export function useAnalysisData(
       return false;
     }
 
-
     setIsResuming(true);
     try {
-      let row: any;
+      let fullRow: RawFullRow | null;
 
       if (devBypassEnabled) {
         console.info("[tryResume] 🔓 DEV BYPASS — skipping get_analysis_full RPC");
         try {
-          row = await fetchFullViaDevBypass(scanSessionId);
+          fullRow = await doDevBypassFetch(scanSessionId);
         } catch (e) {
           console.warn("[tryResume] dev bypass error", e);
           return false;
         }
       } else {
-        const { data: rows, error: rpcErr } = await (supabase.rpc as any)(
-          "get_analysis_full",
-          { p_scan_session_id: scanSessionId, p_phone_e164: record.phone_e164 }
-        );
-
-        if (rpcErr) {
-          console.warn("[tryResume] RPC error — clearing stale record", rpcErr);
+        const result = await fetchAnalysisFull(scanSessionId, record!.phone_e164);
+        if (!result.ok) {
+          console.warn("[tryResume] RPC error — clearing stale record", result.message);
           clearVerifiedAccess();
           return false;
         }
-        row = Array.isArray(rows) ? rows[0] : rows;
+        fullRow = result.data;
       }
 
-      if (!row || !row.grade) {
+      if (!fullRow) {
         console.warn("[tryResume] empty result — clearing stale record");
         clearVerifiedAccess();
         return false;
       }
 
-      const proofOfRead = row.proof_of_read as Record<string, unknown> | null;
-      const previewJson = row.preview_json as Record<string, unknown> | null;
-      const fullJsonRaw = row.full_json as Record<string, unknown> | null;
-      const flags = mapFlags(row.flags);
-      const qualityBandRaw = previewJson?.quality_band as string | undefined;
-      const validBands = new Set(["good", "fair", "poor"]);
-
-      const derivedMetrics = (fullJsonRaw?.derived_metrics as Record<string, unknown>) || null;
-      const hybridFull = fullJsonRaw as unknown as HybridFullPayload | null;
-      const fullWarnings = Array.isArray(hybridFull?.warnings) ? hybridFull.warnings : [];
-      const fullMissingItems = Array.isArray(hybridFull?.missing_items) ? hybridFull.missing_items : [];
-
-      setData({
-        grade: row.grade,
-        flags,
-        flagCount: flags.length,
-        flagRedCount: flags.filter(f => f.severity === "red").length,
-        flagAmberCount: flags.filter(f => f.severity === "amber").length,
-        contractorName: (proofOfRead?.contractor_name as string) || null,
-        confidenceScore: row.confidence_score ?? null,
-        pillarScores: extractPillarScoresWithFlags(row.preview_json, flags),
-        documentType: row.document_type || null,
-        pageCount: typeof proofOfRead?.page_count === "number" ? proofOfRead.page_count : null,
-        openingCount: typeof proofOfRead?.opening_count === "number" ? proofOfRead.opening_count : null,
-        lineItemCount: typeof proofOfRead?.line_item_count === "number" ? proofOfRead.line_item_count : null,
-        qualityBand: qualityBandRaw && validBands.has(qualityBandRaw) ? (qualityBandRaw as "good" | "fair" | "poor") : null,
-        hasWarranty: typeof previewJson?.has_warranty === "boolean" ? previewJson.has_warranty : null,
-        hasPermits: typeof previewJson?.has_permits === "boolean" ? previewJson.has_permits : null,
-        analysisStatus: "complete",
-        derivedMetrics,
-        priceFairness: (fullJsonRaw?.price_fairness as string) || null,
-        markupEstimate: (fullJsonRaw?.markup_estimate as string) || null,
-        negotiationLeverage: (fullJsonRaw?.negotiation_leverage as string) || null,
-        // Hybrid full fields
-        warnings: fullWarnings,
-        missingItems: fullMissingItems,
-        summary: hybridFull?.summary ?? null,
-        topWarning: hybridFull?.top_warning ?? null,
-        topMissingItem: hybridFull?.top_missing_item ?? null,
-        pricePerOpening: typeof hybridFull?.price_per_opening === "number" ? hybridFull.price_per_opening : null,
-        pricePerOpeningBand: hybridFull?.price_per_opening_band ?? null,
-        paymentRiskDetected: Boolean(hybridFull?.payment_risk_detected),
-        scopeGapDetected: Boolean(hybridFull?.scope_gap_detected),
-        summaryTeaser: null,
-        missingItemsCount: fullMissingItems.length,
-      });
+      const assembled = buildFullData(fullRow);
+      setData(assembled);
       previewFetchedRef.current = scanSessionId;
       setIsFullLoaded(true);
       isFullLoadedRef.current = true;
-      trackEvent({ event_name: "resume_flow_triggered", session_id: scanSessionId, metadata: { grade: row.grade } });
-      
+      trackEvent({ event_name: "resume_flow_triggered", session_id: scanSessionId, metadata: { grade: assembled.grade } });
+
       return true;
     } catch (err) {
       console.error("[tryResume] exception — clearing stale record", err);
@@ -580,7 +538,7 @@ export function useAnalysisData(
     } finally {
       setIsResuming(false);
     }
-  }, [scanSessionId, isFullLoaded, devBypassEnabled, fetchFullViaDevBypass]);
+  }, [scanSessionId, isFullLoaded, devBypassEnabled, doDevBypassFetch]);
 
   return { data, isLoading, error, fullFetchError, fetchFull, isLoadingFull, isFullLoaded, tryResume, isResuming };
 }

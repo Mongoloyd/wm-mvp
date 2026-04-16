@@ -13,8 +13,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
 import { screenPhone } from "@/utils/screenPhone";
-import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
+import { sendOtp, verifyOtp } from "@/services/phoneVerificationService";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -172,51 +172,20 @@ export function usePhonePipeline(
       return { status: "valid", e164: normalizedE164 };
     }
 
-    // validate_and_send_otp — call send-otp
+    // validate_and_send_otp — call send-otp via service
     isSendingRef.current = true;
     setPhoneStatus("sending_otp");
     console.log("[usePhonePipeline] submitPhone → calling send-otp", { phone: normalizedE164 });
     try {
-      const { data, error } = await supabase.functions.invoke("send-otp", {
-        body: {
-          phone_e164: normalizedE164,
-          scan_session_id: options?.scanSessionId || undefined,
-        },
-      });
+      const result = await sendOtp(normalizedE164, options?.scanSessionId || undefined);
 
-      // supabase.functions.invoke puts the body in `error` for non-2xx responses
-      if (error) {
-        let parsedMsg = "Failed to send verification code.";
-        let classifiedType: ErrorType = "generic";
-        try {
-          if (error.context && typeof error.context.json === "function") {
-            const body = await error.context.json();
-            console.error("[usePhonePipeline] send-otp non-2xx response body:", body);
-            parsedMsg = body?.error || parsedMsg;
-            // Detect specific Twilio error types
-            if (body?.twilio_code === 60410 || parsedMsg.toLowerCase().includes("blocked by our carrier")) {
-              classifiedType = "blocked_prefix";
-            } else if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
-              classifiedType = "rate_limit";
-            }
-          } else {
-            console.error("[usePhonePipeline] send-otp error (no context):", error);
-          }
-        } catch { console.error("[usePhonePipeline] send-otp error (unparseable):", error); }
+      if (!result.ok) {
+        const classifiedType = (result.errorCode || "generic") as ErrorType;
         setPhoneStatus("otp_failed");
-        setErrorMsg(parsedMsg);
+        setErrorMsg(result.message);
         setErrorType(classifiedType);
-        trackEvent({ event_name: classifiedType === "rate_limit" ? "rate_limit_hit" : "otp_send_failed", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: parsedMsg } });
-        return { status: "error", error: parsedMsg };
-      }
-
-      if (!data?.success) {
-        const msg = data?.error || "Failed to send verification code.";
-        console.error("[usePhonePipeline] send-otp returned success=false:", data);
-        setPhoneStatus("otp_failed");
-        setErrorMsg(msg);
-        setErrorType("generic");
-        return { status: "error", error: msg };
+        trackEvent({ event_name: classifiedType === "rate_limit" ? "rate_limit_hit" : "otp_send_failed", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: result.message } });
+        return { status: "error", error: result.message };
       }
 
       console.log("[usePhonePipeline] send-otp SUCCESS");
@@ -224,13 +193,6 @@ export function usePhonePipeline(
       setCooldown(RESEND_COOLDOWN_SECONDS);
       trackEvent({ event_name: "otp_sent", session_id: options?.scanSessionId, metadata: { phone_last4: normalizedE164.slice(-4) } });
       return { status: "otp_sent", e164: normalizedE164 };
-    } catch (err) {
-      console.error("[usePhonePipeline] send-otp network exception:", err);
-      const msg = "Network error. Check your connection and try again.";
-      setPhoneStatus("otp_failed");
-      setErrorMsg(msg);
-      setErrorType("network");
-      return { status: "error", error: msg };
     } finally {
       isSendingRef.current = false;
     }
@@ -258,62 +220,23 @@ export function usePhonePipeline(
         phone: activePhone, code, scanSessionId: options?.scanSessionId,
       });
       try {
-        const { data, error } = await supabase.functions.invoke("verify-otp", {
-          body: {
-            phone_e164: activePhone,
-            code,
-            scan_session_id: options?.scanSessionId || undefined,
-          },
-        });
+        const result = await verifyOtp(activePhone, code, options?.scanSessionId || undefined);
 
-        // supabase.functions.invoke puts the body in `error` for non-2xx responses
-        if (error) {
-          let parsedMsg = "Invalid or expired code.";
-          let classifiedType: ErrorType = "invalid_code";
-          try {
-            if (error.context && typeof error.context.json === "function") {
-              const body = await error.context.json();
-              console.error("[usePhonePipeline] verify-otp non-2xx response body:", body);
-              parsedMsg = body?.error || parsedMsg;
-              // Detect expired session (Twilio 20404)
-              if (parsedMsg.toLowerCase().includes("expired") || parsedMsg.toLowerCase().includes("not found")) {
-                classifiedType = "expired_session";
-              }
-            } else {
-              console.error("[usePhonePipeline] verify-otp error (no context):", error);
-            }
-          } catch { console.error("[usePhonePipeline] verify-otp error (unparseable):", error); }
+        if (!result.ok) {
+          const classifiedType = (result.errorCode || "invalid_code") as ErrorType;
           setPhoneStatus("otp_sent"); // allow retry
-          setErrorMsg(parsedMsg);
+          setErrorMsg(result.message);
           setErrorType(classifiedType);
-          trackEvent({ event_name: "otp_error", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: parsedMsg } });
-          return { status: "invalid_code", error: parsedMsg };
+          trackEvent({ event_name: "otp_error", session_id: options?.scanSessionId, metadata: { error_type: classifiedType, error_msg: result.message } });
+          return { status: "invalid_code", error: result.message };
         }
 
-        if (!data?.verified) {
-          const msg = data?.error || "Invalid or expired code.";
-          console.error("[usePhonePipeline] verify-otp returned verified=false:", data);
-          setPhoneStatus("otp_sent"); // allow retry
-          setErrorMsg(msg);
-          setErrorType("invalid_code");
-          trackEvent({ event_name: "otp_error", session_id: options?.scanSessionId, metadata: { error_type: "invalid_code", error_msg: msg } });
-          return { status: "invalid_code", error: msg };
-        }
-
-        // Use server-returned canonical phone if available, otherwise fall back to local
-        const canonicalPhone = data?.phone_e164 || activePhone;
+        const canonicalPhone = result.data.phone_e164;
         console.log("[usePhonePipeline] verify-otp SUCCESS — canonical phone:", canonicalPhone);
         setPhoneStatus("verified");
         trackEvent({ event_name: "otp_verified", session_id: options?.scanSessionId, metadata: { phone_last4: canonicalPhone.slice(-4) } });
         options?.onVerified?.();
         return { status: "verified", e164: canonicalPhone };
-      } catch (err) {
-        console.error("[usePhonePipeline] verify-otp network exception:", err);
-        const msg = "Network error. Check your connection and try again.";
-        setPhoneStatus("otp_sent");
-        setErrorMsg(msg);
-        setErrorType("network");
-        return { status: "error", error: msg };
       } finally {
         isVerifyingRef.current = false;
       }
@@ -335,44 +258,18 @@ export function usePhonePipeline(
 
     try {
       setPhoneStatus("sending_otp");
-      const { data, error } = await supabase.functions.invoke("send-otp", {
-        body: {
-          phone_e164: activePhone,
-          scan_session_id: resendOptions?.scanSessionId || options?.scanSessionId || undefined,
-        },
-      });
+      const result = await sendOtp(
+        activePhone,
+        resendOptions?.scanSessionId || options?.scanSessionId || undefined
+      );
 
-      if (error) {
-        let parsedMsg = "Failed to resend code.";
-        let classifiedType: ErrorType = "generic";
-        try {
-          if (error.context && typeof error.context.json === "function") {
-            const body = await error.context.json();
-            console.error("[usePhonePipeline] resend non-2xx response body:", body);
-            parsedMsg = body?.error || parsedMsg;
-            if (body?.twilio_code === 60410 || parsedMsg.toLowerCase().includes("blocked by our carrier")) {
-              classifiedType = "blocked_prefix";
-            } else if (error.context.status === 429 || parsedMsg.toLowerCase().includes("too many")) {
-              classifiedType = "rate_limit";
-            }
-          } else {
-            console.error("[usePhonePipeline] resend error (no context):", error);
-          }
-        } catch { console.error("[usePhonePipeline] resend error (unparseable):", error); }
-        setErrorMsg(parsedMsg);
+      if (!result.ok) {
+        const classifiedType = (result.errorCode || "generic") as ErrorType;
+        setErrorMsg(result.message);
         setErrorType(classifiedType);
         setPhoneStatus("otp_failed");
         setCooldown(0);
-        return { status: "error", error: parsedMsg };
-      }
-
-      if (!data?.success) {
-        const msg = data?.error || "Failed to resend code.";
-        setErrorMsg(msg);
-        setErrorType("generic");
-        setPhoneStatus("otp_failed");
-        setCooldown(0);
-        return { status: "error", error: msg };
+        return { status: "error", error: result.message };
       }
 
       setPhoneStatus("otp_sent");
