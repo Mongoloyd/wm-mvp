@@ -17,6 +17,7 @@ import React, { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { Loader2 } from "lucide-react";
 import { trackEvent } from "@/lib/trackEvent";
 import { trackGtmEvent } from "@/lib/trackConversion";
+import { buildCanonicalEventId } from "@/lib/tracking/canonicalEventId";
 import { useScanFunnelSafe } from "@/state/scanFunnel";
 import { usePhonePipeline } from "@/hooks/usePhonePipeline";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,6 +75,10 @@ export function PostScanReportSwitcher(props: Props) {
   const [fetchStallTimerFired, setFetchStallTimerFired] = useState(false);
   const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  // Canonical lead identity hydrated once per scan_session.
+  // Used for identity continuity on dual-routed business events
+  // (`report_revealed`, `contractor_match_requested`).
+  const [leadId, setLeadId] = useState<string | null>(null);
 
   // ── CTA state ──
   const [introRequested, setIntroRequested] = useState(false);
@@ -100,11 +105,11 @@ export function PostScanReportSwitcher(props: Props) {
       trackGtmEvent("report_revealed", {
         event_id: reportRevealedEventIdRef.current ?? undefined,
         scan_session_id: props.scanSessionId || undefined,
-        lead_id: undefined,
+        lead_id: leadId ?? undefined,
         grade: props.grade,
       });
     }
-  }, [props.isFullLoaded, capturedPhone, props.scanSessionId, props.grade]);
+  }, [props.isFullLoaded, capturedPhone, props.scanSessionId, props.grade, leadId]);
 
   // ── Hydrate CTA state from DB on mount (prevents duplicates after refresh) ──
   useEffect(() => {
@@ -141,6 +146,10 @@ export function PostScanReportSwitcher(props: Props) {
           .maybeSingle();
 
         if (cancelled || !session?.lead_id) return;
+
+        // Cache canonical lead identity for measurement parity on
+        // dual-routed business events.
+        setLeadId(session.lead_id);
 
         const { data: lead } = await supabase
           .from("leads")
@@ -414,6 +423,25 @@ export function PostScanReportSwitcher(props: Props) {
       return;
     }
     setIsCtaLoading(true);
+
+    // ═══ CANONICAL BUSINESS EVENT: contractor_match_requested ═══
+    // Single owner: this smart container (full identity is known here).
+    // event_id mirrors the server `defaultCreateId` algorithm so the
+    // browser dataLayer push and any server-side canonical persistence
+    // share one id (cross-lane dedup-safe via GTM → Meta/Google).
+    const contractorMatchEventId = buildCanonicalEventId({
+      eventName: "contractor_match_requested",
+      leadId,
+      scanSessionId: props.scanSessionId,
+    });
+    trackGtmEvent("contractor_match_requested", {
+      event_id: contractorMatchEventId,
+      scan_session_id: props.scanSessionId,
+      lead_id: leadId ?? undefined,
+      grade: props.grade,
+      county: props.county,
+    });
+
     try {
       const { data, error: fnError } = await supabase.functions.invoke("generate-contractor-brief", {
         body: { scan_session_id: props.scanSessionId, phone_e164: phoneE164, cta_source: "intro_request" },
@@ -443,7 +471,7 @@ export function PostScanReportSwitcher(props: Props) {
     } finally {
       setIsCtaLoading(false);
     }
-  }, [props.scanSessionId, phoneE164]);
+  }, [props.scanSessionId, phoneE164, leadId, props.grade, props.county]);
 
   // ── CTA B: Call WindowMan About My Report ──
   const handleReportHelpCall = useCallback(async () => {
