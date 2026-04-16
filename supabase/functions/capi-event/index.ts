@@ -101,12 +101,12 @@ async function resolvePixelConfig(
   // Tier 2: Platform default pixel
   const { data: defaultConfig } = await supabase
     .from("meta_configurations")
-    .select("pixel_id, access_token, test_event_code")
+    .select("id, pixel_id, access_token, test_event_code")
     .eq("is_default", true)
     .single();
 
   if (defaultConfig?.pixel_id && defaultConfig?.access_token) {
-    console.log("[CAPI:RESOLVE] Using platform default pixel from meta_configurations");
+    console.log(`[CAPI:RESOLVE] Loaded default meta_configuration id=${defaultConfig.id}`);
     return {
       pixelId: defaultConfig.pixel_id,
       accessToken: defaultConfig.access_token,
