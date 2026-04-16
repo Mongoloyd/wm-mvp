@@ -86,6 +86,23 @@ export function PostScanReportSwitcher(props: Props) {
   const [comparisonResult, setComparisonResult] = useState<Record<string, unknown> | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
+  // ═══ CANONICAL BUSINESS EVENT: report_revealed ═══
+  // Fires ONCE when full report data loads after OTP verification.
+  // Does NOT fire on resume (resume is a returning-user operational event, not a conversion).
+  const reportRevealedRef = useRef(false);
+  useEffect(() => {
+    if (reportRevealedRef.current) return;
+    if (props.isFullLoaded && capturedPhone) {
+      // capturedPhone is only set during OTP flow, not on resume.
+      // This ensures report_revealed fires once per fresh verification only.
+      reportRevealedRef.current = true;
+      trackGtmEvent("report_revealed", {
+        scan_session_id: props.scanSessionId || undefined,
+        grade: props.grade,
+      });
+    }
+  }, [props.isFullLoaded, capturedPhone, props.scanSessionId, props.grade]);
+
   // ── Hydrate CTA state from DB on mount (prevents duplicates after refresh) ──
   useEffect(() => {
     if (!props.scanSessionId || !props.isFullLoaded) return;
