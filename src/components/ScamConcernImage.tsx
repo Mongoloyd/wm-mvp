@@ -57,6 +57,8 @@ const ScamConcernImage = () => {
               className="absolute inset-0 w-full h-full object-cover"
               loading="eager"
               decoding="async"
+              width={768}
+              height={512}
               alt="WindowMan Forensic Audit showing what is missing from a standard window quote"
             />
           </AnimatePresence>
