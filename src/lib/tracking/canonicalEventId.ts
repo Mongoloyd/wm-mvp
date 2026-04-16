@@ -7,11 +7,12 @@
  * business moment. This is what makes browser dataLayer fires dedup-safe with
  * server-side canonical persistence + downstream platform dispatch.
  *
- * The format is:
- *   wmc_{eventName}_{entityKey-entityValue}__{...}_{minute-bucketed-timestamp}
+ * The format mirrors the server EXACTLY:
+ *   wmc_{sanitized_eventName}_{leadId-{sanitizedValue}__scanSessionId-{sanitizedValue}__analysisId-{sanitizedValue}}_{sanitized_minute_bucket}
  *
- * Example:
- *   wmc_quote_uploaded_leadId-abc__scanSessionId-def_2026-04-16t10-30-00-000z
+ * Note: only event-name, value-portions, and bucket are sanitized. The
+ * camelCase key prefixes (leadId, scanSessionId, analysisId) are preserved
+ * verbatim — exactly as `defaultCreateId` composes them.
  *
  * Keep this in lockstep with createCanonicalEvent.ts. Do NOT diverge.
  */
@@ -42,16 +43,16 @@ export interface CanonicalEventIdInput {
 
 /**
  * Build a deterministic event_id that matches the server-side
- * `defaultCreateId` algorithm. Browser and server will produce the same ID
- * for the same business moment as long as both fires land in the same
- * 1-minute bucket.
+ * `defaultCreateId` algorithm. Browser and server produce the same ID
+ * for the same business moment when both fires land in the same 1-minute
+ * timestamp bucket.
  */
 export function buildCanonicalEventId(input: CanonicalEventIdInput): string {
   const eventName = sanitize(input.eventName);
   const segments: string[] = [];
-  if (input.leadId) segments.push(`leadid-${sanitize(input.leadId)}`);
-  if (input.scanSessionId) segments.push(`scansessionid-${sanitize(input.scanSessionId)}`);
-  if (input.analysisId) segments.push(`analysisid-${sanitize(input.analysisId)}`);
+  if (input.leadId) segments.push(`leadId-${sanitize(input.leadId)}`);
+  if (input.scanSessionId) segments.push(`scanSessionId-${sanitize(input.scanSessionId)}`);
+  if (input.analysisId) segments.push(`analysisId-${sanitize(input.analysisId)}`);
   const entityPart = segments.length > 0 ? segments.join("__") : "no-entity";
   const bucket = sanitize(bucketTimestamp(input.now));
   return `wmc_${eventName}_${entityPart}_${bucket}`;
