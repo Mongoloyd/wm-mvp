@@ -128,6 +128,7 @@ interface CAPIPayload {
   event_time: number;
   event_source_url: string;
   action_source: "website";
+  client_slug?: string;
   user_data: {
     em?: string;        // hashed email
     ph?: string;        // hashed phone
