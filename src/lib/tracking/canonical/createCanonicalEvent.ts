@@ -41,6 +41,8 @@ interface CreateCanonicalEventResult {
   dispatchPlatforms: WMPlatformName[];
 }
 
+// Both names are included so legacy `quote_upload_completed` events still receive
+// trust/anomaly enrichment alongside the canonical `quote_uploaded` name.
 const QUOTE_EVENTS = new Set(["quote_validation_passed", "quote_upload_completed", "quote_uploaded"]);
 
 function sanitizeEventIdSegment(value: unknown): string {
