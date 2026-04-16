@@ -15,17 +15,17 @@ These lanes must never be conflated. A single business moment may fire one event
 
 | Event Name | Owner File | Trigger Moment | Dedup-Worthy | Identity Keys |
 |---|---|---|---|---|
-| `quote_uploaded` | `UploadZone.tsx` | After file upload + scan_session creation succeeds | Yes | `scan_session_id`, `lead_id`, `file_type`, `file_size` |
-| `phone_verified` | `PostScanReportSwitcher.tsx` | On `pipeline.submitOtp()` returning `status: "verified"` | Yes | `scan_session_id`, `phone_e164_last4` |
-| `report_revealed` | `PostScanReportSwitcher.tsx` | On `isFullLoaded` transitioning to `true` after OTP (guarded by `capturedPhone` presence to exclude resume) | Yes | `scan_session_id`, `grade` |
-| `contractor_match_requested` | `TruthReportClassic.tsx` | On user clicking the "Get a Counter-Quote" CTA | Yes | `grade`, `county`, `issue_count` |
+| `quote_uploaded` | `UploadZone.tsx` | After file upload + scan_session creation succeeds | Yes | `event_id`, `scan_session_id`, `lead_id`, `file_type`, `file_size` |
+| `phone_verified` | `PostScanReportSwitcher.tsx` | On `pipeline.submitOtp()` returning `status: "verified"` | Yes | `event_id` (server-issued), `scan_session_id`, `phone_e164_last4` |
+| `report_revealed` | `PostScanReportSwitcher.tsx` | On `isFullLoaded` transitioning to `true` after OTP (guarded by `capturedPhone` presence to exclude resume) | Yes | `event_id` (server-issued), `scan_session_id`, `lead_id`, `grade` |
+| `contractor_match_requested` | `PostScanReportSwitcher.tsx` (smart container) | On user clicking the "Get a Counter-Quote" CTA in `TruthReportClassic` | Yes | `event_id`, `scan_session_id`, `lead_id`, `grade`, `county` |
 
 ### Why each owner is correct
 
 - **`quote_uploaded` → UploadZone**: This is the only component that performs the file upload. The event fires after the scan session is created, making it the earliest reliable moment.
 - **`phone_verified` → PostScanReportSwitcher**: This is the canonical OTP orchestrator. It calls `pipeline.submitOtp()` and receives the verified result. VerifyGate and PhoneVerifyModal are dead code (not imported anywhere).
 - **`report_revealed` → PostScanReportSwitcher**: This component is the single render-decision authority (Phase 3). It knows when `isFullLoaded` transitions after verification. The `capturedPhone` guard prevents firing on resume.
-- **`contractor_match_requested` → TruthReportClassic**: The CTA button lives in the report renderer. The click handler is the true business moment.
+- **`contractor_match_requested` → PostScanReportSwitcher (Arc 3)**: Ownership moved from `TruthReportClassic` (presentational) to the smart container so the canonical fire carries `event_id`, `lead_id`, and `scan_session_id`. `TruthReportClassic` now only invokes the parent-supplied `onContractorMatchClick` handler.
 
 ## Operational Telemetry Events
 
