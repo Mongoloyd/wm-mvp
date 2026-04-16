@@ -105,11 +105,11 @@ export function PostScanReportSwitcher(props: Props) {
       trackGtmEvent("report_revealed", {
         event_id: reportRevealedEventIdRef.current ?? undefined,
         scan_session_id: props.scanSessionId || undefined,
-        lead_id: undefined,
+        lead_id: leadId ?? undefined,
         grade: props.grade,
       });
     }
-  }, [props.isFullLoaded, capturedPhone, props.scanSessionId, props.grade]);
+  }, [props.isFullLoaded, capturedPhone, props.scanSessionId, props.grade, leadId]);
 
   // ── Hydrate CTA state from DB on mount (prevents duplicates after refresh) ──
   useEffect(() => {
