@@ -33,6 +33,7 @@ export function PhoneVerifyModal({
   scanSessionId,
 }: PhoneVerifyModalProps) {
   const { displayValue, rawDigits, e164, isValid, handleChange } = usePhoneInput();
+  const funnel = useScanFunnelSafe();
   const [otpValue, setOtpValue] = useState("");
   const [step, setStep] = useState<Step>("phone");
   const [errorMsg, setErrorMsg] = useState("");
@@ -91,6 +92,13 @@ export function PhoneVerifyModal({
       trackGtmEvent("report_revealed", {
         scan_session_id: scanSessionId || undefined,
         source: "modal",
+      });
+      // Fire server-side CAPI with client_slug for multi-pixel routing
+      metaConversions.otpVerified({
+        county: null,
+        flow: "A",
+        phone: e164 || undefined,
+        clientSlug: funnel?.clientSlug ?? undefined,
       });
       onVerified();
     } catch {
