@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
 import { trackGtmEvent } from "@/lib/trackConversion";
+import { buildCanonicalEventId } from "@/lib/tracking/canonicalEventId";
 import { toast } from "sonner";
 
 interface UploadZoneProps {
