@@ -7,18 +7,9 @@
 
 // ── Generic envelope ────────────────────────────────────────────────────────
 
-export interface ServiceOk<T> {
-  ok: true;
-  data: T;
-}
-
-export interface ServiceErr {
-  ok: false;
-  code: string;
-  message: string;
-}
-
-export type ServiceResult<T> = ServiceOk<T> | ServiceErr;
+export type ServiceResult<T> =
+  | { ok: true; data: T; code?: undefined; message?: undefined }
+  | { ok: false; data?: undefined; code: string; message: string };
 
 // ── Report service ──────────────────────────────────────────────────────────
 
