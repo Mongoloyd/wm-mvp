@@ -291,7 +291,7 @@ function ClientDossierModal({ open, onClose, client, metaConfig, existingSlugs, 
 
 function LandingPageUrl({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
-  const fullUrl = `https://${url}`;
+  const fullUrl = url;
 
   function handleCopy() {
     navigator.clipboard.writeText(fullUrl);
