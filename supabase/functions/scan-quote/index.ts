@@ -1366,7 +1366,7 @@ Deno.serve(async (req: Request) => {
               quoteAmount: typeof extraction.total_quoted_price === "number" ? extraction.total_quoted_price : undefined,
               pricePerOpening: typeof compiledReport.price_per_opening === "number" ? compiledReport.price_per_opening : undefined,
               depositPercent: typeof extraction.deposit_percent === "number" ? extraction.deposit_percent : undefined,
-              impossibleValuesDetected: flags.some((f) => /impossible/i.test(f.title)),
+              impossibleValuesDetected: flags.some((f) => /impossible/i.test(f.flag) || /impossible/i.test(f.detail)),
             },
             analytics: {
               ocrConfidence: Math.max(0, Math.min(1, extraction.confidence ?? 0)),
