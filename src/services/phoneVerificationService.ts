@@ -123,7 +123,15 @@ export async function verifyOtp(
     }
 
     const canonicalPhone = data?.phone_e164 || phoneE164;
-    return { ok: true, data: { verified: true, phone_e164: canonicalPhone } };
+    return {
+      ok: true,
+      data: {
+        verified: true,
+        phone_e164: canonicalPhone,
+        phone_verified_event_id: data?.phone_verified_event_id ?? null,
+        report_revealed_event_id: data?.report_revealed_event_id ?? null,
+      },
+    };
   } catch (err) {
     console.error("[phoneVerificationService] verify-otp network exception:", err);
     return { ok: false, message: "Network error. Check your connection and try again.", errorCode: "network" };
