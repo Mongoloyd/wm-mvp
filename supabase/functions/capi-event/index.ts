@@ -147,13 +147,14 @@ Deno.serve(async (req) => {
     const config = await resolvePixelConfig(supabase, body.client_slug);
 
     if (!config) {
-      console.warn("CAPI: No pixel configuration found. Aborting.");
-      return new Response(JSON.stringify({ success: false, error: "CAPI not configured" }), {
-        status: 200,
+      // Graceful degradation: accept the event but don't fire it
+      return new Response(JSON.stringify({ success: false, error: "CAPI not configured", degraded: true }), {
+        status: 202,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    console.log(`[CAPI:FIRE] event=${body.event_name} source=${config.source} pixel=…${config.pixelId.slice(-4)}`);
     resolvedPixelId = config.pixelId;
 
     // Extract client IP
