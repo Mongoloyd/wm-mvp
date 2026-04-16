@@ -147,6 +147,10 @@ export function PostScanReportSwitcher(props: Props) {
 
         if (cancelled || !session?.lead_id) return;
 
+        // Cache canonical lead identity for measurement parity on
+        // dual-routed business events.
+        setLeadId(session.lead_id);
+
         const { data: lead } = await supabase
           .from("leads")
           .select("phone_e164")
