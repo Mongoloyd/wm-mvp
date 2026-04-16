@@ -233,7 +233,12 @@ export function usePhonePipeline(
         setPhoneStatus("verified");
         trackEvent({ event_name: "otp_verify_success", session_id: options?.scanSessionId, metadata: { phone_last4: canonicalPhone.slice(-4) } });
         options?.onVerified?.();
-        return { status: "verified", e164: canonicalPhone };
+        return {
+          status: "verified",
+          e164: canonicalPhone,
+          phoneVerifiedEventId: result.data.phone_verified_event_id,
+          reportRevealedEventId: result.data.report_revealed_event_id,
+        };
       } finally {
         isVerifyingRef.current = false;
       }
