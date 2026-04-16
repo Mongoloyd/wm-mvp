@@ -1,81 +1,72 @@
 
 
-## Performance Optimization Plan — Mobile FCP 3.0s → <1.8s, LCP 4.6s → <2.5s
+## Contractor Funnel — Gap Analysis & Fix Plan
 
-### Diagnosis Summary
+### Current State (Verified)
 
-From the Lighthouse data and codebase audit:
+**Working:**
+- Database: All 3 tables (`contractor_leads`, `contractor_activity_log`, `contractor_followups`) exist with RLS and triggers
+- Types: `src/types/contractorLead.ts` matches the schema
+- Service layer: `src/lib/contractors2/service.ts` has full CRUD (572 lines, clean build)
+- Edge function code: All 3 functions exist in the repo
+- Frontend: `/contractors2` route renders `QualificationFlow` with 6-step wizard
+- Build: Zero TypeScript errors
 
-```text
-Issue                           Impact    Root Cause
-─────────────────────────────── ──────── ──────────────────────────────────────
-LCP 4.6s (hero mascot image)    HIGH     2.4s "resource load delay" — browser
-                                         discovers image late because it's in
-                                         a React component, not raw HTML
-FCP 3.0s                        HIGH     188KB index bundle + 98KB fbevents.js
-                                         block the main thread
-300KB unused JS                 HIGH     fbevents.js (98KB), Supabase (37KB),
-                                         UI lib (32KB), index bundle (93KB)
-25KB unused CSS                 MED      Tailwind not purging aggressively
-Forced reflows (25ms+)          MED      framer-motion animate on LCP image
-No width/height on LCP image    LOW      Causes CLS on hero
-```
+**Broken / Missing:**
 
-### Phase 1: Asset Delivery & LCP Fix (index.html)
+### Gap 1 — QualificationFlow Never Persists Leads (Critical)
 
-**Problem**: The LCP image (`MASCOT_URL` CloudFront avif) is already preloaded in `index.html` line 30-34, but Lighthouse says `fetchpriority=high` is missing from the preload hint. The `<link rel="preload">` lacks `fetchpriority="high"`.
+`QualificationFlow.tsx` computes a routing tier locally but **never calls `createContractorLead`**. On Step 6:
+- HIGH/MID tier: Shows Calendly embed — no lead record created
+- LOW tier: Captures email with `console.log({ type: "low_tier", email })` — data is thrown away
+- BLOCK tier: Renders nothing
 
-**Fixes**:
-1. Add `fetchpriority="high"` to the existing `<link rel="preload" as="image">` for the mascot
-2. Add explicit `width` and `height` attributes to the mascot `<img>` in `AuditHero.tsx` (line 106-112) to eliminate CLS
-3. Remove `framer-motion` float animation wrapper from the LCP image — the `animate={{ y: [-8, 0, -8] }}` forces reflows on the LCP element itself, delaying paint. Replace with a CSS animation that doesn't trigger layout
+**Fix:** After the tier is computed (Step 4 → Step 5 transition), call `createContractorLead()` with the qualification answers and email. For LOW tier, also persist the email on submit. Map the qualification `Answers` keys to the `contractor_leads` column names.
 
-### Phase 2: Defer Facebook Pixel (biggest JS win)
+### Gap 2 — No Booking Confirmation Route
 
-**Problem**: `initMetaPixel()` in `FacebookConversionProvider.tsx` line 54 runs on mount and synchronously injects `fbevents.js` (98KB). This blocks FCP.
+When a contractor finishes Calendly and gets redirected back, there's no route to call `contractor-booking-confirmed`. The Calendly embed fires on the client side but nothing updates the CRM.
 
-**Fix**: Defer pixel initialization until after the page becomes interactive:
-- Wrap `initMetaPixel()` in `requestIdleCallback` (with a 3-second `setTimeout` fallback)
-- This alone saves ~750ms FCP per Lighthouse estimate
+**Fix:** Add a `/contractors2/confirmed` route (or handle Calendly's `calendly.event_scheduled` postMessage in the existing `CalendlyEmbed` component) to call the edge function with the `lead_id` and Calendly URIs.
 
-### Phase 3: Lazy-load Below-Fold Components
+### Gap 3 — Edge Functions May Not Be Deployed
 
-**Problem**: `Index.tsx` eagerly imports ~20 components. Many are below the fold:
-- `ForensicChecklist`, `QuoteWatcher`, `IndustryTruth`, `ProcessSteps`, `NarrativeProof`, `ClosingManifesto`, `Testimonials`, `MarketMakerManifesto`, `OrangeScanner`, `ScamConcernImage`, `QuoteSpreadShowcase`, `Footer`
+The code exists but we need to verify deployment.
 
-**Fix**: Convert below-fold imports to `React.lazy()` with the existing `LazySection` wrapper pattern. Keep above-fold components (`LinearHeader`, `AuditHero`, `UploadZone`, `TruthGateFlow`) as static imports. This reduces the initial index bundle from ~188KB to roughly ~80-90KB.
+**Fix:** Deploy all 3 edge functions: `contractor-booking-confirmed`, `contractor-send-followups`, `contractor-mark-no-show`. Also verify the `CONTRACTOR_CRON_SECRET` secret exists (it's not listed in the current secrets).
 
-### Phase 4: Optimize scan_ocr_hero.png
+### Gap 4 — No Admin View for Contractor Leads
 
-**Problem**: `scan_ocr_hero.png` is 323KB and imported into `AuditHero`. Lighthouse shows it cached at 0 TTL.
+No `/admin/contractors2` page exists. The service layer's `listContractorLeads` function is unused.
 
-**Fix**: 
-- The image uses `loading="lazy"` already (it's below the mascot), so this is secondary
-- Convert to AVIF/WebP at build time if possible, or replace the import with an optimized CDN URL
+**Fix:** Create a simple admin tab or page that lists contractor leads with pipeline stage, booking status, and notes. This is lower priority — defer to a follow-up sprint.
 
-### Phase 5: CSS Purge Verification
+---
 
-**Problem**: 25KB of 32KB CSS is unused on initial load (79%).
+### Implementation Plan (Ordered by Impact)
 
-**Fix**: Verify `tailwind.config.ts` content paths cover all files (already fixed to include jsx). The contractors3 scoped CSS variables add weight — wrap them in a `@layer` to allow better tree-shaking. No high-effort change needed here; the JS fixes dominate.
+**Step 1: Wire QualificationFlow to the service layer**
+- Import `createContractorLead` into `QualificationFlow.tsx`
+- After `computeRoutingTier()` returns, call `createContractorLead()` with mapped answers
+- Store the returned `lead_id` in component state for the Calendly step
+- For LOW tier email submit: call `createContractorLead()` with just the email
+- Add error handling with toast feedback
 
-### What We Do NOT Touch
-- Font stack stays as-is (Barlow Condensed + DM Sans with `font-display: optional` and metric fallbacks is already best-practice)
-- Code-splitting in `vite.config.ts` stays as-is (vendor/ui/state/supabase chunks are good)
-- Route-level lazy loading in `App.tsx` is already implemented
+**Step 2: Handle Calendly booking confirmation**
+- Listen for Calendly's `message` event (`calendly.event_scheduled`) in the `CalendlyEmbed` component
+- When received, invoke `contractor-booking-confirmed` edge function with `lead_id` + Calendly URIs
+- Show a success state to the contractor
 
-### Expected Impact
+**Step 3: Add missing secret + deploy edge functions**
+- Add `CONTRACTOR_CRON_SECRET` to Supabase secrets
+- Deploy `contractor-booking-confirmed`, `contractor-send-followups`, `contractor-mark-no-show`
 
-| Metric | Before | After (est.) |
-|--------|--------|-------------|
-| FCP    | 3.0s   | ~1.6-1.8s   |
-| LCP    | 4.6s   | ~2.2-2.5s   |
-| Unused JS | 300KB | ~170KB (fbevents deferred, index bundle halved) |
+**Step 4 (Deferred): Admin contractor leads view**
+- Add a tab in AdminDashboard or a standalone page at `/admin/contractors2`
 
 ### Files Modified
-1. `index.html` — add `fetchpriority` to preload
-2. `src/components/AuditHero.tsx` — add width/height to LCP image, replace motion float with CSS
-3. `src/components/FacebookConversionProvider.tsx` — defer `initMetaPixel()` with `requestIdleCallback`
-4. `src/pages/Index.tsx` — convert ~12 below-fold imports to `React.lazy()`
-5. `src/index.css` — add CSS keyframe for mascot float (replacing JS-driven animation)
+1. `src/components/qualification/QualificationFlow.tsx` — add lead persistence + Calendly event handling
+2. `src/components/ui/CalendlyEmbed.tsx` — add `onEventScheduled` callback prop
+3. Supabase secrets — add `CONTRACTOR_CRON_SECRET`
+4. Deploy 3 edge functions
 
