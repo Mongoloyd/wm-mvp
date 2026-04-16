@@ -182,10 +182,55 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (resolvedLeadId && scan_session_id) {
+    // ── 7. Persist canonical events (phone_verified + report_revealed) ──
+    // Both events are persisted server-side AND their event_ids are returned
+    // to the browser so the frontend dataLayer push can use the SAME id.
+    // This makes the cross-lane (browser → GTM, server → CAPI) dedup work.
+    let phoneVerifiedEventId: string | null = null;
+    let reportRevealedEventId: string | null = null;
+
+    if (resolvedLeadId) {
+      // Stable, time-independent ids keyed by entity. Same id is computed
+      // on the browser via `buildCanonicalEventId({ ...,  now: <fixed> })`
+      // — but to fully eliminate clock drift, we return them in the response.
+      phoneVerifiedEventId = `wmc_phone_verified_lead-${resolvedLeadId}${scan_session_id ? `_scan-${scan_session_id}` : ""}`;
+
       try {
         await persistCanonicalEvent(supabase, {
-          eventId: `wmc_report_revealed_lead-${resolvedLeadId}_scan-${scan_session_id}`,
+          eventId: phoneVerifiedEventId,
+          eventName: "phone_verified",
+          eventTimestamp: now,
+          leadId: resolvedLeadId,
+          scanSessionId: scan_session_id ?? undefined,
+          payload: {
+            identity: {
+              leadId: resolvedLeadId,
+              phone: twilioPhone,
+              phoneVerifiedAt: now,
+            },
+            journey: {
+              route: "/verify",
+              flow: "public",
+              scanSessionId: scan_session_id ?? undefined,
+            },
+            source: {
+              sourceSystem: "edge_function",
+            },
+            metadata: {
+              verification_channel: "twilio_verify",
+            },
+          },
+        });
+      } catch (canonicalError) {
+        console.error("[verify-otp] phone_verified canonical event failed", canonicalError);
+      }
+    }
+
+    if (resolvedLeadId && scan_session_id) {
+      reportRevealedEventId = `wmc_report_revealed_lead-${resolvedLeadId}_scan-${scan_session_id}`;
+      try {
+        await persistCanonicalEvent(supabase, {
+          eventId: reportRevealedEventId,
           eventName: "report_revealed",
           eventTimestamp: now,
           leadId: resolvedLeadId,
@@ -214,9 +259,17 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Return canonical phone so the frontend can store the server-approved value
+    // Return canonical phone + canonical event_ids so the frontend can
+    // (a) use the server-approved phone and (b) emit dataLayer events with
+    // matching ids for downstream Meta/Google dedup.
     return new Response(
-      JSON.stringify({ success: true, verified: true, phone_e164: twilioPhone }),
+      JSON.stringify({
+        success: true,
+        verified: true,
+        phone_e164: twilioPhone,
+        phone_verified_event_id: phoneVerifiedEventId,
+        report_revealed_event_id: reportRevealedEventId,
+      }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
