@@ -247,6 +247,13 @@ export function PostScanReportSwitcher(props: Props) {
       const result = await pipeline.submitOtp(otpValue);
       if (result.status === "verified" && result.e164) {
         setCapturedPhone(result.e164);
+        // ═══ CANONICAL BUSINESS EVENT: phone_verified ═══
+        // This is the SINGLE fire location for the phone_verified business event.
+        // usePhonePipeline fires operational telemetry (otp_verify_success) separately.
+        trackGtmEvent("phone_verified", {
+          scan_session_id: props.scanSessionId || undefined,
+          phone_e164_last4: result.e164.slice(-4),
+        });
         // Canonical phone handoff: use server-returned phone to trigger fetchFull
         props.onVerified?.(result.e164);
       }
