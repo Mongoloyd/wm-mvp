@@ -22,6 +22,10 @@ export interface OtpVerifyResult {
   verified: true;
   /** Server-canonical phone in E.164 */
   phone_e164: string;
+  /** Server-generated canonical event_id for the phone_verified business event (browser must reuse for dedup). */
+  phone_verified_event_id: string | null;
+  /** Server-generated canonical event_id for the report_revealed business event (browser must reuse for dedup). */
+  report_revealed_event_id: string | null;
 }
 
 // ── Error classification helpers ────────────────────────────────────────────
