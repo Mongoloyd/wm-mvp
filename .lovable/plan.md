@@ -1,55 +1,46 @@
 
 
-# WindowMan Master Roadmap — Status Recap
+## Root cause (confirmed)
 
-## PHASE 1: CORE INFRASTRUCTURE — Status: ✅ COMPLETE
+`supabase/functions/dispatch-platform-events/index.ts` imports `dispatchWorker.ts` from `../../../src/lib/tracking/canonical/`. That file uses **extensionless relative imports** (`./mapToGoogle`, `./mapToMeta`, `./types`). Deno requires explicit `.ts` extensions on relative imports — the bundler resolves `dispatchWorker.ts` and then fails on the next hop.
 
-| Prompt | Goal | Status | Evidence |
-|--------|------|--------|----------|
-| **1 — /lp/[slug] Routes + Default Pixel Seed** | White-label slug routing, clientSlug stamping | ✅ Done | `LandingPage.tsx` validates against `clients` table, threads slug into `ScanFunnelProvider`. `meta_configurations` table with 3-tier fallback seeded. |
-| **2 — Browser-Side Pixel & Attribution** | Global Meta Pixel, `_fbp`/`_fbc` capture, UTM persistence | ✅ Done | `metaPixel.ts`, `shadowPixel.ts`, `useUtmCapture.ts`, `useLeadId.ts` all wired in `main.tsx`. |
-| **3 — E2E Test Mode + CAPI Verification** | Fire mock CAPI payloads with `META_TEST_EVENT_CODE` | ✅ Done | `capi-event` edge function supports `test_event_code` from DB or env. `verify-capi-fallback.ts` script validates DB-priority → env-fallback. `capi_signal_logs` table records every signal. |
-| **4 — Partner Admin Dashboard** | Onboard clients, assign pixels, view signal logs | ✅ Done | `AdminPartners.tsx`, `AdminDashboard.tsx` with multiple tabs (Pipeline, Ghost Recovery, Attribution, Contractor Accounts, etc.). |
-| **5 — DB Migration & Hardening** | Schema finalization, RLS, edge function hardening | ✅ Done | 70+ migrations. RLS on all tables. `is_internal_operator()` function gates admin access. Edge functions use service role. |
+The other transitively-pulled modules (`createCanonicalEvent.ts`, `identity.ts`, `anomaly.ts`, `trustScore.ts`, `valueModel.ts`, `schemas.ts`, `types.ts`, `mapToMeta.ts`, `mapToGoogle.ts`) all use the same extensionless pattern. The existing `_shared/tracking/canonicalBridge.ts` already imports from `src/` with explicit `.ts` extensions, so the cross-boundary pattern is already established and known to work — what's missing is just the extensions on the **internal** edges of the chain.
 
-## PHASE 2: THE INTELLIGENCE LAYER — Status: ✅ COMPLETE
+## Plan: build-compatibility fix only
 
-| Prompt | Goal | Status | Evidence |
-|--------|------|--------|----------|
-| **6 — The Vault (Secure Document Storage)** | Private bucket, upload locked to `lead_id` | ✅ Done | `quotes` private bucket, signed URL access only, `UploadZone.tsx`, `quote_files` table with RLS. |
-| **7 — Lead Quality Scoring & AI Truth Report** | Gemini OCR → deterministic TypeScript scoring | ✅ Done | `scan-quote` edge function (extraction → `scoring.ts` → `flagging.ts` → `reportCompiler.ts`). 5-pillar rubric, A-F grading, county benchmarks. |
-| **8 — Client Portal (Proof of Work)** | Authenticated contractor dashboard with leads + Truth Reports | ✅ Done | `ContractorOpportunitiesPage.tsx`, `PartnerDossier.tsx` with document vault, intelligence dossier, lead status management. Credit-based unlock system. |
+Add explicit `.ts` extensions to every relative import inside `src/lib/tracking/canonical/*` that lives in the dispatch chain. No logic changes. No moves. No new bridges yet.
 
-## PHASE 3: SCALE & REVENUE — Status: ⚠️ PARTIAL
+### Files to edit (10 total)
 
-| Prompt | Goal | Status | Evidence |
-|--------|------|--------|----------|
-| **9 — Billing & Subscription (Stripe)** | Stripe Checkout, webhook fulfillment, `is_active` kill-switch | ⚠️ Partial | `create-checkout-session` and `stripe-webhook` edge functions exist. Credit purchase tiers work. **Missing:** automatic `is_active` toggle on payment failure; no recurring subscription model yet — current model is credit-pack purchases only. |
-| **10 — Multi-Territory (Hub & Spoke)** | `client_routes` table, 1-to-Many slug→pixel mapping | ❌ Not Started | No `client_routes` table. Current model is 1 client = 1 slug = 1 pixel via `clients` + `meta_configurations`. |
-| **11 — Reclamation Engine** | "Lost" lead → re-offer to Client B, automated second-opinion email | ❌ Not Started | No reclamation logic, no "Second Opinion" email flow, no lead reassignment UI. |
+1. **`src/lib/tracking/canonical/dispatchWorker.ts`** — `./mapToGoogle` → `./mapToGoogle.ts`, `./mapToMeta` → `./mapToMeta.ts`, `./types` → `./types.ts`
+2. **`src/lib/tracking/canonical/mapToMeta.ts`** — `./constants` → `./constants.ts`, `./types` → `./types.ts`
+3. **`src/lib/tracking/canonical/mapToGoogle.ts`** — `./constants` → `./constants.ts`, `./types` → `./types.ts`
+4. **`src/lib/tracking/canonical/createCanonicalEvent.ts`** — `.ts` on all 5 relative imports
+5. **`src/lib/tracking/canonical/identity.ts`** — `./types` → `./types.ts`
+6. **`src/lib/tracking/canonical/anomaly.ts`** — `./types` → `./types.ts`
+7. **`src/lib/tracking/canonical/trustScore.ts`** — `.ts` on `./constants`, `./anomaly`, `./types`
+8. **`src/lib/tracking/canonical/valueModel.ts`** — `./types` → `./types.ts`
+9. **`src/lib/tracking/canonical/schemas.ts`** — `./constants` → `./constants.ts`
+10. **`src/lib/tracking/canonical/types.ts`** — `./constants` → `./constants.ts`
 
----
+### Why this is safe
 
-## WHAT I WOULD ADD (Gaps & Recommendations)
+- Vite/esbuild and Vitest natively support explicit `.ts` extensions on TypeScript relative imports. The repo already mixes both patterns (`canonicalBridge.ts` uses `.ts`).
+- No runtime behavior changes. No bundle-output changes for the frontend.
+- The Arc 1.5 measurement parity work (event_id sharing, value/currency on `quote_uploaded`, server-side `phone_verified` persistence, Meta/Google mappings for `phone_verified` + `report_revealed`) stays exactly as-is.
+- Tests are not edited — they import these modules through the same Vite resolver, which handles either form.
 
-### Missing from the roadmap that already exists in your codebase
-These are significant capabilities you've built that the roadmap doesn't mention — worth documenting:
+### Fallback path (only if the `.ts` sweep does not resolve the deploy)
 
-1. **OTP Hard Gate (SMS Verification)** — Full Twilio Verify flow (`send-otp`, `verify-otp`), phone_verifications table, report access gating. This is a core moat piece.
-2. **Contractor Monetization Layer** — Credit system, `contractor_credits`, `contractor_credit_purchases`, `billable_intros`, `contractor_outcomes`. Far more sophisticated than the roadmap's simple "Stripe subscription."
-3. **Contractor Onboarding & Invite System** — `accept-invite`, partner auth, password reset flow.
-4. **Voice Follow-up Pipeline** — `voice-followup` and `request-callback` edge functions.
-5. **Canonical Event Tracking Architecture** — 4-layer vendor-agnostic tracking system with anomaly detection, trust scoring, and platform mappers.
-6. **Contractor Brief Generation** — AI-generated anonymized briefs with match scoring.
+If Deno still rejects the chain after the extension fix, the architectural fix is to **stop importing `src/` directly from the new edge function**. Instead:
+- Create `supabase/functions/_shared/tracking/dispatchWorkerBridge.ts` that re-exports `runDispatchWorker` and `fetchWithTimeout` from `src/lib/tracking/canonical/dispatchWorker.ts`.
+- Update `supabase/functions/dispatch-platform-events/index.ts` to import from `../_shared/tracking/dispatchWorkerBridge.ts`, mirroring the pattern already used by `canonicalBridge.ts`.
 
-### Genuinely missing pieces to complete the vision
+I will not preemptively add this bridge; the `.ts` extension sweep is the minimal, scoped fix and matches Lovable's own diagnosis. Bridge-only if step 1 still fails after deploy.
 
-1. **Reclamation Engine (Prompt 11)** — No lead reassignment or "Second Opinion" email automation exists.
-2. **Hub & Spoke Multi-Territory (Prompt 10)** — No `client_routes` table for 1-to-Many slug mapping.
-3. **Subscription billing with auto-deactivation** — Current model is one-time credit packs. No recurring billing or automatic `is_active = false` on failed payment.
-4. **`/admin/test-signal` UI** — The E2E test script exists but there's no in-app admin tool to fire mock CAPI payloads interactively.
-5. **No Polling guardrail** — The roadmap mandates Supabase Realtime WebSocket subscriptions. Some admin views may still use polling (`useEffect` + `setInterval`) rather than Realtime channels.
+### Out of scope
 
-### Summary
-Phases 1 and 2 are fully delivered. Phase 3 is roughly 40% complete — billing exists but as credits, not subscriptions, and the two most advanced features (Hub & Spoke + Reclamation Engine) haven't been started.
+- No event-name, value-ladder, tracking-behavior, business-logic, UI, doc, or test changes.
+- No edits to `dispatch-platform-events/index.ts` itself unless the bridge fallback is needed.
+- No edits to `_shared/tracking/canonicalBridge.ts` or any other edge function.
 
