@@ -46,6 +46,10 @@ export interface PipelineVerifyResult {
   error?: string;
   /** Server-canonical phone in E.164 format, returned on successful verify */
   e164?: string;
+  /** Server-generated canonical event_id for the phone_verified business event (browser reuses for dedup) */
+  phoneVerifiedEventId?: string | null;
+  /** Server-generated canonical event_id for the report_revealed business event (browser reuses for dedup) */
+  reportRevealedEventId?: string | null;
 }
 
 export interface UsePhonePipelineReturn {
