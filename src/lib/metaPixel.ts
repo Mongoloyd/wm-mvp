@@ -189,6 +189,8 @@ export async function trackConversion(options: TrackEventOptions): Promise<strin
     ...options.params,
     content_name: "Impact Window Quote Analysis",
     content_category: "Home Improvement",
+    ...(typeof options.value === "number" ? { value: options.value } : {}),
+    ...(options.currency ? { currency: options.currency } : {}),
   };
   delete browserParams.email;
   delete browserParams.phone;
@@ -308,6 +310,8 @@ export const metaConversions = {
     trackConversion({
       eventName: "wm_lead_submitted",
       standardEventName: "Lead",
+      value: 10,
+      currency: "USD",
       email: params.email,
       phone: params.phone,
       firstName: params.firstName,
@@ -329,6 +333,8 @@ export const metaConversions = {
     trackConversion({
       eventName: "wm_otp_verified",
       standardEventName: "CompleteRegistration",
+      value: 500,
+      currency: "USD",
       phone: params.phone,
       clientSlug: params.clientSlug,
       params: {
@@ -364,7 +370,8 @@ export const metaConversions = {
       eventName: "wm_contractor_match_requested",
       standardEventName: "Schedule",
       params,
-      value: 0,
+      value: 1000,
+      currency: "USD",
     }),
 };
 
