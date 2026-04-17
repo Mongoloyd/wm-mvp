@@ -1,46 +1,93 @@
 
 
-## Root cause (confirmed)
+## Confirmed constraints
 
-`supabase/functions/dispatch-platform-events/index.ts` imports `dispatchWorker.ts` from `../../../src/lib/tracking/canonical/`. That file uses **extensionless relative imports** (`./mapToGoogle`, `./mapToMeta`, `./types`). Deno requires explicit `.ts` extensions on relative imports — the bundler resolves `dispatchWorker.ts` and then fails on the next hop.
+1. Public route is `/diagnosis` (final). No `/estimate` rename. No duplicate entry points.
+2. Mechanical extraction first — preserve all current behavior, copy, chip sets, guarantees, mirror panel, SLA logic, success state.
+3. `useDiagnosticIntake` hook will be full-fidelity (all listed state preserved).
+4. No local tracking wrapper — import canonical `trackGtmEvent` from `@/lib/trackConversion` directly.
+5. Mock hydration stays with explicit `// TODO(arc-5): hydrate from real lead/report context`.
+6. No new diagnosis branches — preserve current 8-diagnosis union exactly.
+7. Safe extraction order followed (types → constants → helpers → hook → step components → entry → route → tracking swap).
 
-The other transitively-pulled modules (`createCanonicalEvent.ts`, `identity.ts`, `anomaly.ts`, `trustScore.ts`, `valueModel.ts`, `schemas.ts`, `types.ts`, `mapToMeta.ts`, `mapToGoogle.ts`) all use the same extensionless pattern. The existing `_shared/tracking/canonicalBridge.ts` already imports from `src/` with explicit `.ts` extensions, so the cross-boundary pattern is already established and known to work — what's missing is just the extensions on the **internal** edges of the chain.
+## Audit findings
 
-## Plan: build-compatibility fix only
+- `src/pages/diagnosis.tsx` — 1,493 lines, lowercase filename, contains inline toy `App` shell at lines 1466–1493. **Not currently wired** into `src/App.tsx`.
+- `src/App.tsx` — has `/estimate` route (post-Arc-4 conversion page at `src/pages/Estimate.tsx`). `/estimate` is a separate page, NOT a duplicate of `/diagnosis`. Both can coexist; only the toy inline router inside `diagnosis.tsx` needs removal.
+- No existing `/diagnosis` route. Safe to add a single new route.
+- Canonical tracking: `trackGtmEvent` from `src/lib/trackConversion.ts`.
 
-Add explicit `.ts` extensions to every relative import inside `src/lib/tracking/canonical/*` that lives in the dispatch chain. No logic changes. No moves. No new bridges yet.
+## Target file tree
 
-### Files to edit (10 total)
+```text
+src/
+  App.tsx                                    [EDIT — add /diagnosis route + import]
+  pages/
+    Diagnosis.tsx                            [CREATE — page entry, ~80 lines]
+    diagnosis.tsx                            [DELETE — after extraction complete]
+    diagnosis/
+      types.ts                               [CREATE — StepId, DiagnosisCode, DiagnosticConfig, SLAPromise]
+      constants/
+        diagnosticMap.ts                     [CREATE — DIAGNOSTIC_MAP + DIAGNOSIS_ORDER, ~210 lines]
+        windowOptions.ts                     [CREATE — WINDOW_STYLES, WINDOW_CONCERNS, FRAME_MATERIALS]
+        branchChips.ts                       [CREATE — BRANCH_DYNAMIC_CHIPS + generateConditionalStatement]
+      lib/
+        formatters.ts                        [CREATE — formatPhoneNumber, sanitizeZip, maskPhone, maskEmail]
+        sla.ts                               [CREATE — getSLAPromise + business hours]
+      hooks/
+        useDiagnosticIntake.ts               [CREATE — full-fidelity state hook, ~150 lines]
+      components/
+        ProgressIndicator.tsx                [CREATE — ~30 lines]
+        StepIntake.tsx                       [CREATE — root chip step, ~120 lines]
+        StepDiagnosis.tsx                    [CREATE — 4 chip groups, ~210 lines]
+        StepPrescription.tsx                 [CREATE — mirror + counter-offer + SLA + submit, ~290 lines]
+        SuccessScreen.tsx                    [CREATE — ~60 lines]
+        MarketingSections.tsx                [CREATE — Step 1 marketing blocks, ~110 lines]
+```
 
-1. **`src/lib/tracking/canonical/dispatchWorker.ts`** — `./mapToGoogle` → `./mapToGoogle.ts`, `./mapToMeta` → `./mapToMeta.ts`, `./types` → `./types.ts`
-2. **`src/lib/tracking/canonical/mapToMeta.ts`** — `./constants` → `./constants.ts`, `./types` → `./types.ts`
-3. **`src/lib/tracking/canonical/mapToGoogle.ts`** — `./constants` → `./constants.ts`, `./types` → `./types.ts`
-4. **`src/lib/tracking/canonical/createCanonicalEvent.ts`** — `.ts` on all 5 relative imports
-5. **`src/lib/tracking/canonical/identity.ts`** — `./types` → `./types.ts`
-6. **`src/lib/tracking/canonical/anomaly.ts`** — `./types` → `./types.ts`
-7. **`src/lib/tracking/canonical/trustScore.ts`** — `.ts` on `./constants`, `./anomaly`, `./types`
-8. **`src/lib/tracking/canonical/valueModel.ts`** — `./types` → `./types.ts`
-9. **`src/lib/tracking/canonical/schemas.ts`** — `./constants` → `./constants.ts`
-10. **`src/lib/tracking/canonical/types.ts`** — `./constants` → `./constants.ts`
+## Exact route diff
 
-### Why this is safe
+`src/App.tsx`:
 
-- Vite/esbuild and Vitest natively support explicit `.ts` extensions on TypeScript relative imports. The repo already mixes both patterns (`canonicalBridge.ts` uses `.ts`).
-- No runtime behavior changes. No bundle-output changes for the frontend.
-- The Arc 1.5 measurement parity work (event_id sharing, value/currency on `quote_uploaded`, server-side `phone_verified` persistence, Meta/Google mappings for `phone_verified` + `report_revealed`) stays exactly as-is.
-- Tests are not edited — they import these modules through the same Vite resolver, which handles either form.
+```diff
+ const Estimate = lazy(() => import("./pages/Estimate.tsx"));
++const Diagnosis = lazy(() => import("./pages/Diagnosis.tsx"));
+```
 
-### Fallback path (only if the `.ts` sweep does not resolve the deploy)
+```diff
+ <Route path="/estimate" element={<Estimate />} />
++<Route path="/diagnosis" element={<Diagnosis />} />
+```
 
-If Deno still rejects the chain after the extension fix, the architectural fix is to **stop importing `src/` directly from the new edge function**. Instead:
-- Create `supabase/functions/_shared/tracking/dispatchWorkerBridge.ts` that re-exports `runDispatchWorker` and `fetchWithTimeout` from `src/lib/tracking/canonical/dispatchWorker.ts`.
-- Update `supabase/functions/dispatch-platform-events/index.ts` to import from `../_shared/tracking/dispatchWorkerBridge.ts`, mirroring the pattern already used by `canonicalBridge.ts`.
+Single new public route. `/estimate` (Arc 4 conversion page) is unrelated and stays. Toy `App` shell inside `diagnosis.tsx` is dead code — removed by virtue of deleting that file.
 
-I will not preemptively add this bridge; the `.ts` extension sweep is the minimal, scoped fix and matches Lovable's own diagnosis. Bridge-only if step 1 still fails after deploy.
+## Hook fidelity contract
 
-### Out of scope
+`useDiagnosticIntake` will expose exactly:
 
-- No event-name, value-ladder, tracking-behavior, business-logic, UI, doc, or test changes.
-- No edits to `dispatch-platform-events/index.ts` itself unless the bridge fallback is needed.
-- No edits to `_shared/tracking/canonicalBridge.ts` or any other edge function.
+State: `step`, `primaryDiagnosis`, `secondaryClarifiers`, `otherFreeText`, `windowStyles`, `windowConcerns`, `frameMaterial`, `counterOfferTerms`, `counterOfferFreeText`, `context` (hydrated lead/report — mock for now), `isSubmitting`, `submitSuccess`.
+
+Derived: `activeConfig`, `confidence`, `hasCounterOffer`, `canAdvanceFromDiagnosis`, `slaPromise`.
+
+Handlers: `setStep`, `selectPrimaryDiagnosis`, `toggleSecondaryClarifier`, `setOtherFreeText`, `toggleWindowStyle`, `toggleWindowConcern`, `setFrameMaterial`, `toggleCounterOfferTerm`, `setCounterOfferFreeText`, `handleSubmit`, `handleContactEdit` (preserves current `alert` for now).
+
+## Out of scope (will NOT touch)
+
+- `src/components/consentBanner.tsx` build errors — pre-existing, unrelated to diagnosis page. Will flag separately after extraction.
+- `/estimate` route or `Estimate.tsx` — Arc 4 work, separate concern.
+- Any copy, chip, SLA, or diagnosis-config changes.
+- Real lead hydration (deferred to Arc 5 with TODO marker).
+
+## Execution order (after approval)
+
+1. Create `types.ts`
+2. Create `constants/diagnosticMap.ts`, `constants/windowOptions.ts`, `constants/branchChips.ts`
+3. Create `lib/formatters.ts`, `lib/sla.ts`
+4. Create `hooks/useDiagnosticIntake.ts` (full-fidelity)
+5. Create `components/ProgressIndicator.tsx`, `SuccessScreen.tsx`, `MarketingSections.tsx`
+6. Create `components/StepIntake.tsx`, `StepDiagnosis.tsx`, `StepPrescription.tsx`
+7. Create `src/pages/Diagnosis.tsx` (page entry, no toy router)
+8. Edit `src/App.tsx` — add lazy import + `/diagnosis` route
+9. Delete `src/pages/diagnosis.tsx`
+10. Swap local `trackEvent` stub for canonical `trackGtmEvent` import inside the hook (last step, isolated diff)
 
