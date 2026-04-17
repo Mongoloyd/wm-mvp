@@ -101,7 +101,7 @@ export function StepIntake({ context, onSelectPrimary }: StepIntakeProps) {
         <div className="card-raised-hero rounded-2xl p-6 md:p-8 border-double border-4 border-cobalt/15">
           <p className="wm-eyebrow uppercase text-muted-foreground mb-3">Root Question</p>
           <h2 className="font-display text-xl md:text-2xl font-extrabold text-foreground mb-6 tracking-tight">
-            What frustrated you most about the quote you received?
+            What Frustrated You Most About The Quote You Received?
           </h2>
           <div className="flex flex-wrap gap-3">
             {DIAGNOSIS_ORDER.map((code) => {
