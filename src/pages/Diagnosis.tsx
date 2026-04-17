@@ -25,16 +25,25 @@ const Diagnosis = () => {
 
   // ── Main render ───────────────────────────────────────────────────────────
   return (
-    <div ref={intake.pageTopRef} className="min-h-screen bg-white font-sans text-slate-900 selection:bg-blue-100">
+    <div
+      ref={intake.pageTopRef}
+      className="min-h-screen font-sans text-foreground selection:bg-cobalt/20 relative overflow-hidden"
+      style={{ background: 'linear-gradient(170deg, #dce8f4 0%, #e4edf6 30%, #eaeff8 60%, #dde6f2 100%)' }}
+    >
       {/* Nav */}
-      <nav className="border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-50">
+      <nav className="border-b border-border/60 px-6 py-4 flex items-center justify-between sticky top-0 bg-white/70 backdrop-blur-md z-50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xl">W</div>
-          <span className="font-bold text-xl tracking-tight text-slate-900">WindowMan</span>
+          <div
+            className="w-8 h-8 rounded-md flex items-center justify-center text-white font-bold text-xl"
+            style={{ background: 'linear-gradient(180deg, #6bb8ff 0%, #3b82f6 40%, #1d4ed8 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 6px rgba(37,99,235,0.25)' }}
+          >
+            W
+          </div>
+          <span className="font-display font-extrabold text-xl tracking-tight text-foreground">WindowMan</span>
         </div>
         <button
           onClick={() => navigate('/')}
-          className="text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Report
         </button>
@@ -95,7 +104,7 @@ const Diagnosis = () => {
 
       {intake.step === 'intake' && <MarketingSections />}
 
-      <footer className="py-8 text-center text-slate-500 text-sm border-t border-slate-200">
+      <footer className="py-8 text-center text-muted-foreground text-sm border-t border-border/50 relative z-10">
         <p>&copy; {new Date().getFullYear()} WindowMan. All rights reserved.</p>
       </footer>
     </div>

@@ -25,6 +25,25 @@ interface StepDiagnosisProps {
   setWindowConcerns: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
+const chipBase =
+  'px-4 py-2 rounded-full text-sm font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-cobalt/40';
+
+const chipUnselected =
+  'bg-white/80 border-border text-foreground/80 hover:border-cobalt/40 hover:bg-white';
+
+const chipSelectedCobalt =
+  'border-cobalt text-white shadow-sm';
+
+const cobaltSelectedStyle: React.CSSProperties = {
+  background: 'linear-gradient(180deg, #6bb8ff 0%, #3b82f6 40%, #1d4ed8 100%)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 6px rgba(37,99,235,0.22)',
+};
+
+const numberBadgeStyle: React.CSSProperties = {
+  background: 'linear-gradient(180deg, #6bb8ff 0%, #3b82f6 40%, #1d4ed8 100%)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(37,99,235,0.25)',
+};
+
 export function StepDiagnosis({
   activeConfig,
   primaryDiagnosis,
@@ -44,45 +63,61 @@ export function StepDiagnosis({
   setWindowConcerns,
 }: StepDiagnosisProps) {
   return (
-    <section className="bg-slate-50 py-12 px-6 min-h-[calc(100vh-160px)]">
-      <div className="max-w-3xl mx-auto">
+    <section className="relative py-12 px-6 min-h-[calc(100vh-160px)]" style={{ background: 'transparent' }}>
+      {/* Soft cobalt ambient */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse at 20% 0%, rgba(30,80,180,0.07) 0%, transparent 55%), radial-gradient(ellipse at 80% 100%, rgba(6,182,212,0.06) 0%, transparent 55%)',
+        }}
+      />
+      <div className="max-w-3xl mx-auto relative z-10">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 mb-6 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Change my answer
         </button>
 
         {/* Therapeutic Reflection Panel */}
-        <div className={`${activeConfig.accentBg} ${activeConfig.accentBorder} border-2 rounded-2xl p-6 md:p-8 mb-8 shadow-sm`}>
+        <div className="card-raised-hero rounded-2xl p-6 md:p-8 mb-8">
           <div className="flex items-start gap-4">
-            <div className={`shrink-0 w-12 h-12 rounded-xl bg-white ${activeConfig.accentBorder} border-2 flex items-center justify-center`}>
+            <div
+              className={`shrink-0 w-12 h-12 rounded-xl bg-white ${activeConfig.accentBorder} border-2 flex items-center justify-center`}
+            >
               <activeConfig.Icon className={`w-6 h-6 ${activeConfig.accent}`} />
             </div>
             <div className="flex-1">
-              <h2 className={`text-2xl font-bold ${activeConfig.accent} mb-3`}>
+              <h2 className={`font-display text-2xl font-extrabold tracking-tight ${activeConfig.accent} mb-3`}>
                 {activeConfig.reflectionTitle}
               </h2>
-              <p className="text-slate-800 text-base leading-relaxed">
+              <p className="text-foreground/85 text-base leading-relaxed">
                 {activeConfig.reflectionBody}
               </p>
             </div>
           </div>
         </div>
 
-        <p className="text-center text-slate-600 text-sm mb-6 italic">
+        <p className="text-center text-muted-foreground text-sm mb-6 italic">
           A few quick questions so we can shape your prescription. All taps, no typing.
         </p>
 
         {/* Question 1: Secondary Clarifier */}
-        <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 mb-5">
+        <div className="card-raised rounded-2xl p-6 md:p-8 mb-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <div
+              className="w-7 h-7 rounded-full text-white flex items-center justify-center text-xs font-bold"
+              style={numberBadgeStyle}
+            >
+              1
+            </div>
+            <p className="wm-eyebrow uppercase text-muted-foreground">
               Diagnostic
             </p>
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-4">
+          <h3 className="font-display text-lg font-extrabold tracking-tight text-foreground mb-4">
             {activeConfig.secondaryQuestion}
           </h3>
 
@@ -92,7 +127,7 @@ export function StepDiagnosis({
               onChange={(e) => setOtherFreeText(e.target.value)}
               rows={4}
               placeholder="Tell us what felt off. There's no wrong answer."
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none text-slate-900"
+              className="wm-input-well w-full px-4 py-3 outline-none transition-all resize-none text-foreground placeholder:text-muted-foreground"
             />
           ) : (
             <div className="flex flex-wrap gap-2">
@@ -105,11 +140,8 @@ export function StepDiagnosis({
                     onClick={() =>
                       toggleInArray(secondaryClarifiers, setSecondaryClarifiers, option)
                     }
-                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ${
-                      isSelected
-                        ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                        : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
-                    }`}
+                    className={`${chipBase} ${isSelected ? chipSelectedCobalt : chipUnselected}`}
+                    style={isSelected ? cobaltSelectedStyle : undefined}
                   >
                     {option}
                   </button>
@@ -120,17 +152,22 @@ export function StepDiagnosis({
         </div>
 
         {/* Question 2: Window Styles */}
-        <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 mb-5">
+        <div className="card-raised rounded-2xl p-6 md:p-8 mb-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">2</div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <div
+              className="w-7 h-7 rounded-full text-white flex items-center justify-center text-xs font-bold"
+              style={numberBadgeStyle}
+            >
+              2
+            </div>
+            <p className="wm-eyebrow uppercase text-muted-foreground">
               Window Types
             </p>
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-1">
+          <h3 className="font-display text-lg font-extrabold tracking-tight text-foreground mb-1">
             Which window styles are part of this project?
           </h3>
-          <p className="text-sm text-slate-500 mb-4">Tap any that apply.</p>
+          <p className="text-sm text-muted-foreground mb-4">Tap any that apply.</p>
           <div className="flex flex-wrap gap-2">
             {WINDOW_STYLES.map((style) => {
               const isSelected = windowStyles.includes(style);
@@ -139,11 +176,8 @@ export function StepDiagnosis({
                   key={style}
                   type="button"
                   onClick={() => toggleInArray(windowStyles, setWindowStyles, style)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ${
-                    isSelected
-                      ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                      : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
-                  }`}
+                  className={`${chipBase} ${isSelected ? chipSelectedCobalt : chipUnselected}`}
+                  style={isSelected ? cobaltSelectedStyle : undefined}
                 >
                   {style}
                 </button>
@@ -153,17 +187,22 @@ export function StepDiagnosis({
         </div>
 
         {/* Question 3: Concerns */}
-        <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 mb-5">
+        <div className="card-raised rounded-2xl p-6 md:p-8 mb-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">3</div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <div
+              className="w-7 h-7 rounded-full text-white flex items-center justify-center text-xs font-bold"
+              style={numberBadgeStyle}
+            >
+              3
+            </div>
+            <p className="wm-eyebrow uppercase text-muted-foreground">
               Priorities
             </p>
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-1">
+          <h3 className="font-display text-lg font-extrabold tracking-tight text-foreground mb-1">
             What matters most to you?
           </h3>
-          <p className="text-sm text-slate-500 mb-4">Tap everything that's important.</p>
+          <p className="text-sm text-muted-foreground mb-4">Tap everything that's important.</p>
           <div className="flex flex-wrap gap-2">
             {WINDOW_CONCERNS.map((concern) => {
               const isSelected = windowConcerns.includes(concern);
@@ -172,11 +211,21 @@ export function StepDiagnosis({
                   key={concern}
                   type="button"
                   onClick={() => toggleInArray(windowConcerns, setWindowConcerns, concern)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ${
+                  className={`${chipBase} ${
                     isSelected
-                      ? 'bg-green-600 border-green-600 text-white shadow-sm'
-                      : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                      ? 'border-emerald text-white shadow-sm'
+                      : chipUnselected
                   }`}
+                  style={
+                    isSelected
+                      ? {
+                          background:
+                            'linear-gradient(180deg, hsl(160 75% 48%) 0%, hsl(160 84% 39%) 50%, hsl(160 84% 32%) 100%)',
+                          boxShadow:
+                            'inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 6px hsla(160 84% 39% / 0.22)',
+                        }
+                      : undefined
+                  }
                 >
                   {concern}
                 </button>
@@ -186,17 +235,22 @@ export function StepDiagnosis({
         </div>
 
         {/* Question 4: Frame Material (single-select chips) */}
-        <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 mb-8">
+        <div className="card-raised rounded-2xl p-6 md:p-8 mb-8">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">4</div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <div
+              className="w-7 h-7 rounded-full text-white flex items-center justify-center text-xs font-bold"
+              style={numberBadgeStyle}
+            >
+              4
+            </div>
+            <p className="wm-eyebrow uppercase text-muted-foreground">
               Frame Material
             </p>
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-1">
+          <h3 className="font-display text-lg font-extrabold tracking-tight text-foreground mb-1">
             Frame material preference?
           </h3>
-          <p className="text-sm text-slate-500 mb-4">Pick one. "Not sure" is fine.</p>
+          <p className="text-sm text-muted-foreground mb-4">Pick one. "Not sure" is fine.</p>
           <div className="flex flex-wrap gap-2">
             {FRAME_MATERIALS.map(({ value, label }) => {
               const isSelected = frameMaterial === value;
@@ -205,11 +259,8 @@ export function StepDiagnosis({
                   key={value}
                   type="button"
                   onClick={() => setFrameMaterial(isSelected ? '' : value)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ${
-                    isSelected
-                      ? 'bg-purple-600 border-purple-600 text-white shadow-sm'
-                      : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
-                  }`}
+                  className={`${chipBase} ${isSelected ? chipSelectedCobalt : chipUnselected}`}
+                  style={isSelected ? cobaltSelectedStyle : undefined}
                 >
                   {label}
                 </button>
@@ -219,23 +270,21 @@ export function StepDiagnosis({
         </div>
 
         {/* Advance */}
-        <div className="bg-slate-900 text-white rounded-2xl p-6 md:p-8">
-          <p className="text-sm text-slate-300 leading-relaxed mb-6">
+        <div className="card-raised-hero rounded-2xl p-6 md:p-8 border-double border-4 border-cobalt/15">
+          <p className="text-sm text-foreground/80 leading-relaxed mb-6">
             {activeConfig.prescriptionSetup}
           </p>
           <button
             onClick={onAdvance}
             disabled={!canAdvanceFromDiagnosis}
-            className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-lg font-bold text-white transition-all ${
-              !canAdvanceFromDiagnosis
-                ? 'bg-slate-700 cursor-not-allowed opacity-50'
-                : 'bg-blue-600 hover:bg-blue-500 active:scale-[0.99] shadow-lg'
+            className={`btn-depth-primary w-full inline-flex items-center justify-center gap-2 py-4 px-6 text-base ${
+              !canAdvanceFromDiagnosis ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             See How We'll Fix This <ArrowRight className="w-5 h-5" />
           </button>
           {!canAdvanceFromDiagnosis && (
-            <p className="text-xs text-slate-400 text-center mt-3">
+            <p className="text-xs text-muted-foreground text-center mt-3">
               {primaryDiagnosis === 'other'
                 ? 'Tell us a little more so we can tailor the prescription.'
                 : 'Pick at least one option from question 1 to continue.'}
