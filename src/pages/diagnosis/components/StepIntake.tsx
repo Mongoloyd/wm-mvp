@@ -121,7 +121,7 @@ export function StepIntake({ context, onSelectPrimary }: StepIntakeProps) {
             })}
           </div>
           <p className="text-xs text-muted-foreground mt-5 italic">
-            Tap the one that hits closest. Don't overthink it.
+            Tap the one that hits closest. Don't Overthink It.
           </p>
         </div>
       </div>
