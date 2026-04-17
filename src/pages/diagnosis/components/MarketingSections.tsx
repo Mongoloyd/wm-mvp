@@ -6,6 +6,7 @@ import {
   Handshake,
   ShieldCheck,
 } from 'lucide-react';
+import { ArbitrageFlowDiagram } from '@/components/diagnosis/ArbitrageFlowDiagram';
 
 export function MarketingSections() {
   return (
@@ -60,6 +61,10 @@ export function MarketingSections() {
                 <li className="flex items-start gap-3"><span className="text-cobalt mt-1">•</span><span className="text-foreground/80">We stay with you through installation and beyond.</span></li>
               </ul>
             </div>
+          </div>
+
+          <div className="mt-12">
+            <ArbitrageFlowDiagram />
           </div>
 
           <div
