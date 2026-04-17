@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck } from 'lucide-react';
-import { pushToDataLayer } from '@/lib/analytics/gtm';
+
+const pushToDataLayer = (payload: Record<string, unknown>) => {
+  if (typeof window === 'undefined') return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(payload);
+};
 
 const ConsentBanner = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -11,8 +16,10 @@ const ConsentBanner = () => {
   const updateGtagConsent = (status: 'granted' | 'denied') => {
     if (typeof window !== 'undefined') {
       // Ensure gtag is defined (standard GTM/GA4 pattern)
-      window.gtag = window.gtag || function(){ (window.dataLayer = window.dataLayer || []).push(arguments); };
-      
+      window.gtag = window.gtag || function (...args: unknown[]) {
+        (window.dataLayer = window.dataLayer || []).push(args as unknown as Record<string, unknown>);
+      };
+
       const consentSettings = {
         'ad_storage': status,
         'ad_user_data': status,
