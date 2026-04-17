@@ -8,7 +8,7 @@ const ConsentBanner = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   // Helper to safely update consent via gtag
-  const updateGtagConsent = (status) => {
+  const updateGtagConsent = (status: 'granted' | 'denied') => {
     if (typeof window !== 'undefined') {
       // Ensure gtag is defined (standard GTM/GA4 pattern)
       window.gtag = window.gtag || function(){ (window.dataLayer = window.dataLayer || []).push(arguments); };
