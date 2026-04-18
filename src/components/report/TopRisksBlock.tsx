@@ -1,0 +1,260 @@
+/**
+ * TopRisksBlock — Compact 3-row interpretive summary of the highest-priority risks.
+ *
+ * Strict grounding rules:
+ * - Title comes from `flag.label` (or missing-item label).
+ * - "Why" line comes from `flag.detail` → `flag.tip` → omitted (never invented).
+ * - Backfills from `missingItems` if fewer than 3 qualifying flags exist.
+ * - Anchor links to `#finding-{flag.id}` so the user can jump to full evidence below.
+ *
+ * Full-mode only — relies on the real flags array which is intentionally empty
+ * before OTP verification.
+ */
+
+import { motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
+import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
+import { resolveEffectiveSeverity } from "@/utils/resolveEffectiveSeverity";
+
+interface TopRisksBlockProps {
+  flags: AnalysisFlag[];
+  pillarScores: PillarScore[];
+  missingItems?: (string | Record<string, unknown>)[];
+}
+
+const PILLAR_PRIORITY: Record<string, number> = {
+  safety_code: 1,
+  price_fairness: 2,
+  warranty: 3,
+  fine_print: 4,
+  install_scope: 5,
+};
+
+const SEVERITY_ORDER: Record<"red" | "amber" | "green", number> = {
+  red: 0,
+  amber: 1,
+  green: 2,
+};
+
+const sevStyles = {
+  red: {
+    dot: "hsl(var(--color-danger))",
+    badge: "hsl(var(--color-danger) / 0.12)",
+    badgeText: "hsl(var(--color-danger))",
+    border: "hsl(var(--color-danger) / 0.3)",
+    label: "CRITICAL",
+  },
+  amber: {
+    dot: "hsl(var(--color-caution))",
+    badge: "hsl(var(--color-caution) / 0.12)",
+    badgeText: "hsl(var(--color-caution))",
+    border: "hsl(var(--color-caution) / 0.3)",
+    label: "REVIEW",
+  },
+  green: {
+    dot: "hsl(var(--color-emerald))",
+    badge: "hsl(var(--color-emerald) / 0.12)",
+    badgeText: "hsl(var(--color-emerald))",
+    border: "hsl(var(--color-emerald) / 0.3)",
+    label: "CONFIRMED",
+  },
+} as const;
+
+interface RiskRow {
+  key: string;
+  title: string;
+  why: string | null;
+  pillarLabel: string | null;
+  severity: "red" | "amber" | "green";
+  anchorId: string | null;
+}
+
+function normalizeMissingItem(item: string | Record<string, unknown>): {
+  label: string;
+  why: string | null;
+} | null {
+  if (typeof item === "string") {
+    const trimmed = item.trim();
+    return trimmed ? { label: trimmed, why: null } : null;
+  }
+  if (item && typeof item === "object") {
+    const label = String(item.label ?? item.title ?? item.name ?? "").trim();
+    if (!label) return null;
+    const why = item.why_it_matters ?? item.detail ?? item.description ?? null;
+    return { label, why: typeof why === "string" && why.trim() ? why.trim() : null };
+  }
+  return null;
+}
+
+function buildRows(
+  flags: AnalysisFlag[],
+  pillarScores: PillarScore[],
+  missingItems: (string | Record<string, unknown>)[],
+): RiskRow[] {
+  const sortedFlags = [...flags]
+    .map((f) => ({ flag: f, sev: resolveEffectiveSeverity(f) }))
+    .filter((x) => x.sev === "red" || x.sev === "amber")
+    .sort((a, b) => {
+      const sd = SEVERITY_ORDER[a.sev] - SEVERITY_ORDER[b.sev];
+      if (sd !== 0) return sd;
+      const ap = a.flag.pillar ? (PILLAR_PRIORITY[a.flag.pillar] ?? 99) : 99;
+      const bp = b.flag.pillar ? (PILLAR_PRIORITY[b.flag.pillar] ?? 99) : 99;
+      return ap - bp;
+    });
+
+  const rows: RiskRow[] = sortedFlags.slice(0, 3).map(({ flag, sev }) => {
+    const pillarLabel = flag.pillar
+      ? (pillarScores.find((p) => p.key === flag.pillar)?.label ?? null)
+      : null;
+    const why = flag.detail?.trim() || flag.tip?.trim() || null;
+    return {
+      key: `flag-${flag.id}`,
+      title: flag.label,
+      why,
+      pillarLabel,
+      severity: sev,
+      anchorId: `finding-${flag.id}`,
+    };
+  });
+
+  // Backfill from missing items if we have fewer than 3 rows.
+  if (rows.length < 3) {
+    const needed = 3 - rows.length;
+    const candidates = (missingItems ?? [])
+      .map(normalizeMissingItem)
+      .filter((x): x is { label: string; why: string | null } => x !== null)
+      .slice(0, needed);
+    candidates.forEach((mi, i) => {
+      rows.push({
+        key: `missing-${i}`,
+        title: mi.label,
+        why: mi.why,
+        pillarLabel: null,
+        severity: "amber",
+        anchorId: null,
+      });
+    });
+  }
+
+  return rows;
+}
+
+const TopRisksBlock = ({ flags, pillarScores, missingItems = [] }: TopRisksBlockProps) => {
+  const rows = buildRows(flags, pillarScores, missingItems);
+  if (rows.length === 0) return null;
+
+  const handleAnchor = (anchorId: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.getElementById(anchorId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
+  return (
+    <section className="py-6 md:py-8 px-4 md:px-8 bg-background border-b border-border">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-4">
+          <span className="wm-eyebrow" style={{ color: "hsl(var(--color-danger))" }}>
+            TOP RISKS
+          </span>
+          <h2 className="wm-title-section text-foreground" style={{ marginTop: 4 }}>
+            What matters most in this quote
+          </h2>
+        </div>
+
+        <ul className="flex flex-col divide-y divide-border border border-border rounded-[var(--radius-card)] overflow-hidden bg-card">
+          {rows.map((row, i) => {
+            const s = sevStyles[row.severity];
+            const Tag: "a" | "div" = row.anchorId ? "a" : "div";
+            const interactiveProps = row.anchorId
+              ? {
+                  href: `#${row.anchorId}`,
+                  onClick: handleAnchor(row.anchorId),
+                }
+              : {};
+            return (
+              <motion.li
+                key={row.key}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04, duration: 0.2 }}
+              >
+                <Tag
+                  {...interactiveProps}
+                  className={`flex items-start gap-3 px-4 py-3 md:px-5 md:py-3.5 ${row.anchorId ? "hover:bg-secondary/40 transition-colors cursor-pointer" : ""}`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="flex-shrink-0 mt-1.5"
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      background: s.dot,
+                      boxShadow: `0 0 0 3px ${s.dot}1f`,
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <span
+                        className="font-mono"
+                        style={{
+                          background: s.badge,
+                          color: s.badgeText,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          padding: "2px 8px",
+                          borderRadius: "var(--radius-btn)",
+                        }}
+                      >
+                        {s.label}
+                      </span>
+                      {row.pillarLabel && (
+                        <span
+                          className="bg-secondary text-muted-foreground font-mono"
+                          style={{
+                            fontSize: 10,
+                            letterSpacing: "0.06em",
+                            padding: "2px 8px",
+                            borderRadius: "var(--radius-btn)",
+                          }}
+                        >
+                          {row.pillarLabel}
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      className="font-body text-foreground"
+                      style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.4 }}
+                    >
+                      {row.title}
+                    </p>
+                    {row.why && (
+                      <p
+                        className="font-body text-muted-foreground mt-0.5"
+                        style={{ fontSize: 13, lineHeight: 1.5 }}
+                      >
+                        {row.why}
+                      </p>
+                    )}
+                  </div>
+                  {row.anchorId && (
+                    <ChevronRight
+                      size={16}
+                      className="text-muted-foreground flex-shrink-0 mt-1.5"
+                      aria-hidden="true"
+                    />
+                  )}
+                </Tag>
+              </motion.li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  );
+};
+
+export default TopRisksBlock;

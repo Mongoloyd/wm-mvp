@@ -18,6 +18,9 @@ import RiskSummaryHeader from "@/components/report/RiskSummaryHeader";
 import ExecutiveSummaryStrip from "@/components/report/ExecutiveSummaryStrip";
 import RedFlagsList from "@/components/report/RedFlagsList";
 import MissingItemsList from "@/components/report/MissingItemsList";
+import TopRisksBlock from "@/components/report/TopRisksBlock";
+import PillarSnapshotStrip from "@/components/report/PillarSnapshotStrip";
+import WhatToDoNowBlock from "@/components/report/WhatToDoNowBlock";
 import FixItCTA from "@/components/report/FixItCTA";
 import GapFixModule from "@/components/report/GapFixModule";
 import GreenChecklistModule from "@/components/report/GreenChecklistModule";
@@ -439,6 +442,33 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         accessLevel={accessLevel}
       />
 
+      {/* ─── DECISION CORE (full mode only) ───
+          Top Risks → Pillar Snapshot → What To Do Now + primary CTA.
+          These elevate the highest-priority interpretation and the main
+          commercial CTA above the long proof/detail sections. */}
+      {isFull && (
+        <>
+          <TopRisksBlock
+            flags={flags}
+            pillarScores={pillarScores}
+            missingItems={missingItems}
+          />
+          <PillarSnapshotStrip pillarScores={pillarScores} />
+          <WhatToDoNowBlock
+            flags={flags}
+            grade={grade}
+            redCount={redCount}
+            missingItems={missingItems}
+            markupEstimate={markupEstimate}
+            pricePerOpeningBand={pricePerOpeningBand}
+            onContractorMatchClick={onContractorMatchClick}
+            onReportHelpCall={onReportHelpCall}
+            isCtaLoading={isCtaLoading}
+            introRequested={introRequested}
+          />
+        </>
+      )}
+
       {/* ─── PROOF-OF-READ TRUST STRIP (preview only) ─── */}
       {!isFull && (pageCount != null || lineItemCount != null || contractorName) && (
         <motion.section {...stagger(0.5)} className="card-raised py-3 px-4 md:px-8 border-b border-border">
@@ -499,8 +529,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           );
         })()}
 
-      {/* ─── 5-PILLAR ANALYSIS (ForensicPillarSection) ─── */}
-      <ForensicPillarSection pillarScores={pillarScores} flags={flags} county={county} isFull={isFull} />
+      {/* ─── 5-PILLAR ANALYSIS (preview only — full mode renders this lower, below findings) ─── */}
+      {!isFull && (
+        <ForensicPillarSection pillarScores={pillarScores} flags={flags} county={county} isFull={isFull} />
+      )}
 
       {/* ─── QUOTE PRICE MATH (full only) ─── */}
       {isFull && derivedMetrics && <QuotePriceMath metrics={derivedMetrics} county={county} />}
@@ -602,6 +634,12 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       {isFull && <RedFlagsList warnings={warnings ?? []} />}
       {isFull && <MissingItemsList missingItems={missingItems ?? []} />}
 
+      {/* ─── 5-PILLAR ANALYSIS (full mode) ───
+          Subordinated below proof/findings so the decision core dominates the first screens. */}
+      {isFull && (
+        <ForensicPillarSection pillarScores={pillarScores} flags={flags} county={county} isFull={isFull} />
+      )}
+
       <section className="py-10 md:py-14 px-4 md:px-14 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
           <motion.div {...stagger(3)}>
@@ -680,8 +718,9 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 return (
                   <motion.div
                     key={flag.id}
+                    id={`finding-${flag.id}`}
                     {...stagger(i * 0.5 + 4)}
-                    className="card-raised overflow-hidden"
+                    className="card-raised overflow-hidden scroll-mt-24"
                     style={{
                       border: s.border,
                       borderLeft: s.borderLeft,
