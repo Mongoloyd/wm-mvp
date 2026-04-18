@@ -19,7 +19,7 @@ import ExecutiveSummaryStrip from "@/components/report/ExecutiveSummaryStrip";
 import RedFlagsList from "@/components/report/RedFlagsList";
 import MissingItemsList from "@/components/report/MissingItemsList";
 import TopRisksBlock from "@/components/report/TopRisksBlock";
-import PillarSnapshotStrip from "@/components/report/PillarSnapshotStrip";
+import TopRisksCTAStrip from "@/components/report/TopRisksCTAStrip";
 import WhatToDoNowBlock from "@/components/report/WhatToDoNowBlock";
 import FixItCTA from "@/components/report/FixItCTA";
 import GapFixModule from "@/components/report/GapFixModule";
@@ -83,6 +83,8 @@ interface TruthReportProps {
   scopeGapDetected?: boolean;
   summaryTeaser?: string | null;
   missingItemsCount?: number;
+  /** Shared CTA wording. Authoritative primary + sticky mirror use this exact string. */
+  ctaLabel?: string;
 }
 
 const gradeConfig: Record<string, { color: string; bg: string; glow: string; label: string; verdict: string }> = {
@@ -226,6 +228,7 @@ const TruthReportClassic = ({
   scopeGapDetected,
   summaryTeaser,
   missingItemsCount,
+  ctaLabel = "Get a Better Quote",
 }: TruthReportProps) => {
   const config = gradeConfig[grade] || gradeConfig.C;
   const isFull = accessLevel === "full";
