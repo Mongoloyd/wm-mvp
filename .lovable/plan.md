@@ -1,94 +1,149 @@
 
 
-## What's weak today (full-mode commercial flow)
+## Final sprint — Full-mode reorder + visual hierarchy + typography/contrast spec
 
-Current full-mode order from line ~404 onward:
-1. Header / Verdict
-2. Executive Summary (1-line strip)
-3. Risk Summary header
-4. **ForensicPillarSection** (5 pillars, raw scores) ← appears EARLY
-5. QuotePriceMath
-6. Financial Forensics (markup / fairness / leverage)
-7. RedFlagsList
-8. MissingItemsList
-9. Forensic Findings accordion
-10. **FixItCTA** (Gap-Fix / Green Checklist) — secondary
-11. Negotiation Script
-12. **Contractor Match CTA** ("Get a Better Quote" lives here, line ~963) ← BURIED at the bottom
-
-**Commercial weakness:** the highest-value CTA (`onContractorMatchClick` → `generate-contractor-brief`) is the *last* thing the user sees. Between the verdict and the CTA sit ~6 dense sections including raw pillar scores. There is no decision block ("what should I do now") and no top-of-page commercial action.
-
-## Three new presentational components + one rewire
-
-### 1. `src/components/report/TopRisksBlock.tsx` (NEW, full-mode only)
-- Input: `flags`, `pillarScores`, `missingItems`
-- Compact 3-row list (not cards). Each row: severity dot · title · 1-line "why" · pillar pill · anchor link `#finding-{id}` to detailed findings.
-- Strict grounding: title from `flag.label`; "why" from `flag.detail` → `flag.tip` → omit. Backfill from `missingItems` if <3 flags. **No** `getFlagReasoning` helper.
-- Mobile: ~80px per row, ~240px total.
-
-### 2. `src/components/report/PillarSnapshotStrip.tsx` (NEW, full-mode only)
-- Compact 5-cell row: pillar name + status dot only (no scores).
-- Preserves the "5-pillar mental model" without raw score emphasis. ~60px tall.
-
-### 3. `src/components/report/WhatToDoNowBlock.tsx` (NEW, full-mode only) — **the conversion core**
-- **Single-winner action picker** (priority order, not qualification):
-  1. **Replace / Re-bid** — wins if `grade ∈ {"D","F"}` OR `redCount >= 3`
-  2. **Negotiate** — wins if `pricePerOpeningBand ∈ {"high","extreme"}` OR `markupEstimate` present OR any `pillar === "price_fairness"` flag
-  3. **Validate** — wins if `missingItems.length > 0` OR any `fine_print`/`safety_code` flag
-- Renders: 1 expanded primary action + up to 2 collapsed chips for the runners-up.
-- **Embedded primary CTA**: `Get a Better Quote` button bound to existing `onContractorMatchClick` prop (already wired to `generate-contractor-brief` in `PostScanReportSwitcher` line 439). No new edge function, no new state.
-- "Based on:" line cites the exact evidence that triggered the action (e.g., "Grade F, 4 critical findings" or "Price band: high, markup ~$X").
-- Loading / post-click states (`isCtaLoading`, `introRequested`) are read from existing props so the button mirrors the bottom-of-page CTA's behavior.
-
-### 4. `src/components/TruthReportClassic.tsx` — reorder full-mode sections
-- Insert the 3 new blocks immediately after `RiskSummaryHeader` (after line 440).
-- Move `ForensicPillarSection` (line 503) to render *after* `MissingItemsList` and *before* the Forensic Findings accordion in full mode. Preview mode keeps current pillar position so the locked teaser is unaffected.
-- Add `id="finding-{flag.id}"` to each forensic finding card so Top Risks can anchor-scroll.
-- Keep existing FixItCTA / Negotiation Script / Contractor Match section intact at the bottom — they remain valid secondary surfaces; the bottom Contractor Match section becomes a reinforcement, not the only CTA.
-
-### 5. `src/components/post-scan/PostScanReportSwitcher.tsx` — **no changes needed**
-Existing `onContractorMatchClick`, `isCtaLoading`, `introRequested`, `suggestedMatch` props already flow into `TruthReportClassic`. New blocks consume them as-is.
-
-## Final full-mode order (after this sprint)
-
+### Order (locked)
 ```
-1. Header / Verdict Strip
-2. Executive Summary (1-line)
-3. Risk Verdict Line
-4. ⬆ NEW · Top Risks Block (3 compact rows)
-5. ⬆ NEW · Pillar Snapshot Strip (5 dots)
-6. ⬆ NEW · What To Do Now + "Get a Better Quote" CTA  ← decision core
-─── Supporting Proof ───
+1. Header / Report Identity
+2. Verdict / Gut Punch
+3. Top Risks (3 compact rows + grounded "what could happen")
+4. Financial Forensics (punchy proof, compact)
+5. Primary CTA Strip — "Get a Better Quote" + "See all findings ↓"
+6. Forensic Findings accordion (id="forensic-findings")
 7. Quote Price Math
-8. Financial Forensics
-9. Red Flags list
-10. Missing Items list
-11. Forensic Findings accordion (with anchor IDs)
-─── Pillar Detail (subordinated) ───
-12. ⬇ Forensic Pillar Section (full bands + descriptions)
-─── Secondary Actions ───
-13. Fix-It CTA (Gap-Fix / Green Checklist)
-14. Negotiation Script
-15. Contractor Match section (reinforcement)
-16. Footer
+8. Red Flags
+9. Missing Items
+10. WhatToDoNow (DEMOTED, no embedded primary CTA)
+11. Forensic Pillar Section (full)
+12. Bottom Contractor Match (ghost reinforcement only)
+13. Fix-It / Negotiation Script / Footer
+
+REMOVED: PillarSnapshotStrip
+Sticky bottom CTA: mirrors in-page CTA exactly
+Scroll-to-top on OTP unlock (preview→full)
 ```
 
-Preview-mode order is **untouched**.
+### Typography & contrast spec (NEW — matches `/about`)
 
-## Mobile fit (390px viewport)
+**Font stack (reuse `/about` tokens, no new fonts)**
+- Display/headings: existing `font-display` token used by `SectionHeading` on `/about`
+- Body: existing default sans (Inter/system)
+- Metadata/emphasis: DM Sans 500/600 (already in mem://style/typography-dm-sans-preference)
+- No condensed, decorative, or alternate font systems introduced
 
-- Header (~140px) + Verdict (~90px) + Exec Summary (~60px) + Risk Verdict (~60px) = ~350px
-- Top Risks (~240px) + Pillar Snapshot (~60px) + What To Do Now w/ CTA (~220px) = ~520px
-- **Verdict → primary CTA visible within ~870px** (≈ 2 mobile screens). ✅
+**Contrast floor: 5:1 minimum** against background for all visible text in full-report flow.
 
-## Files to change
+**Banned patterns**
+- `text-muted-foreground` on `bg-muted` or pale fills
+- `text-gray-400`/`text-gray-500` on white
+- Off-white text on pale gradients
+- Faint pill text (e.g., `text-red-300` on `bg-red-50`)
+
+**Required pill/badge contrast**
+- Critical/danger: `bg-red-600` + `text-white` (or `bg-destructive` + `text-destructive-foreground`)
+- Warning/review: `bg-amber-500` + `text-white` or `bg-amber-100` + `text-amber-900`
+- Success/green: `bg-emerald-600` + `text-white` or `bg-emerald-100` + `text-emerald-900`
+- Info/brand: `bg-primary` + `text-primary-foreground` — never faded
+- Pillar pills: `bg-slate-900` + `text-white` (dark) or `bg-slate-100` + `text-slate-900`
+
+**Type sizing floors (full report)**
+- H1 report title: `text-3xl md:text-4xl font-bold`
+- H2 section headers: `text-xl md:text-2xl font-semibold`
+- Body: `text-base` (never below `text-sm` for content)
+- Helper/meta: `text-sm` minimum (no `text-xs` for findings, labels, pill text, or CTA)
+- Microcopy floor: 10px absolute, only for truly secondary metadata
+- Findings titles: `text-base font-medium` minimum
+- CTA button text: `text-sm font-semibold` minimum (prefer `text-base`)
+
+**CTA button contrast (all states)**
+- Default: brand bg + `text-primary-foreground`
+- Hover: darker brand bg, same text contrast
+- Active: pressed brand bg, same text contrast
+- Loading: keep bg + text colors, add spinner — never fade text below 5:1
+- Disabled: `bg-muted` + `text-muted-foreground` only if still ≥4.5:1 — otherwise use darker disabled token
+
+### Visual hierarchy & sizing budgets
+
+**Dominance ladder**
+1. Grade circle + Verdict (H1 weight)
+2. Top Risks header (H2)
+3. Primary CTA Strip button (brand bg, semibold)
+4. Financial Forensics figures (tabular-nums, numeric emphasis)
+5. Forensic Findings headers (text-base, medium)
+6. WhatToDoNow recommendation (text-sm, secondary but readable)
+7. Bottom reinforcement (ghost link)
+
+**Mobile section budgets (390px)**
+- Header + Verdict: ≤280px combined
+- Top Risks: 3 rows × ~90px = ≤270px (row layout, not cards)
+- Financial Forensics: ≤320px (compact proof, not essay)
+- CTA Strip: ≤80px (1 row, not banner)
+- Forensic Findings rows collapsed: ≤72px each, default-collapsed
+- WhatToDoNow: ≤200px total
+
+**Mobile density rules**
+- Cap padding at `p-4 md:p-6` (no `p-8` on mobile)
+- Cap section spacing at `space-y-4 md:space-y-6`
+- Top Risks uses border-only row separators, not card stack
+- Financial Forensics uses 2-col grid on mobile
+
+**Desktop composition**
+- `max-w-3xl mx-auto` (executive-summary feel, not stretched)
+- `space-y-8 md:space-y-10` between major sections
+- CTA Strip inline in flow, no full-bleed bg, no `shadow-lg`
+- Financial Forensics `md:grid-cols-3` for stats
+- Forensic Findings accordion never edge-to-edge
+
+### CTA hierarchy (one meaning, mirrored)
+- **Authoritative**: Primary CTA Strip under Top Risks → `Get a Better Quote`
+- **Mirror**: Sticky bottom CTA → identical wording (shared `CTA_LABEL` constant), identical handler, identical loading/post-click states
+- **WhatToDoNow**: text-link only (`text-sm underline text-primary`), scrolls to `#cta-strip`
+- **Bottom Contractor Match**: ghost variant, never primary bg
+
+### Consequence rule (locked)
+- `flag.consequence?.trim()` → use it
+- else `flag.impact?.trim()` → use it
+- else **omit** (no fabrication, no sentence-splitting)
+
+### Scroll-to-top on unlock
+```ts
+// PostScanReportSwitcher.tsx
+const reportTopRef = useRef<HTMLDivElement>(null);
+const prevAccessRef = useRef(accessLevel);
+useEffect(() => {
+  if (prevAccessRef.current !== "full" && accessLevel === "full") {
+    requestAnimationFrame(() => {
+      reportTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+  prevAccessRef.current = accessLevel;
+}, [accessLevel]);
+```
+
+### Files changed
 
 | File | Action | Scope |
 |---|---|---|
-| `src/components/report/TopRisksBlock.tsx` | NEW | 3-row interpretive summary; anchor links; strict grounding |
-| `src/components/report/PillarSnapshotStrip.tsx` | NEW | compact 5-cell pillar status (no scores) |
-| `src/components/report/WhatToDoNowBlock.tsx` | NEW | single-winner action picker + embedded `Get a Better Quote` CTA wired to `onContractorMatchClick` |
-| `src/components/TruthReportClassic.tsx` | EDIT | insert 3 blocks after RiskSummaryHeader (full mode); move ForensicPillarSection below detailed findings (full mode); add `id="finding-{id}"` anchors |
+| `src/components/post-scan/PostScanReportSwitcher.tsx` | EDIT | Scroll-to-top on `preview→full`; export shared `CTA_LABEL = "Get a Better Quote"`; thread to children |
+| `src/components/TruthReportClassic.tsx` | EDIT (full mode) | Apply order; remove `PillarSnapshotStrip`; insert CTA Strip after Financial Forensics; add `id="report-top"` + `id="forensic-findings"` + `id="cta-strip"`; soften bottom Contractor Match to ghost; apply typography/contrast/sizing classes; reuse `/about` font tokens |
+| `src/components/report/TopRisksBlock.tsx` | EDIT | Row layout (not cards); line-clamp-2 on "why"; line-clamp-1 on consequence; tighten consequence rule; high-contrast pills; min `text-sm` body, `text-base` titles |
+| `src/components/report/TopRisksCTAStrip.tsx` | NEW | Compact 1-row band ≤80px mobile; `Get a Better Quote` button (brand bg, `text-base font-semibold`) + `See all {N} forensic findings ↓` link (`text-sm underline-offset-2`); accepts `ctaLabel`, handler, loading state |
+| `src/components/report/WhatToDoNowBlock.tsx` | EDIT | Remove embedded primary button; replace with `text-sm underline text-primary` link `↑ Get a better quote` → scrolls to `#cta-strip`; cap height ~200px; secondary but readable styling (≥5:1) |
+| `src/components/StickyCTAFooter.tsx` | EDIT | When in full-report mode, render single button using shared `CTA_LABEL`; mirror handler + loading/post-click states; ensure 5:1 contrast in all states |
 
-No changes to `PostScanReportSwitcher`, `useAnalysisData`, `LockedOverlay`, edge functions, schema, RLS, OTP, or preview-mode rendering. CTA reuses existing `generate-contractor-brief` wiring — no new backend behavior invented.
+### Out of scope (unchanged)
+Preview/pre-OTP rendering · `LockedOverlay` · OTP flow · `useAnalysisData` · edge functions · schema · RLS · scoring · extraction prompts · preview/full fetch contracts · Identity Ladder · backend gating
+
+### Validation criteria
+1. After OTP unlock, viewport lands on `#report-top` — verdict + start of Top Risks visible on first mobile screen
+2. Full-mode order matches spec exactly
+3. `PillarSnapshotStrip` removed from full mode
+4. In-page CTA Strip wording === Sticky CTA wording === `CTA_LABEL` constant
+5. Both CTA surfaces fire same handler with same loading state
+6. WhatToDoNow contains zero `<button>` elements styled as primary
+7. Section height budgets respected on mobile
+8. Consequence text is explicit data or omitted (never invented)
+9. Preview/pre-OTP rendering byte-identical to current
+10. No backend, schema, RLS, scoring, or fetch-contract changes
+11. **All visible text in full-report flow meets ≥5:1 contrast; no important labels, pills, findings, or CTA text below readable size floors; font tokens match `/about`; no faint gray-on-white or off-white-on-pale combinations anywhere in main report flow**
 
