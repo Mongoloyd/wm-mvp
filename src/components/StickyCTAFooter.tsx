@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Phone } from "lucide-react";
+import { Phone, Users } from "lucide-react";
+import { CTA_LABEL } from "@/components/post-scan/ctaConstants";
 
 interface StickyCTAFooterProps {
   onScanClick: () => void;
@@ -34,12 +35,16 @@ export const StickyCTAFooter = ({
 
   if (!isVisible) return null;
 
+  // In full-report mode (conversionType === "scan"), mirror the in-page
+  // primary CTA exactly: same wording (CTA_LABEL), same handler upstream.
+  // In account-only mode, route to a free estimate request.
   const postConversionText =
     conversionType === "account"
       ? "Request a Free Estimate"
       : conversionType === "scan"
-        ? "Get Answers About Your Grade"
+        ? CTA_LABEL
         : null;
+  const PostConversionIcon = conversionType === "scan" ? Users : Phone;
 
   return (
     <div
@@ -51,10 +56,10 @@ export const StickyCTAFooter = ({
           <div className="flex justify-center w-full">
             <button
               onClick={onPostConversionClick}
-              className="w-full max-w-[280px] flex items-center justify-center gap-2 btn-depth-primary"
-              style={{ padding: "12px 20px", fontSize: 14 }}
+              className="w-full max-w-[320px] flex items-center justify-center gap-2 btn-depth-primary text-base font-semibold"
+              style={{ padding: "12px 20px", minHeight: 48 }}
             >
-              <Phone size={18} />
+              <PostConversionIcon size={18} />
               {postConversionText}
             </button>
           </div>

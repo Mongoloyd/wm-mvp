@@ -19,7 +19,7 @@ import ExecutiveSummaryStrip from "@/components/report/ExecutiveSummaryStrip";
 import RedFlagsList from "@/components/report/RedFlagsList";
 import MissingItemsList from "@/components/report/MissingItemsList";
 import TopRisksBlock from "@/components/report/TopRisksBlock";
-import PillarSnapshotStrip from "@/components/report/PillarSnapshotStrip";
+import TopRisksCTAStrip from "@/components/report/TopRisksCTAStrip";
 import WhatToDoNowBlock from "@/components/report/WhatToDoNowBlock";
 import FixItCTA from "@/components/report/FixItCTA";
 import GapFixModule from "@/components/report/GapFixModule";
@@ -83,6 +83,8 @@ interface TruthReportProps {
   scopeGapDetected?: boolean;
   summaryTeaser?: string | null;
   missingItemsCount?: number;
+  /** Shared CTA wording. Authoritative primary + sticky mirror use this exact string. */
+  ctaLabel?: string;
 }
 
 const gradeConfig: Record<string, { color: string; bg: string; glow: string; label: string; verdict: string }> = {
@@ -226,6 +228,7 @@ const TruthReportClassic = ({
   scopeGapDetected,
   summaryTeaser,
   missingItemsCount,
+  ctaLabel = "Get a Better Quote",
 }: TruthReportProps) => {
   const config = gradeConfig[grade] || gradeConfig.C;
   const isFull = accessLevel === "full";
@@ -442,31 +445,108 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         accessLevel={accessLevel}
       />
 
-      {/* ─── DECISION CORE (full mode only) ───
-          Top Risks → Pillar Snapshot → What To Do Now + primary CTA.
-          These elevate the highest-priority interpretation and the main
-          commercial CTA above the long proof/detail sections. */}
+      {/* ─── TOP RISKS (full mode only) ───
+          Highest-priority interpretation, immediately under the verdict.
+          Punchy proof and the authoritative CTA Strip follow below. */}
       {isFull && (
-        <>
-          <TopRisksBlock
-            flags={flags}
-            pillarScores={pillarScores}
-            missingItems={missingItems}
-          />
-          <PillarSnapshotStrip pillarScores={pillarScores} />
-          <WhatToDoNowBlock
-            flags={flags}
-            grade={grade}
-            redCount={redCount}
-            missingItems={missingItems}
-            markupEstimate={markupEstimate}
-            pricePerOpeningBand={pricePerOpeningBand}
-            onContractorMatchClick={onContractorMatchClick}
-            onReportHelpCall={onReportHelpCall}
-            isCtaLoading={isCtaLoading}
-            introRequested={introRequested}
-          />
-        </>
+        <TopRisksBlock
+          flags={flags}
+          pillarScores={pillarScores}
+          missingItems={missingItems}
+        />
+      )}
+
+      {/* ─── FINANCIAL FORENSICS (full only) — punchy proof BEFORE the CTA ─── */}
+      {isFull && (priceFairness || markupEstimate || negotiationLeverage) && (
+        <section className="py-6 md:py-8 px-4 md:px-8 bg-background border-b border-border">
+          <div className="max-w-3xl mx-auto">
+            <motion.div {...stagger(2.5)} className="mb-4">
+              <span className="wm-eyebrow" style={{ color: "hsl(var(--color-gold-accent))" }}>
+                FINANCIAL FORENSICS
+              </span>
+              <h2 className="font-display text-foreground text-xl md:text-2xl font-semibold mt-1">
+                What You're Really Paying
+              </h2>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {markupEstimate && (
+                <motion.div
+                  {...stagger(2.6)}
+                  className="rounded-[var(--radius-card)] border border-border bg-card p-4"
+                  style={{ borderLeft: "3px solid hsl(var(--color-danger))" }}
+                >
+                  <p
+                    className="font-mono text-sm font-bold uppercase"
+                    style={{ color: "hsl(var(--color-danger))", letterSpacing: "0.08em" }}
+                  >
+                    Estimated Markup
+                  </p>
+                  <p
+                    className="font-display text-foreground tabular-nums mt-1"
+                    style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1 }}
+                  >
+                    {markupEstimate}
+                  </p>
+                  <p className="font-body text-foreground/80 text-sm mt-1.5 leading-snug">
+                    Over Standard Florida Wholesale + Labor Baseline
+                  </p>
+                </motion.div>
+              )}
+
+              {priceFairness && (
+                <motion.div
+                  {...stagger(2.7)}
+                  className="rounded-[var(--radius-card)] border border-border bg-card p-4"
+                  style={{ borderLeft: "3px solid hsl(var(--color-caution))" }}
+                >
+                  <p
+                    className="font-mono text-sm font-bold uppercase"
+                    style={{ color: "hsl(var(--color-caution))", letterSpacing: "0.08em" }}
+                  >
+                    Price Fairness
+                  </p>
+                  <p className="font-body text-foreground text-sm leading-snug mt-1.5 line-clamp-4">
+                    {priceFairness}
+                  </p>
+                </motion.div>
+              )}
+
+              {negotiationLeverage && (
+                <motion.div
+                  {...stagger(2.8)}
+                  className="rounded-[var(--radius-card)] border border-border bg-card p-4"
+                  style={{ borderLeft: "3px solid hsl(var(--color-cyan))" }}
+                >
+                  <p
+                    className="font-mono text-sm font-bold uppercase"
+                    style={{ color: "hsl(var(--color-cyan))", letterSpacing: "0.08em" }}
+                  >
+                    Your Leverage
+                  </p>
+                  <p
+                    className="font-body text-foreground text-sm leading-snug mt-1.5 line-clamp-4"
+                    style={{ whiteSpace: "pre-line" }}
+                  >
+                    {negotiationLeverage}
+                  </p>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ─── PRIMARY CTA STRIP (full only) — authoritative commercial action ───
+          Sticky bottom CTA mirrors this exact wording (CTA_LABEL constant). */}
+      {isFull && (
+        <TopRisksCTAStrip
+          ctaLabel={ctaLabel}
+          onContractorMatchClick={onContractorMatchClick}
+          isCtaLoading={isCtaLoading}
+          introRequested={introRequested}
+          findingsCount={flags.length}
+        />
       )}
 
       {/* ─── PROOF-OF-READ TRUST STRIP (preview only) ─── */}
@@ -534,113 +614,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         <ForensicPillarSection pillarScores={pillarScores} flags={flags} county={county} isFull={isFull} />
       )}
 
-      {/* ─── QUOTE PRICE MATH (full only) ─── */}
-      {isFull && derivedMetrics && <QuotePriceMath metrics={derivedMetrics} county={county} />}
+      {/* ─── (Financial Forensics + Quote Price Math + Red Flags + Missing Items + WhatToDoNow + Pillar Section
+          all render AFTER the Forensic Findings accordion below — see the section starting at id="forensic-findings".) ─── */}
 
-      {/* ─── FINANCIAL FORENSICS (full only) ─── */}
-      {isFull && (priceFairness || markupEstimate || negotiationLeverage) && (
-        <section className="py-10 md:py-14 px-4 md:px-20 bg-background border-b border-border">
-          <div className="max-w-4xl mx-auto space-y-4">
-            <motion.div {...stagger(2.5)}>
-              <span className="wm-eyebrow" style={{ color: "hsl(var(--color-gold-accent))" }}>
-                FINANCIAL FORENSICS
-              </span>
-              <h2 className="wm-title-section text-foreground" style={{ marginTop: 4, marginBottom: 16 }}>
-                What You're Really Paying
-              </h2>
-            </motion.div>
-
-            {markupEstimate && (
-              <motion.div
-                {...stagger(2.6)}
-                className="card-raised"
-                style={{
-                  borderLeft: "4px solid hsl(var(--color-danger))",
-                  padding: "24px 28px",
-                }}
-              >
-                <p
-                  className="font-mono"
-                  style={{ fontSize: 10, color: "hsl(var(--color-danger))", letterSpacing: "0.1em", marginBottom: 8 }}
-                >
-                  ESTIMATED MARKUP
-                </p>
-                <p
-                  className="font-display text-foreground"
-                  style={{
-                    fontSize: "clamp(28px, 5vw, 40px)",
-                    fontWeight: 800,
-                    letterSpacing: "-0.02em",
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {markupEstimate}
-                </p>
-                <p className="font-body text-muted-foreground" style={{ fontSize: 13, marginTop: 8 }}>
-                  Over Standard Florida Wholesale + Labor Baseline
-                </p>
-              </motion.div>
-            )}
-
-            {priceFairness && (
-              <motion.div
-                {...stagger(2.7)}
-                className="card-raised"
-                style={{
-                  borderLeft: "4px solid hsl(var(--color-caution))",
-                  padding: "24px 28px",
-                }}
-              >
-                <p
-                  className="font-mono"
-                  style={{ fontSize: 10, color: "hsl(var(--color-caution))", letterSpacing: "0.1em", marginBottom: 8 }}
-                >
-                  PRICE FAIRNESS ASSESSMENT
-                </p>
-                <p className="font-body text-foreground" style={{ fontSize: 15, lineHeight: 1.7 }}>
-                  {priceFairness}
-                </p>
-              </motion.div>
-            )}
-
-            {negotiationLeverage && (
-              <motion.div
-                {...stagger(2.8)}
-                className="card-raised"
-                style={{
-                  borderLeft: "4px solid hsl(var(--color-cyan))",
-                  padding: "24px 28px",
-                }}
-              >
-                <p
-                  className="font-mono"
-                  style={{ fontSize: 10, color: "hsl(var(--color-cyan))", letterSpacing: "0.1em", marginBottom: 8 }}
-                >
-                  USE THIS SCRIPT
-                </p>
-                <p
-                  className="font-body text-foreground"
-                  style={{ fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-line" }}
-                >
-                  {negotiationLeverage}
-                </p>
-              </motion.div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* ─── RED FLAGS + MISSING ITEMS (full mode) ─── */}
-      {isFull && <RedFlagsList warnings={warnings ?? []} />}
-      {isFull && <MissingItemsList missingItems={missingItems ?? []} />}
-
-      {/* ─── 5-PILLAR ANALYSIS (full mode) ───
-          Subordinated below proof/findings so the decision core dominates the first screens. */}
-      {isFull && (
-        <ForensicPillarSection pillarScores={pillarScores} flags={flags} county={county} isFull={isFull} />
-      )}
-
-      <section className="py-10 md:py-14 px-4 md:px-14 bg-background border-b border-border">
+      <section id="forensic-findings" className="scroll-mt-20 py-10 md:py-14 px-4 md:px-14 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
           <motion.div {...stagger(3)}>
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">

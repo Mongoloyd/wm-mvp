@@ -27,6 +27,9 @@ import TruthReportClassic from "../TruthReportClassic";
 import type { SuggestedMatch } from "../TruthReportClassic";
 import type { GateMode, LockedOverlayProps } from "@/components/LockedOverlay";
 import type { AnalysisFlag, PillarScore } from "@/hooks/useAnalysisData";
+import { CTA_LABEL } from "./ctaConstants";
+
+export { CTA_LABEL };
 
 type Props = {
   grade: string;
@@ -266,6 +269,20 @@ export function PostScanReportSwitcher(props: Props) {
   const accessLevel = phaseToAccessLevel(revealPhase);
   const currentGateMode: GateMode = revealPhase.phase === "locked" ? revealPhase.gateMode : "enter_code";
   const isStalled = revealPhase.phase === "full_stalled";
+
+  // ── Scroll-to-top on preview → full transition (post-OTP unlock) ──
+  // Lands the viewport on the verdict so the first mobile screen shows
+  // grade + start of Top Risks, not whichever section the user had scrolled to.
+  const reportTopRef = useRef<HTMLDivElement>(null);
+  const prevAccessRef = useRef(accessLevel);
+  useEffect(() => {
+    if (prevAccessRef.current !== "full" && accessLevel === "full") {
+      requestAnimationFrame(() => {
+        reportTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+    prevAccessRef.current = accessLevel;
+  }, [accessLevel]);
 
   const handleRetryFetchFull = useCallback(() => {
     const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
@@ -553,6 +570,7 @@ export function PostScanReportSwitcher(props: Props) {
 
   return (
     <>
+      <div ref={reportTopRef} id="report-top" className="scroll-mt-20" />
       <TruthReportClassic
         {...props}
         accessLevel={accessLevel}
@@ -563,6 +581,7 @@ export function PostScanReportSwitcher(props: Props) {
         reportCallRequested={reportCallRequested}
         isCtaLoading={isCtaLoading}
         suggestedMatch={suggestedMatch}
+        ctaLabel={CTA_LABEL}
       />
       {availableComparisons.length >= 2 && !comparisonResult && (
         <div className="px-4 pb-6 pt-2">
