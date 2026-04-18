@@ -308,6 +308,58 @@ export function LockedOverlay({
             >
               {subtext[1]}
             </p>
+
+            {/* ─── Latent Value Strip (preview-safe aggregates only) ─── */}
+            {gateMode === "enter_phone" &&
+              (gradeLabel || weakestPillarLabel || (hiddenFindingsCount ?? 0) > 0) && (
+                <div
+                  style={{
+                    background: "hsl(var(--secondary) / 0.6)",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "var(--radius-card)",
+                    padding: "10px 14px",
+                    marginBottom: 20,
+                    textAlign: "left",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                  }}
+                >
+                  {gradeLabel && (
+                    <div
+                      className="font-mono"
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        color: "hsl(var(--color-caution))",
+                      }}
+                    >
+                      GRADE {grade} · {gradeLabel}
+                    </div>
+                  )}
+                  {weakestPillarLabel && (
+                    <div
+                      className="font-body text-foreground"
+                      style={{ fontSize: 13, fontWeight: 600 }}
+                    >
+                      Weakest area:{" "}
+                      <span style={{ color: "hsl(var(--color-danger))" }}>
+                        {weakestPillarLabel}
+                      </span>
+                    </div>
+                  )}
+                  {(hiddenFindingsCount ?? 0) > 0 && (
+                    <div
+                      className="font-mono text-muted-foreground"
+                      style={{ fontSize: 12, letterSpacing: "0.03em" }}
+                    >
+                      {hiddenFindingsCount} finding
+                      {hiddenFindingsCount !== 1 ? "s" : ""} still hidden
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
 
           {/* ─── Error message with contextual recovery ─── */}
