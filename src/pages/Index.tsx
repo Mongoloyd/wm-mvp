@@ -29,7 +29,7 @@ const QuoteSpreadShowcase = React.lazy(() => import("@/components/QuoteSpreadSho
 const Footer = React.lazy(() => import("@/components/Footer"));
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useHomepageVariant } from "@/hooks/useHomepageVariant";
-import { ScanFunnelProvider, useScanFunnelSafe } from "@/state/scanFunnel";
+import { ScanFunnelProvider, useScanFunnelSafe, readPersistedFunnelSnapshot } from "@/state/scanFunnel";
 import { getVerifiedAccess, clearVerifiedAccess } from "@/lib/verifiedAccess";
 import { trackEvent } from "@/lib/trackEvent";
 
@@ -73,28 +73,69 @@ const Index = () => {
   const showReportFromDev = isDevPreview && devConfig?.analysisData != null && !devConfig?.specialState;
   const { data: analysisData, isLoading: analysisLoading, error: analysisError, fullFetchError, fetchFull, isFullLoaded, isLoadingFull, tryResume, isResuming } = useAnalysisData(scanSessionId, fileUploaded || !!scanSessionId);
 
-  // ── Returning user resume: check localStorage on mount ────────────────
+  // ── Refresh / Return restore (P0 fix) ─────────────────────────────────
+  // Restore the in-flight scan flow on a bare refresh of "/" using the
+  // already-persisted funnel state (scanFunnel.tsx LS) and verified-access
+  // record (verifiedAccess.ts LS). Fail-closed: if no valid persisted
+  // scanSessionId exists, fall through to the marketing hero unchanged.
+  //
+  // Three restore paths:
+  //   1. ?resume=1 + verified record  → legacy explicit resume (full reveal)
+  //   2. verified record matching persisted scanSessionId → auto full reveal
+  //   3. funnel snapshot only         → restore preview / OTP gate
+  //
+  // No full report data is preloaded; useAnalysisData fetches preview only
+  // until tryResume()/fetchFull() is called against the verified backend gate.
   const resumeCheckedRef = useRef(false);
+  const shouldAutoResumeFullRef = useRef(false);
   useEffect(() => {
     if (resumeCheckedRef.current) return;
     resumeCheckedRef.current = true;
+
     const params = new URLSearchParams(window.location.search);
-    if (params.get('resume') !== '1') return;
-    const record = getVerifiedAccess();
-    if (!record) return;
-    setScanSessionId(record.scan_session_id);
-    setFileUploaded(true);
-    setGradeRevealed(true);
-    setLeadCaptured(true);
+    const explicitResume = params.get('resume') === '1';
+
+    const snapshot = readPersistedFunnelSnapshot();
+    const verified = getVerifiedAccess(snapshot?.scanSessionId ?? null);
+
+    // Path 1 + 2: verified record present → restore as already-revealed
+    if (verified && (snapshot?.scanSessionId === verified.scan_session_id || explicitResume)) {
+      setScanSessionId(verified.scan_session_id);
+      setFileUploaded(true);
+      setGradeRevealed(true);
+      setLeadCaptured(true);
+      shouldAutoResumeFullRef.current = true;
+      return;
+    }
+
+    // Path 3: in-flight scan (preview / OTP) → restore preview only.
+    // useAnalysisData will fetch preview because fileUploaded || !!scanSessionId.
+    // Full report stays gated behind backend OTP verification.
+    if (snapshot?.scanSessionId) {
+      setScanSessionId(snapshot.scanSessionId);
+      setFileUploaded(true);
+      setGradeRevealed(true); // show report shell with locked-preview state
+      if (snapshot.sessionId) setSessionId(snapshot.sessionId);
+      if (snapshot.phoneE164) setLeadCaptured(true);
+      return;
+    }
+
+    // Stale ?resume=1 with no valid record → clear and fall through.
+    if (explicitResume && !verified) {
+      clearVerifiedAccess();
+    }
   }, []);
 
-  // After scanSessionId is set from resume, try auto-fetching full data
+  // After scanSessionId is restored from a verified record, auto-fetch full data.
   useEffect(() => {
+    if (!shouldAutoResumeFullRef.current) return;
     if (!scanSessionId || isFullLoaded || isResuming || analysisLoading) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('resume') !== '1') return;
     const record = getVerifiedAccess(scanSessionId);
-    if (!record) return;
+    if (!record) {
+      shouldAutoResumeFullRef.current = false;
+      return;
+    }
+    shouldAutoResumeFullRef.current = false;
     tryResume();
   }, [scanSessionId, isFullLoaded, isResuming, analysisLoading, tryResume]);
 
