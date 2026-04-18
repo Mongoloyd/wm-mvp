@@ -529,8 +529,10 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           );
         })()}
 
-      {/* ─── 5-PILLAR ANALYSIS (ForensicPillarSection) ─── */}
-      <ForensicPillarSection pillarScores={pillarScores} flags={flags} county={county} isFull={isFull} />
+      {/* ─── 5-PILLAR ANALYSIS (preview only — full mode renders this lower, below findings) ─── */}
+      {!isFull && (
+        <ForensicPillarSection pillarScores={pillarScores} flags={flags} county={county} isFull={isFull} />
+      )}
 
       {/* ─── QUOTE PRICE MATH (full only) ─── */}
       {isFull && derivedMetrics && <QuotePriceMath metrics={derivedMetrics} county={county} />}
@@ -631,6 +633,12 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       {/* ─── RED FLAGS + MISSING ITEMS (full mode) ─── */}
       {isFull && <RedFlagsList warnings={warnings ?? []} />}
       {isFull && <MissingItemsList missingItems={missingItems ?? []} />}
+
+      {/* ─── 5-PILLAR ANALYSIS (full mode) ───
+          Subordinated below proof/findings so the decision core dominates the first screens. */}
+      {isFull && (
+        <ForensicPillarSection pillarScores={pillarScores} flags={flags} county={county} isFull={isFull} />
+      )}
 
       <section className="py-10 md:py-14 px-4 md:px-14 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
