@@ -718,8 +718,9 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
                 return (
                   <motion.div
                     key={flag.id}
+                    id={`finding-${flag.id}`}
                     {...stagger(i * 0.5 + 4)}
-                    className="card-raised overflow-hidden"
+                    className="card-raised overflow-hidden scroll-mt-24"
                     style={{
                       border: s.border,
                       borderLeft: s.borderLeft,
