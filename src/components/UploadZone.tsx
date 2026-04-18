@@ -4,7 +4,18 @@ import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
 import { trackGtmEvent } from "@/lib/trackConversion";
-import { buildCanonicalEventId } from "@/lib/tracking/canonicalEventId";
+// Forever rule: event_id is an opaque UUID v4. Never descriptive, never
+// concatenated with metadata, never allowed to block a scan. Metadata
+// (event_name, lead_id, scan_session_id, …) rides in separate fields.
+// See: requestSchema.ts (backend tolerance layer).
+function makeTransportEventId(): string {
+  const id = crypto.randomUUID();
+  // Boundary guard — defensive against future regressions / polyfills.
+  if (typeof id !== "string" || id.length === 0 || id.length > 128) {
+    return crypto.randomUUID();
+  }
+  return id;
+}
 import { toast } from "sonner";
 
 interface UploadZoneProps {
@@ -128,14 +139,11 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       });
       onScanStart?.(file.name, scanSessionId);
 
-      // Arc 1.5 measurement parity: deterministic event_id mirrors the
-      // server-side `defaultCreateId` so browser dataLayer + server canonical
-      // event share one id for downstream Meta/Google dedup.
-      const quoteUploadedEventId = buildCanonicalEventId({
-        eventName: "quote_uploaded",
-        leadId: leadId,
-        scanSessionId,
-      });
+      // Forever rule: opaque UUID v4 reused for the same event instance
+      // (GTM browser fire + scan-quote invoke). Metadata stays in separate
+      // fields. Bad ids cannot block the scan — backend tolerates and
+      // substitutes. See supabase/functions/scan-quote/requestSchema.ts.
+      const quoteUploadedEventId = makeTransportEventId();
 
       trackGtmEvent("quote_uploaded", {
         event_id: quoteUploadedEventId,

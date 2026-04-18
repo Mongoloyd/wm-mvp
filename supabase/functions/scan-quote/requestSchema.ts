@@ -24,12 +24,31 @@ export const ScanQuoteRequestSchema = z.object({
     .regex(UUID_REGEX, "scan_session_id must be a UUID"),
 
   /**
-   * Browser-generated canonical event id used by Arc 1.5 measurement parity.
-   * Optional: if absent, the server mints one. If present it must be a
-   * non-empty string (we do not enforce UUID here because the browser may use
-   * a different id format in the future).
+   * Browser-generated transport-safe event id (opaque, ≤128 chars).
+   *
+   * TOLERANT BOUNDARY (forever rule):
+   * Bad event_id MUST NEVER block a scan. If the field is missing,
+   * not a string, empty, or longer than 128 characters, we transform
+   * it to a server-minted UUID instead of returning 400. The handler
+   * logs a `event_id_substituted` warning when this happens so we can
+   * spot frontend regressions in observability without taking an outage.
+   *
+   * Rules enforced elsewhere (frontend + downstream):
+   *  - event_id is opaque (UUID v4 by default), never descriptive
+   *  - metadata (event_name, lead_id, scan_session_id, …) lives in
+   *    separate fields, never concatenated into event_id
+   *  - same business-event instance reuses the same event_id across
+   *    browser/server/dispatch; different milestones get different ids
    */
-  event_id: z.string().min(1).max(128).optional(),
+  event_id: z
+    .preprocess((value) => {
+      if (typeof value !== "string") return crypto.randomUUID();
+      const trimmed = value.trim();
+      if (trimmed.length === 0 || trimmed.length > 128) return crypto.randomUUID();
+      return trimmed;
+    }, z.string().min(1).max(128))
+    .optional()
+    .default(() => crypto.randomUUID()),
 
   /**
    * DEV-only escape hatch: accept a fully formed extraction object so the
