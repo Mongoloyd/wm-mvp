@@ -50,26 +50,24 @@ const SEVERITY_ORDER: Record<"red" | "amber" | "green", number> = {
   green: 2,
 };
 
+// High-contrast pill styles (white text on saturated backgrounds, ≥5:1).
 const sevStyles = {
   red: {
     dot: "hsl(var(--color-danger))",
-    badge: "hsl(var(--color-danger) / 0.12)",
-    badgeText: "hsl(var(--color-danger))",
-    border: "hsl(var(--color-danger) / 0.3)",
+    badgeBg: "hsl(var(--color-danger))",
+    badgeText: "hsl(0 0% 100%)",
     label: "CRITICAL",
   },
   amber: {
     dot: "hsl(var(--color-caution))",
-    badge: "hsl(var(--color-caution) / 0.12)",
-    badgeText: "hsl(var(--color-caution))",
-    border: "hsl(var(--color-caution) / 0.3)",
+    badgeBg: "hsl(var(--color-caution))",
+    badgeText: "hsl(20 30% 12%)",
     label: "REVIEW",
   },
   green: {
     dot: "hsl(var(--color-emerald))",
-    badge: "hsl(var(--color-emerald) / 0.12)",
-    badgeText: "hsl(var(--color-emerald))",
-    border: "hsl(var(--color-emerald) / 0.3)",
+    badgeBg: "hsl(var(--color-emerald))",
+    badgeText: "hsl(0 0% 100%)",
     label: "CONFIRMED",
   },
 } as const;
