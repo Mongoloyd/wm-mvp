@@ -108,6 +108,33 @@ function clearPersistedFunnel() {
   } catch {}
 }
 
+/**
+ * Additive read-back helper for restoring an in-flight scan funnel
+ * after a bare page refresh. Returns null if no valid (non-expired)
+ * persisted state exists.
+ *
+ * Used by the homepage to safely re-enter the canonical scan flow
+ * (preview / OTP) without requiring a `?resume=1` URL parameter.
+ *
+ * Fail-closed: any expiry, parse error, or missing scanSessionId
+ * yields null and the caller should fall through to the marketing hero.
+ */
+export function readPersistedFunnelSnapshot(): {
+  scanSessionId: string | null;
+  sessionId: string | null;
+  phoneE164: string | null;
+  phoneStatus: PhoneFunnelStatus;
+} | null {
+  const persisted = readPersistedState();
+  if (!persisted || !persisted.scanSessionId) return null;
+  return {
+    scanSessionId: persisted.scanSessionId,
+    sessionId: persisted.sessionId ?? null,
+    phoneE164: persisted.phoneE164 ?? null,
+    phoneStatus: persisted.phoneStatus ?? "none",
+  };
+}
+
 /* ── Defaults ──────────────────────────────────────────── */
 
 const DEFAULT_STATE: ScanFunnelState = {
