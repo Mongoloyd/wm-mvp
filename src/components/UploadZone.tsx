@@ -4,7 +4,18 @@ import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
 import { trackGtmEvent } from "@/lib/trackConversion";
-import { buildCanonicalEventId } from "@/lib/tracking/canonicalEventId";
+// Forever rule: event_id is an opaque UUID v4. Never descriptive, never
+// concatenated with metadata, never allowed to block a scan. Metadata
+// (event_name, lead_id, scan_session_id, …) rides in separate fields.
+// See: requestSchema.ts (backend tolerance layer).
+function makeTransportEventId(): string {
+  const id = crypto.randomUUID();
+  // Boundary guard — defensive against future regressions / polyfills.
+  if (typeof id !== "string" || id.length === 0 || id.length > 128) {
+    return crypto.randomUUID();
+  }
+  return id;
+}
 import { toast } from "sonner";
 
 interface UploadZoneProps {
