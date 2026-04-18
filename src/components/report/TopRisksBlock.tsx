@@ -211,16 +211,16 @@ const TopRisksBlock = ({ flags, pillarScores, missingItems = [] }: TopRisksBlock
                     }}
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
                       <span
-                        className="font-mono"
+                        className="font-mono uppercase"
                         style={{
-                          background: s.badge,
+                          background: s.badgeBg,
                           color: s.badgeText,
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: 700,
                           letterSpacing: "0.08em",
-                          padding: "2px 8px",
+                          padding: "3px 10px",
                           borderRadius: "var(--radius-btn)",
                         }}
                       >
@@ -228,11 +228,14 @@ const TopRisksBlock = ({ flags, pillarScores, missingItems = [] }: TopRisksBlock
                       </span>
                       {row.pillarLabel && (
                         <span
-                          className="bg-secondary text-muted-foreground font-mono"
+                          className="font-mono uppercase"
                           style={{
+                            background: "hsl(var(--foreground))",
+                            color: "hsl(var(--background))",
                             fontSize: 10,
+                            fontWeight: 600,
                             letterSpacing: "0.06em",
-                            padding: "2px 8px",
+                            padding: "3px 8px",
                             borderRadius: "var(--radius-btn)",
                           }}
                         >
@@ -240,18 +243,18 @@ const TopRisksBlock = ({ flags, pillarScores, missingItems = [] }: TopRisksBlock
                         </span>
                       )}
                     </div>
-                    <p
-                      className="font-body text-foreground"
-                      style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.4 }}
-                    >
+                    <p className="font-body text-foreground text-base font-semibold leading-snug">
                       {row.title}
                     </p>
                     {row.why && (
-                      <p
-                        className="font-body text-muted-foreground mt-0.5"
-                        style={{ fontSize: 13, lineHeight: 1.5 }}
-                      >
+                      <p className="font-body text-foreground/80 text-sm mt-1 leading-snug line-clamp-2">
                         {row.why}
+                      </p>
+                    )}
+                    {row.consequence && (
+                      <p className="font-body text-sm mt-1 leading-snug line-clamp-1" style={{ color: "hsl(var(--color-danger))" }}>
+                        <span className="font-semibold">If ignored: </span>
+                        {row.consequence}
                       </p>
                     )}
                   </div>
