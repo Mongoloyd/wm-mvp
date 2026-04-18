@@ -617,7 +617,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
       {/* ─── (Financial Forensics + Quote Price Math + Red Flags + Missing Items + WhatToDoNow + Pillar Section
           all render AFTER the Forensic Findings accordion below — see the section starting at id="forensic-findings".) ─── */}
 
-      <section className="py-10 md:py-14 px-4 md:px-14 bg-background border-b border-border">
+      <section id="forensic-findings" className="scroll-mt-20 py-10 md:py-14 px-4 md:px-14 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
           <motion.div {...stagger(3)}>
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
