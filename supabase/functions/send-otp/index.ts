@@ -75,6 +75,17 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Session-bound OTP guard:
+    // Every OTP challenge in the scanner flow must be anchored to the exact
+    // scan session being unlocked. Reject unbound requests so verify-otp
+    // cannot later bind the challenge to an arbitrary session/lead.
+    if (!scan_session_id) {
+      return new Response(
+        JSON.stringify({ error: "scan_session_id is required.", success: false }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const lookupResult = await runPhoneLookup(phone_e164);
     if (!lookupResult.ok) {
       return new Response(
@@ -87,6 +98,27 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Resolve the exact lead bound to this scan session.
+    const { data: scanSession, error: scanSessionErr } = await supabase
+      .from("scan_sessions")
+      .select("lead_id")
+      .eq("id", scan_session_id)
+      .maybeSingle();
+
+    if (scanSessionErr || !scanSession?.lead_id) {
+      console.error("[send-otp] invalid scan session binding:", {
+        scan_session_id,
+        error: scanSessionErr?.message ?? "missing_lead_id",
+      });
+      return new Response(
+        JSON.stringify({
+          error: "Verification could not be linked to your session. Please refresh and try again.",
+          success: false,
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // ── Rate-limit check ────────────────────────────────────────────────
     const windowStart = new Date(Date.now() - WINDOW_MINUTES * 60 * 1000).toISOString();
@@ -204,6 +236,8 @@ Deno.serve(async (req) => {
       phone_e164,
       status: "pending",
       ip_address: clientIp,
+      lead_id: scanSession.lead_id,
+      scan_session_id,
     });
     if (insertErr) {
       console.error("[SEND_OTP_DB_ERROR]", JSON.stringify({

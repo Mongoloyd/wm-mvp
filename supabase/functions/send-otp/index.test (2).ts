@@ -57,6 +57,8 @@ vi.mock('@supabase/supabase-js', () => ({
 function buildSendOtpSupabaseMock(options: {
   recentRows?: Array<{ created_at: string }>;
   ipRows?: Array<{ id: string }>;
+  scanSession?: { lead_id: string } | null;
+  scanSessionErr?: { message: string } | null;
   updateErr?: { message: string } | null;
   insertErr?: { message: string } | null;
   capture?: { insertPayload?: any };
@@ -64,6 +66,8 @@ function buildSendOtpSupabaseMock(options: {
   const {
     recentRows = [],
     ipRows = [],
+    scanSession = { lead_id: 'mock_lead_id' },
+    scanSessionErr = null,
     updateErr = null,
     insertErr = null,
     capture = {},
@@ -94,6 +98,13 @@ function buildSendOtpSupabaseMock(options: {
             }
           }
           return Promise.resolve({ data: [], error: null });
+        },
+        maybeSingle() {
+          // Handle scan_sessions lookup
+          if (state.table === 'scan_sessions') {
+            return Promise.resolve({ data: scanSession, error: scanSessionErr });
+          }
+          return Promise.resolve({ data: null, error: null });
         },
         update(_payload: any) {
           // send‑otp calls update on phone_verifications to expire pending rows
@@ -185,7 +196,7 @@ describe('send‑otp edge function', () => {
     });
     // Provide a US formatted number with dashes; the handler should
     // canonicalize this to +1XXXXXXXXXX before persisting.
-    const reqBody = { phone_e164: '(561) 468-5571', scan_session_id: null };
+    const reqBody = { phone_e164: '(561) 468-5571', scan_session_id: 'mock_scan_session_id' };
     const req = new Request('https://example.com/send-otp', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.5' },
@@ -200,6 +211,8 @@ describe('send‑otp edge function', () => {
     expect(capture.insertPayload.phone_e164).toBe('+15614685571');
     expect(capture.insertPayload.status).toBe('pending');
     expect(capture.insertPayload.ip_address).toBe('203.0.113.5');
+    expect(capture.insertPayload.lead_id).toBe('mock_lead_id');
+    expect(capture.insertPayload.scan_session_id).toBe('mock_scan_session_id');
     vi.useRealTimers();
   });
 
@@ -226,7 +239,7 @@ describe('send‑otp edge function', () => {
     const req = new Request('https://example.com/send-otp', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.5' },
-      body: JSON.stringify({ phone_e164: '+15614685571', scan_session_id: null }),
+      body: JSON.stringify({ phone_e164: '+15614685571', scan_session_id: 'mock_scan_session_id' }),
     });
     const res = await handler(req);
     expect(res.status).toBe(429);
@@ -261,7 +274,7 @@ describe('send‑otp edge function', () => {
     const req1 = new Request('https://example.com/send-otp', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ phone_e164: '+15614685571' }),
+      body: JSON.stringify({ phone_e164: '+15614685571', scan_session_id: 'mock_scan_session_id' }),
     });
     const res1 = await handler1(req1);
     expect(res1.status).toBe(400);
@@ -287,7 +300,7 @@ describe('send‑otp edge function', () => {
     const req2 = new Request('https://example.com/send-otp', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ phone_e164: '+15614685571' }),
+      body: JSON.stringify({ phone_e164: '+15614685571', scan_session_id: 'mock_scan_session_id' }),
     });
     const res2 = await handler2(req2);
     expect(res2.status).toBe(400);
@@ -313,7 +326,7 @@ describe('send‑otp edge function', () => {
     const req3 = new Request('https://example.com/send-otp', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ phone_e164: '+15614685571' }),
+      body: JSON.stringify({ phone_e164: '+15614685571', scan_session_id: 'mock_scan_session_id' }),
     });
     const res3 = await handler3(req3);
     expect(res3.status).toBe(400);
