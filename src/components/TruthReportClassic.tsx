@@ -442,6 +442,33 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         accessLevel={accessLevel}
       />
 
+      {/* ─── DECISION CORE (full mode only) ───
+          Top Risks → Pillar Snapshot → What To Do Now + primary CTA.
+          These elevate the highest-priority interpretation and the main
+          commercial CTA above the long proof/detail sections. */}
+      {isFull && (
+        <>
+          <TopRisksBlock
+            flags={flags}
+            pillarScores={pillarScores}
+            missingItems={missingItems}
+          />
+          <PillarSnapshotStrip pillarScores={pillarScores} />
+          <WhatToDoNowBlock
+            flags={flags}
+            grade={grade}
+            redCount={redCount}
+            missingItems={missingItems}
+            markupEstimate={markupEstimate}
+            pricePerOpeningBand={pricePerOpeningBand}
+            onContractorMatchClick={onContractorMatchClick}
+            onReportHelpCall={onReportHelpCall}
+            isCtaLoading={isCtaLoading}
+            introRequested={introRequested}
+          />
+        </>
+      )}
+
       {/* ─── PROOF-OF-READ TRUST STRIP (preview only) ─── */}
       {!isFull && (pageCount != null || lineItemCount != null || contractorName) && (
         <motion.section {...stagger(0.5)} className="card-raised py-3 px-4 md:px-8 border-b border-border">
