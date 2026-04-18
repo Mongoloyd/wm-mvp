@@ -142,11 +142,11 @@ const UploadZone = ({ isVisible, onScanStart, sessionId }: UploadZoneProps) => {
       // Arc 1.5 measurement parity: deterministic event_id mirrors the
       // server-side `defaultCreateId` so browser dataLayer + server canonical
       // event share one id for downstream Meta/Google dedup.
-      const quoteUploadedEventId = buildCanonicalEventId({
-        eventName: "quote_uploaded",
-        leadId: leadId,
-        scanSessionId,
-      });
+      // Forever rule: opaque UUID v4 reused for the same event instance
+      // (GTM browser fire + scan-quote invoke). Metadata stays in separate
+      // fields. Bad ids cannot block the scan — backend tolerates and
+      // substitutes. See requestSchema.ts.
+      const quoteUploadedEventId = makeTransportEventId();
 
       trackGtmEvent("quote_uploaded", {
         event_id: quoteUploadedEventId,
