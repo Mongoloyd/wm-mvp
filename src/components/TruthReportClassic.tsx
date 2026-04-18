@@ -788,9 +788,28 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               })}
             </div>
           ) : // ── LOCKED: render stateless LockedOverlay with gate props from orchestrator ──
-          gateProps ? (
-            <LockedOverlay grade={grade} flagCount={issueCount} {...gateProps} />
-          ) : (
+          gateProps ? (() => {
+              // Derive preview-safe latent-value teaser values from props already received.
+              // No new fetches — pillarScores, gradeConfig, flagCountProp are all preview-safe.
+              const weakestPillar =
+                pillarScores.find((p) => p.status === "fail") ??
+                pillarScores.find((p) => p.status === "warn") ??
+                null;
+              const weakestPillarLabel = weakestPillar?.label ?? undefined;
+              const gradeLabel = gradeConfig[grade]?.label;
+              // 1 finding is already surfaced via TopViolationSummaryStrip — subtract it.
+              const hiddenFindingsCount = Math.max(0, (flagCountProp ?? 0) - 1);
+              return (
+                <LockedOverlay
+                  grade={grade}
+                  flagCount={issueCount}
+                  gradeLabel={gradeLabel}
+                  weakestPillarLabel={weakestPillarLabel}
+                  hiddenFindingsCount={hiddenFindingsCount}
+                  {...gateProps}
+                />
+              );
+            })() : (
             // Fallback if no gateProps provided (e.g. dev/demo without orchestrator)
             <div className="py-12 text-center">
               <p className="font-body text-muted-foreground" style={{ fontSize: 16 }}>
