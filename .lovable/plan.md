@@ -1,72 +1,103 @@
 
 
-## Placement (confirmed by user)
+## What's there now (preview state, before any change)
 
-In `src/pages/diagnosis/components/MarketingSections.tsx`, **section 1** ("Why WindowMan Gets You a Better Quote"), the current order is:
+The pre-OTP view today already shows:
 
-1. Two-column cards: "When You Shop Alone" | "With WindowMan"
-2. "Bottom line" callout
+1. **Report header** — "WindowMan Truth Report™" + county + date + grade letter circle
+2. **Grade verdict band** — GRADE C / "REVIEW BEFORE SIGNING" + verdict line
+3. **Locked Preview teaser** (small strip) — `summaryTeaser || topWarning` + `missingItemsCount` + one example missing item
+4. **Risk Summary Header** — "High Risk Detected: N critical issues..." (uses `flagRedCount`/`flagAmberCount` props)
+5. **Document Verified strip** — Multi-Page · Line Items · Contractor Identified · READ QUALITY: GOOD
+6. **Top Violation Summary Strip** — single most-important violation card (from `selectTopViolation`)
+7. **5-Pillar section** — pillar names + bands (no exact scores in preview)
+8. **LockedOverlay** dimming the rest, with a small headline showing `{issueCount} issues, {redCount} critical`
 
-New order:
+**Weakness:** the gate card says only "We found N issues, including N critical." It does NOT name:
+- the **weakest pillar** (e.g. "Price Fairness scored lowest")
+- a **proof-of-read** anchor inside the gate (it's far above the gate, easy to miss on mobile)
+- the **grade band label** ("REVIEW BEFORE SIGNING") inside the gate
+- a clear **"3 of 5 findings hidden"** counter
 
-1. Two-column cards (unchanged)
-2. **NEW:** Arbitrage flow diagram (Gradecard → Strong/Weak Pillars → 3 Vetted Contractors)
-3. "Bottom line" callout (unchanged, moves below the diagram)
+The gate looks generic. The Truth Report area above it has the value, but the gate itself doesn't echo it.
 
-## Reference image directives (critical)
+---
 
-The uploaded reference shows the diagram **without** an outer container — no glassmorphic card, no border, no boxed background. It blends directly into the section's light blue atmosphere with only a subtle off-white glow behind the nodes. This is different from the original `App.tsx` snippet which wrapped everything in a heavy `bg-white/40 backdrop-blur-3xl border ... rounded-[2.5rem]` glass canvas.
+## What changes — exactly 3 files
 
-## Implementation
+### 1. `src/components/LockedOverlay.tsx` — enrich the gate card
 
-### File 1 (NEW): `src/components/diagnosis/ArbitrageFlowDiagram.tsx`
+Add 3 new optional props (purely presentational, derived from already-available preview-safe data):
 
-Extracts the uploaded `App` component into a reusable, embeddable diagram with these adaptations:
-
-- **Remove** the outer `min-h-screen ... bg-gradient-to-br` wrapper (parent section provides atmosphere)
-- **Remove** the glassmorphic canvas wrapper (`bg-white/40 backdrop-blur-3xl border border-white/60 ... rounded-[2.5rem]`) per reference image — diagram blends with section background
-- **Replace** with a transparent `relative` container that retains only the `containerRef`, padding, and flex layout for SVG path math
-- **Keep** all node refs, SVG path calculation, ResizeObserver, and animated paths exactly as provided
-- **Keep** the SkeuoNode component verbatim (orange + blue 3D nodes with `boxShadow` glow — this provides the "off-white glow" the user requested)
-- **Hide** the right-rail xl captions ("The Asset", "The Counter-Bid") — they'd clash with the centered narrative section. Keep only the bottom-centered "The Correction" caption since it reads cleanly on all viewports
-- **Convert** to TypeScript (`.tsx`) with proper typing for refs and props
-- Default export removed; named export `ArbitrageFlowDiagram`
-
-### File 2 (EDIT): `src/pages/diagnosis/components/MarketingSections.tsx`
-
-Single insertion in section 1, between the closing `</div>` of the two-column grid and the "Bottom line" callout:
-
-```tsx
-<div className="mt-12">
-  <ArbitrageFlowDiagram />
-</div>
+```ts
+gradeLabel?: string;        // e.g. "REVIEW BEFORE SIGNING"
+weakestPillarLabel?: string; // e.g. "Price Fairness"
+hiddenFindingsCount?: number; // total - shown-in-teaser
 ```
 
-Add import at top:
-```tsx
-import { ArbitrageFlowDiagram } from '@/components/diagnosis/ArbitrageFlowDiagram';
+Inside the gate card (above the existing subtext), insert a compact 3-row "Latent Value Strip":
+
+```
+┌──────────────────────────────────────┐
+│ GRADE C · REVIEW BEFORE SIGNING      │  ← grade band echo
+│ Weakest area: Price Fairness         │  ← weakest pillar
+│ 4 critical findings still hidden     │  ← hidden counter
+└──────────────────────────────────────┘
 ```
 
-No other content, copy, or styling changes in `MarketingSections.tsx`.
+All three rows are conditional — if a value is missing, that row is omitted (no invented data per constraints).
 
-## Dependencies
+The existing `subtext` line ("We found N issues, including N critical…") stays unchanged.
 
-- `framer-motion` — already in project (used by About + many components)
-- `lucide-react` — already in project (`Shield` icon)
+### 2. `src/components/TruthReportClassic.tsx` — pass the 3 derived values to `LockedOverlay`
 
-No new packages.
+In the gate render (`gateProps` spread), add:
 
-## Constraints honored
+- `gradeLabel: gradeConfig[grade]?.label`
+- `weakestPillarLabel`: derived inline from `pillarScores` — pick the lowest-banded pillar (status `fail` first, then `warn`); fallback `null`
+- `hiddenFindingsCount`: `Math.max(0, (flagCountProp ?? 0) - 1)` (1 = the one shown in TopViolationSummaryStrip)
 
-- Logic-free additive change; no hooks, state model, validation, or flow touched
-- Only files: 1 new component + 1 marketing section edit
-- Aligns with `/diagnosis` light cobalt atmosphere — no dark slabs, no boxed container, blends with section background per reference
-- "Bottom line" callout preserved verbatim, simply repositioned below the diagram
+Zero new fetches. All three values come from props already received from `useAnalysisData` preview.
 
-## Files touched
+### 3. `src/components/post-scan/PostScanReportSwitcher.tsx` — thread the props through
 
-| File | Action |
+The switcher already builds `gateProps`. Add a tiny extension so the new fields flow to `TruthReportClassic` → `LockedOverlay`. No logic change, no new state, no new effects.
+
+---
+
+## What does NOT change
+
+| File / system | Status |
 |---|---|
-| `src/components/diagnosis/ArbitrageFlowDiagram.tsx` | CREATE |
-| `src/pages/diagnosis/components/MarketingSections.tsx` | EDIT (1 import + 1 insertion) |
+| `useAnalysisData` | untouched |
+| `usePhonePipeline` | untouched |
+| `scan-quote` / `send-otp` / `verify-otp` | untouched |
+| Preview-safe fetch contract | untouched (no new payload fields) |
+| `RevealPhase` derivation | untouched |
+| OTP gate logic / TCPA / resend / shake | untouched |
+| Full report fetch & RLS | untouched |
+| `TopViolationSummaryStrip` / `RiskSummaryHeader` / pillar bands | untouched |
+| Mobile sticky unlock CTA | untouched |
+| New components / files | none created |
+
+---
+
+## Why this increases curiosity without leaking value
+
+- **Grade label echo** ("REVIEW BEFORE SIGNING") inside the gate makes the lock feel earned — the user already saw the letter, now the gate confirms severity.
+- **Weakest pillar name** ("Price Fairness") is a *category*, not a finding. It hints where the risk lives without disclosing the actionable detail (which item, which dollar amount, which clause). This is the same level of information the existing pillar-bands already render above.
+- **"4 critical findings still hidden"** quantifies what's behind the lock — the Zeigarnik effect that's already used in the progress bar, applied to findings count. The number is derived from `flagCount`, which is already exposed in the preview payload.
+- All three are **summaries of preview-safe aggregates**, not new data leaks. The full flags array, exact pillar scores, contractor-sensitive intelligence, and scoring internals stay backend-gated.
+
+---
+
+## Files to change
+
+| File | Action | Scope |
+|---|---|---|
+| `src/components/LockedOverlay.tsx` | EDIT | +3 optional props, +1 small "latent value" strip inside the existing gate card |
+| `src/components/TruthReportClassic.tsx` | EDIT | derive 3 values from existing props, pass them into `gateProps` |
+| `src/components/post-scan/PostScanReportSwitcher.tsx` | EDIT | extend `gateProps` typing/spread to forward the 3 new fields |
+
+No new files. No backend touch. No new fetches. Verify-to-Reveal preserved.
 
