@@ -1,103 +1,94 @@
 
 
-## What's there now (preview state, before any change)
+## What's weak today (full-mode commercial flow)
 
-The pre-OTP view today already shows:
+Current full-mode order from line ~404 onward:
+1. Header / Verdict
+2. Executive Summary (1-line strip)
+3. Risk Summary header
+4. **ForensicPillarSection** (5 pillars, raw scores) ← appears EARLY
+5. QuotePriceMath
+6. Financial Forensics (markup / fairness / leverage)
+7. RedFlagsList
+8. MissingItemsList
+9. Forensic Findings accordion
+10. **FixItCTA** (Gap-Fix / Green Checklist) — secondary
+11. Negotiation Script
+12. **Contractor Match CTA** ("Get a Better Quote" lives here, line ~963) ← BURIED at the bottom
 
-1. **Report header** — "WindowMan Truth Report™" + county + date + grade letter circle
-2. **Grade verdict band** — GRADE C / "REVIEW BEFORE SIGNING" + verdict line
-3. **Locked Preview teaser** (small strip) — `summaryTeaser || topWarning` + `missingItemsCount` + one example missing item
-4. **Risk Summary Header** — "High Risk Detected: N critical issues..." (uses `flagRedCount`/`flagAmberCount` props)
-5. **Document Verified strip** — Multi-Page · Line Items · Contractor Identified · READ QUALITY: GOOD
-6. **Top Violation Summary Strip** — single most-important violation card (from `selectTopViolation`)
-7. **5-Pillar section** — pillar names + bands (no exact scores in preview)
-8. **LockedOverlay** dimming the rest, with a small headline showing `{issueCount} issues, {redCount} critical`
+**Commercial weakness:** the highest-value CTA (`onContractorMatchClick` → `generate-contractor-brief`) is the *last* thing the user sees. Between the verdict and the CTA sit ~6 dense sections including raw pillar scores. There is no decision block ("what should I do now") and no top-of-page commercial action.
 
-**Weakness:** the gate card says only "We found N issues, including N critical." It does NOT name:
-- the **weakest pillar** (e.g. "Price Fairness scored lowest")
-- a **proof-of-read** anchor inside the gate (it's far above the gate, easy to miss on mobile)
-- the **grade band label** ("REVIEW BEFORE SIGNING") inside the gate
-- a clear **"3 of 5 findings hidden"** counter
+## Three new presentational components + one rewire
 
-The gate looks generic. The Truth Report area above it has the value, but the gate itself doesn't echo it.
+### 1. `src/components/report/TopRisksBlock.tsx` (NEW, full-mode only)
+- Input: `flags`, `pillarScores`, `missingItems`
+- Compact 3-row list (not cards). Each row: severity dot · title · 1-line "why" · pillar pill · anchor link `#finding-{id}` to detailed findings.
+- Strict grounding: title from `flag.label`; "why" from `flag.detail` → `flag.tip` → omit. Backfill from `missingItems` if <3 flags. **No** `getFlagReasoning` helper.
+- Mobile: ~80px per row, ~240px total.
 
----
+### 2. `src/components/report/PillarSnapshotStrip.tsx` (NEW, full-mode only)
+- Compact 5-cell row: pillar name + status dot only (no scores).
+- Preserves the "5-pillar mental model" without raw score emphasis. ~60px tall.
 
-## What changes — exactly 3 files
+### 3. `src/components/report/WhatToDoNowBlock.tsx` (NEW, full-mode only) — **the conversion core**
+- **Single-winner action picker** (priority order, not qualification):
+  1. **Replace / Re-bid** — wins if `grade ∈ {"D","F"}` OR `redCount >= 3`
+  2. **Negotiate** — wins if `pricePerOpeningBand ∈ {"high","extreme"}` OR `markupEstimate` present OR any `pillar === "price_fairness"` flag
+  3. **Validate** — wins if `missingItems.length > 0` OR any `fine_print`/`safety_code` flag
+- Renders: 1 expanded primary action + up to 2 collapsed chips for the runners-up.
+- **Embedded primary CTA**: `Get a Better Quote` button bound to existing `onContractorMatchClick` prop (already wired to `generate-contractor-brief` in `PostScanReportSwitcher` line 439). No new edge function, no new state.
+- "Based on:" line cites the exact evidence that triggered the action (e.g., "Grade F, 4 critical findings" or "Price band: high, markup ~$X").
+- Loading / post-click states (`isCtaLoading`, `introRequested`) are read from existing props so the button mirrors the bottom-of-page CTA's behavior.
 
-### 1. `src/components/LockedOverlay.tsx` — enrich the gate card
+### 4. `src/components/TruthReportClassic.tsx` — reorder full-mode sections
+- Insert the 3 new blocks immediately after `RiskSummaryHeader` (after line 440).
+- Move `ForensicPillarSection` (line 503) to render *after* `MissingItemsList` and *before* the Forensic Findings accordion in full mode. Preview mode keeps current pillar position so the locked teaser is unaffected.
+- Add `id="finding-{flag.id}"` to each forensic finding card so Top Risks can anchor-scroll.
+- Keep existing FixItCTA / Negotiation Script / Contractor Match section intact at the bottom — they remain valid secondary surfaces; the bottom Contractor Match section becomes a reinforcement, not the only CTA.
 
-Add 3 new optional props (purely presentational, derived from already-available preview-safe data):
+### 5. `src/components/post-scan/PostScanReportSwitcher.tsx` — **no changes needed**
+Existing `onContractorMatchClick`, `isCtaLoading`, `introRequested`, `suggestedMatch` props already flow into `TruthReportClassic`. New blocks consume them as-is.
 
-```ts
-gradeLabel?: string;        // e.g. "REVIEW BEFORE SIGNING"
-weakestPillarLabel?: string; // e.g. "Price Fairness"
-hiddenFindingsCount?: number; // total - shown-in-teaser
+## Final full-mode order (after this sprint)
+
+```
+1. Header / Verdict Strip
+2. Executive Summary (1-line)
+3. Risk Verdict Line
+4. ⬆ NEW · Top Risks Block (3 compact rows)
+5. ⬆ NEW · Pillar Snapshot Strip (5 dots)
+6. ⬆ NEW · What To Do Now + "Get a Better Quote" CTA  ← decision core
+─── Supporting Proof ───
+7. Quote Price Math
+8. Financial Forensics
+9. Red Flags list
+10. Missing Items list
+11. Forensic Findings accordion (with anchor IDs)
+─── Pillar Detail (subordinated) ───
+12. ⬇ Forensic Pillar Section (full bands + descriptions)
+─── Secondary Actions ───
+13. Fix-It CTA (Gap-Fix / Green Checklist)
+14. Negotiation Script
+15. Contractor Match section (reinforcement)
+16. Footer
 ```
 
-Inside the gate card (above the existing subtext), insert a compact 3-row "Latent Value Strip":
+Preview-mode order is **untouched**.
 
-```
-┌──────────────────────────────────────┐
-│ GRADE C · REVIEW BEFORE SIGNING      │  ← grade band echo
-│ Weakest area: Price Fairness         │  ← weakest pillar
-│ 4 critical findings still hidden     │  ← hidden counter
-└──────────────────────────────────────┘
-```
+## Mobile fit (390px viewport)
 
-All three rows are conditional — if a value is missing, that row is omitted (no invented data per constraints).
-
-The existing `subtext` line ("We found N issues, including N critical…") stays unchanged.
-
-### 2. `src/components/TruthReportClassic.tsx` — pass the 3 derived values to `LockedOverlay`
-
-In the gate render (`gateProps` spread), add:
-
-- `gradeLabel: gradeConfig[grade]?.label`
-- `weakestPillarLabel`: derived inline from `pillarScores` — pick the lowest-banded pillar (status `fail` first, then `warn`); fallback `null`
-- `hiddenFindingsCount`: `Math.max(0, (flagCountProp ?? 0) - 1)` (1 = the one shown in TopViolationSummaryStrip)
-
-Zero new fetches. All three values come from props already received from `useAnalysisData` preview.
-
-### 3. `src/components/post-scan/PostScanReportSwitcher.tsx` — thread the props through
-
-The switcher already builds `gateProps`. Add a tiny extension so the new fields flow to `TruthReportClassic` → `LockedOverlay`. No logic change, no new state, no new effects.
-
----
-
-## What does NOT change
-
-| File / system | Status |
-|---|---|
-| `useAnalysisData` | untouched |
-| `usePhonePipeline` | untouched |
-| `scan-quote` / `send-otp` / `verify-otp` | untouched |
-| Preview-safe fetch contract | untouched (no new payload fields) |
-| `RevealPhase` derivation | untouched |
-| OTP gate logic / TCPA / resend / shake | untouched |
-| Full report fetch & RLS | untouched |
-| `TopViolationSummaryStrip` / `RiskSummaryHeader` / pillar bands | untouched |
-| Mobile sticky unlock CTA | untouched |
-| New components / files | none created |
-
----
-
-## Why this increases curiosity without leaking value
-
-- **Grade label echo** ("REVIEW BEFORE SIGNING") inside the gate makes the lock feel earned — the user already saw the letter, now the gate confirms severity.
-- **Weakest pillar name** ("Price Fairness") is a *category*, not a finding. It hints where the risk lives without disclosing the actionable detail (which item, which dollar amount, which clause). This is the same level of information the existing pillar-bands already render above.
-- **"4 critical findings still hidden"** quantifies what's behind the lock — the Zeigarnik effect that's already used in the progress bar, applied to findings count. The number is derived from `flagCount`, which is already exposed in the preview payload.
-- All three are **summaries of preview-safe aggregates**, not new data leaks. The full flags array, exact pillar scores, contractor-sensitive intelligence, and scoring internals stay backend-gated.
-
----
+- Header (~140px) + Verdict (~90px) + Exec Summary (~60px) + Risk Verdict (~60px) = ~350px
+- Top Risks (~240px) + Pillar Snapshot (~60px) + What To Do Now w/ CTA (~220px) = ~520px
+- **Verdict → primary CTA visible within ~870px** (≈ 2 mobile screens). ✅
 
 ## Files to change
 
 | File | Action | Scope |
 |---|---|---|
-| `src/components/LockedOverlay.tsx` | EDIT | +3 optional props, +1 small "latent value" strip inside the existing gate card |
-| `src/components/TruthReportClassic.tsx` | EDIT | derive 3 values from existing props, pass them into `gateProps` |
-| `src/components/post-scan/PostScanReportSwitcher.tsx` | EDIT | extend `gateProps` typing/spread to forward the 3 new fields |
+| `src/components/report/TopRisksBlock.tsx` | NEW | 3-row interpretive summary; anchor links; strict grounding |
+| `src/components/report/PillarSnapshotStrip.tsx` | NEW | compact 5-cell pillar status (no scores) |
+| `src/components/report/WhatToDoNowBlock.tsx` | NEW | single-winner action picker + embedded `Get a Better Quote` CTA wired to `onContractorMatchClick` |
+| `src/components/TruthReportClassic.tsx` | EDIT | insert 3 blocks after RiskSummaryHeader (full mode); move ForensicPillarSection below detailed findings (full mode); add `id="finding-{id}"` anchors |
 
-No new files. No backend touch. No new fetches. Verify-to-Reveal preserved.
+No changes to `PostScanReportSwitcher`, `useAnalysisData`, `LockedOverlay`, edge functions, schema, RLS, OTP, or preview-mode rendering. CTA reuses existing `generate-contractor-brief` wiring — no new backend behavior invented.
 
