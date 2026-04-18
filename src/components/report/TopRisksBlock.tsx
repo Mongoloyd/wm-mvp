@@ -22,6 +22,20 @@ interface TopRisksBlockProps {
   missingItems?: (string | Record<string, unknown>)[];
 }
 
+/**
+ * Read consequence text strictly from the flag object.
+ * Locked rule: `flag.consequence` → `flag.impact` → omit.
+ * Never invented, never derived from `flag.detail`.
+ */
+function readConsequence(flag: AnalysisFlag): string | null {
+  const f = flag as unknown as { consequence?: unknown; impact?: unknown };
+  const c = typeof f.consequence === "string" ? f.consequence.trim() : "";
+  if (c) return c;
+  const i = typeof f.impact === "string" ? f.impact.trim() : "";
+  if (i) return i;
+  return null;
+}
+
 const PILLAR_PRIORITY: Record<string, number> = {
   safety_code: 1,
   price_fairness: 2,
@@ -64,6 +78,7 @@ interface RiskRow {
   key: string;
   title: string;
   why: string | null;
+  consequence: string | null;
   pillarLabel: string | null;
   severity: "red" | "amber" | "green";
   anchorId: string | null;
@@ -111,6 +126,7 @@ function buildRows(
       key: `flag-${flag.id}`,
       title: flag.label,
       why,
+      consequence: readConsequence(flag),
       pillarLabel,
       severity: sev,
       anchorId: `finding-${flag.id}`,
@@ -129,6 +145,7 @@ function buildRows(
         key: `missing-${i}`,
         title: mi.label,
         why: mi.why,
+        consequence: null,
         pillarLabel: null,
         severity: "amber",
         anchorId: null,
