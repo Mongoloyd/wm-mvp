@@ -53,6 +53,14 @@ export interface LockedOverlayProps {
   /* ── Wrong number — go back to phone entry ── */
   onChangePhone?: () => void;
 
+  /* ── Latent-value teaser (preview-safe aggregates only) ── */
+  /** e.g. "REVIEW BEFORE SIGNING" — short label echoing the grade band */
+  gradeLabel?: string;
+  /** e.g. "Price Fairness" — name of weakest pillar (category, not a finding) */
+  weakestPillarLabel?: string;
+  /** Count of findings still hidden behind the gate (excluding the one shown in the teaser) */
+  hiddenFindingsCount?: number;
+
   /* ── Shared pipeline state ── */
   isLoading: boolean;
   errorMsg: string;
@@ -84,6 +92,9 @@ export function LockedOverlay({
   onTcpaChange,
   maskedPhone,
   onChangePhone,
+  gradeLabel,
+  weakestPillarLabel,
+  hiddenFindingsCount,
   isLoading,
   errorMsg,
   errorType,
