@@ -1,21 +1,19 @@
 /**
- * WhatToDoNowBlock — the conversion core.
+ * WhatToDoNowBlock — DEMOTED informational recommendation block.
  *
- * Single-winner action picker (priority order, not qualification):
+ * Authoritative primary CTA lives in `TopRisksCTAStrip` (above the fold,
+ * directly under Financial Forensics). This block shows a single-winner
+ * recommendation with a "Based on:" evidence line and a small text link
+ * back up to the CTA strip — never a primary button.
+ *
+ * Single-winner action picker (priority order):
  *   1. Replace / Re-bid — wins on grade D/F or redCount >= 3
  *   2. Negotiate       — wins on price band high/extreme, markup, or price_fairness flag
  *   3. Validate        — wins on missing items or fine_print/safety_code flags
- *
- * Renders 1 expanded primary action + up to 2 collapsed runner-up chips.
- * Embeds the primary commercial CTA ("Get a Better Quote") wired to the
- * existing `onContractorMatchClick` prop — no new backend behavior.
- *
- * All copy is grounded in existing analysis evidence; if no action qualifies,
- * the block renders nothing.
  */
 
 import { motion } from "framer-motion";
-import { Loader2, Users, Phone, ShieldCheck, Scale, RefreshCw } from "lucide-react";
+import { ArrowUp, ShieldCheck, Scale, RefreshCw } from "lucide-react";
 import type { AnalysisFlag } from "@/hooks/useAnalysisData";
 
 type ActionKind = "replace" | "negotiate" | "validate";
@@ -36,10 +34,8 @@ interface WhatToDoNowBlockProps {
   missingItems?: (string | Record<string, unknown>)[];
   markupEstimate?: string | null;
   pricePerOpeningBand?: "low" | "market" | "high" | "extreme" | null;
-  onContractorMatchClick: () => void;
-  onReportHelpCall?: () => void;
-  isCtaLoading?: boolean;
-  introRequested?: boolean;
+  /** Shared CTA label so the link wording matches the primary strip. */
+  ctaLabel: string;
 }
 
 function pluralize(n: number, singular: string, plural?: string) {
@@ -47,15 +43,7 @@ function pluralize(n: number, singular: string, plural?: string) {
 }
 
 function buildQualified(props: WhatToDoNowBlockProps): QualifiedAction[] {
-  const {
-    flags,
-    grade,
-    redCount,
-    missingItems = [],
-    markupEstimate,
-    pricePerOpeningBand,
-  } = props;
-
+  const { flags, grade, redCount, missingItems = [], markupEstimate, pricePerOpeningBand } = props;
   const out: QualifiedAction[] = [];
 
   // 1. Replace / Re-bid
@@ -77,16 +65,11 @@ function buildQualified(props: WhatToDoNowBlockProps): QualifiedAction[] {
 
   // 2. Negotiate
   const priceFlags = flags.filter((f) => f.pillar === "price_fairness");
-  const priceBandHigh =
-    pricePerOpeningBand === "high" || pricePerOpeningBand === "extreme";
+  const priceBandHigh = pricePerOpeningBand === "high" || pricePerOpeningBand === "extreme";
   if (priceFlags.length > 0 || markupEstimate || priceBandHigh) {
     const evidenceParts: string[] = [];
-    if (priceBandHigh) {
-      evidenceParts.push(`Price band: ${pricePerOpeningBand}`);
-    }
-    if (markupEstimate) {
-      evidenceParts.push(`Markup: ${markupEstimate}`);
-    }
+    if (priceBandHigh) evidenceParts.push(`Price band: ${pricePerOpeningBand}`);
+    if (markupEstimate) evidenceParts.push(`Markup: ${markupEstimate}`);
     if (priceFlags.length > 0 && evidenceParts.length === 0) {
       evidenceParts.push(pluralize(priceFlags.length, "price-fairness finding"));
     }
@@ -102,22 +85,16 @@ function buildQualified(props: WhatToDoNowBlockProps): QualifiedAction[] {
   }
 
   // 3. Validate
-  const validateFlags = flags.filter(
-    (f) => f.pillar === "fine_print" || f.pillar === "safety_code",
-  );
+  const validateFlags = flags.filter((f) => f.pillar === "fine_print" || f.pillar === "safety_code");
   const missingCount = (missingItems ?? []).length;
   if (missingCount > 0 || validateFlags.length > 0) {
     const evidenceParts: string[] = [];
-    if (missingCount > 0) {
-      evidenceParts.push(pluralize(missingCount, "missing scope item"));
-    }
+    if (missingCount > 0) evidenceParts.push(pluralize(missingCount, "missing scope item"));
     if (validateFlags.length > 0) {
       const fineCount = validateFlags.filter((f) => f.pillar === "fine_print").length;
       const safetyCount = validateFlags.filter((f) => f.pillar === "safety_code").length;
-      if (safetyCount > 0)
-        evidenceParts.push(pluralize(safetyCount, "safety/code finding"));
-      if (fineCount > 0)
-        evidenceParts.push(pluralize(fineCount, "fine-print finding"));
+      if (safetyCount > 0) evidenceParts.push(pluralize(safetyCount, "safety/code finding"));
+      if (fineCount > 0) evidenceParts.push(pluralize(fineCount, "fine-print finding"));
     }
     out.push({
       kind: "validate",
@@ -134,13 +111,6 @@ function buildQualified(props: WhatToDoNowBlockProps): QualifiedAction[] {
 }
 
 const WhatToDoNowBlock = (props: WhatToDoNowBlockProps) => {
-  const {
-    onContractorMatchClick,
-    onReportHelpCall,
-    isCtaLoading = false,
-    introRequested = false,
-  } = props;
-
   const qualified = buildQualified(props);
   if (qualified.length === 0) return null;
 
@@ -148,172 +118,81 @@ const WhatToDoNowBlock = (props: WhatToDoNowBlockProps) => {
   const runnersUp = qualified.slice(1, 3);
   const PrimaryIcon = primary.icon;
 
-  // CTA copy adapts mildly to the primary action, but the underlying
-  // wiring is the same `onContractorMatchClick` callback in every case.
-  const ctaLabel =
-    primary.kind === "validate"
-      ? "Get a Better Quote"
-      : primary.kind === "negotiate"
-        ? "Get a Better Quote"
-        : "Get a Better Quote";
+  const handleScrollToCta = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.getElementById("cta-strip");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
-    <section className="py-6 md:py-8 px-4 md:px-8 bg-background border-b border-border">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-4">
-          <span className="wm-eyebrow" style={{ color: "hsl(var(--color-gold-accent))" }}>
+    <section className="py-5 md:py-6 px-4 md:px-8 bg-background border-b border-border">
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-3">
+          <span className="wm-eyebrow" style={{ color: "hsl(var(--foreground))" }}>
             WHAT TO DO NOW
           </span>
-          <h2 className="wm-title-section text-foreground" style={{ marginTop: 4 }}>
+          <h2 className="font-display text-foreground text-lg md:text-xl font-semibold mt-1">
             Your recommended next move
           </h2>
         </div>
 
-        {/* Primary action — expanded card with embedded CTA */}
+        {/* Compact secondary recommendation — NOT a primary CTA */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="card-raised"
-          style={{
-            borderLeft: `4px solid ${primary.accent}`,
-            padding: "20px 22px",
-          }}
+          transition={{ duration: 0.18 }}
+          className="rounded-[var(--radius-card)] border border-border bg-card px-4 py-3 md:px-5 md:py-4"
+          style={{ borderLeft: `3px solid ${primary.accent}` }}
         >
-          <div className="flex items-start gap-3 mb-3">
+          <div className="flex items-start gap-3">
             <span
               aria-hidden="true"
-              className="flex items-center justify-center flex-shrink-0"
+              className="flex items-center justify-center flex-shrink-0 mt-0.5"
               style={{
-                width: 36,
-                height: 36,
+                width: 28,
+                height: 28,
                 borderRadius: "var(--radius-btn)",
-                background: `${primary.accent}1f`,
+                background: `${primary.accent}26`,
                 color: primary.accent,
               }}
             >
-              <PrimaryIcon size={18} />
+              <PrimaryIcon size={15} />
             </span>
             <div className="flex-1 min-w-0">
-              <p
-                className="font-mono"
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: "0.1em",
-                  color: primary.accent,
-                  marginBottom: 4,
-                }}
-              >
-                PRIMARY ACTION
-              </p>
-              <h3
-                className="font-display text-foreground"
-                style={{
-                  fontSize: "clamp(18px, 2.4vw, 22px)",
-                  fontWeight: 800,
-                  lineHeight: 1.25,
-                  letterSpacing: "-0.01em",
-                }}
-              >
+              <p className="font-body text-foreground text-base font-semibold leading-snug">
                 {primary.title}
-              </h3>
+              </p>
+              <p className="font-body text-foreground/85 text-sm leading-snug mt-1">
+                {primary.oneLiner}
+              </p>
+              {primary.basedOn && (
+                <p className="font-mono text-foreground/70 text-sm mt-1.5">
+                  <span className="font-semibold">Based on:</span> {primary.basedOn}
+                </p>
+              )}
+
+              {/* Demoted: text link only — sends user back up to the authoritative CTA */}
+              <a
+                href="#cta-strip"
+                onClick={handleScrollToCta}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 underline underline-offset-2 mt-3 transition-colors"
+              >
+                <ArrowUp size={14} aria-hidden="true" />
+                {props.ctaLabel}
+              </a>
             </div>
           </div>
-
-          <p
-            className="font-body text-foreground/90"
-            style={{ fontSize: 15, lineHeight: 1.6, marginBottom: 12 }}
-          >
-            {primary.oneLiner}
-          </p>
-
-          {primary.basedOn && (
-            <p
-              className="font-mono text-muted-foreground"
-              style={{
-                fontSize: 11,
-                letterSpacing: "0.04em",
-                marginBottom: 16,
-              }}
-            >
-              <span style={{ fontWeight: 700 }}>Based on:</span> {primary.basedOn}
-            </p>
-          )}
-
-          {/* Embedded primary commercial CTA */}
-          {!introRequested ? (
-            <div className="flex flex-col sm:flex-row gap-2.5">
-              <motion.button
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                onClick={onContractorMatchClick}
-                disabled={isCtaLoading}
-                className={`flex items-center justify-center gap-2 flex-1 py-3.5 px-6 text-[15px] ${
-                  isCtaLoading ? "btn-depth-gold--pending" : "btn-depth-gold"
-                }`}
-              >
-                {isCtaLoading ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <Users size={18} />
-                )}
-                {isCtaLoading ? "Processing..." : ctaLabel}
-              </motion.button>
-              {onReportHelpCall && (
-                <motion.button
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={onReportHelpCall}
-                  disabled={isCtaLoading}
-                  className="btn-secondary-tactile flex items-center justify-center gap-2 py-3.5 px-5 text-[14px]"
-                >
-                  <Phone size={15} />
-                  <span className="hidden sm:inline">Talk to WindowMan</span>
-                  <span className="sm:hidden">Talk first</span>
-                </motion.button>
-              )}
-            </div>
-          ) : (
-            <div
-              className="card-raised border border-border flex items-center gap-2"
-              style={{
-                background: "hsl(var(--color-emerald) / 0.08)",
-                borderColor: "hsl(var(--color-emerald) / 0.3)",
-                padding: "12px 14px",
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: "hsl(var(--color-emerald))",
-                  flexShrink: 0,
-                }}
-              />
-              <p
-                className="font-body text-foreground"
-                style={{ fontSize: 13, lineHeight: 1.5 }}
-              >
-                Better-quote request submitted — see match details below.
-              </p>
-            </div>
-          )}
         </motion.div>
 
-        {/* Runner-up actions — compact chips */}
+        {/* Runner-up actions — compact chips, secondary */}
         {runnersUp.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
             {runnersUp.map((action) => (
               <span
                 key={action.kind}
-                className="inline-flex items-center gap-1.5 border border-border bg-card text-foreground/80"
+                className="inline-flex items-center gap-1.5 border border-border bg-card text-foreground/85 text-sm font-medium"
                 style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  padding: "6px 12px",
+                  padding: "5px 11px",
                   borderRadius: "var(--radius-btn)",
                 }}
                 title={action.oneLiner}
