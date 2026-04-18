@@ -556,6 +556,33 @@ Deno.serve(async (req: Request) => {
     event_id: client_event_id,
   } = parsedRequest.value;
 
+  // Forever rule observability: if the schema substituted a bad/oversized
+  // event_id with a server-minted UUID, surface it as a warning so we catch
+  // frontend regressions without ever 400'ing the scan.
+  const rawIncomingEventId = (rawBody as { event_id?: unknown } | null)?.event_id;
+  const wasSubstituted =
+    typeof rawIncomingEventId !== "string" ||
+    rawIncomingEventId.trim().length === 0 ||
+    rawIncomingEventId.trim().length > 128 ||
+    rawIncomingEventId.trim() !== client_event_id;
+  if (wasSubstituted) {
+    logScanWarn("request_validation", {
+      scan_session_id,
+      detail: "event_id_substituted",
+      reason:
+        typeof rawIncomingEventId !== "string"
+          ? "missing_or_non_string"
+          : rawIncomingEventId.trim().length === 0
+            ? "empty"
+            : rawIncomingEventId.trim().length > 128
+              ? "oversized"
+              : "trimmed",
+      original_length:
+        typeof rawIncomingEventId === "string" ? rawIncomingEventId.length : null,
+      replacement_event_id: client_event_id,
+    });
+  }
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
