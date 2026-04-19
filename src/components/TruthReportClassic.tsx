@@ -819,18 +819,21 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               // 1 finding is already surfaced via TopViolationSummaryStrip — subtract it.
               const hiddenFindingsCount = Math.max(0, (flagCountProp ?? 0) - 1);
               return (
-                <LockedOverlay
-                  grade={grade}
-                  flagCount={issueCount}
-                  gradeLabel={gradeLabel}
-                  weakestPillarLabel={weakestPillarLabel}
-                  hiddenFindingsCount={hiddenFindingsCount}
-                  {...gateProps}
-                />
+                // Anchor target for pre-OTP scroll-to-gate (orchestrator + ghost-lock CTA).
+                <div id="otp-gate" className="scroll-mt-24">
+                  <LockedOverlay
+                    grade={grade}
+                    flagCount={issueCount}
+                    gradeLabel={gradeLabel}
+                    weakestPillarLabel={weakestPillarLabel}
+                    hiddenFindingsCount={hiddenFindingsCount}
+                    {...gateProps}
+                  />
+                </div>
               );
             })() : (
             // Fallback if no gateProps provided (e.g. dev/demo without orchestrator)
-            <div className="py-12 text-center">
+            <div id="otp-gate" className="py-12 text-center scroll-mt-24">
               <p className="font-body text-muted-foreground" style={{ fontSize: 16 }}>
                 Verify your phone to unlock findings.
               </p>
