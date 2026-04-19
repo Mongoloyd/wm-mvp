@@ -943,10 +943,9 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         <section id="cta-section" className="py-12 md:py-16 px-4 md:px-8 bg-background">
           <div className="max-w-4xl mx-auto text-center">
             {!introRequested && !reportCallRequested ? (
-              /* ── PRE-CLICK: SOFTENED GHOST REINFORCEMENT ──
-                 No second hero CTA. Single primary action lives in the in-page CTA Strip
-                 (#cta-strip) and the sticky bottom mirror. This block is calm reinforcement
-                 + a ghost text-link that scrolls users back to the authoritative CTA. */}
+              // Pre-click: softened ghost reinforcement. Single primary action lives in the
+              // in-page CTA Strip and the sticky bottom mirror. This block is calm
+              // reinforcement plus a ghost text-link that scrolls back to the CTA Strip.
               <motion.div {...stagger(8)} className="mx-auto max-w-xl">
                 <p
                   className="font-body text-foreground"
