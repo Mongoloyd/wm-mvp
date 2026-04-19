@@ -84,6 +84,10 @@ export function PostScanReportSwitcher(props: Props) {
   // Used for identity continuity on dual-routed business events
   // (`report_revealed`, `contractor_match_requested`).
   const [leadId, setLeadId] = useState<string | null>(null);
+  // Hydrated lead context used for the diagnosis handoff (router state).
+  const [leadFirstName, setLeadFirstName] = useState<string | null>(null);
+  const [leadEmail, setLeadEmail] = useState<string | null>(null);
+  const [leadGrade, setLeadGrade] = useState<string | null>(null);
 
   // ── CTA state ──
   const [introRequested, setIntroRequested] = useState(false);
