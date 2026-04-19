@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { trackGtmEvent } from '@/lib/trackConversion';
-import { supabase } from '@/integrations/supabase/client';
+
 import { DIAGNOSTIC_MAP } from '../constants/diagnosticMap';
 import { generateConditionalStatement } from '../constants/branchChips';
 import { getSLAPromise } from '../lib/sla';
