@@ -519,8 +519,7 @@ export function PostScanReportSwitcher(props: Props) {
     trackEvent({
       event_name: "diagnosis_started",
       session_id: props.scanSessionId,
-      lead_id: leadId ?? undefined,
-      metadata: { source: "unlocked_report_primary_cta" },
+      metadata: { source: "unlocked_report_primary_cta", lead_id: leadId ?? null },
     });
 
     navigate("/diagnosis", {
