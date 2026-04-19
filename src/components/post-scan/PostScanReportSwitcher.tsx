@@ -70,6 +70,7 @@ function maskPhone(e164: string): string {
 }
 
 export function PostScanReportSwitcher(props: Props) {
+  const navigate = useNavigate();
   const funnel = useScanFunnelSafe();
   const [otpValue, setOtpValue] = useState("");
   const [isSendInFlight, setIsSendInFlight] = useState(false);
