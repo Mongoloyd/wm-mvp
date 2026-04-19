@@ -863,7 +863,7 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
           These sit AFTER the Forensic Findings accordion as supporting depth — they
           must not compete with the single primary CTA above. */}
       {isFull && derivedMetrics && (
-        <QuotePriceMath metrics={derivedMetrics} />
+        <QuotePriceMath metrics={derivedMetrics} county={county} />
       )}
 
       {isFull && warnings && warnings.length > 0 && (
