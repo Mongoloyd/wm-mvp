@@ -328,22 +328,35 @@ export default function ForensicPillarSection({ pillarScores, flags, county, isF
               ))}
             </div>
 
-            {/* Unlock overlay */}
+            {/* Unlock overlay — clickable, scrolls to OTP gate */}
             {!isFull && hasProblem && (
               <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
-                <div
-                  className="card-raised flex items-center gap-2"
+                <button
+                  type="button"
+                  onClick={() =>
+                    document.getElementById("otp-gate")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                  aria-label={`Unlock to see ${ranked.length - 1} more pillar areas — scroll to verification`}
+                  className="card-raised flex items-center gap-2 transition-all hover:scale-[1.02] hover:shadow-md active:scale-[0.98] cursor-pointer"
                   style={{
                     padding: "10px 20px",
-                    border: "1px solid hsl(var(--border))",
+                    border: "1px solid hsl(var(--color-gold-accent) / 0.4)",
                     background: "hsl(var(--card) / 0.95)",
                   }}
                 >
-                  <Lock size={14} className="text-muted-foreground" />
-                  <span className="font-mono text-muted-foreground" style={{ fontSize: 11, letterSpacing: "0.06em" }}>
-                    Unlock To See {ranked.length - 1} More Areas
+                  <Lock size={14} style={{ color: "hsl(var(--color-gold-accent))" }} />
+                  <span
+                    className="font-mono"
+                    style={{
+                      fontSize: 11,
+                      letterSpacing: "0.06em",
+                      color: "hsl(var(--color-gold-accent))",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Unlock To See {ranked.length - 1} More Areas →
                   </span>
-                </div>
+                </button>
               </div>
             )}
           </div>

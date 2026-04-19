@@ -284,6 +284,24 @@ export function PostScanReportSwitcher(props: Props) {
     prevAccessRef.current = accessLevel;
   }, [accessLevel]);
 
+  // ── Pre-OTP scroll-to-gate on send_code → enter_code transition ──
+  // When OTP is dispatched (often auto-fired with a pre-hydrated phone), bring
+  // the viewport to the OTP entry UI so users aren't stranded at the top of
+  // the preview with no visible code-entry surface.
+  const prevGateModeRef = useRef<GateMode>(currentGateMode);
+  useEffect(() => {
+    if (accessLevel === "full") {
+      prevGateModeRef.current = currentGateMode;
+      return;
+    }
+    if (prevGateModeRef.current !== "enter_code" && currentGateMode === "enter_code") {
+      requestAnimationFrame(() => {
+        document.getElementById("otp-gate")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+    prevGateModeRef.current = currentGateMode;
+  }, [currentGateMode, accessLevel]);
+
   const handleRetryFetchFull = useCallback(() => {
     const phone = capturedPhone || funnel?.phoneE164 || pipeline.e164;
     if (!phone) {
