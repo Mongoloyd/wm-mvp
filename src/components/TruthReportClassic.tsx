@@ -456,11 +456,13 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         />
       )}
 
-      {/* ─── FINANCIAL FORENSICS (full only) — punchy proof BEFORE the CTA ─── */}
+      {/* ─── FINANCIAL FORENSICS (full only) — punchy proof BEFORE the CTA ───
+          Asymmetric md:5-col grid: lead card spans 3, supporting stack spans 2.
+          One coherent proof unit — no billboard text, no slab + weak side notes. */}
       {isFull && (priceFairness || markupEstimate || negotiationLeverage) && (
-        <section className="py-6 md:py-8 px-4 md:px-8 bg-background border-b border-border">
+        <section className="py-6 md:py-7 px-4 md:px-8 bg-background border-b border-border">
           <div className="max-w-3xl mx-auto">
-            <motion.div {...stagger(2.5)} className="mb-4">
+            <motion.div {...stagger(2.5)} className="mb-3">
               <span className="wm-eyebrow" style={{ color: "hsl(var(--color-gold-accent))" }}>
                 FINANCIAL FORENSICS
               </span>
@@ -469,68 +471,69 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
               </h2>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4">
               {markupEstimate && (
                 <motion.div
                   {...stagger(2.6)}
-                  className="rounded-[var(--radius-card)] border border-border bg-card p-4"
+                  className="md:col-span-3 rounded-[var(--radius-card)] border border-border bg-card p-5 md:p-6"
                   style={{ borderLeft: "3px solid hsl(var(--color-danger))" }}
                 >
                   <p
-                    className="font-mono text-sm font-bold uppercase"
+                    className="font-mono text-xs font-bold uppercase"
                     style={{ color: "hsl(var(--color-danger))", letterSpacing: "0.08em" }}
                   >
                     Estimated Markup
                   </p>
-                  <p
-                    className="font-display text-foreground tabular-nums mt-1"
-                    style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1 }}
-                  >
+                  <p className="font-display text-foreground tabular-nums text-3xl md:text-[28px] font-bold tracking-tight leading-none mt-2 mb-2">
                     {markupEstimate}
                   </p>
-                  <p className="font-body text-foreground/80 text-sm mt-1.5 leading-snug">
+                  <p className="font-body text-foreground text-sm font-medium leading-snug">
                     Over Standard Florida Wholesale + Labor Baseline
                   </p>
                 </motion.div>
               )}
 
-              {priceFairness && (
-                <motion.div
-                  {...stagger(2.7)}
-                  className="rounded-[var(--radius-card)] border border-border bg-card p-4"
-                  style={{ borderLeft: "3px solid hsl(var(--color-caution))" }}
-                >
-                  <p
-                    className="font-mono text-sm font-bold uppercase"
-                    style={{ color: "hsl(var(--color-caution))", letterSpacing: "0.08em" }}
-                  >
-                    Price Fairness
-                  </p>
-                  <p className="font-body text-foreground text-sm leading-snug mt-1.5 line-clamp-4">
-                    {priceFairness}
-                  </p>
-                </motion.div>
-              )}
+              {(priceFairness || negotiationLeverage) && (
+                <div className="md:col-span-2 flex flex-col gap-3">
+                  {priceFairness && (
+                    <motion.div
+                      {...stagger(2.7)}
+                      className="rounded-[var(--radius-card)] border border-border bg-card p-4"
+                      style={{ borderLeft: "3px solid hsl(var(--color-caution))" }}
+                    >
+                      <p
+                        className="font-mono text-xs font-bold uppercase mb-1.5"
+                        style={{ color: "hsl(var(--color-caution))", letterSpacing: "0.08em" }}
+                      >
+                        Price Fairness
+                      </p>
+                      <p className="font-body text-foreground text-sm leading-snug line-clamp-3">
+                        {priceFairness}
+                      </p>
+                    </motion.div>
+                  )}
 
-              {negotiationLeverage && (
-                <motion.div
-                  {...stagger(2.8)}
-                  className="rounded-[var(--radius-card)] border border-border bg-card p-4"
-                  style={{ borderLeft: "3px solid hsl(var(--color-cyan))" }}
-                >
-                  <p
-                    className="font-mono text-sm font-bold uppercase"
-                    style={{ color: "hsl(var(--color-cyan))", letterSpacing: "0.08em" }}
-                  >
-                    Your Leverage
-                  </p>
-                  <p
-                    className="font-body text-foreground text-sm leading-snug mt-1.5 line-clamp-4"
-                    style={{ whiteSpace: "pre-line" }}
-                  >
-                    {negotiationLeverage}
-                  </p>
-                </motion.div>
+                  {negotiationLeverage && (
+                    <motion.div
+                      {...stagger(2.8)}
+                      className="rounded-[var(--radius-card)] border border-border bg-card p-4"
+                      style={{ borderLeft: "3px solid hsl(var(--color-cyan))" }}
+                    >
+                      <p
+                        className="font-mono text-xs font-bold uppercase mb-1.5"
+                        style={{ color: "hsl(var(--color-cyan))", letterSpacing: "0.08em" }}
+                      >
+                        Your Leverage
+                      </p>
+                      <p
+                        className="font-body text-foreground text-sm leading-snug line-clamp-3"
+                        style={{ whiteSpace: "pre-line" }}
+                      >
+                        {negotiationLeverage}
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -940,90 +943,78 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         <section id="cta-section" className="py-12 md:py-16 px-4 md:px-8 bg-background">
           <div className="max-w-4xl mx-auto text-center">
             {!introRequested && !reportCallRequested ? (
-              /* ── PRE-CLICK: Dual CTAs ── */
-              <>
-                <motion.div {...stagger(8)}>
-                  <span className="wm-eyebrow" style={{ color: "hsl(var(--color-gold-accent))" }}>
-                    NEXT STEP
-                  </span>
-                  <h2
-                    className="font-display text-foreground"
-                    style={{
-                      fontSize: "clamp(24px, 4vw, 32px)",
-                      fontWeight: 800,
-                      letterSpacing: "-0.02em",
-                      marginTop: 8,
-                      marginBottom: 8,
-                    }}
-                  >
-                    Want a Contractor Who Will Do This job Right?
-                  </h2>
-                  <p
-                    className="font-body text-foreground/90"
-                    style={{ fontSize: 18, maxWidth: 560, margin: "0 auto 32px", lineHeight: 1.7 }}
-                  >
-                    Based on your Grade {grade} and the {issueCount} issue{issueCount !== 1 ? "s" : ""} found, I can
-                    introduce you to a vetted {county} County contractor who quotes fair.
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  {...stagger(9)}
-                  className="flex flex-col items-center gap-3"
-                  style={{ maxWidth: 520, margin: "0 auto" }}
+              /* ── PRE-CLICK: SOFTENED GHOST REINFORCEMENT ──
+                 No second hero CTA. Single primary action lives in the in-page CTA Strip
+                 (#cta-strip) and the sticky bottom mirror. This block is calm reinforcement
+                 + a ghost text-link that scrolls users back to the authoritative CTA. */}
+              <motion.div {...stagger(8)} className="mx-auto max-w-xl">
+                <p
+                  className="font-body text-foreground"
+                  style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.5, marginBottom: 8 }}
                 >
-                  {/* Gold CTA — Counter-Quote / Introduction */}
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={onContractorMatchClick}
-                    disabled={isCtaLoading}
-                    className={`flex items-center justify-center gap-2 w-full py-4 px-8 text-[17px] ${isCtaLoading ? "btn-depth-gold--pending" : "btn-depth-gold"}`}
-                  >
-                    {isCtaLoading ? <Loader2 size={18} className="animate-spin" /> : <Users size={20} />}
-                    {isCtaLoading ? "Processing..." : "Get a Counter-Quote From a Vetted Contractor"}
-                  </motion.button>
+                  Ready to act on this report?
+                </p>
+                <p
+                  className="font-body text-foreground/85"
+                  style={{ fontSize: 15, lineHeight: 1.7, marginBottom: 20 }}
+                >
+                  Use the <span className="font-semibold text-foreground">{ctaLabel}</span> button above to request a
+                  vetted {county} County contractor who quotes fair on your Grade {grade} project.
+                </p>
 
-                  {/* Secondary CTA — Call About Report */}
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById("cta-strip");
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="inline-flex items-center gap-1.5 font-body font-semibold text-foreground hover:text-primary underline underline-offset-4 transition-colors"
+                  style={{ fontSize: 15, background: "none", border: "none", cursor: "pointer" }}
+                >
+                  ↑ {ctaLabel}
+                </button>
+
+                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-6">
+                  <button
+                    type="button"
                     onClick={onReportHelpCall}
                     disabled={isCtaLoading}
-                    className="btn-secondary-tactile flex items-center justify-center gap-2 w-full py-3.5 px-7 text-[15px]"
+                    className="font-body text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                    }}
                   >
-                    <Phone size={16} />
-                    Call WindowMan About My Report
-                  </motion.button>
-
-                  {/* Scan Another Quote */}
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
+                    <Phone size={13} /> Call WindowMan about my report
+                  </button>
+                  <button
+                    type="button"
                     onClick={onSecondScan}
                     className="font-body text-muted-foreground hover:text-foreground transition-colors"
                     style={{
                       background: "none",
                       border: "none",
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: 500,
-                      padding: "8px 0",
                       cursor: "pointer",
                       textDecoration: "underline",
                     }}
                   >
-                    Scan Another Quote →
-                  </motion.button>
-                </motion.div>
+                    Scan another quote →
+                  </button>
+                </div>
 
                 <p
                   className="font-body text-muted-foreground"
-                  style={{ fontSize: 14, fontStyle: "italic", marginTop: 20 }}
+                  style={{ fontSize: 12, fontStyle: "italic", marginTop: 16, lineHeight: 1.6 }}
                 >
-                  No obligation. Free Estimate. Your Contractor Never Sees This Unless You Want WindowMan To Secure a
-                  Better Deal
+                  Your contractor never sees this report unless you choose to share it.
                 </p>
-              </>
+              </motion.div>
             ) : introRequested ? (
               /* ── POST-CLICK: Intro success + match card ── */
               <AnimatePresence mode="wait">
