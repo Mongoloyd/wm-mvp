@@ -1,11 +1,46 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { trackGtmEvent } from '@/lib/trackConversion';
+import { supabase } from '@/integrations/supabase/client';
 import { DIAGNOSTIC_MAP } from '../constants/diagnosticMap';
 import { generateConditionalStatement } from '../constants/branchChips';
 import { getSLAPromise } from '../lib/sla';
 import type { DiagnosisCode, DiagnosticContext, StepId } from '../types';
 
+/**
+ * Hydration status for the diagnosis intake.
+ *  - pending: initial check / async lookup in flight
+ *  - ready: real lead context is loaded (router state OR durable fallback)
+ *  - failed: no usable context — UI must render the safe empty state
+ */
+export type HydrationStatus = 'pending' | 'ready' | 'failed';
+
+interface DiagnosisRouterState {
+  lead_id?: string | null;
+  scan_session_id?: string | null;
+  report_grade?: string | null;
+  first_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  top_insights?: string[] | null;
+  returnTo?: string | null;
+}
+
+const EMPTY_CONTEXT: DiagnosticContext = {
+  lead_id: '',
+  scan_session_id: '',
+  report_grade: '',
+  top_insights: [],
+  first_name: '',
+  phone: '',
+  email: '',
+};
+
 export function useDiagnosticIntake() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const incomingState = (location.state ?? null) as DiagnosisRouterState | null;
+
   const [step, setStep] = useState<StepId>('intake');
   const [primaryDiagnosis, setPrimaryDiagnosis] = useState<DiagnosisCode | null>(null);
   const [secondaryClarifiers, setSecondaryClarifiers] = useState<string[]>([]);
@@ -18,34 +53,46 @@ export function useDiagnosticIntake() {
   const [counterOfferTerms, setCounterOfferTerms] = useState<string[]>([]);
   const [counterOfferFreeText, setCounterOfferFreeText] = useState('');
 
-  // Pre-existing lead context — already collected at upload time, never re-asked
-  const [context, setContext] = useState<DiagnosticContext>({
-    lead_id: '',
-    scan_session_id: '',
-    report_grade: '',
-    top_insights: [],
-    first_name: '',
-    phone: '',
-    email: '',
-  });
+  const [context, setContext] = useState<DiagnosticContext>(EMPTY_CONTEXT);
+  const [hydrationStatus, setHydrationStatus] = useState<HydrationStatus>('pending');
+  // returnTo is preserved separately so it survives refresh-driven recovery.
+  const [returnTo, setReturnTo] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const pageTopRef = useRef<HTMLDivElement>(null);
 
+  // ── Hydration: router state preferred, scan_session_id fallback ──────────
   useEffect(() => {
-    // TODO(arc-5): hydrate from real lead/report context (Vault / lead record / URL params)
-    setContext({
-      lead_id: 'ld_987654321',
-      scan_session_id: 'scan_123456789',
-      report_grade: 'D',
-      top_insights: [
-        'Warranty coverage gap on 4 window units',
-        'Pricing 18% above benchmark for your ZIP',
-      ],
-      first_name: 'Peter',
-      phone: '(305) 555-4567',
-      email: 'peter@gmail.com',
-    });
+    let cancelled = false;
+
+    // 1. Router state (preferred — immediate, full context)
+    if (incomingState?.scan_session_id) {
+      const ctx: DiagnosticContext = {
+        lead_id: incomingState.lead_id ?? '',
+        scan_session_id: incomingState.scan_session_id,
+        report_grade: incomingState.report_grade ?? '',
+        top_insights: Array.isArray(incomingState.top_insights) ? incomingState.top_insights : [],
+        first_name: incomingState.first_name ?? '',
+        phone: incomingState.phone ?? '',
+        email: incomingState.email ?? '',
+      };
+      setContext(ctx);
+      setReturnTo(incomingState.returnTo ?? (ctx.scan_session_id ? `/report/classic/${ctx.scan_session_id}` : null));
+      setHydrationStatus('ready');
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // 2. Durable fallback: scan_session_id is not in router state.
+    //    In this pass we do NOT read it from the URL (no public URL contract
+    //    change). If router state is missing, we fail closed to the empty state.
+    setHydrationStatus('failed');
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once on mount
   }, []);
 
   const scrollToTop = useCallback(() => {
@@ -129,6 +176,27 @@ export function useDiagnosticIntake() {
     alert('In production, this opens your account settings to update contact info.');
   };
 
+  /**
+   * Back-to-Report navigation.
+   * Order:
+   *   1. returnTo (router-state-supplied)
+   *   2. /report/classic/:scan_session_id (canonical reconstruction)
+   *   3. "/" (final fallback)
+   * Browser history is intentionally NOT used — users may have navigated
+   * around other pages first.
+   */
+  const handleReturnToReport = useCallback(() => {
+    if (returnTo) {
+      navigate(returnTo);
+      return;
+    }
+    if (context.scan_session_id) {
+      navigate(`/report/classic/${context.scan_session_id}`);
+      return;
+    }
+    navigate('/');
+  }, [navigate, returnTo, context.scan_session_id]);
+
   // Counter-offer readiness — CTA gates on at least one amber chip
   const hasCounterOffer = counterOfferTerms.length > 0;
 
@@ -140,6 +208,10 @@ export function useDiagnosticIntake() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!primaryDiagnosis || !hasCounterOffer) return;
+    if (!context.scan_session_id) {
+      console.warn('[Diagnosis] Submit blocked: missing scan_session_id (no continuity).');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -150,6 +222,8 @@ export function useDiagnosticIntake() {
       counterOfferTerms
     );
 
+    // Submission keeps the SAME lead_id + scan_session_id from the report
+    // handoff. Do NOT mint a new synthetic lead thread here.
     const payload = {
       lead_id: context.lead_id,
       scan_session_id: context.scan_session_id,
@@ -213,6 +287,8 @@ export function useDiagnosticIntake() {
     counterOfferFreeText,
     context,
     isSubmitting,
+    hydrationStatus,
+    returnTo,
 
     // Derived
     activeConfig,
@@ -240,6 +316,7 @@ export function useDiagnosticIntake() {
     handleBack,
     handleContactEdit,
     handleSubmit,
+    handleReturnToReport,
     scrollToTop,
   };
 }
