@@ -162,9 +162,15 @@ export function PostScanReportSwitcher(props: Props) {
 
         const { data: lead } = await supabase
           .from("leads")
-          .select("phone_e164")
+          .select("phone_e164, first_name, email, grade")
           .eq("id", session.lead_id)
           .maybeSingle();
+
+        if (!cancelled && lead) {
+          setLeadFirstName(lead.first_name ?? null);
+          setLeadEmail(lead.email ?? null);
+          setLeadGrade(lead.grade ?? null);
+        }
 
         if (cancelled || !funnel) return;
 
