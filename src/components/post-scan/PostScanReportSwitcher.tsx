@@ -483,61 +483,70 @@ export function PostScanReportSwitcher(props: Props) {
     }
   }, [availableComparisons, phoneE164]);
 
-  const handleContractorMatchClick = useCallback(async () => {
-    if (!props.scanSessionId || !phoneE164) {
-      toast.error("Unable to process request. Please verify your phone number first.");
+  // Primary unlocked-report CTA → Diagnosis Intake.
+  // Router-state handoff only (no public URL contract change in this pass).
+  // The contractor-brief / voice-followup edge functions are intentionally
+  // NOT invoked here — diagnosis owns the next-step lead conversation.
+  const handleContractorMatchClick = useCallback(() => {
+    if (!props.scanSessionId) {
+      toast.error("Unable to continue. Please refresh and try again.");
       return;
     }
-    setIsCtaLoading(true);
 
-    // ═══ CANONICAL BUSINESS EVENT: contractor_match_requested ═══
-    // Single owner: this smart container (full identity is known here).
-    // event_id mirrors the server `defaultCreateId` algorithm so the
-    // browser dataLayer push and any server-side canonical persistence
-    // share one id (cross-lane dedup-safe via GTM → Meta/Google).
-    const contractorMatchEventId = buildCanonicalEventId({
-      eventName: "contractor_match_requested",
-      leadId,
-      scanSessionId: props.scanSessionId,
-    });
-    trackGtmEvent("contractor_match_requested", {
-      event_id: contractorMatchEventId,
+    // Derive top_insights from the actual report flags (top 3 by effective severity).
+    const topInsights = [...props.flags]
+      .sort((a, b) => {
+        const sev = { red: 0, amber: 1, green: 2 } as const;
+        const aSev = resolveEffectiveSeverity(a);
+        const bSev = resolveEffectiveSeverity(b);
+        return (sev[aSev] ?? 3) - (sev[bSev] ?? 3);
+      })
+      .slice(0, 3)
+      .map((f) => f.label)
+      .filter(Boolean);
+
+    const returnTo = `/report/classic/${props.scanSessionId}`;
+
+    // Preserve analytics: use the existing dataLayer event family but signal
+    // the diagnosis intent. Keeps measurement continuity without re-using the
+    // contractor-match canonical event id (no server brief/voice-followup fired).
+    trackGtmEvent("diagnosis_started", {
       scan_session_id: props.scanSessionId,
       lead_id: leadId ?? undefined,
       grade: props.grade,
       county: props.county,
     });
+    trackEvent({
+      event_name: "diagnosis_started",
+      session_id: props.scanSessionId,
+      lead_id: leadId ?? undefined,
+      metadata: { source: "unlocked_report_primary_cta" },
+    });
 
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke("generate-contractor-brief", {
-        body: { scan_session_id: props.scanSessionId, phone_e164: phoneE164, cta_source: "intro_request" },
-      });
-      if (fnError || !data?.success) {
-        console.error("[PostScanReportSwitcher] brief generation failed", fnError || data);
-        toast.error("Something went wrong. Please try again.");
-        setIsCtaLoading(false);
-        return;
-      }
-      if (data.suggested_match) {
-        setSuggestedMatch(data.suggested_match);
-      }
-      supabase.functions.invoke("voice-followup", {
-        body: {
-          scan_session_id: props.scanSessionId,
-          phone_e164: phoneE164,
-          call_intent: "contractor_intro",
-          cta_source: "intro_request",
-          opportunity_id: data.opportunity_id,
-        },
-      }).catch(err => console.warn("[PostScanReportSwitcher] voice followup failed", err));
-      setIntroRequested(true);
-    } catch (err) {
-      console.error("[PostScanReportSwitcher] unexpected error", err);
-      toast.error("Connection error. Please try again.");
-    } finally {
-      setIsCtaLoading(false);
-    }
-  }, [props.scanSessionId, phoneE164, leadId, props.grade, props.county]);
+    navigate("/diagnosis", {
+      state: {
+        lead_id: leadId,
+        scan_session_id: props.scanSessionId,
+        report_grade: leadGrade ?? props.grade,
+        first_name: leadFirstName,
+        phone: phoneE164,
+        email: leadEmail,
+        top_insights: topInsights,
+        returnTo,
+      },
+    });
+  }, [
+    navigate,
+    props.scanSessionId,
+    props.flags,
+    props.grade,
+    props.county,
+    leadId,
+    leadGrade,
+    leadFirstName,
+    leadEmail,
+    phoneE164,
+  ]);
 
   // ── CTA B: Call WindowMan About My Report ──
   const handleReportHelpCall = useCallback(async () => {
