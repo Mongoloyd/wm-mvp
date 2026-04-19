@@ -8,9 +8,50 @@ import { StepPrescription } from './diagnosis/components/StepPrescription';
 import { SuccessScreen } from './diagnosis/components/SuccessScreen';
 import { MarketingSections } from './diagnosis/components/MarketingSections';
 
+const PAGE_BG = 'linear-gradient(170deg, #dce8f4 0%, #e4edf6 30%, #eaeff8 60%, #dde6f2 100%)';
+
 const Diagnosis = () => {
   const navigate = useNavigate();
   const intake = useDiagnosticIntake();
+
+  // ── Hydration: pending ─────────────────────────────────────────────────────
+  if (intake.hydrationStatus === 'pending') {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center font-sans text-foreground"
+        style={{ background: PAGE_BG }}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+          <p className="text-xs text-muted-foreground font-mono">Loading your diagnosis…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Hydration: failed → safe empty state, route user back to start ─────────
+  if (intake.hydrationStatus === 'failed') {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center px-6 font-sans text-foreground"
+        style={{ background: PAGE_BG }}
+      >
+        <div className="max-w-md text-center bg-white/70 backdrop-blur-md rounded-2xl border border-border/60 p-8 shadow-sm">
+          <h1 className="font-display text-2xl font-bold mb-3">Start from your report</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            Your diagnosis needs the context from your unlocked Truth Report. Head back to the report and
+            tap the primary CTA to continue from there.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ── Success state ─────────────────────────────────────────────────────────
   if (intake.step === 'success') {
@@ -18,17 +59,17 @@ const Diagnosis = () => {
       <SuccessScreen
         context={intake.context}
         activeConfig={intake.activeConfig}
-        onReturn={() => navigate('/')}
+        onReturn={intake.handleReturnToReport}
       />
     );
   }
 
-  // ── Main render ───────────────────────────────────────────────────────────
+  // ── Main render (hydrationStatus === 'ready') ─────────────────────────────
   return (
     <div
       ref={intake.pageTopRef}
       className="min-h-screen font-sans text-foreground selection:bg-cobalt/20 relative overflow-hidden"
-      style={{ background: 'linear-gradient(170deg, #dce8f4 0%, #e4edf6 30%, #eaeff8 60%, #dde6f2 100%)' }}
+      style={{ background: PAGE_BG }}
     >
       {/* Nav */}
       <nav className="border-b border-border/60 px-6 py-4 flex items-center justify-between sticky top-0 bg-white/70 backdrop-blur-md z-50">
@@ -42,7 +83,7 @@ const Diagnosis = () => {
           <span className="font-display font-extrabold text-xl tracking-tight text-foreground">WindowMan</span>
         </div>
         <button
-          onClick={() => navigate('/')}
+          onClick={intake.handleReturnToReport}
           className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Report
