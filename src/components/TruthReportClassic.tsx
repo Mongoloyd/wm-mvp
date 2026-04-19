@@ -858,6 +858,38 @@ I'm ready to move forward if we can get these items addressed. What's the fastes
         </div>
       </section>
 
+      {/* ─── POST-FINDINGS DEEPER PROOF (full mode only) ───
+          Order: Quote Price Math → Red Flags → Missing Items → demoted WhatToDoNow → full Pillar Section.
+          These sit AFTER the Forensic Findings accordion as supporting depth — they
+          must not compete with the single primary CTA above. */}
+      {isFull && derivedMetrics && (
+        <QuotePriceMath metrics={derivedMetrics} />
+      )}
+
+      {isFull && warnings && warnings.length > 0 && (
+        <RedFlagsList warnings={warnings} />
+      )}
+
+      {isFull && missingItems && missingItems.length > 0 && (
+        <MissingItemsList missingItems={missingItems} />
+      )}
+
+      {isFull && (
+        <WhatToDoNowBlock
+          flags={flags}
+          grade={grade}
+          redCount={redCount}
+          missingItems={missingItems}
+          markupEstimate={markupEstimate}
+          pricePerOpeningBand={pricePerOpeningBand}
+          ctaLabel={ctaLabel}
+        />
+      )}
+
+      {isFull && (
+        <ForensicPillarSection pillarScores={pillarScores} flags={flags} county={county} isFull={isFull} />
+      )}
+
       {/* ─── FIX-IT CTA ─── */}
       <FixItCTA
         redCount={redCount}
